@@ -1,0 +1,5 @@
+# Except special '.deps' files, and C++/CUDA sources
+!.deps
+!*.hpp
+!*.cpp
+!*.cu

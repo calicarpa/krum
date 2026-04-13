@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Except directories, placeholders, gitignores, LICENSE, Markdown files and Python sources
+!*/
+!.placeholder
+!.gitignore
+!LICENSE
+!*.md
+!*.py
