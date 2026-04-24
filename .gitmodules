@@ -1,0 +1,19 @@
+[submodule "vendor/Byzantine-Robust-Gossip"]
+	path = vendor/Byzantine-Robust-Gossip
+	url = https://github.com/renaudgaucher/Byzantine-Robust-Gossip.git
+
+[submodule "vendor/byzfl"]
+	path = vendor/byzfl
+	url = https://github.com/LPD-EPFL/byzfl.git
+
+[submodule "vendor/robust-collaborative-learning"]
+	path = vendor/robust-collaborative-learning
+	url = https://github.com/LPD-EPFL/robust-collaborative-learning.git
+
+[submodule "vendor/SignGuard"]
+	path = vendor/SignGuard
+	url = https://github.com/JianXu95/SignGuard.git
+
+[submodule "vendor/DECOR"]
+	path = vendor/DECOR
+	url = https://github.com/elfirdoussilab1/DECOR.git

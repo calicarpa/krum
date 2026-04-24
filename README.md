@@ -19,6 +19,15 @@ Krum est un projet autour de l’agrégation de gradients robuste en apprentissa
 - [RPEL-BF2D](analysis/rpel_bf2d_analysis.md)
 - [SignGuard](analysis/signguard_analysis.md)
 
+## Dépôts externes
+
+- [Byzantine-Robust-Gossip](https://github.com/renaudgaucher/Byzantine-Robust-Gossip)
+- [ByzFL](https://github.com/LPD-EPFL/byzfl)
+- [Robust Collaborative Learning](https://github.com/LPD-EPFL/robust-collaborative-learning)
+- [SignGuard](https://github.com/JianXu95/SignGuard)
+- [DECOR](https://github.com/elfirdoussilab1/DECOR)
+- [RPEL-BF2D](https://anonymous.4open.science/r/RPEL-BF2D/readme)
+
 ## Objectif
 
 Cette branche sert à documenter et comparer des stratégies de robustesse pour l’entraînement distribué. L’idée est de garder une base lisible pour explorer des agrégateurs, des attaques et des scénarios d’évaluation.
