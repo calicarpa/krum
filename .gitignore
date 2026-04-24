@@ -8,3 +8,6 @@
 !LICENSE
 !*.md
 !*.py
+
+# IDE stuff
+.idea
