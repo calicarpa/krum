@@ -43,26 +43,6 @@ Additional metadata available on each rule:
 - ``rule.check``: The validation function
 - ``rule.upper_bound``: Theoretical bound on stddev/norm ratio (if available)
 - ``rule.influence``: Attack acceptance ratio (if available)
-
-Example
--------
-
-.. code-block:: python
-
-    import aggregators
-    import torch
-
-    gradients = [torch.randn(1000) for _ in range(10)]
-
-    # Using Krum with f=2 Byzantine workers
-    result = aggregators.krum(gradients=gradients, f=2, model=model)
-
-    # Validate parameters first
-    if aggregators.krum.check(gradients=gradients, f=2) is None:
-        result = aggregators.krum(gradients=gradients, f=2)
-
-    # Access theoretical bound
-    bound = aggregators.krum.upper_bound(n=10, f=2, d=1000)
 """
 
 import pathlib

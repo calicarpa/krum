@@ -27,6 +27,7 @@ gradient can completely skew the result.
 Example
 -------
 
+>>> import aggregators
 >>> import torch
 >>> from aggregators import average
 >>> gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]

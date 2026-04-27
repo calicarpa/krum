@@ -39,38 +39,6 @@ The module exposes three variants for each attack:
 - ``attack``: The default version (checked in debug mode, unchecked in release)
 - ``attack.checked``: Always validates parameters
 - ``attack.unchecked``: Skips validation (faster in production)
-
-Example
--------
-
-.. code-block:: python
-
-    import attacks
-    import torch
-
-    honest_grads = [torch.randn(1000) for _ in range(10)]
-
-    # Using NaN attack
-    byzantine = attacks.nan(
-        grad_honests=honest_grads,
-        f_decl=2,
-        f_real=2,
-        model=model
-    )
-
-    # Using Little attack with custom factor
-    byzantine = attacks.little(
-        grad_honests=honest_grads,
-        f_decl=2,
-        f_real=2,
-        defense=aggregator,
-        model=model,
-        factor=1.5
-    )
-
-    # Validate parameters first
-    if attacks.nan.check(grad_honests=honest_grads, f_real=2) is None:
-        byzantine = attacks.nan(grad_honests=honest_grads, f_decl=2, f_real=2, model=model)
 """
 
 import pathlib

@@ -62,6 +62,8 @@ All aggregators can be called with the same keyword-only interface:
     # Checking validity before calling
     if aggregators.krum.check(gradients=list_of_gradients, f=2) is None:
         result = aggregators.krum(gradients=list_of_gradients, f=2)
+      
+   
 
 Available Aggregators
 ---------------------

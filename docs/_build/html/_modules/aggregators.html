@@ -418,8 +418,6 @@
 <span class="c1">###</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Byzantine-Resilient Gradient Aggregation Rules (GARs).</span>
-
 <span class="sd">This module provides a collection of robust aggregation rules for distributed</span>
 <span class="sd">learning. Each rule can tolerate a certain number of Byzantine (malicious)</span>
 <span class="sd">workers while still converging correctly.</span>
@@ -449,15 +447,6 @@
 <span class="sd">- ``rule.check``: The validation function</span>
 <span class="sd">- ``rule.upper_bound``: Theoretical bound on stddev/norm ratio (if available)</span>
 <span class="sd">- ``rule.influence``: Attack acceptance ratio (if available)</span>
-
-<span class="sd">Available Rules</span>
-<span class="sd">---------------</span>
-
-<span class="sd">- **Average**: Simple arithmetic mean (baseline, no Byzantine resilience)</span>
-<span class="sd">- **Median**: Coordinate-wise median (basic resilience against NaN)</span>
-<span class="sd">- **Krum / Multi-Krum**: Distance-based selection (moderate resilience)</span>
-<span class="sd">- **Bulyan**: Two-stage selection + trimmed mean (strong resilience)</span>
-<span class="sd">- **Brute**: Exhaustive search for optimal subset (best theoretical)</span>
 
 <span class="sd">Example</span>
 <span class="sd">-------</span>

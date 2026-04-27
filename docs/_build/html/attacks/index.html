@@ -432,8 +432,8 @@
 keyword-only contract and includes parameter validation.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id2">
-<caption><span class="caption-text">Attacks</span><a class="headerlink" href="#id2" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-text">Attacks</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 20.0%" />
 <col style="width: 42.0%" />
@@ -519,7 +519,6 @@ keyword-only contract and includes parameter validation.</p>
 </section>
 <section id="module-attacks">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-attacks" title="Link to this heading">#</a></h2>
-<p>Byzantine Attack Strategies.</p>
 <p>This module provides a collection of Byzantine attack strategies for testing
 the robustness of distributed learning algorithms.</p>
 <section id="contract">
@@ -542,21 +541,6 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <li><p><code class="docutils literal notranslate"><span class="pre">attack</span></code>: The default version (checked in debug mode, unchecked in release)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">attack.checked</span></code>: Always validates parameters</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">attack.unchecked</span></code>: Skips validation (faster in production)</p></li>
-</ul>
-</section>
-<section id="id1">
-<h3>Available Attacks<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>NaN</strong>: Generates gradients with NaN values (simple baseline attack)</p></li>
-<li><dl class="simple">
-<dt><strong>Identical</strong>: Multiple variants that submit identical Byzantine gradients:</dt><dd><ul>
-<li><p><strong>bulyan</strong>: Uses ones vector as attack direction</p></li>
-<li><p><strong>empire</strong>: Uses negative average as direction</p></li>
-<li><p><strong>little</strong>: Uses standard deviation as direction</p></li>
-</ul>
-</dd>
-</dl>
-</li>
 </ul>
 <p class="rubric">Example</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">attacks</span>
@@ -683,7 +667,6 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-attacks">Available Attacks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-attacks">API Reference</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#contract">Contract</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Available Attacks</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attacks.attack"><code class="docutils literal notranslate"><span class="pre">attack()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attacks.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attacks.empire"><code class="docutils literal notranslate"><span class="pre">empire()</span></code></a></li>

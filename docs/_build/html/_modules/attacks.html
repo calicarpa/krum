@@ -418,8 +418,6 @@
 <span class="c1">###</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Byzantine Attack Strategies.</span>
-
 <span class="sd">This module provides a collection of Byzantine attack strategies for testing</span>
 <span class="sd">the robustness of distributed learning algorithms.</span>
 
@@ -445,15 +443,6 @@
 <span class="sd">- ``attack``: The default version (checked in debug mode, unchecked in release)</span>
 <span class="sd">- ``attack.checked``: Always validates parameters</span>
 <span class="sd">- ``attack.unchecked``: Skips validation (faster in production)</span>
-
-<span class="sd">Available Attacks</span>
-<span class="sd">-----------------</span>
-
-<span class="sd">- **NaN**: Generates gradients with NaN values (simple baseline attack)</span>
-<span class="sd">- **Identical**: Multiple variants that submit identical Byzantine gradients:</span>
-<span class="sd">    - **bulyan**: Uses ones vector as attack direction</span>
-<span class="sd">    - **empire**: Uses negative average as direction</span>
-<span class="sd">    - **little**: Uses standard deviation as direction</span>
 
 <span class="sd">Example</span>
 <span class="sd">-------</span>

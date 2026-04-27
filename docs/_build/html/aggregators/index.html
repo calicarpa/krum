@@ -520,7 +520,6 @@ and optional theoretical bounds.</p>
 </section>
 <section id="module-aggregators">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aggregators" title="Link to this heading">#</a></h2>
-<p>Byzantine-Resilient Gradient Aggregation Rules (GARs).</p>
 <p>This module provides a collection of robust aggregation rules for distributed
 learning. Each rule can tolerate a certain number of Byzantine (malicious)
 workers while still converging correctly.</p>
@@ -547,16 +546,6 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <li><p><code class="docutils literal notranslate"><span class="pre">rule.check</span></code>: The validation function</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rule.upper_bound</span></code>: Theoretical bound on stddev/norm ratio (if available)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rule.influence</span></code>: Attack acceptance ratio (if available)</p></li>
-</ul>
-</section>
-<section id="available-rules">
-<h3>Available Rules<a class="headerlink" href="#available-rules" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>Average</strong>: Simple arithmetic mean (baseline, no Byzantine resilience)</p></li>
-<li><p><strong>Median</strong>: Coordinate-wise median (basic resilience against NaN)</p></li>
-<li><p><strong>Krum / Multi-Krum</strong>: Distance-based selection (moderate resilience)</p></li>
-<li><p><strong>Bulyan</strong>: Two-stage selection + trimmed mean (strong resilience)</p></li>
-<li><p><strong>Brute</strong>: Exhaustive search for optimal subset (best theoretical)</p></li>
 </ul>
 <p class="rubric">Example</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
@@ -698,7 +687,6 @@ deviation / norm to use this aggregation rule: (n, f, d) -&gt; float.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-aggregators">Available Aggregators</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-aggregators">API Reference</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#contract">Contract</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-rules">Available Rules</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.average"><code class="docutils literal notranslate"><span class="pre">average()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute"><code class="docutils literal notranslate"><span class="pre">brute()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
