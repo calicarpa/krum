@@ -46,10 +46,6 @@ autosummary_generate=True
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_sidebars = {
-    "team/index": [],
-}
-
 html_theme = 'shibuya' #"pydata_sphinx_theme"
 html_title = "Krum, the Library"
 html_static_path = ['_static']
