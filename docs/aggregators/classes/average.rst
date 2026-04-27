@@ -1,5 +1,5 @@
 Average
 =======
 
-.. autoclass:: aggregators.average
-   :no-members:
+.. automodule:: aggregators.average
+   :members:

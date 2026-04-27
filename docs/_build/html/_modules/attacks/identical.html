@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>attacks.identical &#8212; Krum</title>
+    <title>attacks.identical &#8212; Krum, the Library</title>
   
   
   
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">Krum</p>
+    <p class="title logo__title">Krum, the Library</p>
   
 </a></div>
     
@@ -140,13 +140,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -154,49 +147,39 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
 
 
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
-    Native Acceleration
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native
   </a>
 </li>
 
-                </ul>
-            </li>
-            
   </ul>
 </nav></div>
       
@@ -285,13 +268,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -299,28 +275,28 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../tools.html">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
@@ -328,7 +304,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -456,6 +432,38 @@
  <span class="c1">#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1</span>
 <span class="c1">###</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This attack generates multiple copies of the same Byzantine gradient. The attack</span>
+<span class="sd">vector is computed based on the honest gradients and added to their average</span>
+<span class="sd">with a specific factor.</span>
+
+<span class="sd">Three attack directions are available:</span>
+
+<span class="sd">1. **Bulyan**: Uses a vector of ones (or single coordinate) as attack direction</span>
+<span class="sd">2. **Empire**: Uses the negative of the average gradient</span>
+<span class="sd">3. **Little**: Uses the standard deviation of gradients as attack direction</span>
+
+<span class="sd">Parameters</span>
+<span class="sd">----------</span>
+
+<span class="sd">factor : float or int, optional</span>
+<span class="sd">    Attack scaling factor. Positive values add the attack vector, negative values</span>
+<span class="sd">    trigger automatic optimization to find the best factor. Default is -16 (evaluates</span>
+<span class="sd">    up to 16 factors to find optimal).</span>
+<span class="sd">negative : bool, optional</span>
+<span class="sd">    Whether to use negative factor. Default is False.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">&gt;&gt;&gt; import torch</span>
+<span class="sd">&gt;&gt;&gt; from attacks import identical</span>
+<span class="sd">&gt;&gt;&gt; honest_grads = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]</span>
+<span class="sd">&gt;&gt;&gt; byzantine_grads = identical.little(honest_grads=honest_grads, f_decl=1, f_real=1, model=None)</span>
+<span class="sd">&gt;&gt;&gt; print(byzantine_grads[0])</span>
+<span class="sd">tensor([...])  # Modified gradient based on std dev</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
@@ -469,80 +477,115 @@
 <div class="viewcode-block" id="make_attack">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.make_attack">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_attack</span><span class="p">(</span><span class="n">compute_direction</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Make the attack gradient generation closure associated with an attack direction.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    compute_direction Attack vector computation, (stacked honest gradients, average honest gradient, forwarded keyword-arguments...) -&gt; attack vector (in the gradient space, no reference)</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Byzantine gradient generation closure</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">def</span><span class="w"> </span><span class="nf">attack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="p">,</span> <span class="n">f_decl</span><span class="p">,</span> <span class="n">defense</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">factor</span><span class="o">=-</span><span class="mi">16</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generate the attack gradients.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      grad_honests Non-empty list of honest gradients</span>
-<span class="sd">      f_decl       Number of declared Byzantine gradients</span>
-<span class="sd">      f_real       Number of Byzantine gradients to generate</span>
-<span class="sd">      defense      Aggregation rule in use to defeat</span>
-<span class="sd">      model        Model with valid default dataset and loss set</span>
-<span class="sd">      factor       Fixed attack factor if positive, number of evaluations for best attack factor if negative</span>
-<span class="sd">      negative     Use a negative factor instead of a positive one</span>
-<span class="sd">      ...          Forwarded keyword-arguments</span>
-<span class="sd">    Returns:</span>
-<span class="sd">      Generated Byzantine gradients (all references to one)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create the attack gradient generation closure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    compute_direction : callable</span>
+<span class="sd">        Attack vector computation function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    callable</span>
+<span class="sd">        Attack gradient generation closure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Fast path</span>
-    <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="c1"># Stack and compute the average honest gradient, and then the attack vector</span>
-    <span class="n">grad_stck</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span>
-    <span class="n">grad_avg</span>  <span class="o">=</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">grad_att</span>  <span class="o">=</span> <span class="n">compute_direction</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="c1"># Evaluate the best attack factor (if required)</span>
-    <span class="k">if</span> <span class="n">factor</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="k">def</span><span class="w"> </span><span class="nf">eval_factor</span><span class="p">(</span><span class="n">factor</span><span class="p">):</span>
-        <span class="c1"># Apply the given factor</span>
-        <span class="k">if</span> <span class="n">negative</span><span class="p">:</span>
-          <span class="n">factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">factor</span>
-        <span class="n">grad_attack</span> <span class="o">=</span> <span class="n">grad_avg</span> <span class="o">+</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">grad_att</span>
-        <span class="c1"># Measure effective squared distance</span>
-        <span class="n">aggregated</span> <span class="o">=</span> <span class="n">defense</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="p">(</span><span class="n">grad_honests</span> <span class="o">+</span> <span class="p">[</span><span class="n">grad_attack</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span><span class="p">),</span> <span class="n">f</span><span class="o">=</span><span class="n">f_decl</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
-        <span class="n">aggregated</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">aggregated</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">aggregated</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-      <span class="n">factor</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">line_maximize</span><span class="p">(</span><span class="n">eval_factor</span><span class="p">,</span> <span class="n">evals</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="o">-</span><span class="n">factor</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">negative</span><span class="p">:</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">factor</span>
-    <span class="c1"># Generate the Byzantine gradient from the given/computed factor</span>
-    <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">grad_avg</span>
-    <span class="n">grad_att</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
-    <span class="n">byz_grad</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">grad_att</span><span class="p">)</span>
-    <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span>
-  <span class="c1"># Return the attack closure</span>
-  <span class="k">return</span> <span class="n">attack</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">attack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="p">,</span> <span class="n">f_decl</span><span class="p">,</span> <span class="n">defense</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">factor</span><span class="o">=-</span><span class="mi">16</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the attack gradients.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grad_honests : list of torch.Tensor</span>
+<span class="sd">            Non-empty list of honest gradients.</span>
+<span class="sd">        f_decl : int</span>
+<span class="sd">            Number of declared Byzantine gradients.</span>
+<span class="sd">        f_real : int</span>
+<span class="sd">            Number of Byzantine gradients to generate.</span>
+<span class="sd">        defense : callable</span>
+<span class="sd">            Aggregation rule in use to defeat.</span>
+<span class="sd">        model : torch.nn.Module</span>
+<span class="sd">            Model with valid default dataset and loss set.</span>
+<span class="sd">        factor : float or int, optional</span>
+<span class="sd">            Attack factor. Positive for fixed, negative for auto-optimization.</span>
+<span class="sd">        negative : bool, optional</span>
+<span class="sd">            Use negative factor. Default is False.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Additional keyword arguments.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of torch.Tensor</span>
+<span class="sd">            Generated Byzantine gradients (all references to one).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Fast path</span>
+        <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="c1"># Stack and compute the average honest gradient, and then the attack vector</span>
+        <span class="n">grad_stck</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span>
+        <span class="n">grad_avg</span>  <span class="o">=</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">grad_att</span>  <span class="o">=</span> <span class="n">compute_direction</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Evaluate the best attack factor (if required)</span>
+        <span class="k">if</span> <span class="n">factor</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">eval_factor</span><span class="p">(</span><span class="n">factor</span><span class="p">):</span>
+                <span class="c1"># Apply the given factor</span>
+                <span class="k">if</span> <span class="n">negative</span><span class="p">:</span>
+                    <span class="n">factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">factor</span>
+                <span class="n">grad_attack</span> <span class="o">=</span> <span class="n">grad_avg</span> <span class="o">+</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">grad_att</span>
+                <span class="c1"># Measure effective squared distance</span>
+                <span class="n">aggregated</span> <span class="o">=</span> <span class="n">defense</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="p">(</span><span class="n">grad_honests</span> <span class="o">+</span> <span class="p">[</span><span class="n">grad_attack</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span><span class="p">),</span> <span class="n">f</span><span class="o">=</span><span class="n">f_decl</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+                <span class="n">aggregated</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">aggregated</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">aggregated</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">line_maximize</span><span class="p">(</span><span class="n">eval_factor</span><span class="p">,</span> <span class="n">evals</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="o">-</span><span class="n">factor</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">negative</span><span class="p">:</span>
+                <span class="n">factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">factor</span>
+        <span class="c1"># Generate the Byzantine gradient from the given/computed factor</span>
+        <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">grad_avg</span>
+        <span class="n">grad_att</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+        <span class="n">byz_grad</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">grad_att</span><span class="p">)</span>
+        <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span>
+    <span class="c1"># Return the attack closure</span>
+    <span class="k">return</span> <span class="n">attack</span></div>
 
 
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="p">,</span> <span class="n">defense</span><span class="p">,</span> <span class="n">factor</span><span class="o">=-</span><span class="mi">16</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Check parameter validity for this attack template.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    grad_honests Non-empty list of honest gradients</span>
-<span class="sd">    f_real       Number of Byzantine gradients to generate</span>
-<span class="sd">    defense      Aggregation rule in use to defeat</span>
-<span class="sd">    ...          Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Whether the given parameters are valid for this attack</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">defense</span><span class="p">):</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a callable for the aggregation rule, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defense</span><span class="p">,)</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)):</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a positive number or a negative integer for the attack factor, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="p">,)</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a boolean for optional parameter &#39;negative&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">negative</span><span class="p">,)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check parameter validity for this attack template.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_honests : list</span>
+<span class="sd">        Non-empty list of honest gradients.</span>
+<span class="sd">    f_real : int</span>
+<span class="sd">        Number of Byzantine gradients to generate.</span>
+<span class="sd">    defense : callable</span>
+<span class="sd">        Aggregation rule in use to defeat.</span>
+<span class="sd">    factor : float or int, optional</span>
+<span class="sd">        Attack factor. Default is -16.</span>
+<span class="sd">    negative : bool, optional</span>
+<span class="sd">        Use negative factor. Default is False.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None or str</span>
+<span class="sd">        None if valid, otherwise error message string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">defense</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a callable for the aggregation rule, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defense</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a positive number or a negative integer for the attack factor, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a boolean for optional parameter &#39;negative&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">negative</span><span class="p">,)</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
@@ -551,47 +594,86 @@
 <div class="viewcode-block" id="bulyan">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.bulyan">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">bulyan</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">,</span> <span class="n">target_idx</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the attack vector adapted from &quot;The Hidden Vulnerability&quot;.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    target_idx Index of the targeted coordinate, &quot;all&quot; for all</span>
-<span class="sd">  See:</span>
-<span class="sd">    make_attack</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="n">target_idx</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;Expected an integer or </span><span class="se">\&quot;</span><span class="s2">all</span><span class="se">\&quot;</span><span class="s2"> for &#39;target_idx&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_idx</span><span class="p">,)</span>
-    <span class="n">grad_att</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
-    <span class="n">grad_att</span><span class="p">[</span><span class="n">target_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="n">grad_att</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the attack vector adapted from &quot;The Hidden Vulnerability&quot;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_stck : torch.Tensor</span>
+<span class="sd">        Stacked honest gradients.</span>
+<span class="sd">    grad_avg : torch.Tensor</span>
+<span class="sd">        Average of honest gradients.</span>
+<span class="sd">    target_idx : int or str, optional</span>
+<span class="sd">        Index of the targeted coordinate, &quot;all&quot; for all. Default is -1 (last coordinate).</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Attack vector.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">target_idx</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;Expected an integer or </span><span class="se">\&quot;</span><span class="s2">all</span><span class="se">\&quot;</span><span class="s2"> for &#39;target_idx&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_idx</span><span class="p">,)</span>
+        <span class="n">grad_att</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
+        <span class="n">grad_att</span><span class="p">[</span><span class="n">target_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">grad_att</span></div>
 
 
 <div class="viewcode-block" id="empire">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.empire">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">empire</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the attack vector adapted from &quot;Fall of Empires&quot;.</span>
-<span class="sd">  See:</span>
-<span class="sd">    make_attack</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">grad_avg</span><span class="o">.</span><span class="n">neg</span><span class="p">()</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the attack vector adapted from &quot;Fall of Empires&quot;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_stck : torch.Tensor</span>
+<span class="sd">        Stacked honest gradients.</span>
+<span class="sd">    grad_avg : torch.Tensor</span>
+<span class="sd">        Average of honest gradients.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Attack vector (negative of average).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">grad_avg</span><span class="o">.</span><span class="n">neg</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="little">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.little">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">little</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the attack vector adapted from &quot;A Little is Enough&quot;.</span>
-<span class="sd">  See:</span>
-<span class="sd">    make_attack</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the attack vector adapted from &quot;A Little is Enough&quot;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_stck : torch.Tensor</span>
+<span class="sd">        Stacked honest gradients.</span>
+<span class="sd">    grad_avg : torch.Tensor</span>
+<span class="sd">        Average of honest gradients.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Attack vector (square root of variance).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># Attack registrations</span>
 
-<span class="c1"># Register the attacks</span>
+<span class="c1"># Register the attacks</span>
 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;bulyan&quot;</span><span class="p">,</span> <span class="n">bulyan</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;empire&quot;</span><span class="p">,</span> <span class="n">empire</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;little&quot;</span><span class="p">,</span> <span class="n">little</span><span class="p">)):</span>
-  <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">make_attack</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">check</span><span class="p">)</span>
+    <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">make_attack</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">check</span><span class="p">)</span>
 </pre></div>
 
                 </article>

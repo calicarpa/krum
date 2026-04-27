@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>attacks.nan &#8212; Krum</title>
+    <title>attacks.nan &#8212; Krum, the Library</title>
   
   
   
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">Krum</p>
+    <p class="title logo__title">Krum, the Library</p>
   
 </a></div>
     
@@ -140,13 +140,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -154,49 +147,39 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
 
 
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
-    Native Acceleration
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native
   </a>
 </li>
 
-                </ul>
-            </li>
-            
   </ul>
 </nav></div>
       
@@ -285,13 +268,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -299,28 +275,28 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../tools.html">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
@@ -328,7 +304,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -444,6 +420,30 @@
  <span class="c1"># Attack that generates NaN gradient(s), hence the name.</span>
 <span class="c1">###</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This attack generates gradients containing NaN (Not a Number) values. The goal</span>
+<span class="sd">is to disrupt training by introducing non-finite values into the aggregation</span>
+<span class="sd">process.</span>
+
+<span class="sd">**Use case:** Simple baseline attack to test the robustness of aggregation</span>
+<span class="sd">rules against non-finite values.</span>
+
+<span class="sd">**Properties:**</span>
+<span class="sd">- Simple: Generates gradients filled with NaN values</span>
+<span class="sd">- Effective against naive aggregators</span>
+<span class="sd">- Mitigated by coordinate-wise median and other robust methods</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">&gt;&gt;&gt; import torch</span>
+<span class="sd">&gt;&gt;&gt; from attacks import nan</span>
+<span class="sd">&gt;&gt;&gt; honest_grads = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]</span>
+<span class="sd">&gt;&gt;&gt; byzantine_grads = nan(honest_grads=honest_grads, f_decl=1, f_real=1, model=None)</span>
+<span class="sd">&gt;&gt;&gt; print(byzantine_grads[0])</span>
+<span class="sd">tensor([nan, nan, nan])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
@@ -455,45 +455,63 @@
 <div class="viewcode-block" id="attack">
 <a class="viewcode-back" href="../../attacks/classes/nan.html#attacks.nan.attack">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">attack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Generate non-finite gradients.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    grad_honests Non-empty list of honest gradients</span>
-<span class="sd">    f_real       Number of Byzantine gradients to generate</span>
-<span class="sd">    ...          Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Generated Byzantine gradients</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="c1"># Fast path</span>
-  <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
-  <span class="c1"># Generate the non-finite Byzantine gradient</span>
-  <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-  <span class="n">byz_grad</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">nan</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byz_grad</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
-  <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
-  <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate non-finite gradients.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_honests : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of honest gradients.</span>
+<span class="sd">    f_real : int</span>
+<span class="sd">        Number of Byzantine gradients to generate.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of torch.Tensor</span>
+<span class="sd">        List of Byzantine gradients containing NaN values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path</span>
+    <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="c1"># Generate the non-finite Byzantine gradient</span>
+    <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">byz_grad</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">nan</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byz_grad</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+    <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span></div>
 
 
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../attacks/classes/nan.html#attacks.nan.check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Check parameter validity for this attack.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    grad_honests Non-empty list of honest gradients</span>
-<span class="sd">    f_real       Number of Byzantine gradients to generate</span>
-<span class="sd">    ...          Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Whether the given parameters are valid for this attack</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check parameter validity for this attack.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grad_honests : list</span>
+<span class="sd">        Non-empty list of honest gradients.</span>
+<span class="sd">    f_real : int</span>
+<span class="sd">        Number of Byzantine gradients to generate.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None or str</span>
+<span class="sd">        None if valid, otherwise error message string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># Attack registering</span>
 
-<span class="c1"># Register the attack</span>
+<span class="c1"># Register the attack</span>
 <span class="n">register</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="n">attack</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
 </pre></div>
 

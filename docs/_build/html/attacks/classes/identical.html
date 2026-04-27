@@ -143,6 +143,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -172,7 +179,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -266,6 +273,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -295,7 +309,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -415,14 +429,55 @@
                   
   <section id="module-attacks.identical">
 <span id="identical"></span><h1>Identical<a class="headerlink" href="#module-attacks.identical" title="Link to this heading">#</a></h1>
+<p>This attack generates multiple copies of the same Byzantine gradient. The attack
+vector is computed based on the honest gradients and added to their average
+with a specific factor.</p>
+<p>Three attack directions are available:</p>
+<ol class="arabic simple">
+<li><p><strong>Bulyan</strong>: Uses a vector of ones (or single coordinate) as attack direction</p></li>
+<li><p><strong>Empire</strong>: Uses the negative of the average gradient</p></li>
+<li><p><strong>Little</strong>: Uses the standard deviation of gradients as attack direction</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">param factor<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attack scaling factor. Positive values add the attack vector, negative values
+trigger automatic optimization to find the best factor. Default is -16 (evaluates
+up to 16 factors to find optimal).</p>
+</dd>
+<dt class="field-even">type factor<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or int, optional</p>
+</dd>
+<dt class="field-odd">param negative<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether to use negative factor. Default is False.</p>
+</dd>
+<dt class="field-even">type negative<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool, optional</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">attacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">identical</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">honest_grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">])]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">byzantine_grads</span> <span class="o">=</span> <span class="n">identical</span><span class="o">.</span><span class="n">little</span><span class="p">(</span><span class="n">honest_grads</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span> <span class="n">f_decl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">f_real</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">byzantine_grads</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">tensor([...])  # Modified gradient based on std dev</span>
+</pre></div>
+</div>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.bulyan">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_stck</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_avg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/identical.html#bulyan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.bulyan" title="Link to this definition">#</a></dt>
-<dd><p>Compute the attack vector adapted from “The Hidden Vulnerability”.
-:param target_idx Index of the targeted coordinate:
-:param “all” for all:</p>
-<dl class="simple">
-<dt>See:</dt><dd><p>make_attack</p>
+<dd><p>Compute the attack vector adapted from “The Hidden Vulnerability”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_stck</strong> (<em>torch.Tensor</em>) – Stacked honest gradients.</p></li>
+<li><p><strong>grad_avg</strong> (<em>torch.Tensor</em>) – Average of honest gradients.</p></li>
+<li><p><strong>target_idx</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Index of the targeted coordinate, “all” for all. Default is -1 (last coordinate).</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Attack vector.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -430,14 +485,20 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.check">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defense</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/identical.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.check" title="Link to this definition">#</a></dt>
-<dd><p>Check parameter validity for this attack template.
-:param grad_honests Non-empty list of honest gradients:
-:param f_real       Number of Byzantine gradients to generate:
-:param defense      Aggregation rule in use to defeat:
-:param …          Ignored keyword-arguments:</p>
+<dd><p>Check parameter validity for this attack template.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Whether the given parameters are valid for this attack</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_honests</strong> (<em>list</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>f_real</strong> (<em>int</em>) – Number of Byzantine gradients to generate.</p></li>
+<li><p><strong>defense</strong> (<em>callable</em>) – Aggregation rule in use to defeat.</p></li>
+<li><p><strong>factor</strong> (<em>float</em><em> or </em><em>int</em><em>, </em><em>optional</em>) – Attack factor. Default is -16.</p></li>
+<li><p><strong>negative</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use negative factor. Default is False.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -445,44 +506,67 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.empire">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">empire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_stck</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_avg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/identical.html#empire"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.empire" title="Link to this definition">#</a></dt>
-<dd><p>Compute the attack vector adapted from “Fall of Empires”.
-See:</p>
-<blockquote>
-<div><p>make_attack</p>
-</div></blockquote>
+<dd><p>Compute the attack vector adapted from “Fall of Empires”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_stck</strong> (<em>torch.Tensor</em>) – Stacked honest gradients.</p></li>
+<li><p><strong>grad_avg</strong> (<em>torch.Tensor</em>) – Average of honest gradients.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Attack vector (negative of average).</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.func">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_stck</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_avg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.identical.func" title="Link to this definition">#</a></dt>
-<dd><p>Compute the attack vector adapted from “A Little is Enough”.
-See:</p>
-<blockquote>
-<div><p>make_attack</p>
-</div></blockquote>
+<dd><p>Compute the attack vector adapted from “A Little is Enough”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_stck</strong> (<em>torch.Tensor</em>) – Stacked honest gradients.</p></li>
+<li><p><strong>grad_avg</strong> (<em>torch.Tensor</em>) – Average of honest gradients.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Attack vector (square root of variance).</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.little">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">little</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_stck</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_avg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/identical.html#little"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.little" title="Link to this definition">#</a></dt>
-<dd><p>Compute the attack vector adapted from “A Little is Enough”.
-See:</p>
-<blockquote>
-<div><p>make_attack</p>
-</div></blockquote>
+<dd><p>Compute the attack vector adapted from “A Little is Enough”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_stck</strong> (<em>torch.Tensor</em>) – Stacked honest gradients.</p></li>
+<li><p><strong>grad_avg</strong> (<em>torch.Tensor</em>) – Average of honest gradients.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Attack vector (square root of variance).</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.make_attack">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">make_attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compute_direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/identical.html#make_attack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.make_attack" title="Link to this definition">#</a></dt>
-<dd><p>Make the attack gradient generation closure associated with an attack direction.
-:param compute_direction Attack vector computation:
-:type compute_direction Attack vector computation: stacked honest gradients, average honest gradient, forwarded keyword-arguments…) -&gt; attack vector (in the gradient space, no reference
-:param :
-:type : stacked honest gradients, average honest gradient, forwarded keyword-arguments…) -&gt; attack vector (in the gradient space, no reference</p>
+<dd><p>Create the attack gradient generation closure.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Byzantine gradient generation closure</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>compute_direction</strong> (<em>callable</em>) – Attack vector computation function.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>callable</strong> – Attack gradient generation closure.</p>
 </dd>
 </dl>
 </dd></dl>

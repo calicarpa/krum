@@ -1,7 +1,7 @@
 Attacks
 =======
 
-Krum supports several Byzantine attack strategies.
+Krum provides several Byzantine attack strategies.
 
 .. toctree::
    :maxdepth: 2
