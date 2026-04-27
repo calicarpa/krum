@@ -1,5 +1,5 @@
-Native Acceleration
-===================
+Native
+======
 
 The ``native/`` folder is not just a repository of C++/CUDA sources. It compiles at Python import time.
 

@@ -1,6 +1,0 @@
-Aggregators
-===========
-
-.. toctree::
-
-   aggregators/index

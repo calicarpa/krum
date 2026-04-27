@@ -8,7 +8,7 @@ and optional theoretical bounds.
 Overview
 --------
 
-.. list-table:: Aggregator overview
+.. list-table:: Aggregators
    :header-rows: 1
    :widths: 16 42 24 18
 

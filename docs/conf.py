@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 project = 'Krum'
 copyright = '2026'
-author = 'Peva BLANCHARD, Arthur DANJOU, El Mahdi EL MHAMDI, Sébastien ROUAULT, Mohammed Ammar SAID'
+author = 'Peva BLANCHARD, Arthur DANJOU, El-Mahdi EL-MHAMDI, Sébastien ROUAULT, Mohammed Ammar SAID'
 
 
 # -- General configuration ---------------------------------------------------
@@ -46,10 +46,12 @@ autosummary_generate=True
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-
+html_sidebars = {
+    "team/index": [],
+}
 
 html_theme = "pydata_sphinx_theme"
-html_title = "Krum"
+html_title = "Krum, the Library"
 html_static_path = ['_static']
 html_css_files = ['custom.css','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css']
 html_show_sourcelink = False
@@ -57,10 +59,10 @@ html_theme_options = {
     "header_links_before_dropdown": 5,
     "icon_links": [
         {
-  "name": "GitHub",
-  "url": "https://github.com/calicarpa/krum",
-  "icon": "fab fa-github",
-  "type": "fontawesome",
+            "name": "GitHub",
+            "url": "https://github.com/calicarpa/krum",
+            "icon": "fab fa-github",
+            "type": "fontawesome",
         },
     ],
 }
@@ -77,14 +79,14 @@ napoleon_custom_sections = [
 latex_elements = {
     'preamble': r'''
         \usepackage{amsmath}
-        \newcommand{\argmin}{\mathop{\mathrm{arg\,min}}
+        \newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
     '''
 }
 
 mathjax_config = {
     'TeX': {
         'Macros': {
-  'argmin': r'\mathop{\mathrm{arg\,min}}',
+            'argmin': r'\mathop{\mathrm{arg\,min}}',
         }
     }
 }

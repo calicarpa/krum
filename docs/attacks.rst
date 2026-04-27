@@ -1,6 +1,0 @@
-Attacks
-=======
-
-.. toctree::
-
-   attacks/index
