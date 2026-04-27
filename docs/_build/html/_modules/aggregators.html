@@ -447,26 +447,6 @@
 <span class="sd">- ``rule.check``: The validation function</span>
 <span class="sd">- ``rule.upper_bound``: Theoretical bound on stddev/norm ratio (if available)</span>
 <span class="sd">- ``rule.influence``: Attack acceptance ratio (if available)</span>
-
-<span class="sd">Example</span>
-<span class="sd">-------</span>
-
-<span class="sd">.. code-block:: python</span>
-
-<span class="sd">    import aggregators</span>
-<span class="sd">    import torch</span>
-
-<span class="sd">    gradients = [torch.randn(1000) for _ in range(10)]</span>
-
-<span class="sd">    # Using Krum with f=2 Byzantine workers</span>
-<span class="sd">    result = aggregators.krum(gradients=gradients, f=2, model=model)</span>
-
-<span class="sd">    # Validate parameters first</span>
-<span class="sd">    if aggregators.krum.check(gradients=gradients, f=2) is None:</span>
-<span class="sd">        result = aggregators.krum(gradients=gradients, f=2)</span>
-
-<span class="sd">    # Access theoretical bound</span>
-<span class="sd">    bound = aggregators.krum.upper_bound(n=10, f=2, d=1000)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>

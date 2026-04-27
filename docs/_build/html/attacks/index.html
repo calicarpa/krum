@@ -542,35 +542,6 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <li><p><code class="docutils literal notranslate"><span class="pre">attack.checked</span></code>: Always validates parameters</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">attack.unchecked</span></code>: Skips validation (faster in production)</p></li>
 </ul>
-<p class="rubric">Example</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">attacks</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-
-<span class="n">honest_grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
-
-<span class="c1"># Using NaN attack</span>
-<span class="n">byzantine</span> <span class="o">=</span> <span class="n">attacks</span><span class="o">.</span><span class="n">nan</span><span class="p">(</span>
-    <span class="n">grad_honests</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span>
-    <span class="n">f_decl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">f_real</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">model</span>
-<span class="p">)</span>
-
-<span class="c1"># Using Little attack with custom factor</span>
-<span class="n">byzantine</span> <span class="o">=</span> <span class="n">attacks</span><span class="o">.</span><span class="n">little</span><span class="p">(</span>
-    <span class="n">grad_honests</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span>
-    <span class="n">f_decl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">f_real</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">defense</span><span class="o">=</span><span class="n">aggregator</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-    <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span>
-<span class="p">)</span>
-
-<span class="c1"># Validate parameters first</span>
-<span class="k">if</span> <span class="n">attacks</span><span class="o">.</span><span class="n">nan</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span> <span class="n">f_real</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">byzantine</span> <span class="o">=</span> <span class="n">attacks</span><span class="o">.</span><span class="n">nan</span><span class="p">(</span><span class="n">grad_honests</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span> <span class="n">f_decl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">f_real</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
-</pre></div>
-</div>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.attack">

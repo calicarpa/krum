@@ -443,38 +443,6 @@
 <span class="sd">- ``attack``: The default version (checked in debug mode, unchecked in release)</span>
 <span class="sd">- ``attack.checked``: Always validates parameters</span>
 <span class="sd">- ``attack.unchecked``: Skips validation (faster in production)</span>
-
-<span class="sd">Example</span>
-<span class="sd">-------</span>
-
-<span class="sd">.. code-block:: python</span>
-
-<span class="sd">    import attacks</span>
-<span class="sd">    import torch</span>
-
-<span class="sd">    honest_grads = [torch.randn(1000) for _ in range(10)]</span>
-
-<span class="sd">    # Using NaN attack</span>
-<span class="sd">    byzantine = attacks.nan(</span>
-<span class="sd">        grad_honests=honest_grads,</span>
-<span class="sd">        f_decl=2,</span>
-<span class="sd">        f_real=2,</span>
-<span class="sd">        model=model</span>
-<span class="sd">    )</span>
-
-<span class="sd">    # Using Little attack with custom factor</span>
-<span class="sd">    byzantine = attacks.little(</span>
-<span class="sd">        grad_honests=honest_grads,</span>
-<span class="sd">        f_decl=2,</span>
-<span class="sd">        f_real=2,</span>
-<span class="sd">        defense=aggregator,</span>
-<span class="sd">        model=model,</span>
-<span class="sd">        factor=1.5</span>
-<span class="sd">    )</span>
-
-<span class="sd">    # Validate parameters first</span>
-<span class="sd">    if attacks.nan.check(grad_honests=honest_grads, f_real=2) is None:</span>
-<span class="sd">        byzantine = attacks.nan(grad_honests=honest_grads, f_decl=2, f_real=2, model=model)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
