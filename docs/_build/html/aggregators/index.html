@@ -520,6 +520,62 @@ and optional theoretical bounds.</p>
 </section>
 <section id="module-aggregators">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aggregators" title="Link to this heading">#</a></h2>
+<p>Byzantine-Resilient Gradient Aggregation Rules (GARs).</p>
+<p>This module provides a collection of robust aggregation rules for distributed
+learning. Each rule can tolerate a certain number of Byzantine (malicious)
+workers while still converging correctly.</p>
+<section id="contract">
+<h3>Contract<a class="headerlink" href="#contract" title="Link to this heading">#</a></h3>
+<p>Each aggregation rule MUST:</p>
+<ol class="arabic simple">
+<li><p>Accept keyword-only arguments</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">gradients</span></code> (non-empty list of gradients)</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">f</span></code> (number of Byzantine gradients to tolerate)</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">model</span></code> (model with configured defaults)</p></li>
+<li><p>NOT return a tensor that aliases any input tensor</p></li>
+</ol>
+<p>Each rule MUST provide a <code class="docutils literal notranslate"><span class="pre">check</span></code> function that validates parameters and
+returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if valid, or an error message if invalid.</p>
+<p>The module exposes three variants for each rule:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rule</span></code>: The default version (checked in debug mode, unchecked in release)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rule.checked</span></code>: Always validates parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rule.unchecked</span></code>: Skips validation (faster in production)</p></li>
+</ul>
+<p>Additional metadata available on each rule:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rule.check</span></code>: The validation function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rule.upper_bound</span></code>: Theoretical bound on stddev/norm ratio (if available)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rule.influence</span></code>: Attack acceptance ratio (if available)</p></li>
+</ul>
+</section>
+<section id="available-rules">
+<h3>Available Rules<a class="headerlink" href="#available-rules" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Average</strong>: Simple arithmetic mean (baseline, no Byzantine resilience)</p></li>
+<li><p><strong>Median</strong>: Coordinate-wise median (basic resilience against NaN)</p></li>
+<li><p><strong>Krum / Multi-Krum</strong>: Distance-based selection (moderate resilience)</p></li>
+<li><p><strong>Bulyan</strong>: Two-stage selection + trimmed mean (strong resilience)</p></li>
+<li><p><strong>Brute</strong>: Exhaustive search for optimal subset (best theoretical)</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+
+<span class="c1"># Using Krum with f=2 Byzantine workers</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># Validate parameters first</span>
+<span class="k">if</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Access theoretical bound</span>
+<span class="n">bound</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average">
 <span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.average" title="Link to this definition">#</a></dt>
@@ -543,15 +599,19 @@ and optional theoretical bounds.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.make_gar">
 <span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">make_gar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unchecked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aggregators.html#make_gar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.make_gar" title="Link to this definition">#</a></dt>
-<dd><p>GAR wrapper helper.
-:param unchecked   Associated function:
-:type unchecked   Associated function: see module description
-:param check       Parameter validity check function:
-:param upper_bound Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this aggregation rule: (n, f, d) -&gt; float
-:param influence   Attack acceptation ratio function:</p>
+<dd><p>GAR wrapper helper.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Wrapped GAR</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>unchecked</strong> (<em>callable</em>) – Associated function (see module description).</p></li>
+<li><p><strong>check</strong> (<em>callable</em>) – Parameter validity check function.</p></li>
+<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Compute the theoretical upper bound on the ratio non-Byzantine standard
+deviation / norm to use this aggregation rule: (n, f, d) -&gt; float.</p></li>
+<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Attack acceptance ratio function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>callable</strong> – Wrapped GAR.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -564,13 +624,18 @@ and optional theoretical bounds.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.register">
 <span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aggregators.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.register" title="Link to this definition">#</a></dt>
-<dd><p>Simple registration-wrapper helper.
-:param name        GAR name:
-:param unchecked   Associated function:
-:type unchecked   Associated function: see module description
-:param check       Parameter validity check function:
-:param upper_bound Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this aggregation rule: (n, f, d) -&gt; float
-:param influence   Attack acceptation ratio function:</p>
+<dd><p>Simple registration-wrapper helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – GAR name.</p></li>
+<li><p><strong>unchecked</strong> (<em>callable</em>) – Associated function (see module description).</p></li>
+<li><p><strong>check</strong> (<em>callable</em>) – Parameter validity check function.</p></li>
+<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Compute the theoretical upper bound.</p></li>
+<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Attack acceptance ratio function.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -632,6 +697,8 @@ and optional theoretical bounds.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-aggregators">Available Aggregators</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-aggregators">API Reference</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#contract">Contract</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-rules">Available Rules</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.average"><code class="docutils literal notranslate"><span class="pre">average()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute"><code class="docutils literal notranslate"><span class="pre">brute()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
