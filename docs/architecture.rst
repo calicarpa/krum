@@ -6,19 +6,15 @@ This section provides a detailed map of the repository for researchers extending
 Repository Map
 --------------
 
-+------------------------+--------------------------------------------+------------------------------------------+
-| Location              | Main Role                                 | What Researchers Extend                 |
-+========================+============================================+==========================================+
-| ``aggregators/``      | Robust aggregation rules                  | New rules, native variants, influence   |
-+------------------------+--------------------------------------------+------------------------------------------+
-| ``attacks/``          | Byzantine attacks                         | New attack directions, scenarios       |
-+------------------------+--------------------------------------------+------------------------------------------+
-| ``experiments/``      | Model/dataset/loss/criterion/optimizer   | New models, datasets, metrics           |
-+------------------------+--------------------------------------------+------------------------------------------+
-| ``native/``           | Auto-compiled C++/CUDA extensions         | Fast implementations of rules           |
-+------------------------+--------------------------------------------+------------------------------------------+
-| ``tools/``            | Cross-cutting utilities                   | Logging, parallelism, parsing          |
-+------------------------+--------------------------------------------+------------------------------------------+
+.. csv-table::
+   :header: "Location", "Main Role", "What Researchers Extend"
+   :widths: 20, 40, 40
+
+   "``aggregators/``", "Robust aggregation rules", "New rules, native variants, influence"
+   "``attacks/``", "Byzantine attacks", "New attack directions, scenarios"
+   "``experiments/``", "Model/dataset/loss/criterion/optimizer", "New models, datasets, metrics"
+   "``native/``", "Auto-compiled C++/CUDA extensions", "Fast implementations of rules"
+   "``tools/``", "Cross-cutting utilities", "Logging, parallelism, parsing"
 
 Adding New Components
 ---------------------
