@@ -467,8 +467,7 @@
 aggregation rule. It works by:</p>
 <ol class="arabic simple">
 <li><p>Computing pairwise distances between all gradients</p></li>
-<li><p>For each gradient, summing the distances to its <span class="math notranslate nohighlight">\(n - f - 1\)</span> nearest
-neighbors (where <span class="math notranslate nohighlight">\(f\)</span> is the number of Byzantine workers)</p></li>
+<li><p>For each gradient, summing the distances to its <span class="math notranslate nohighlight">\(n - f - 1\)</span> nearest neighbors (where <span class="math notranslate nohighlight">\(f\)</span> is the number of Byzantine workers)</p></li>
 <li><p>Selecting the <span class="math notranslate nohighlight">\(m\)</span> gradients with the smallest total distances</p></li>
 <li><p>Averaging the selected gradients</p></li>
 </ol>
@@ -476,13 +475,13 @@ neighbors (where <span class="math notranslate nohighlight">\(f\)</span> is the 
 Byzantine gradients will be far from the honest majority.</p>
 <p><strong>Use case:</strong> General Byzantine-resilient aggregation when the attack model
 assumes that Byzantine gradients are significantly different from honest ones.</p>
-<p><strong>Properties:</strong>
-- Distance-based: Relies on geometric properties of gradients.
-- Selects subset: Not all gradients are used in the final average.
-- Theoretical guarantee: Provides bounds under certain assumptions on the</p>
-<blockquote>
-<div><p>Byzantine attack.</p>
-</div></blockquote>
+<p><strong>Properties:</strong></p>
+<ul class="simple">
+<li><p>Distance-based: Relies on geometric properties of gradients.</p></li>
+<li><p>Selects subset: Not all gradients are used in the final average.</p></li>
+<li><p>Theoretical guarantee: Provides bounds under certain assumptions on the
+Byzantine attack.</p></li>
+</ul>
 <section id="theoretical-bound">
 <h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">#</a></h2>
 <p>The Multi-Krum rule provides guarantees when:</p>

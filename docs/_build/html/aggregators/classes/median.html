@@ -468,21 +468,24 @@ all submitted gradients. It is robust against Byzantine gradients containing
 NaN or Inf values (they are simply ignored in the median computation).</p>
 <p><strong>Use case:</strong> Simple defense against attacks that inject NaN/Inf values, or
 as a baseline for coordinate-wise robust aggregation.</p>
-<p><strong>Properties:</strong>
-- NaN-resilient: Gradients containing NaN values are naturally ignored.
-- Coordinate-wise: Each dimension is treated independently.
-- No theoretical guarantee: Unlike other methods, this rule has no proven</p>
-<blockquote>
-<div><p>Byzantine-resilience guarantees for general attacks.</p>
-</div></blockquote>
+<p><strong>Properties:</strong></p>
+<ul class="simple">
+<li><p>NaN-resilient: Gradients containing NaN values are naturally ignored.</p></li>
+<li><p>Coordinate-wise: Each dimension is treated independently.</p></li>
+<li><p>No theoretical guarantee: Unlike other methods, this rule has no proven</p></li>
+</ul>
+<p>Byzantine-resilience guarantees for general attacks.</p>
 <section id="theoretical-bound">
 <h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">#</a></h2>
 <p>The coordinate-wise median provides guarantees when the ratio of non-Byzantine
 standard deviation to gradient norm is below:</p>
 <div class="math notranslate nohighlight">
 \[\frac{1}{\sqrt{n - f}}\]</div>
-<p>where <span class="math notranslate nohighlight">\(n\)</span> is the total number of workers and <span class="math notranslate nohighlight">\(f\)</span> is the number
-of Byzantine workers.</p>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the total number of workers</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is the number of Byzantine workers.</p></li>
+</ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">median</span>

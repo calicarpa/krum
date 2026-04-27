@@ -453,10 +453,11 @@
 <span class="sd">as a baseline for coordinate-wise robust aggregation.</span>
 
 <span class="sd">**Properties:**</span>
+
 <span class="sd">- NaN-resilient: Gradients containing NaN values are naturally ignored.</span>
 <span class="sd">- Coordinate-wise: Each dimension is treated independently.</span>
 <span class="sd">- No theoretical guarantee: Unlike other methods, this rule has no proven</span>
-<span class="sd">  Byzantine-resilience guarantees for general attacks.</span>
+<span class="sd">Byzantine-resilience guarantees for general attacks.</span>
 
 <span class="sd">Theoretical Bound</span>
 <span class="sd">-----------------</span>
@@ -468,8 +469,10 @@
 
 <span class="sd">    \\frac{1}{\\sqrt{n - f}}</span>
 
-<span class="sd">where :math:`n` is the total number of workers and :math:`f` is the number</span>
-<span class="sd">of Byzantine workers.</span>
+<span class="sd">where </span>
+
+<span class="sd">- :math:`n` is the total number of workers</span>
+<span class="sd">- :math:`f` is the number of Byzantine workers.</span>
 
 
 <span class="sd">Example</span>

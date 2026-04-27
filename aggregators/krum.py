@@ -18,8 +18,7 @@ Krum (and its variant Multi-Krum) is a distance-based Byzantine-resilient
 aggregation rule. It works by:
 
 1. Computing pairwise distances between all gradients
-2. For each gradient, summing the distances to its :math:`n - f - 1` nearest
-   neighbors (where :math:`f` is the number of Byzantine workers)
+2. For each gradient, summing the distances to its :math:`n - f - 1` nearest neighbors (where :math:`f` is the number of Byzantine workers)
 3. Selecting the :math:`m` gradients with the smallest total distances
 4. Averaging the selected gradients
 
@@ -30,6 +29,7 @@ Byzantine gradients will be far from the honest majority.
 assumes that Byzantine gradients are significantly different from honest ones.
 
 **Properties:**
+
 - Distance-based: Relies on geometric properties of gradients.
 - Selects subset: Not all gradients are used in the final average.
 - Theoretical guarantee: Provides bounds under certain assumptions on the

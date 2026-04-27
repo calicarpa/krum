@@ -22,10 +22,11 @@ NaN or Inf values (they are simply ignored in the median computation).
 as a baseline for coordinate-wise robust aggregation.
 
 **Properties:**
+
 - NaN-resilient: Gradients containing NaN values are naturally ignored.
 - Coordinate-wise: Each dimension is treated independently.
 - No theoretical guarantee: Unlike other methods, this rule has no proven
-  Byzantine-resilience guarantees for general attacks.
+Byzantine-resilience guarantees for general attacks.
 
 Theoretical Bound
 -----------------
@@ -37,8 +38,10 @@ standard deviation to gradient norm is below:
 
     \\frac{1}{\\sqrt{n - f}}
 
-where :math:`n` is the total number of workers and :math:`f` is the number
-of Byzantine workers.
+where 
+
+- :math:`n` is the total number of workers
+- :math:`f` is the number of Byzantine workers.
 
 
 Example
