@@ -84,5 +84,4 @@ API Reference
 
 .. automodule:: attacks
    :members:
-   :undoc-members:
    :show-inheritance:

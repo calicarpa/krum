@@ -83,5 +83,4 @@ API Reference
 
 .. automodule:: aggregators
    :members:
-   :undoc-members:
    :show-inheritance:
