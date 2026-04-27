@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-project = 'Krum'
+project = 'Krum, the Library'
 copyright = '2026'
 author = 'Peva BLANCHARD, Arthur DANJOU, El-Mahdi EL-MHAMDI, Sébastien ROUAULT, Mohammed Ammar SAID'
 
@@ -50,13 +50,16 @@ html_sidebars = {
     "team/index": [],
 }
 
-html_theme = "pydata_sphinx_theme"
+html_theme = 'shibuya' #"pydata_sphinx_theme"
 html_title = "Krum, the Library"
 html_static_path = ['_static']
 html_css_files = ['custom.css','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css']
 html_show_sourcelink = False
+html_use_index = True
+
 html_theme_options = {
     "header_links_before_dropdown": 5,
+    "navigation_depth": 4,
     "icon_links": [
         {
             "name": "GitHub",
@@ -65,6 +68,8 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
+    "search_bar_text": "Search docs...",
+    "navbar_persistent": ["search-button-field"],
 }
 
 # html_favicon = "_static/favicon.ico"
