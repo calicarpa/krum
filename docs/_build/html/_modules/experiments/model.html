@@ -1,0 +1,931 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>experiments.model &#8212; Krum</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=9a30d1ff" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=b8b12719"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/experiments/model';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Krum</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../aggregators.html">
+    Aggregators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../attacks.html">
+    Attacks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../experiments.html">
+    Experiments
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+    Tools
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
+    Native Acceleration
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../aggregators.html">
+    Aggregators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../attacks.html">
+    Attacks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../experiments.html">
+    Experiments
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools.html">
+    Tools
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native Acceleration
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">experiments.model</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for experiments.model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="c1">###</span>
+ <span class="c1"># @file   model.py</span>
+ <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+ <span class="c1">#</span>
+ <span class="c1"># @section LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+ <span class="c1"># See LICENSE file.</span>
+ <span class="c1">#</span>
+ <span class="c1"># @section DESCRIPTION</span>
+ <span class="c1">#</span>
+ <span class="c1"># Model wrappers/helpers.</span>
+<span class="c1">###</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Model&quot;</span><span class="p">]</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="n">Configuration</span>
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Model wrapper class</span>
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">:</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Model wrapper class.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;model constructor&#39; available in PyTorch</span>
+  <span class="n">__models</span> <span class="o">=</span> <span class="kc">None</span>
+
+  <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;tensor initializer&#39; available in PyTorch</span>
+  <span class="n">__inits</span> <span class="o">=</span> <span class="kc">None</span>
+
+  <span class="nd">@classmethod</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">_get_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Lazy-initialize and return the map &#39;__models&#39;.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      &#39;__models&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast-path already loaded</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__models</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__models</span>
+    <span class="c1"># Initialize the dictionary</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__models</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="c1"># Populate this dictionary with TorchVision&#39;s models</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">):</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span> <span class="c1"># Ignore &quot;protected&quot; members</span>
+        <span class="k">continue</span>
+      <span class="n">builder</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span> <span class="c1"># Heuristic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;torchvision-</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">builder</span>
+    <span class="c1"># Dynamically add the custom models from subdirectory &#39;models/&#39;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_models</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+      <span class="k">nonlocal</span> <span class="bp">self</span>
+      <span class="c1"># Check if has exports, fallback otherwise</span>
+      <span class="n">exports</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">exports</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not provide &#39;__all__&#39;; falling back to &#39;__dict__&#39; for name discovery&quot;</span><span class="p">)</span>
+        <span class="n">exports</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+      <span class="c1"># Register the association &#39;name -&gt; constructor&#39; for all the models</span>
+      <span class="n">exported</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">exports</span><span class="p">:</span>
+        <span class="c1"># Check model name type</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> exports non-string name </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">; ignored&quot;</span><span class="p">)</span>
+          <span class="k">continue</span>
+        <span class="c1"># Recover instance from name</span>
+        <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># Check instance is callable (it&#39;s only an heuristic...)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">constructor</span><span class="p">):</span>
+          <span class="k">continue</span>
+        <span class="c1"># Register callable with composite name</span>
+        <span class="n">exported</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">fullname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__models</span><span class="p">:</span>
+          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to make available model </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2"> from module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, as the name </span><span class="si">{</span><span class="n">fullname</span><span class="si">!r}</span><span class="s2"> already exists&quot;</span><span class="p">)</span>
+          <span class="k">continue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="n">fullname</span><span class="p">]</span> <span class="o">=</span> <span class="n">constructor</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">exported</span><span class="p">:</span>
+        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not export any valid constructor name through &#39;__all__&#39;&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;__package__&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.models&quot;</span><span class="p">},</span> <span class="n">post</span><span class="o">=</span><span class="n">add_custom_models</span><span class="p">)</span>
+    <span class="c1"># Return the dictionary</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__models</span>
+
+  <span class="nd">@classmethod</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">_get_inits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Lazy-initialize and return the map &#39;__inits&#39;.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      &#39;__inits&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast-path already loaded</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__inits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__inits</span>
+    <span class="c1"># Initialize the dictionary</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__inits</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="c1"># Populate this dictionary with PyTorch&#39;s initialization functions</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">):</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span> <span class="c1"># Ignore &quot;protected&quot; members</span>
+        <span class="k">continue</span>
+      <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span> <span class="c1"># Ignore non-inplace members (heuristic)</span>
+        <span class="k">continue</span>
+      <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span> <span class="c1"># Heuristic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__inits</span><span class="p">[</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="c1"># Return the dictionary</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__inits</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_build</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Configuration</span><span class="p">(),</span> <span class="n">init_multi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init_multi_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init_mono</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init_mono_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Model builder constructor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      name_build      Model name or constructor function</span>
+<span class="sd">      config          Configuration to use for the parameter tensors</span>
+<span class="sd">      init_multi      Weight initialization algorithm name, or initialization function, for tensors of dimension &gt;= 2</span>
+<span class="sd">      init_multi_args Additional keyword-arguments for &#39;init&#39;, if &#39;init&#39; specified as a name</span>
+<span class="sd">      init_mono       Weight initialization algorithm name, or initialization function, for tensors of dimension == 1</span>
+<span class="sd">      init_mono_args  Additional keyword-arguments for &#39;init_mono&#39;, if &#39;init_mono&#39; specified as a name</span>
+<span class="sd">      ...             Additional (keyword-)arguments forwarded to the constructor</span>
+<span class="sd">    Notes:</span>
+<span class="sd">      If possible, data parallelism is enabled automatically</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_init</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+      <span class="n">inits</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_inits</span><span class="p">()</span>
+      <span class="n">func</span> <span class="o">=</span> <span class="n">inits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">inits</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;initializer name&quot;</span><span class="p">)</span>
+      <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">args</span>
+      <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">init</span>
+    <span class="c1"># Recover name/constructor</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">name_build</span><span class="p">):</span>
+      <span class="n">name</span>  <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
+      <span class="n">build</span> <span class="o">=</span> <span class="n">name_build</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">models</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_models</span><span class="p">()</span>
+      <span class="n">name</span>  <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
+      <span class="n">build</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">build</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model name&quot;</span><span class="p">)</span>
+    <span class="c1"># Recover initialization algorithms</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+      <span class="n">init_multi</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="n">init_multi_args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+      <span class="n">init_mono</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="n">init_mono_args</span><span class="p">)</span>
+    <span class="c1"># Build model</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected built model </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> to be an instance of &#39;torch.nn.Module&#39;, found </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;__name__&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;unknown&gt;&#39;</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> instead&quot;</span><span class="p">)</span>
+      <span class="c1"># Initialize parameters</span>
+      <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># Multi-dimensional</span>
+          <span class="k">if</span> <span class="n">init_multi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_multi</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Mono-dimensional</span>
+          <span class="k">if</span> <span class="n">init_mono</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_mono</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+      <span class="c1"># Move parameters to target device</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+      <span class="n">device</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">]</span>
+      <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span> <span class="ow">and</span> <span class="n">device</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Model is on GPU and not explicitly restricted to one particular card =&gt; enable data parallelism</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span> <span class="c1"># NOTE: Ordering across runs/nodes seems to be ensured (i.e. only dependent on the model constructor)</span>
+    <span class="c1"># Finalization</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>    <span class="o">=</span> <span class="n">model</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>     <span class="o">=</span> <span class="n">name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>   <span class="o">=</span> <span class="n">config</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>   <span class="o">=</span> <span class="n">params</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;trainset&quot;</span><span class="p">:</span>  <span class="kc">None</span><span class="p">,</span>
+      <span class="s2">&quot;testset&quot;</span><span class="p">:</span>   <span class="kc">None</span><span class="p">,</span>
+      <span class="s2">&quot;loss&quot;</span><span class="p">:</span>      <span class="kc">None</span><span class="p">,</span>
+      <span class="s2">&quot;criterion&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+      <span class="s2">&quot;optimizer&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the &quot;informal&quot;, nicely printable string representation of this model.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Nicely printable string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;model </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Getter for the immutable configuration.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Immutable configuration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+<div class="viewcode-block" id="Model.default">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.default">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">erase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get and/or set the named default.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      name  Name of the default</span>
+<span class="sd">      new   Optional new instance, set only if not &#39;None&#39; or erase is &#39;True&#39;</span>
+<span class="sd">      erase Force the replacement by &#39;None&#39;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      (Old) value of the default</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check existence</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model default&quot;</span><span class="p">)</span>
+    <span class="c1"># Get current</span>
+    <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="c1"># Set if needed</span>
+    <span class="k">if</span> <span class="n">erase</span> <span class="ow">or</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span>
+    <span class="c1"># Return current/old</span>
+    <span class="k">return</span> <span class="n">old</span></div>
+
+
+  <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Resolve the given keyword-arguments with the associated default value.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Keyword-arguments, each must have a default if set to None</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      In-order given keyword-arguments, with &#39;None&#39; values replaced with the corresponding default</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing default </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<div class="viewcode-block" id="Model.run">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.run">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Run the model at the current parameters for the given input tensor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      data     Input tensor</span>
+<span class="sd">      training Use training mode instead of testing mode</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Output tensor</span>
+<span class="sd">    Notes:</span>
+<span class="sd">      Gradient computation is not enable nor disabled during the run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set mode</span>
+    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="c1"># Compute</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Forward call to &#39;run&#39;.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Forwarded (keyword-)arguments</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Forwarded return value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Model.get">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.get">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get a reference to the current parameters.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Flat parameter vector (by reference: future calls to &#39;set&#39; will modify it)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span></div>
+
+
+<div class="viewcode-block" id="Model.set">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.set">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Overwrite the parameters with the given ones.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      params Given flat parameter vector</span>
+<span class="sd">      relink Relink instead of copying (depending on the model, might be faster)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
+    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+      <span class="k">return</span>
+    <span class="c1"># Assignment</span>
+    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">):</span>
+      <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">params</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Model.get_gradient">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.get_gradient">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get (optionally make each parameter&#39;s gradient) a reference to the flat gradient.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Flat gradient (by reference: future calls to &#39;set_gradient&#39; will modify it)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span>
+    <span class="c1"># Flatten (make if necessary)</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
+    <span class="k">return</span> <span class="n">gradient</span></div>
+
+
+<div class="viewcode-block" id="Model.set_gradient">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.set_gradient">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">set_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Overwrite the gradient with the given one.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      gradient Given flat gradient</span>
+<span class="sd">      relink   Relink instead of copying (depending on the model, might be faster)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
+    <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span><span class="p">:</span>
+      <span class="k">return</span>
+    <span class="c1"># Assignment</span>
+    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">):</span>
+      <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()),</span> <span class="n">gradient</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Model.loss">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.loss">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Estimate loss at the current parameters, with a batch of the given dataset.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      dataset  Training dataset wrapper to use, use the default one if available</span>
+<span class="sd">      loss     Loss wrapper to use, use the default one if available</span>
+<span class="sd">      training Whether this run is for training (instead of testing) purposes, None for guessing (based on whether gradients are computed)</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Loss value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Recover the defaults, if missing</span>
+    <span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">trainset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
+    <span class="c1"># Sample the train batch</span>
+    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+    <span class="c1"># Guess whether computation is for training, if necessary</span>
+    <span class="k">if</span> <span class="n">training</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">training</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_grad_enabled</span><span class="p">()</span>
+    <span class="c1"># Forward pass</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.backprop">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.backprop">[docs]</a>
+  <span class="nd">@torch</span><span class="o">.</span><span class="n">enable_grad</span><span class="p">()</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">backprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outloss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Estimate gradient at the current parameters, with a batch of the given dataset.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      dataset Training dataset wrapper to use, use the default one if available</span>
+<span class="sd">      loss    Loss wrapper to use, use the default one if available</span>
+<span class="sd">      outloss Output the loss value as well</span>
+<span class="sd">      ...     Additional keyword-arguments forwarded to &#39;backprop&#39;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      if &#39;outloss&#39; is True:</span>
+<span class="sd">        Tuple of:</span>
+<span class="sd">        · Flat gradient (by reference: future calls to &#39;backprop&#39; will modify it)</span>
+<span class="sd">        · Loss value</span>
+<span class="sd">      else:</span>
+<span class="sd">        Flat gradient (by reference: future calls to &#39;backprop&#39; will modify it)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Detach and zero the gradient (must be done at each grad to discard computation graph)</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">linked_tensors</span><span class="p">:</span>
+      <span class="n">grad</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span>
+      <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">grad</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+        <span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+    <span class="c1"># Forward and backward passes</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Relink needed if graph of derivatives was created</span>
+    <span class="c1"># NOTE: It has been observed that each parameters&#39; grad tensor is a new instance in this case; more investigation may be needed to check whether this relink is really necessary, for now this is a safe behavior</span>
+    <span class="k">if</span> <span class="s2">&quot;create_graph&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Return the flat gradient (and the loss if requested)</span>
+    <span class="k">if</span> <span class="n">outloss</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">(),</span> <span class="n">loss</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Model.update">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.update">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Update the parameters using the given gradient, and the given optimizer.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      gradient  Flat gradient to apply</span>
+<span class="sd">      optimizer Optimizer wrapper to use, use the default one if available</span>
+<span class="sd">      relink    Relink instead of copying (depending on the model, might be faster)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Recover the defaults, if missing</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Set the gradient</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_gradient</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">))</span>
+    <span class="c1"># Perform the update step</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Model.eval">
+<a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.eval">[docs]</a>
+  <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Evaluate the model at the current parameters, with a batch of the given dataset.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      dataset   Testing dataset wrapper to use, use the default one if available</span>
+<span class="sd">      criterion Criterion wrapper to use, use the default one if available</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Arithmetic mean of the criterion over the next minibatch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Recover the defaults, if missing</span>
+    <span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">testset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="n">criterion</span><span class="p">)</span>
+    <span class="c1"># Sample the test batch</span>
+    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+    <span class="c1"># Compute and return the evaluation result</span>
+    <span class="k">return</span> <span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

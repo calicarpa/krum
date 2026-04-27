@@ -1,0 +1,6 @@
+Tools
+=====
+
+.. toctree::
+
+   tools/index

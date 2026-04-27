@@ -19,17 +19,19 @@ author = 'Peva BLANCHARD, Arthur DANJOU, El Mahdi EL MHAMDI, Sébastien ROUAULT,
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.todo",
-              "sphinx.ext.viewcode",
-              "sphinx.ext.autodoc",
-              "sphinx.ext.autosummary",
-              "sphinx.ext.mathjax",
-              "sphinx.ext.napoleon",
-              "sphinx_copybutton",
-              "sphinx.ext.autosectionlabel",
-              "sphinx.ext.intersphinx",
-              "sphinx_favicon",
-              "sphinx_togglebutton"]
+extensions = [
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
+    "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.intersphinx",
+    "sphinx_favicon",
+    "sphinx_togglebutton"
+]
 
 
 # Use MathJax to render math in HTML
@@ -55,10 +57,10 @@ html_theme_options = {
     "header_links_before_dropdown": 5,
     "icon_links": [
         {
-            "name": "GitHub",
-            "url": "https://github.com/calicarpa/krum",
-            "icon": "fab fa-github",
-            "type": "fontawesome",
+  "name": "GitHub",
+  "url": "https://github.com/calicarpa/krum",
+  "icon": "fab fa-github",
+  "type": "fontawesome",
         },
     ],
 }
@@ -82,7 +84,7 @@ latex_elements = {
 mathjax_config = {
     'TeX': {
         'Macros': {
-            'argmin': r'\mathop{\mathrm{arg\,min}}',
+  'argmin': r'\mathop{\mathrm{arg\,min}}',
         }
     }
 }

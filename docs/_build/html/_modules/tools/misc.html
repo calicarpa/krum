@@ -1,0 +1,1129 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tools.misc &#8212; Krum</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=9a30d1ff" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=b8b12719"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/tools/misc';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Krum</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../aggregators.html">
+    Aggregators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../attacks.html">
+    Attacks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../experiments.html">
+    Experiments
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+    Tools
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
+    Native Acceleration
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../aggregators.html">
+    Aggregators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../attacks.html">
+    Attacks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../experiments.html">
+    Experiments
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools.html">
+    Tools
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native Acceleration
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../tools.html" class="nav-link">tools</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">tools.misc</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for tools.misc</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="c1">###</span>
+ <span class="c1"># @file   misc.py</span>
+ <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+ <span class="c1">#</span>
+ <span class="c1"># @section LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+ <span class="c1"># See LICENSE file.</span>
+ <span class="c1">#</span>
+ <span class="c1"># @section DESCRIPTION</span>
+ <span class="c1">#</span>
+ <span class="c1"># Miscellaneous Python helpers.</span>
+<span class="c1">###</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s2">&quot;UnavailableException&quot;</span><span class="p">,</span> <span class="s2">&quot;fatal_unavailable&quot;</span><span class="p">,</span> <span class="s2">&quot;MethodCallReplicator&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;ClassRegister&quot;</span><span class="p">,</span> <span class="s2">&quot;parse_keyval&quot;</span><span class="p">,</span> <span class="s2">&quot;fullqual&quot;</span><span class="p">,</span> <span class="s2">&quot;onetime&quot;</span><span class="p">,</span> <span class="s2">&quot;TimedContext&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;interactive&quot;</span><span class="p">,</span> <span class="s2">&quot;get_loaded_dependencies&quot;</span><span class="p">,</span> <span class="s2">&quot;line_maximize&quot;</span><span class="p">,</span> <span class="s2">&quot;pairwise&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;localtime&quot;</span><span class="p">,</span> <span class="s2">&quot;deltatime_point&quot;</span><span class="p">,</span> <span class="s2">&quot;deltatime_format&quot;</span><span class="p">]</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">site</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Unavailable user exception class</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_unavailable_exception_text</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;entry&quot;</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Make the explanatory string for an &#39;UnavailableException&#39;.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    data Iterable (over str) data set</span>
+<span class="sd">    name Requested name in the data set</span>
+<span class="sd">    what Textual description of what are the objects in the data set</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Preparation</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="s2">&quot;no </span><span class="si">%s</span><span class="s2"> available&quot;</span> <span class="o">%</span> <span class="n">what</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">· &quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="s2">&quot;expected one of:</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sep</span><span class="p">,</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+  <span class="c1"># Final string cat</span>
+  <span class="k">return</span> <span class="s2">&quot;Unknown </span><span class="si">%s</span><span class="s2"> </span><span class="si">%r</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+<div class="viewcode-block" id="fatal_unavailable">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.fatal_unavailable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fatal_unavailable</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Helper forwarding the &#39;UnavailableException&#39; explanatory string to &#39;fatal&#39;.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    ... Forward (keyword-)arguments to &#39;make_unavailable_exception_text&#39;</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">tools</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="n">make_unavailable_exception_text</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="UnavailableException">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.UnavailableException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnavailableException</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Exception due to missing entry in a dictionary, where the entry is controlled by the user.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Error string constructor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Forward (keyword-)arguments to &#39;make_unavailable_exception_text&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Finalization</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_text</span> <span class="o">=</span> <span class="n">make_unavailable_exception_text</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Error to string conversion.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Explanatory string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_text</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Simple method call replicator</span>
+
+<div class="viewcode-block" id="MethodCallReplicator">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.MethodCallReplicator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MethodCallReplicator</span><span class="p">:</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple method call replicator class.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Bind constructor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Instance on which to replicate method calls (in the given order)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Assertions</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Expected at least one instance on which to forward method calls&quot;</span>
+    <span class="c1"># Finalization</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__instances</span> <span class="o">=</span> <span class="n">args</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns a closure that replicate the method call.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      name Name of the method</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Closure replicating the calls</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Target closures</span>
+    <span class="n">closures</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instances</span><span class="p">]</span>
+    <span class="c1"># Replication closure</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">      </span><span class="sd">&quot;&quot;&quot; Simply replicate the calls, forwarding arguments.</span>
+<span class="sd">      Args:</span>
+<span class="sd">        ... Forwarded arguments</span>
+<span class="sd">      Returns:</span>
+<span class="sd">        List of returned values</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">closure</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">closure</span> <span class="ow">in</span> <span class="n">closures</span><span class="p">]</span>
+    <span class="c1"># Build the replication closure</span>
+    <span class="k">return</span> <span class="n">calls</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Simple class register</span>
+
+<div class="viewcode-block" id="ClassRegister">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.ClassRegister">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassRegister</span><span class="p">:</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple class register.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">singular</span><span class="p">,</span> <span class="n">optplural</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Denomination constructor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      singular  Singular denomination of the registered class</span>
+<span class="sd">      optplural &quot;Optional plural&quot;, e.g. &quot;class(es)&quot; for &quot;class&quot; (optional)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Value deduction</span>
+    <span class="k">if</span> <span class="n">optplural</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">optplural</span> <span class="o">=</span> <span class="n">singular</span> <span class="o">+</span> <span class="s2">&quot;(s)&quot;</span>
+    <span class="c1"># Finalization</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__denoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">singular</span><span class="p">,</span> <span class="n">optplural</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__register</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ClassRegister.itemize">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.ClassRegister.itemize">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">itemize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Build an iterable over the available class names.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Iterable over the available class names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ClassRegister.register">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.ClassRegister.register">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Register a new class.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      name Class name</span>
+<span class="sd">      cls  Associated class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Assertions</span>
+    <span class="k">assert</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">,</span> <span class="s2">&quot;Name &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; already in use while registering &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__denoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; class name&gt;&quot;</span><span class="p">))</span>
+    <span class="c1"># Registering</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span></div>
+
+
+<div class="viewcode-block" id="ClassRegister.instantiate">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.ClassRegister.instantiate">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">instantiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Instantiate a registered class.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      name Class name</span>
+<span class="sd">      ...  Forwarded parameters</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Registered class instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Assertions</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">:</span>
+      <span class="n">cause</span> <span class="o">=</span> <span class="s2">&quot;Unknown name &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cause</span> <span class="o">+=</span> <span class="s2">&quot;no registered &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__denoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">cause</span> <span class="o">+=</span> <span class="s2">&quot;available &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__denoms</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;: &#39;&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;&#39;, &#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span>
+      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="n">cause</span><span class="p">)</span>
+    <span class="c1"># Instantiation</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Simple list of &quot;&lt;key&gt;:&lt;value&gt;&quot; into dictionary parser</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_keyval_auto_convert</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Guess the type of the string representation, and return the converted value.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    val Value to convert after type guessing</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Converted value, or same instance as &#39;val&#39; if &#39;str&#39; was the guessed type</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Try guess &#39;bool&#39;</span>
+  <span class="n">low</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">low</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="kc">False</span>
+  <span class="k">elif</span> <span class="n">low</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="kc">True</span>
+  <span class="c1"># Try guess number</span>
+  <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+      <span class="k">continue</span>
+  <span class="c1"># Else guess string</span>
+  <span class="k">return</span> <span class="n">val</span>
+
+<div class="viewcode-block" id="parse_keyval">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.parse_keyval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_keyval</span><span class="p">(</span><span class="n">list_keyval</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Parse list of &quot;&lt;key&gt;:&lt;value&gt;&quot; into a dictionary.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    list_keyval List of &quot;&lt;key&gt;:&lt;value&gt;&quot;</span>
+<span class="sd">    defaults    Default key -&gt; value to use (also ensure type, type is guessed for other keys)</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Associated dictionary</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">parsed</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="c1"># Parsing</span>
+  <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;:&quot;</span>
+  <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">list_keyval</span><span class="p">:</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Expected list of &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="s2">&quot;&lt;key&gt;:&lt;value&gt;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, got &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; as one entry&quot;</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; had already been specified with value &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">sep</span><span class="p">):]</span>
+    <span class="c1"># Guess/assert type constructibility</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span> <span class="c1"># Special case</span>
+          <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">val</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Required key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; expected a value of type &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="s2">&quot;__name__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown&gt;&quot;</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">val</span> <span class="o">=</span> <span class="n">parse_keyval_auto_convert</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="c1"># Bind (converted) value to associated key</span>
+    <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+  <span class="c1"># Add default values (done first to be able to force a given type with &#39;required&#39;)</span>
+  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+      <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+  <span class="c1"># Return final dictionary</span>
+  <span class="k">return</span> <span class="n">parsed</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Basic &quot;full-qualification&quot; string builder for a given instance/class</span>
+
+<div class="viewcode-block" id="fullqual">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.fullqual">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fullqual</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Rebuild a string &quot;qualifying&quot; the given object for debugging purpose.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    obj Object to &quot;qualify&quot;</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    &quot;Qualification&quot;, e.g.: &#39;tools.misc.fullqual&#39; or &#39;instance of pathlib.Path&#39;</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Prelude</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;instance of &quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+  <span class="c1"># Rebuilding</span>
+  <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prelude</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__module__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown module&gt;&quot;</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__qualname__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown name&gt;&quot;</span><span class="p">))</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Basic &quot;full-qualification&quot; string builder for a given instance/class</span>
+
+<div class="viewcode-block" id="onetime">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.onetime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">onetime</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Generate a one time-set (hidden) state variable getter and setter.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    name Optional name of the global, onetime variable to access</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    · (Threadsafe) getter closure</span>
+<span class="sd">    · (Threadsafe) setter closure</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">global</span> <span class="n">onetime_register</span>
+  <span class="c1"># Check if name exists</span>
+  <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">onetime_register</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">onetime_register</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+  <span class="c1"># Private variables</span>
+  <span class="n">lock</span>  <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+  <span class="n">value</span> <span class="o">=</span> <span class="kc">False</span>
+  <span class="c1"># Management closures</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Check whether &#39;value&#39; is set.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Ignored arguments</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Whether &#39;value&#39; is set</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">nonlocal</span> <span class="n">lock</span>
+    <span class="k">nonlocal</span> <span class="n">value</span>
+    <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">value</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">setter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Set &#39;value&#39;.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Ignored arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">nonlocal</span> <span class="n">lock</span>
+    <span class="k">nonlocal</span> <span class="n">value</span>
+    <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+      <span class="n">value</span> <span class="o">=</span> <span class="kc">True</span>
+  <span class="c1"># Register if need be, then return the management closures</span>
+  <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">onetime_register</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
+  <span class="k">return</span> <span class="n">res</span></div>
+
+
+<span class="c1"># Register for the onetime variables</span>
+<span class="n">onetime_register</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Plain context augmented with simple execution time measurement</span>
+
+<div class="viewcode-block" id="TimedContext">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.TimedContext">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimedContext</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Timed context class, that print the measure runtime.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Forward call to parent constructor.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Forwarded (keyword-)arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Enter context: start chrono.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      Forwarded return value from parent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_chrono</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+
+  <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Exit context: stop chrono and print elapsed time.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      ... Forwarded arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Measure elapsed runtime (in ns)</span>
+    <span class="n">runtime</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chrono</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1000000000.</span>
+    <span class="c1"># Recover ideal unit</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="s2">&quot;µs&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">runtime</span> <span class="o">&lt;</span> <span class="mf">1000.</span><span class="p">:</span>
+        <span class="k">break</span>
+      <span class="n">runtime</span> <span class="o">/=</span> <span class="mf">1000.</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span>
+    <span class="c1"># Format and print string</span>
+    <span class="n">tools</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution time: </span><span class="si">{</span><span class="n">runtime</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Forward call</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Switch to interactive mode, executing user inputs</span>
+
+<div class="viewcode-block" id="interactive">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.interactive">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactive</span><span class="p">(</span><span class="n">glbs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lcls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">,</span> <span class="n">cprmpt</span><span class="o">=</span><span class="s2">&quot;... &quot;</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Switch to a simple interactive prompt, execute CTRL+D (or equivalent) to leave.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    glbs   Globals dictionary to use, None to use caller&#39;s globals</span>
+<span class="sd">    lcls   Locals dictionary to use, None to use given globals or caller&#39;s locals/globals</span>
+<span class="sd">    prompt Command prompt to display</span>
+<span class="sd">    cprmpt Command prompt to display when continuing a line</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Recover caller&#39;s globals and locals</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">caller</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span>
+  <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">caller</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">glbs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to recover caller&#39;s frame, locals and globals&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;interactive&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">glbs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">caller</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">caller</span><span class="p">,</span> <span class="s2">&quot;f_globals&quot;</span><span class="p">):</span>
+      <span class="n">glbs</span> <span class="o">=</span> <span class="n">caller</span><span class="o">.</span><span class="n">f_globals</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">glbs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">lcls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">caller</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">caller</span><span class="p">,</span> <span class="s2">&quot;f_locals&quot;</span><span class="p">):</span>
+      <span class="n">lcls</span> <span class="o">=</span> <span class="n">caller</span><span class="o">.</span><span class="n">f_locals</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">lcls</span> <span class="o">=</span> <span class="n">glbs</span>
+  <span class="c1"># Command input and execution</span>
+  <span class="n">command</span>   <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+  <span class="n">statement</span> <span class="o">=</span> <span class="kc">False</span>
+  <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">prompt</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">cprmpt</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+      <span class="c1"># Input new line</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[A&quot;</span><span class="p">)</span> <span class="c1"># Trick to &quot;advertise&quot; new line on stdout after new line on stdin</span>
+      <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="p">(</span><span class="ne">EOFError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">)):</span>
+          <span class="nb">print</span><span class="p">()</span> <span class="c1"># Since no new line was printed by pressing ENTER</span>
+        <span class="k">return</span>
+      <span class="c1"># Handle expression</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">statement</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="n">res</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">glbs</span><span class="p">,</span> <span class="n">lcls</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span> <span class="c1"># Heuristic that we are dealing with a statement</span>
+          <span class="n">statement</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="c1"># Handle single or multi-line statement(s)</span>
+      <span class="k">if</span> <span class="n">statement</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># Just went through trying an expression</span>
+          <span class="n">command</span> <span class="o">=</span> <span class="n">line</span>
+          <span class="k">try</span><span class="p">:</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">glbs</span><span class="p">,</span> <span class="n">lcls</span><span class="p">)</span>
+          <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span> <span class="c1"># Heuristic that we are dealing with a multi-line statement</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">command</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span> <span class="o">+</span> <span class="n">line</span>
+          <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Multi-line statement is complete</span>
+          <span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">glbs</span><span class="p">,</span> <span class="n">lcls</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+      <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;uncaught&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">statement</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># List non-standard, currently loaded module names and metadata.</span>
+
+<div class="viewcode-block" id="get_loaded_dependencies">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.get_loaded_dependencies">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_loaded_dependencies</span><span class="p">():</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; List non-builtin, currently loaded root module names and metadata.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    List of tuples (&lt;root module name&gt;, &lt;version or &#39;None&#39;&gt;, &lt;0: is standard, 1: is site-specific, 2: is local&gt;)</span>
+<span class="sd">  Raises:</span>
+<span class="sd">    &#39;RuntimeError&#39; on unsupported platforms</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Get the site-packages directories, and make &quot;flavor&quot;-detection closure</span>
+  <span class="n">path_sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">site</span><span class="o">.</span><span class="n">getsitepackages</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">getusersitepackages</span><span class="p">()])</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">flavor_of</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path_site</span> <span class="ow">in</span> <span class="n">path_sites</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">path_site</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_SITE</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">for</span> <span class="n">path_site</span> <span class="ow">in</span> <span class="n">path_sites</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">path_site</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_STANDARD</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_LOCAL</span>
+  <span class="c1"># Iterate over the loaded modules</span>
+  <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="c1"># Skip non-root modules</span>
+    <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+      <span class="k">continue</span>
+    <span class="c1"># Get module path (and so skip built-in modules)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__file__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">continue</span>
+    <span class="c1"># Get module version (if any)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__version__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># Get module &quot;flavor&quot;</span>
+    <span class="n">flavor</span> <span class="o">=</span> <span class="n">flavor_of</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c1"># Store entry</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">flavor</span><span class="p">))</span>
+  <span class="c1"># Return found root modules</span>
+  <span class="k">return</span> <span class="n">res</span></div>
+
+
+<span class="c1"># Register constants</span>
+<span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_STANDARD</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_SITE</span>     <span class="o">=</span> <span class="mi">1</span>
+<span class="n">get_loaded_dependencies</span><span class="o">.</span><span class="n">IS_LOCAL</span>    <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Find the x maximizing a function y = f(x), with (x, y) ∊ ℝ⁺× ℝ</span>
+
+<div class="viewcode-block" id="line_maximize">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.line_maximize">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">line_maximize</span><span class="p">(</span><span class="n">scape</span><span class="p">,</span> <span class="n">evals</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Best-effort arg-maximize a scape: ℝ⁺⟶ ℝ, by mere exploration.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    scape Function to best-effort arg-maximize</span>
+<span class="sd">    evals Maximum number of evaluations, must be a positive integer</span>
+<span class="sd">    start Initial x evaluated, must be a non-negative float</span>
+<span class="sd">    delta Initial step delta, must be a positive float</span>
+<span class="sd">    ratio Contraction ratio, must be between 0.5 and 1. (both excluded)</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Best-effort maximizer x under the evaluation budget</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Variable setup</span>
+  <span class="n">best_x</span> <span class="o">=</span> <span class="n">start</span>
+  <span class="n">best_y</span> <span class="o">=</span> <span class="n">scape</span><span class="p">(</span><span class="n">best_x</span><span class="p">)</span>
+  <span class="n">evals</span> <span class="o">-=</span> <span class="mi">1</span>
+  <span class="c1"># Expansion phase</span>
+  <span class="k">while</span> <span class="n">evals</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">prop_x</span> <span class="o">=</span> <span class="n">best_x</span> <span class="o">+</span> <span class="n">delta</span>
+    <span class="n">prop_y</span> <span class="o">=</span> <span class="n">scape</span><span class="p">(</span><span class="n">prop_x</span><span class="p">)</span>
+    <span class="n">evals</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="c1"># Check if best</span>
+    <span class="k">if</span> <span class="n">prop_y</span> <span class="o">&gt;</span> <span class="n">best_y</span><span class="p">:</span>
+      <span class="n">best_y</span> <span class="o">=</span> <span class="n">prop_y</span>
+      <span class="n">best_x</span> <span class="o">=</span> <span class="n">prop_x</span>
+      <span class="n">delta</span> <span class="o">*=</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">delta</span> <span class="o">*=</span> <span class="n">ratio</span>
+      <span class="k">break</span>
+  <span class="c1"># Contraction phase</span>
+  <span class="k">while</span> <span class="n">evals</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">prop_x</span> <span class="o">&lt;</span> <span class="n">best_x</span><span class="p">:</span>
+      <span class="n">prop_x</span> <span class="o">+=</span> <span class="n">delta</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">prop_x</span> <span class="o">-</span> <span class="n">delta</span>
+      <span class="k">while</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">prop_x</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+      <span class="n">prop_x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">prop_y</span> <span class="o">=</span> <span class="n">scape</span><span class="p">(</span><span class="n">prop_x</span><span class="p">)</span>
+    <span class="n">evals</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="c1"># Check if best</span>
+    <span class="k">if</span> <span class="n">prop_y</span> <span class="o">&gt;</span> <span class="n">best_y</span><span class="p">:</span>
+      <span class="n">best_y</span> <span class="o">=</span> <span class="n">prop_y</span>
+      <span class="n">best_x</span> <span class="o">=</span> <span class="n">prop_x</span>
+    <span class="c1"># Reduce delta</span>
+    <span class="n">delta</span> <span class="o">*=</span> <span class="n">ratio</span>
+  <span class="c1"># Return found maximizer</span>
+  <span class="k">return</span> <span class="n">best_x</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Simple generator on the pairs (x, y) of an indexable such that index x &lt; index y</span>
+
+<div class="viewcode-block" id="pairwise">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.pairwise">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pairwise</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple generator of the pairs (x, y) in a tuple such that index x &lt; index y.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    data Indexable (including ability to query length) containing the elements</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Generator over the pairs of the elements of &#39;data&#39;</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+      <span class="k">yield</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------- #</span>
+<span class="c1"># Simple duration helpers</span>
+
+<div class="viewcode-block" id="localtime">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.localtime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">localtime</span><span class="p">():</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Return the formatted local time.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Human-readable local time</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">lt</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">()</span>
+  <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_year</span><span class="si">:</span><span class="s2">04</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_mon</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_mday</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_hour</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_min</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">lt</span><span class="o">.</span><span class="n">tm_sec</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="deltatime_point">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.deltatime_point">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deltatime_point</span><span class="p">():</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Take a point in time.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Opaque point-in-time</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">point</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">point</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">8</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span></div>
+
+
+<div class="viewcode-block" id="deltatime_format">
+<a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.deltatime_format">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deltatime_format</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute and format the time elapsed between two points in time.</span>
+<span class="sd">  Args:</span>
+<span class="sd">    a Earlier point-in-time</span>
+<span class="sd">    b Later point-in-time</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Elapsed time integer (in s),</span>
+<span class="sd">    Formatted elapsed time string (human-readable way)</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Elapsed time (in seconds)</span>
+  <span class="n">t</span> <span class="o">=</span> <span class="n">b</span> <span class="o">-</span> <span class="n">a</span>
+  <span class="c1"># Elapsed time (formatted)</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">t</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">d</span> <span class="o">%</span> <span class="mi">60</span>
+  <span class="n">d</span> <span class="o">//=</span> <span class="mi">60</span>
+  <span class="n">m</span> <span class="o">=</span> <span class="n">d</span> <span class="o">%</span> <span class="mi">60</span>
+  <span class="n">d</span> <span class="o">//=</span> <span class="mi">60</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">d</span> <span class="o">%</span> <span class="mi">24</span>
+  <span class="n">d</span> <span class="o">//=</span> <span class="mi">24</span>
+  <span class="c1"># Return elapsed time</span>
+  <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2"> day(s), </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2"> hour(s), </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2"> min(s), </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> sec(s)&quot;</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
