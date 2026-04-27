@@ -461,11 +461,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="brute">
-<h1>Brute<a class="headerlink" href="#brute" title="Link to this heading">#</a></h1>
-<p>Brute-force optimal aggregation. Exhaustively searches all subsets to find
-the one with minimum diameter.</p>
-<p id="module-aggregators.brute">The Brute aggregation rule finds the optimal subset of <span class="math notranslate nohighlight">\(n - f\)</span> gradients
+  <section id="module-aggregators.brute">
+<span id="brute"></span><h1>Brute<a class="headerlink" href="#module-aggregators.brute" title="Link to this heading">#</a></h1>
+<p>The Brute aggregation rule finds the optimal subset of <span class="math notranslate nohighlight">\(n - f\)</span> gradients
 (with smallest diameter) by exhaustively checking all possible combinations.
 The “diameter” of a set is the maximum pairwise distance between any two
 gradients in that set.</p>
@@ -598,15 +596,6 @@ deviation / norm to use this rule.</p>
 </dl>
 </dd></dl>
 
-<section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><strong>Complexity:</strong> O(C(n, n-f) · d · n²) - exponential!</p></li>
-<li><p><strong>Minimum workers:</strong> 2f + 1</p></li>
-<li><p><strong>Byzantine resilience:</strong> Optimal (guaranteed minimum diameter)</p></li>
-</ul>
-<p>Warning: Use only for small-scale experiments. Not suitable for production.</p>
-</section>
 </section>
 
 
@@ -663,7 +652,6 @@ deviation / norm to use this rule.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 </ul>
   </nav></div>
 

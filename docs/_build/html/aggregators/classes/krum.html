@@ -461,11 +461,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="krum-multi-krum">
-<h1>Krum / Multi-Krum<a class="headerlink" href="#krum-multi-krum" title="Link to this heading">#</a></h1>
-<p>Distance-based Byzantine-resilient aggregation rule. Selects gradients that
-are closest to their neighbors and averages them.</p>
-<p id="module-aggregators.krum">Krum (and its variant Multi-Krum) is a distance-based Byzantine-resilient
+  <section id="module-aggregators.krum">
+<span id="krum-multi-krum"></span><h1>Krum / Multi-Krum<a class="headerlink" href="#module-aggregators.krum" title="Link to this heading">#</a></h1>
+<p>Krum (and its variant Multi-Krum) is a distance-based Byzantine-resilient
 aggregation rule. It works by:</p>
 <ol class="arabic simple">
 <li><p>Computing pairwise distances between all gradients</p></li>
@@ -619,21 +617,6 @@ deviation / norm to use this rule.</p>
 </dl>
 </dd></dl>
 
-<section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><strong>Complexity:</strong> O(n²·d)</p></li>
-<li><p><strong>Minimum workers:</strong> 2f + 3</p></li>
-<li><p><strong>Byzantine resilience:</strong> Moderate</p></li>
-</ul>
-<dl class="simple">
-<dt>Parameters:</dt><dd><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">f</span></code>: Number of Byzantine gradients to tolerate</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">m</span></code>: Number of gradients to select (optional, default: n-f-2)</p></li>
-</ul>
-</dd>
-</dl>
-</section>
 </section>
 
 
@@ -689,7 +672,6 @@ deviation / norm to use this rule.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.krum.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.krum.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.krum.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 </ul>
   </nav></div>
 

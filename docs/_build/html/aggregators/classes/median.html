@@ -461,11 +461,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="median">
-<h1>Median<a class="headerlink" href="#median" title="Link to this heading">#</a></h1>
-<p>Coordinate-wise median aggregation rule. Computes the median of each
-coordinate independently across all submitted gradients.</p>
-<p id="module-aggregators.median">This aggregation rule computes the median of each coordinate independently across
+  <section id="module-aggregators.median">
+<span id="median"></span><h1>Median<a class="headerlink" href="#module-aggregators.median" title="Link to this heading">#</a></h1>
+<p>This aggregation rule computes the median of each coordinate independently across
 all submitted gradients. It is robust against Byzantine gradients containing
 NaN or Inf values (they are simply ignored in the median computation).</p>
 <p><strong>Use case:</strong> Simple defense against attacks that inject NaN/Inf values, or
@@ -580,22 +578,6 @@ deviation / norm to use this rule.</p>
 influence the median more than this ratio.</p>
 </dd></dl>
 
-<section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><strong>Complexity:</strong> O(n·d)</p></li>
-<li><p><strong>Minimum workers:</strong> 1</p></li>
-<li><p><strong>Byzantine resilience:</strong> Basic (NaN-resilient)</p></li>
-</ul>
-<dl class="simple">
-<dt>Properties:</dt><dd><ul class="simple">
-<li><p>Resilient to NaN/Inf injection attacks</p></li>
-<li><p>Each coordinate treated independently</p></li>
-</ul>
-</dd>
-</dl>
-<p>Theoretical bound: <span class="math notranslate nohighlight">\(\frac{1}{\sqrt{n-f}}\)</span></p>
-</section>
 </section>
 
 
@@ -650,7 +632,6 @@ influence the median more than this ratio.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 </ul>
   </nav></div>
 
