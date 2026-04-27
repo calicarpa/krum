@@ -40,15 +40,6 @@ The module exposes three variants for each attack:
 - ``attack.checked``: Always validates parameters
 - ``attack.unchecked``: Skips validation (faster in production)
 
-Available Attacks
------------------
-
-- **NaN**: Generates gradients with NaN values (simple baseline attack)
-- **Identical**: Multiple variants that submit identical Byzantine gradients:
-    - **bulyan**: Uses ones vector as attack direction
-    - **empire**: Uses negative average as direction
-    - **little**: Uses standard deviation as direction
-
 Example
 -------
 

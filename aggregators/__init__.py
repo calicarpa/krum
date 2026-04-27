@@ -44,15 +44,6 @@ Additional metadata available on each rule:
 - ``rule.upper_bound``: Theoretical bound on stddev/norm ratio (if available)
 - ``rule.influence``: Attack acceptance ratio (if available)
 
-Available Rules
----------------
-
-- **Average**: Simple arithmetic mean (baseline, no Byzantine resilience)
-- **Median**: Coordinate-wise median (basic resilience against NaN)
-- **Krum / Multi-Krum**: Distance-based selection (moderate resilience)
-- **Bulyan**: Two-stage selection + trimmed mean (strong resilience)
-- **Brute**: Exhaustive search for optimal subset (best theoretical)
-
 Example
 -------
 
