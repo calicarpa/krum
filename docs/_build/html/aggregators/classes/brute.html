@@ -52,6 +52,8 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../../_static/togglebutton.js?v=b8b12719"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"argmin": "\\mathop{\\mathrm{arg\\,min}}"}}})</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'aggregators/classes/brute';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -391,7 +393,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Aggregators</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="average.html">Average</a></li>
 <li class="toctree-l2"><a class="reference internal" href="median.html">Median</a></li>
-<li class="toctree-l2"><a class="reference internal" href="krum.html">Krum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="krum.html">Krum / Multi-Krum</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bulyan.html">Bulyan</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Brute</a></li>
 </ul>
@@ -459,32 +461,83 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-aggregators.brute">
-<span id="brute"></span><h1>Brute<a class="headerlink" href="#module-aggregators.brute" title="Link to this heading">#</a></h1>
+  <section id="brute">
+<h1>Brute<a class="headerlink" href="#brute" title="Link to this heading">#</a></h1>
+<p>Brute-force optimal aggregation. Exhaustively searches all subsets to find
+the one with minimum diameter.</p>
+<p id="module-aggregators.brute">The Brute aggregation rule finds the optimal subset of <span class="math notranslate nohighlight">\(n - f\)</span> gradients
+(with smallest diameter) by exhaustively checking all possible combinations.
+The “diameter” of a set is the maximum pairwise distance between any two
+gradients in that set.</p>
+<p><strong>Use case:</strong> Theoretical baseline for evaluating other aggregation rules.
+Provides optimal Byzantine resilience but with exponential complexity.</p>
+<p><strong>Properties:</strong>
+- Exhaustive search: Checks all possible <span class="math notranslate nohighlight">\(\binom{n}{n-f}\)</span> subsets.
+- Optimal: Guarantees the smallest possible diameter among all valid subsets.
+- Not scalable: Only practical for small <span class="math notranslate nohighlight">\(n\)</span> or research purposes.</p>
+<section id="theoretical-bound">
+<h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">#</a></h2>
+<p>The Brute rule provides the best theoretical guarantees:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\sigma}{\|g\|} \leq \frac{n - f}{\sqrt{8} f}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma\)</span> is the standard deviation of honest gradients.</p>
+</section>
+<section id="complexity">
+<h2>Complexity<a class="headerlink" href="#complexity" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Time: <span class="math notranslate nohighlight">\(O(\binom{n}{n-f} \cdot d \cdot n^2)\)</span> where <span class="math notranslate nohighlight">\(d\)</span> is the
+gradient dimension.</p></li>
+<li><p>Space: <span class="math notranslate nohighlight">\(O(n^2)\)</span> for storing pairwise distances.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">brute</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">200.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">]),</span>  <span class="c1"># Byzantine</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">200.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">])</span>   <span class="c1"># Byzantine</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">brute</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">tensor([1.0500, 2.0500, 3.0500])</span>
+</pre></div>
+</div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.brute.aggregate">
 <span class="sig-prename descclassname"><span class="pre">aggregators.brute.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/brute.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.brute.aggregate" title="Link to this definition">#</a></dt>
-<dd><p>Brute rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param f         Number of Byzantine gradients to tolerate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Compute the Brute aggregation (mean of smallest-diameter subset).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Aggregated gradient</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate. Must satisfy
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">&lt;=</span> <span class="pre">f</span> <span class="pre">&lt;=</span> <span class="pre">(n</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">//</span> <span class="pre">2</span></code> where <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">len(gradients)</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Average of the selected subset with smallest diameter.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The output tensor is a new tensor, not aliasing any input tensor.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.brute.aggregate_native">
 <span class="sig-prename descclassname"><span class="pre">aggregators.brute.</span></span><span class="sig-name descname"><span class="pre">aggregate_native</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/brute.html#aggregate_native"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.brute.aggregate_native" title="Link to this definition">#</a></dt>
-<dd><p>Brute rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param f         Number of Byzantine gradients to tolerate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Compute the Brute aggregation using native (C++/CUDA) acceleration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Aggregated gradient</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Average of the selected subset.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -492,13 +545,17 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.brute.check">
 <span class="sig-prename descclassname"><span class="pre">aggregators.brute.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/brute.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.brute.check" title="Link to this definition">#</a></dt>
-<dd><p>Check parameter validity for Brute rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param f         Number of Byzantine gradients to tolerate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Check parameter validity for Brute rule.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>None if valid, otherwise error message string</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -506,15 +563,18 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.brute.influence">
 <span class="sig-prename descclassname"><span class="pre">aggregators.brute.</span></span><span class="sig-name descname"><span class="pre">influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attacks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/brute.html#influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.brute.influence" title="Link to this definition">#</a></dt>
-<dd><p>Compute the ratio of accepted Byzantine gradients.
-:param honests Non-empty list of honest gradients to aggregate:
-:param attacks List of attack gradients to aggregate:
-:param f       Number of Byzantine gradients to tolerate:
-:param m       Optional number of averaged gradients for Multi-Krum:
-:param …     Ignored keyword-arguments:</p>
+<dd><p>Compute the ratio of accepted Byzantine gradients.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Ratio of accepted</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>attacks</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List of attack (Byzantine) gradients.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Ratio of Byzantine gradients in the final aggregation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -522,18 +582,31 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.brute.upper_bound">
 <span class="sig-prename descclassname"><span class="pre">aggregators.brute.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/brute.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.brute.upper_bound" title="Link to this definition">#</a></dt>
-<dd><p>Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this rule.
-:param n Number of workers:
-:type n Number of workers: Byzantine + non-Byzantine
-:param f Expected number of Byzantine workers:
-:param d Dimension of the gradient space:</p>
+<dd><p>Compute the theoretical upper bound on the ratio non-Byzantine standard
+deviation / norm to use this rule.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Theoretical upper-bound</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of workers (Byzantine + non-Byzantine).</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Expected number of Byzantine workers.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – Dimension of the gradient space.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Theoretical upper-bound value.</p>
 </dd>
 </dl>
 </dd></dl>
 
+<section id="quick-reference">
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Complexity:</strong> O(C(n, n-f) · d · n²) - exponential!</p></li>
+<li><p><strong>Minimum workers:</strong> 2f + 1</p></li>
+<li><p><strong>Byzantine resilience:</strong> Optimal (guaranteed minimum diameter)</p></li>
+</ul>
+<p>Warning: Use only for small-scale experiments. Not suitable for production.</p>
+</section>
 </section>
 
 
@@ -583,11 +656,14 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#theoretical-bound">Theoretical Bound</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#complexity">Complexity</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 </ul>
   </nav></div>
 

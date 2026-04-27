@@ -444,6 +444,48 @@
  <span class="c1"># NaN-resilient, coordinate-wise median GAR.</span>
 <span class="c1">###</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This aggregation rule computes the median of each coordinate independently across</span>
+<span class="sd">all submitted gradients. It is robust against Byzantine gradients containing</span>
+<span class="sd">NaN or Inf values (they are simply ignored in the median computation).</span>
+
+<span class="sd">**Use case:** Simple defense against attacks that inject NaN/Inf values, or</span>
+<span class="sd">as a baseline for coordinate-wise robust aggregation.</span>
+
+<span class="sd">**Properties:**</span>
+<span class="sd">- NaN-resilient: Gradients containing NaN values are naturally ignored.</span>
+<span class="sd">- Coordinate-wise: Each dimension is treated independently.</span>
+<span class="sd">- No theoretical guarantee: Unlike other methods, this rule has no proven</span>
+<span class="sd">  Byzantine-resilience guarantees for general attacks.</span>
+
+<span class="sd">Theoretical Bound</span>
+<span class="sd">-----------------</span>
+
+<span class="sd">The coordinate-wise median provides guarantees when the ratio of non-Byzantine</span>
+<span class="sd">standard deviation to gradient norm is below:</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">    \\frac{1}{\\sqrt{n - f}}</span>
+
+<span class="sd">where :math:`n` is the total number of workers and :math:`f` is the number</span>
+<span class="sd">of Byzantine workers.</span>
+
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">&gt;&gt;&gt; import torch</span>
+<span class="sd">&gt;&gt;&gt; from aggregators import median</span>
+<span class="sd">&gt;&gt;&gt; gradients = [</span>
+<span class="sd">...     torch.tensor([1., 100., 3.]),</span>
+<span class="sd">...     torch.tensor([2., 200., 4.]),</span>
+<span class="sd">...     torch.tensor([3., 300., 5.])</span>
+<span class="sd">... ]</span>
+<span class="sd">&gt;&gt;&gt; result = median(gradients)</span>
+<span class="sd">tensor([2., 200., 4.])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
 
@@ -452,9 +494,9 @@
 
 <span class="c1"># Optional &#39;native&#39; module</span>
 <span class="k">try</span><span class="p">:</span>
-  <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-  <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># NaN-resilient, coordinate-wise median GAR</span>
@@ -462,72 +504,126 @@
 <div class="viewcode-block" id="aggregate">
 <a class="viewcode-back" href="../../aggregators/classes/median.html#aggregators.median.aggregate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; NaN-resilient median coordinate-per-coordinate rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    NaN-resilient, coordinate-wise median of the gradients</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the coordinate-wise median of all gradients.</span>
+
+<span class="sd">    This method is resilient to NaN and Inf values in the input gradients,</span>
+<span class="sd">    as the median operation naturally ignores such values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of gradients to aggregate. Each gradient should be</span>
+<span class="sd">        a 1-D tensor of the same shape.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Coordinate-wise median of all input gradients. NaN and Inf values</span>
+<span class="sd">        are naturally excluded from the median computation.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The output tensor is a new tensor, not aliasing any input tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="aggregate_native">
 <a class="viewcode-back" href="../../aggregators/classes/median.html#aggregators.median.aggregate_native">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; NaN-resilient median coordinate-per-coordinate rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    NaN-resilient, coordinate-wise median of the gradients</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">median</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the coordinate-wise median using native (C++/CUDA) acceleration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Coordinate-wise median of all input gradients.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">median</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../aggregators/classes/median.html#aggregators.median.check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Check parameter validity for the median rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    None if valid, otherwise error message string</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check parameter validity for the median rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None or str</span>
+<span class="sd">        None if valid, otherwise error message string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span></div>
 
 
 <div class="viewcode-block" id="upper_bound">
 <a class="viewcode-back" href="../../aggregators/classes/median.html#aggregators.median.upper_bound">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    n Number of workers (Byzantine + non-Byzantine)</span>
-<span class="sd">    f Expected number of Byzantine workers</span>
-<span class="sd">    d Dimension of the gradient space</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Theoretical upper-bound</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the theoretical upper bound on the ratio non-Byzantine standard</span>
+<span class="sd">    deviation / norm to use this rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Number of workers (Byzantine + non-Byzantine).</span>
+<span class="sd">    f : int</span>
+<span class="sd">        Expected number of Byzantine workers.</span>
+<span class="sd">    d : int</span>
+<span class="sd">        Dimension of the gradient space.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Theoretical upper-bound value.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The bound formula is:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \\frac{1}{\\sqrt{n - f}}</span>
+
+<span class="sd">    This bound applies under the assumption that Byzantine gradients cannot</span>
+<span class="sd">    influence the median more than this ratio.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># GAR registering</span>
 
-<span class="c1"># Register aggregation rule (pytorch version)</span>
+<span class="c1"># Register aggregation rule (pytorch version)</span>
 <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;median&quot;</span>
 <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
 
-<span class="c1"># Register aggregation rule (native version, if available)</span>
+<span class="c1"># Register aggregation rule (native version, if available)</span>
 <span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-  <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
-  <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
-  <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">))</span>
+    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
+    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
+    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">))</span>
 </pre></div>
 
                 </article>

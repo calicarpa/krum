@@ -10,8 +10,29 @@
  #
  # @section DESCRIPTION
  #
- # Simple average GAR.
+ # Simple arithmetic mean aggregation rule.
 ###
+
+"""
+This is the simplest aggregation rule, computing the arithmetic mean of all
+submitted gradients. It serves as a baseline for comparison with Byzantine-
+resilient methods.
+
+**Use case:** Baseline for non-adversarial settings or when no Byzantine
+behavior is expected.
+
+**Limitations:** Vulnerable to any Byzantine attack. A single malicious
+gradient can completely skew the result.
+
+Example
+-------
+
+>>> import torch
+>>> from aggregators import average
+>>> gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
+>>> result = average(gradients)
+tensor([2.5000, 3.5000, 4.5000])
+"""
 
 from . import register
 
@@ -19,37 +40,73 @@ from . import register
 # Average GAR
 
 def aggregate(gradients, **kwargs):
-  """ Averaging rule.
-  Args:
-    gradients Non-empty list of gradients to aggregate
-    ...       Ignored keyword-arguments
-  Returns:
-    Average gradient
-  """
-  return sum(gradients) / len(gradients)
+    """
+    Compute the arithmetic mean of all gradients.
+
+    Parameters
+    ----------
+    gradients : list of torch.Tensor
+        Non-empty list of gradients to aggregate. Each gradient should be
+        a 1-D tensor representing the flattened model parameters.
+    **kwargs : dict
+        Additional keyword arguments (ignored).
+
+    Returns
+    -------
+    torch.Tensor
+        The arithmetic mean of all input gradients.
+
+    Notes
+    -----
+    The output tensor is a new tensor, not aliasing any input tensor.
+    """
+    return sum(gradients) / len(gradients)
 
 def check(gradients, **kwargs):
-  """ Check parameter validity for the averaging rule.
-  Args:
-    gradients Non-empty list of gradients to aggregate
-    ...       Ignored keyword-arguments
-  Returns:
-    None if valid, otherwise error message string
-  """
-  if not isinstance(gradients, list) or len(gradients) < 1:
-    return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+    """
+    Check parameter validity for the averaging rule.
+
+    Parameters
+    ----------
+    gradients : list
+        Non-empty list of gradients to aggregate.
+    **kwargs : dict
+        Additional keyword arguments (ignored).
+
+    Returns
+    -------
+    None or str
+        None if valid, otherwise error message string.
+    """
+    if not isinstance(gradients, list) or len(gradients) < 1:
+        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
 
 def influence(honests, attacks, **kwargs):
-  """ Compute the ratio of accepted Byzantine gradients.
-  Args:
-    honests Non-empty list of honest gradients to aggregate
-    attacks List of attack gradients to aggregate
-    ...     Ignored keyword-arguments
-  """
-  return len(attacks) / (len(honests) + len(attacks))
+    """
+    Compute the ratio of accepted Byzantine gradients.
+
+    For arithmetic mean, all submitted gradients are used in the aggregation,
+    so the influence ratio is simply the fraction of Byzantine gradients
+    in the total.
+
+    Parameters
+    ----------
+    honests : list of torch.Tensor
+        Non-empty list of honest gradients.
+    attacks : list of torch.Tensor
+        List of attack (Byzantine) gradients.
+    **kwargs : dict
+        Additional keyword arguments (ignored).
+
+    Returns
+    -------
+    float
+        Ratio of Byzantine gradients in the aggregation (attackers / total).
+    """
+    return len(attacks) / (len(honests) + len(attacks))
 
 # ---------------------------------------------------------------------------- #
 # GAR registering
 
-# Register aggregation rule
+# Register aggregation rule
 register("average", aggregate, check, influence=influence)

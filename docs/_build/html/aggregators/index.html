@@ -52,6 +52,8 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=b8b12719"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"argmin": "\\mathop{\\mathrm{arg\\,min}}"}}})</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'aggregators/index';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -391,7 +393,7 @@
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Aggregators</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="classes/average.html">Average</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes/median.html">Median</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html">Krum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes/krum.html">Krum / Multi-Krum</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes/bulyan.html">Bulyan</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes/brute.html">Brute</a></li>
 </ul>
@@ -458,50 +460,95 @@
                   
   <section id="aggregators">
 <h1>Aggregators<a class="headerlink" href="#aggregators" title="Link to this heading">#</a></h1>
-<p>Krum provides several Byzantine-resilient gradient aggregation rules.</p>
+<p>Krum provides several Byzantine-resilient gradient aggregation rules (GARs).
+Each rule follows a keyword-only contract and includes parameter validation
+and optional theoretical bounds.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-text">Aggregator overview</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 16.0%" />
+<col style="width: 42.0%" />
+<col style="width: 24.0%" />
+<col style="width: 18.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Aggregator</p></th>
+<th class="head"><p>Complexity</p></th>
+<th class="head"><p>Min. Workers</p></th>
+<th class="head"><p>Byzantine Res.</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Average</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(nd)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+<td><p>None (baseline)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Median</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(nd)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+<td><p>Basic</p></td>
+</tr>
+<tr class="row-even"><td><p>Krum</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(n^2 d)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(2f + 3\)</span></p></td>
+<td><p>Moderate</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bulyan</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(n^2 d)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(4f + 3\)</span></p></td>
+<td><p>Strong</p></td>
+</tr>
+<tr class="row-even"><td><p>Brute</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(\binom{n}{n-f}d)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(2f + 1\)</span></p></td>
+<td><p>Optimal</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n\)</span> = total number of workers</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> = number of Byzantine workers</p></li>
+<li><p><span class="math notranslate nohighlight">\(d\)</span> = gradient dimension</p></li>
+<li><p><span class="math notranslate nohighlight">\(\binom{n}{k}\)</span> = binomial coefficient</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<p>All aggregators can be called with the same keyword-only interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
+
+<span class="c1"># Using average (baseline)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">list_of_gradients</span><span class="p">)</span>
+
+<span class="c1"># Using Krum with Byzantine tolerance</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">list_of_gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Checking validity before calling</span>
+<span class="k">if</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">list_of_gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">aggregators</span><span class="o">.</span><span class="n">krum</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">list_of_gradients</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="available-aggregators">
+<h2>Available Aggregators<a class="headerlink" href="#available-aggregators" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Aggregators:</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Robust Aggregation Rules:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="classes/average.html">Average</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/average.html#aggregators.average.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/average.html#aggregators.average.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/average.html#aggregators.average.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/median.html">Median</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/median.html#aggregators.median.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/median.html#aggregators.median.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/median.html#aggregators.median.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/median.html#aggregators.median.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/krum.html">Krum</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html#aggregators.krum.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html#aggregators.krum.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html#aggregators.krum.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html#aggregators.krum.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/krum.html#aggregators.krum.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/bulyan.html">Bulyan</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/bulyan.html#aggregators.bulyan.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/bulyan.html#aggregators.bulyan.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/bulyan.html#aggregators.bulyan.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/bulyan.html#aggregators.bulyan.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/brute.html">Brute</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/brute.html#aggregators.brute.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/brute.html#aggregators.brute.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/brute.html#aggregators.brute.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/brute.html#aggregators.brute.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/brute.html#aggregators.brute.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="classes/average.html">Average</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/median.html">Median</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/krum.html">Krum / Multi-Krum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/bulyan.html">Bulyan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/brute.html">Brute</a></li>
 </ul>
 </div>
+</section>
 <section id="module-aggregators">
-<span id="api"></span><h2>API<a class="headerlink" href="#module-aggregators" title="Link to this heading">#</a></h2>
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aggregators" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average">
 <span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.average" title="Link to this definition">#</a></dt>
@@ -610,7 +657,10 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-aggregators">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-aggregators">Available Aggregators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-aggregators">API Reference</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.average"><code class="docutils literal notranslate"><span class="pre">average()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.brute"><code class="docutils literal notranslate"><span class="pre">brute()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>

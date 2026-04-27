@@ -441,8 +441,29 @@
  <span class="c1">#</span>
  <span class="c1"># @section DESCRIPTION</span>
  <span class="c1">#</span>
- <span class="c1"># Simple average GAR.</span>
+ <span class="c1"># Simple arithmetic mean aggregation rule.</span>
 <span class="c1">###</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is the simplest aggregation rule, computing the arithmetic mean of all</span>
+<span class="sd">submitted gradients. It serves as a baseline for comparison with Byzantine-</span>
+<span class="sd">resilient methods.</span>
+
+<span class="sd">**Use case:** Baseline for non-adversarial settings or when no Byzantine</span>
+<span class="sd">behavior is expected.</span>
+
+<span class="sd">**Limitations:** Vulnerable to any Byzantine attack. A single malicious</span>
+<span class="sd">gradient can completely skew the result.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">&gt;&gt;&gt; import torch</span>
+<span class="sd">&gt;&gt;&gt; from aggregators import average</span>
+<span class="sd">&gt;&gt;&gt; gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]</span>
+<span class="sd">&gt;&gt;&gt; result = average(gradients)</span>
+<span class="sd">tensor([2.5000, 3.5000, 4.5000])</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
 
@@ -452,46 +473,82 @@
 <div class="viewcode-block" id="aggregate">
 <a class="viewcode-back" href="../../aggregators/classes/average.html#aggregators.average.aggregate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Averaging rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Average gradient</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the arithmetic mean of all gradients.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of gradients to aggregate. Each gradient should be</span>
+<span class="sd">        a 1-D tensor representing the flattened model parameters.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        The arithmetic mean of all input gradients.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The output tensor is a new tensor, not aliasing any input tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../aggregators/classes/average.html#aggregators.average.check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Check parameter validity for the averaging rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    None if valid, otherwise error message string</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check parameter validity for the averaging rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None or str</span>
+<span class="sd">        None if valid, otherwise error message string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span></div>
 
 
 <div class="viewcode-block" id="influence">
 <a class="viewcode-back" href="../../aggregators/classes/average.html#aggregators.average.influence">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">influence</span><span class="p">(</span><span class="n">honests</span><span class="p">,</span> <span class="n">attacks</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the ratio of accepted Byzantine gradients.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    honests Non-empty list of honest gradients to aggregate</span>
-<span class="sd">    attacks List of attack gradients to aggregate</span>
-<span class="sd">    ...     Ignored keyword-arguments</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">honests</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">))</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the ratio of accepted Byzantine gradients.</span>
+
+<span class="sd">    For arithmetic mean, all submitted gradients are used in the aggregation,</span>
+<span class="sd">    so the influence ratio is simply the fraction of Byzantine gradients</span>
+<span class="sd">    in the total.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    honests : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of honest gradients.</span>
+<span class="sd">    attacks : list of torch.Tensor</span>
+<span class="sd">        List of attack (Byzantine) gradients.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Ratio of Byzantine gradients in the aggregation (attackers / total).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">honests</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">))</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># GAR registering</span>
 
-<span class="c1"># Register aggregation rule</span>
+<span class="c1"># Register aggregation rule</span>
 <span class="n">register</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span><span class="p">)</span>
 </pre></div>
 

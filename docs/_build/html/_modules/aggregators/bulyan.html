@@ -444,6 +444,56 @@
  <span class="c1"># Bulyan over Multi-Krum GAR.</span>
 <span class="c1">###</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Bulyan is a sophisticated Byzantine-resilient aggregation rule that combines</span>
+<span class="sd">Multi-Krum selection with a coordinate-wise trimmed mean. It works in two</span>
+<span class="sd">stages:</span>
+
+<span class="sd">1. **Multi-Krum Selection**: Select :math:`n - 2f` gradients using a modified</span>
+<span class="sd">   Multi-Krum criterion. Iteratively selects gradients that are closest to the</span>
+<span class="sd">   current center.</span>
+
+<span class="sd">2. **Coordinate-wise Trimmed Mean**: For each coordinate, compute the median</span>
+<span class="sd">   of the selected gradients, then average the :math:`n - 4f` values closest</span>
+<span class="sd">   to that median.</span>
+
+<span class="sd">**Use case:** Strong Byzantine-resilience with better theoretical guarantees</span>
+<span class="sd">than standalone Multi-Krum.</span>
+
+<span class="sd">**Properties:**</span>
+<span class="sd">- Two-stage: Combines geometric selection with coordinate-wise robustness.</span>
+<span class="sd">- Higher complexity: Requires at least :math:`4f + 3` workers.</span>
+<span class="sd">- Stronger guarantees: More resilient to sophisticated attacks than Krum.</span>
+
+<span class="sd">Theoretical Bound</span>
+<span class="sd">-----------------</span>
+
+<span class="sd">Bulyan provides guarantees under the same condition as Multi-Krum, but with</span>
+<span class="sd">stronger resilience to attacks that try to mimic honest gradients.</span>
+
+<span class="sd">Parameters</span>
+<span class="sd">----------</span>
+
+<span class="sd">m : int, optional</span>
+<span class="sd">    Number of gradients to consider in each Multi-Krum selection step.</span>
+<span class="sd">    Default is ``n - f - 2``. Must satisfy ``1 &lt;= m &lt;= n - f - 2``.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">&gt;&gt;&gt; import torch</span>
+<span class="sd">&gt;&gt;&gt; from aggregators import bulyan</span>
+<span class="sd">&gt;&gt;&gt; gradients = [</span>
+<span class="sd">...     torch.tensor([1., 2., 3.]),</span>
+<span class="sd">...     torch.tensor([1.1, 2.1, 3.1]),</span>
+<span class="sd">...     torch.tensor([1.2, 2.2, 3.2]),</span>
+<span class="sd">...     torch.tensor([100., 200., 300.]),  # Byzantine</span>
+<span class="sd">...     torch.tensor([100., 200., 300.]),  # Byzantine</span>
+<span class="sd">... ]</span>
+<span class="sd">&gt;&gt;&gt; result = bulyan(gradients, f=2)</span>
+<span class="sd">tensor([1.1000, 2.1000, 3.1000])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
 
@@ -452,9 +502,9 @@
 
 <span class="c1"># Optional &#39;native&#39; module</span>
 <span class="k">try</span><span class="p">:</span>
-  <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-  <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># Bulyan GAR class</span>
@@ -462,129 +512,175 @@
 <div class="viewcode-block" id="aggregate">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.aggregate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Bulyan over Multi-Krum rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    f         Number of Byzantine gradients to tolerate</span>
-<span class="sd">    m         Optional number of averaged gradients for Multi-Krum</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Aggregated gradient</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-  <span class="c1"># Defaults</span>
-  <span class="n">m_max</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
-  <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">m_max</span>
-  <span class="c1"># Compute all pairwise distances</span>
-  <span class="n">distances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-  <span class="k">for</span> <span class="n">gid_x</span><span class="p">,</span> <span class="n">gid_y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
-    <span class="n">dist</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">gid_x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid_y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
-      <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
-    <span class="n">distances</span><span class="p">[</span><span class="n">gid_x</span><span class="p">][</span><span class="n">gid_y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_y</span><span class="p">)</span>
-    <span class="n">distances</span><span class="p">[</span><span class="n">gid_y</span><span class="p">][</span><span class="n">gid_x</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_x</span><span class="p">)</span>
-  <span class="c1"># Compute the scores</span>
-  <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
-  <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="n">dists</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
-    <span class="n">dists</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
-    <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span> <span class="k">for</span> <span class="n">dist</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
-    <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
-  <span class="c1"># Selection loop</span>
-  <span class="n">selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-    <span class="c1"># Update &#39;m&#39;</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">m_max</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
-    <span class="c1"># Compute the average of the selected gradients</span>
-    <span class="n">scores</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">selected</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[:</span><span class="n">m</span><span class="p">])</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-    <span class="c1"># Remove the gradient from the distances and scores</span>
-    <span class="n">gid_prune</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-      <span class="k">if</span> <span class="n">gid</span> <span class="o">==</span> <span class="n">gid_prune</span><span class="p">:</span>
-        <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">distance</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="n">gid_prune</span><span class="p">],</span> <span class="n">gid</span><span class="p">)</span>
-  <span class="c1"># Coordinate-wise averaged median</span>
-  <span class="n">m</span>        <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span>
-  <span class="n">median</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-  <span class="n">closests</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">median</span><span class="p">)</span><span class="o">.</span><span class="n">abs_</span><span class="p">()</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
-  <span class="n">closests</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
-  <span class="n">avgmed</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">closests</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-  <span class="c1"># Return resulting gradient</span>
-  <span class="k">return</span> <span class="n">avgmed</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the Bulyan aggregation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    f : int</span>
+<span class="sd">        Number of Byzantine gradients to tolerate. Must satisfy</span>
+<span class="sd">        ``1 &lt;= f &lt;= (n - 3) // 4`` where ``n = len(gradients)``.</span>
+<span class="sd">    m : int, optional</span>
+<span class="sd">        Number of gradients to consider in Multi-Krum selection.</span>
+<span class="sd">        Default is ``n - f - 2``.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        The Bulyan aggregated gradient.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The output tensor is a new tensor, not aliasing any input tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Defaults</span>
+    <span class="n">m_max</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">m_max</span>
+    <span class="c1"># Compute all pairwise distances</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">gid_x</span><span class="p">,</span> <span class="n">gid_y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">gid_x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid_y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">distances</span><span class="p">[</span><span class="n">gid_x</span><span class="p">][</span><span class="n">gid_y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_y</span><span class="p">)</span>
+        <span class="n">distances</span><span class="p">[</span><span class="n">gid_y</span><span class="p">][</span><span class="n">gid_x</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_x</span><span class="p">)</span>
+    <span class="c1"># Compute the scores</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">dists</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+        <span class="n">dists</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
+        <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span> <span class="k">for</span> <span class="n">dist</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
+        <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
+    <span class="c1"># Selection loop</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1"># Update &#39;m&#39;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">m_max</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
+        <span class="c1"># Compute the average of the selected gradients</span>
+        <span class="n">scores</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">selected</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[:</span><span class="n">m</span><span class="p">])</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="c1"># Remove the gradient from the distances and scores</span>
+        <span class="n">gid_prune</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="o">==</span> <span class="n">gid_prune</span><span class="p">:</span>
+                <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">distance</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="n">gid_prune</span><span class="p">],</span> <span class="n">gid</span><span class="p">)</span>
+    <span class="c1"># Coordinate-wise averaged median</span>
+    <span class="n">m</span>        <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span>
+    <span class="n">median</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">closests</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">median</span><span class="p">)</span><span class="o">.</span><span class="n">abs_</span><span class="p">()</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
+    <span class="n">closests</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
+    <span class="n">avgmed</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">closests</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Return resulting gradient</span>
+    <span class="k">return</span> <span class="n">avgmed</span></div>
 
 
 <div class="viewcode-block" id="aggregate_native">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.aggregate_native">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Bulyan over Multi-Krum rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    f         Number of Byzantine gradients to tolerate</span>
-<span class="sd">    m         Optional number of averaged gradients for Multi-Krum</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Aggregated gradient</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="c1"># Defaults</span>
-  <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
-  <span class="c1"># Computation</span>
-  <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">bulyan</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the Bulyan aggregation using native (C++/CUDA) acceleration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list of torch.Tensor</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    f : int</span>
+<span class="sd">        Number of Byzantine gradients to tolerate.</span>
+<span class="sd">    m : int, optional</span>
+<span class="sd">        Number of gradients to consider.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        The Bulyan aggregated gradient.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Defaults</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="c1"># Computation</span>
+    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">bulyan</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Check parameter validity for Bulyan over Multi-Krum rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    gradients Non-empty list of gradients to aggregate</span>
-<span class="sd">    f         Number of Byzantine gradients to tolerate</span>
-<span class="sd">    m         Optional number of averaged gradients for Multi-Krum</span>
-<span class="sd">    ...       Ignored keyword-arguments</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    None if valid, otherwise error message string</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
-    <span class="k">return</span> <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
-    <span class="k">return</span> <span class="s2">&quot;Invalid number of selected gradients, got m = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ m ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check parameter validity for Bulyan rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gradients : list</span>
+<span class="sd">        Non-empty list of gradients to aggregate.</span>
+<span class="sd">    f : int</span>
+<span class="sd">        Number of Byzantine gradients to tolerate.</span>
+<span class="sd">    m : int, optional</span>
+<span class="sd">        Number of gradients to consider.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments (ignored).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None or str</span>
+<span class="sd">        None if valid, otherwise error message string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Invalid number of selected gradients, got m = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ m ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="upper_bound">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.upper_bound">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this rule.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    n Number of workers (Byzantine + non-Byzantine)</span>
-<span class="sd">    f Expected number of Byzantine workers</span>
-<span class="sd">    d Dimension of the gradient space</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Theoretical upper-bound</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the theoretical upper bound on the ratio non-Byzantine standard</span>
+<span class="sd">    deviation / norm to use this rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Number of workers (Byzantine + non-Byzantine).</span>
+<span class="sd">    f : int</span>
+<span class="sd">        Expected number of Byzantine workers.</span>
+<span class="sd">    d : int</span>
+<span class="sd">        Dimension of the gradient space.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Theoretical upper-bound value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
 <span class="c1"># GAR registering</span>
 
-<span class="c1"># Register aggregation rule (pytorch version)</span>
+<span class="c1"># Register aggregation rule (pytorch version)</span>
 <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;bulyan&quot;</span>
 <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
 
-<span class="c1"># Register aggregation rule (native version, if available)</span>
+<span class="c1"># Register aggregation rule (native version, if available)</span>
 <span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-  <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
-  <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
-  <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">))</span>
+    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
+    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
+    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">))</span>
 </pre></div>
 
                 </article>

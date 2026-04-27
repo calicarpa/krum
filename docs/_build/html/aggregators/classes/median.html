@@ -52,11 +52,13 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../../_static/togglebutton.js?v=b8b12719"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"argmin": "\\mathop{\\mathrm{arg\\,min}}"}}})</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'aggregators/classes/median';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Krum" href="krum.html" />
+    <link rel="next" title="Krum / Multi-Krum" href="krum.html" />
     <link rel="prev" title="Average" href="average.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -391,7 +393,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Aggregators</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="average.html">Average</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Median</a></li>
-<li class="toctree-l2"><a class="reference internal" href="krum.html">Krum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="krum.html">Krum / Multi-Krum</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bulyan.html">Bulyan</a></li>
 <li class="toctree-l2"><a class="reference internal" href="brute.html">Brute</a></li>
 </ul>
@@ -459,30 +461,79 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-aggregators.median">
-<span id="median"></span><h1>Median<a class="headerlink" href="#module-aggregators.median" title="Link to this heading">#</a></h1>
+  <section id="median">
+<h1>Median<a class="headerlink" href="#median" title="Link to this heading">#</a></h1>
+<p>Coordinate-wise median aggregation rule. Computes the median of each
+coordinate independently across all submitted gradients.</p>
+<p id="module-aggregators.median">This aggregation rule computes the median of each coordinate independently across
+all submitted gradients. It is robust against Byzantine gradients containing
+NaN or Inf values (they are simply ignored in the median computation).</p>
+<p><strong>Use case:</strong> Simple defense against attacks that inject NaN/Inf values, or
+as a baseline for coordinate-wise robust aggregation.</p>
+<p><strong>Properties:</strong>
+- NaN-resilient: Gradients containing NaN values are naturally ignored.
+- Coordinate-wise: Each dimension is treated independently.
+- No theoretical guarantee: Unlike other methods, this rule has no proven</p>
+<blockquote>
+<div><p>Byzantine-resilience guarantees for general attacks.</p>
+</div></blockquote>
+<section id="theoretical-bound">
+<h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">#</a></h2>
+<p>The coordinate-wise median provides guarantees when the ratio of non-Byzantine
+standard deviation to gradient norm is below:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{\sqrt{n - f}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(n\)</span> is the total number of workers and <span class="math notranslate nohighlight">\(f\)</span> is the number
+of Byzantine workers.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">median</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">200.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+<span class="go">tensor([2., 200., 4.])</span>
+</pre></div>
+</div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.median.aggregate">
 <span class="sig-prename descclassname"><span class="pre">aggregators.median.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/median.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.median.aggregate" title="Link to this definition">#</a></dt>
-<dd><p>NaN-resilient median coordinate-per-coordinate rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Compute the coordinate-wise median of all gradients.</p>
+<p>This method is resilient to NaN and Inf values in the input gradients,
+as the median operation naturally ignores such values.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>NaN-resilient, coordinate-wise median of the gradients</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate. Each gradient should be
+a 1-D tensor of the same shape.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Coordinate-wise median of all input gradients. NaN and Inf values
+are naturally excluded from the median computation.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The output tensor is a new tensor, not aliasing any input tensor.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.median.aggregate_native">
 <span class="sig-prename descclassname"><span class="pre">aggregators.median.</span></span><span class="sig-name descname"><span class="pre">aggregate_native</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/median.html#aggregate_native"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.median.aggregate_native" title="Link to this definition">#</a></dt>
-<dd><p>NaN-resilient median coordinate-per-coordinate rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Compute the coordinate-wise median using native (C++/CUDA) acceleration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>NaN-resilient, coordinate-wise median of the gradients</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Coordinate-wise median of all input gradients.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -490,12 +541,16 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.median.check">
 <span class="sig-prename descclassname"><span class="pre">aggregators.median.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/median.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.median.check" title="Link to this definition">#</a></dt>
-<dd><p>Check parameter validity for the median rule.
-:param gradients Non-empty list of gradients to aggregate:
-:param …       Ignored keyword-arguments:</p>
+<dd><p>Check parameter validity for the median rule.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>None if valid, otherwise error message string</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gradients</strong> (<em>list</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -503,18 +558,44 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.median.upper_bound">
 <span class="sig-prename descclassname"><span class="pre">aggregators.median.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/median.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.median.upper_bound" title="Link to this definition">#</a></dt>
-<dd><p>Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this rule.
-:param n Number of workers:
-:type n Number of workers: Byzantine + non-Byzantine
-:param f Expected number of Byzantine workers:
-:param d Dimension of the gradient space:</p>
+<dd><p>Compute the theoretical upper bound on the ratio non-Byzantine standard
+deviation / norm to use this rule.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Theoretical upper-bound</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of workers (Byzantine + non-Byzantine).</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Expected number of Byzantine workers.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – Dimension of the gradient space.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Theoretical upper-bound value.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The bound formula is:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{\sqrt{n - f}}\]</div>
+<p>This bound applies under the assumption that Byzantine gradients cannot
+influence the median more than this ratio.</p>
 </dd></dl>
 
+<section id="quick-reference">
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Complexity:</strong> O(n·d)</p></li>
+<li><p><strong>Minimum workers:</strong> 1</p></li>
+<li><p><strong>Byzantine resilience:</strong> Basic (NaN-resilient)</p></li>
+</ul>
+<dl class="simple">
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>Resilient to NaN/Inf injection attacks</p></li>
+<li><p>Each coordinate treated independently</p></li>
+</ul>
+</dd>
+</dl>
+<p>Theoretical bound: <span class="math notranslate nohighlight">\(\frac{1}{\sqrt{n-f}}\)</span></p>
+</section>
 </section>
 
 
@@ -541,7 +622,7 @@
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Krum</p>
+        <p class="prev-next-title">Krum / Multi-Krum</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -564,10 +645,12 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#theoretical-bound">Theoretical Bound</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregators.median.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 </ul>
   </nav></div>
 
