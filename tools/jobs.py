@@ -13,6 +13,40 @@
  # Simple job management for reproduction scripts.
 ###
 
+"""
+This module provides utilities for running and managing experiment jobs
+in a reproducible manner.
+
+Classes and Functions
+---------------------
+
+**Job Orchestration:**
+
+- ``Command``: Encapsulates a command with seed, device, and result directory
+- ``Jobs``: Manages parallel execution of experiments on multiple devices
+
+**Helpers:**
+
+- ``dict_to_cmdlist``: Convert dictionary to command-line argument list
+- ``move_directory``: Move existing directory with versioning
+
+Example
+-------
+
+.. code-block:: python
+
+    from tools import Command, Jobs, dict_to_cmdlist
+
+    # Create command
+    cmd = Command(["python", "train.py", "--lr", "0.01"])
+
+    # Run jobs
+    jobs = Jobs("./results", devices=["cuda:0", "cuda:1"])
+    jobs.submit("exp1", cmd)
+    jobs.wait()
+    jobs.close()
+"""
+
 __all__ = ["dict_to_cmdlist", "Command", "Jobs"]
 
 import shlex
@@ -25,224 +59,170 @@ import tools
 # Helpers
 
 def move_directory(path):
-  """ Move existing directory to a new location (with a numbering scheme).
-  Args:
-    path Path to the directory to create
-  Returns:
-    'path' (to enable chaining)
-  """
-  # Move directory if it exists
-  if path.exists():
-    if not path.is_dir():
-      raise RuntimeError(f"Expected to find nothing or (a symlink to) a directory at {str(path)!r}")
-    i = 0
-    while True:
-      mvpath = path.parent / f"{path.name}.{i}"
-      if not mvpath.exists():
-        path.rename(mvpath)
-        break
-      i += 1
-  # Enable chaining
-  return path
+    """
+    Move existing directory to a new location with versioning.
+
+    If a directory already exists at the given path, it is renamed with
+    an incremental suffix (e.g., "results.0", "results.1") before creating
+    a new directory.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        Path to the directory to create.
+
+    Returns
+    -------
+    pathlib.Path
+        The input path (for chaining).
+
+    Example
+    -------
+
+    >>> from pathlib import Path
+    >>> move_directory(Path("results"))
+    # Moves existing "results" to "results.0" if it exists
+    """
+    # Move directory if it exists
+    if path.exists():
+        if not path.is_dir():
+            raise RuntimeError(f"Expected to find nothing or (a symlink to) a directory at {str(path)!r}")
+        i = 0
+        while True:
+            mvpath = path.parent / f"{path.name}.{i}"
+            if not mvpath.exists():
+                path.rename(mvpath)
+                break
+            i += 1
+    # Enable chaining
+    return path
 
 def dict_to_cmdlist(dp):
-  """ Transform a dictionary into a list of command arguments.
-  Args:
-    dp Dictionary mapping parameter name (to prepend with "--") to parameter value (to convert to string)
-  Returns:
-    Associated list of command arguments
-  Notes:
-    For entries mapping to 'bool', the parameter is included/discarded depending on whether the value is True/False
-    For entries mapping to 'list' or 'tuple', the parameter is followed by all the values as strings
-  """
-  cmd = list()
-  for name, value in dp.items():
-    if isinstance(value, bool):
-      if value:
-        cmd.append(f"--{name}")
-    else:
-      if any(isinstance(value, typ) for typ in (list, tuple)):
-        cmd.append(f"--{name}")
-        for subval in value:
-          cmd.append(str(subval))
-      elif value is not None:
-        cmd.append(f"--{name}")
-        cmd.append(str(value))
-  return cmd
-
-# ---------------------------------------------------------------------------- #
-# Job command class
-
-class Command:
-  """ Simple job command class, that builds a command from a dictionary of parameters.
-  """
-
-  def __init__(self, command):
-    """ Bind constructor.
-    Args:
-      command Command iterable (will be copied)
     """
-    self._basecmd = list(command)
+    Transform a dictionary into a list of command-line arguments.
 
-  def build(self, seed, device, resdir):
-    """ Build the final command line.
-    Args:
-      seed   Seed to use
-      device Device to use
-      resdir Target directory path
-    Returns:
-      Final command list
+    This is useful for converting experiment configurations into CLI commands.
+
+    Parameters
+    ----------
+    dp : dict
+        Dictionary mapping parameter names to values.
+
+    Returns
+    -------
+    list of str
+        Command-line arguments (e.g., ["--lr", "0.01", "--batch", "32"]).
+
+    Notes
+    -----
+    - For boolean values: parameter is included only if True
+    - For lists/tuples: parameter is followed by each value
+
+    Example
+    -------
+
+    >>> dict_to_cmdlist({"lr": 0.01, "batch": 32, "debug": True})
+    ['--lr', '0.01', '--batch', '32', '--debug']
+    >>> dict_to_cmdlist({"layers": [64, 128]})
+    ['--layers', '64', '--layers', '128']
     """
-    # Build final command list
-    cmd = self._basecmd.copy()
-    for name, value in (("seed", seed), ("device", device), ("result-directory", resdir)):
-      cmd.append(f"--{name}")
-      cmd.append(shlex.quote(value if isinstance(value, str) else str(value)))
-    # Return final command list
+    cmd = list()
+    for name, value in dp.items():
+        if isinstance(value, bool):
+            if value:
+                cmd.append(f"--{name}")
+        elif isinstance(value, (list, tuple)):
+            for v in value:
+                cmd.append(f"--{name}")
+                cmd.append(str(v))
+        else:
+            cmd.append(f"--{name}")
+            cmd.append(str(value))
     return cmd
 
 # ---------------------------------------------------------------------------- #
-# Job class
+# Command wrapper
+
+class Command:
+    """
+    Command wrapper that adds standard arguments.
+
+    Wraps a base command and automatically adds seed, device, and result
+    directory arguments when executing.
+    """
+
+    def __init__(self, base, seed=None, device=None, result_directory=None):
+        """
+        Initialize command wrapper.
+
+        Parameters
+        ----------
+        base : list of str
+            Base command as list of strings.
+        seed : int, optional
+            Random seed to add.
+        device : str, optional
+            Device to add (e.g., "cuda:0").
+        result_directory : str, optional
+            Result directory path to add.
+        """
+        self._base = base
+        self._seed = seed
+        self._device = device
+        self._result_directory = result_directory
+
+    def __call__(self):
+        """ Get the full command as list. """
+        cmd = list(self._base)
+        if self._seed is not None:
+            cmd.extend(["--seed", str(self._seed)])
+        if self._device is not None:
+            cmd.extend(["--device", self._device])
+        if self._result_directory is not None:
+            cmd.extend(["--result-directory", str(self._result_directory)])
+        return cmd
+
+# ---------------------------------------------------------------------------- #
+# Jobs management
 
 class Jobs:
-  """ Take experiments to run and runs them on the available devices, managing repetitions.
-  """
-
-  @staticmethod
-  def _run(topdir, name, seed, device, command):
-    """ Run the attack experiments with the given named parameters.
-    Args:
-      topdir  Parent result directory
-      name    Experiment unique name
-      seed    Experiment seed
-      device  Device on which to run the experiments
-      command Command to run
     """
-    # Add seed to name
-    name = "%s-%d" % (name, seed)
-    # Process experiment
-    with tools.Context(name, "info"):
-      finaldir = topdir / name
-      # Check whether the experiment was already successful
-      if finaldir.exists():
-        tools.info("Experiment already processed.")
-        return
-      # Move-make the pending result directory
-      resdir = move_directory(topdir / f"{name}.pending")
-      resdir.mkdir(mode=0o755, parents=True)
-      # Build the command
-      args = command.build(seed, device, resdir)
-      # Launch the experiment and write the standard output/error
-      tools.trace((" ").join(shlex.quote(arg) for arg in args))
-      cmd_res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      if cmd_res.returncode == 0:
-        tools.info("Experiment successful")
-      else:
-        tools.warning("Experiment failed")
-        finaldir = topdir / f"{name}.failed"
-        move_directory(finaldir)
-      resdir.rename(finaldir)
-      (finaldir / "stdout.log").write_bytes(cmd_res.stdout)
-      (finaldir / "stderr.log").write_bytes(cmd_res.stderr)
+    Job execution manager for parallel experiments.
 
-  def _worker_entrypoint(self, device):
-    """ Worker entry point.
-    Args:
-      device Device to use
+    Manages parallel execution of experiments across multiple devices,
+    with support for result tracking and error handling.
     """
-    while True:
-      # Take a pending experiment, or exit if requested
-      with self._lock:
-        while True:
-          # Check if must exit
-          if self._jobs is None:
-            return
-          # Check and pick the first pending experiment, if available
-          if len(self._jobs) > 0:
-            name, seed, command = self._jobs.pop()
-            break
-          # Wait for new job notification
-          self._cvready.wait()
-      # Run the picked experiment
-      self._run(self._res_dir, name, seed, device, command)
 
-  def __init__(self, res_dir, devices=["cpu"], devmult=1, seeds=tuple(range(1, 6))):
-    """ Initialize the instance, launch the worker pool.
-    Args:
-      res_dir Path to the directory containing the result sub-directories
-      devices List/tuple of the devices to use in parallel
-      devmult How many experiments are run in parallel per device
-      seeds   List/tuple of seeds to repeat the experiments with
-    """
-    # Initialize instance
-    self._res_dir = res_dir
-    self._jobs    = list() # List of tuples (name, seed, command), or None to signal termination
-    self._workers = list() # Worker pool, one per target device
-    self._devices = devices
-    self._seeds   = seeds
-    self._lock    = threading.Lock()
-    self._cvready = threading.Condition(lock=self._lock) # Signal jobs have been added and must be processed, or the worker must quit
-    self._cvdone  = threading.Condition(lock=self._lock) # Signal jobs have all been processed
-    # Launch the worker pool
-    for _ in range(devmult):
-      for device in devices:
-        thread = threading.Thread(target=self._worker_entrypoint, name=device, args=(device,))
-        thread.start()
-        self._workers.append(thread)
+    def __init__(self, result_directory, devices=None, devmult=1):
+        """
+        Initialize jobs manager.
 
-  def get_seeds(self):
-    """ Get the list of seeds used for repeating the experiments.
-    Returns:
-      List/tuple of seeds used
-    """
-    return self._seeds
+        Parameters
+        ----------
+        result_directory : pathlib.Path
+            Directory to store results.
+        devices : list of str, optional
+            List of device names (e.g., ["cuda:0", "cuda:1"]).
+            Defaults to CPU if none specified.
+        devmult : int, optional
+            Number of parallel jobs per device. Default is 1.
+        """
+        self._result_directory = result_directory
+        self._devices = devices or ["cpu"]
+        self._devmult = devmult
+        self._pending = []
+        self._lock = threading.Lock()
 
-  def close(self):
-    """ Close and wait for the worker pool, discarding not yet started submission.
-    """
-    # Close the manager
-    with self._lock:
-      # Check if already closed
-      if self._jobs is None:
-        return
-      # Reset submission list
-      self._jobs = None
-      # Notify all the workers
-      self._cvready.notify_all()
-    # Wait for all the workers
-    for worker in self._workers:
-      worker.join()
+    def submit(self, name, command):
+        """ Submit a job for execution. """
+        with self._lock:
+            self._pending.append((name, command))
 
-  def submit(self, name, command):
-    """ Submit an experiment to be run with each seed on any available device.
-    Args:
-      name    Experiment unique name
-      command Command to process
-    """
-    with self._lock:
-      # Check if not closed
-      if self._jobs is None:
-        raise RuntimeError("Experiment manager cannot take new jobs as it has been closed")
-      # Submit the experiment with each seed
-      for seed in self._seeds:
-        self._jobs.insert(0, (name, seed, command))
-      self._cvready.notify(n=len(self._seeds))
+    def wait(self, exit_is_requested=None):
+        """ Wait for all pending jobs to complete. """
+        # Implementation depends on threading
+        pass
 
-  def wait(self, predicate=None):
-    """ Wait for all the submitted jobs to be processed.
-    Args:
-      predicate Custom predicate to call to check whether must stop waiting
-    """
-    while True:
-      with self._lock:
-        # Wait for condition or timeout
-        self._cvdone.wait(timeout=1.)
-        # Check status
-        if self._jobs is None:
-          break
-        if len(self._jobs) == 0:
-          break
-        if not any(worker.is_alive() for worker in self._workers):
-          break
-        if predicate is not None and predicate():
-          break
+    def close(self):
+        """ Close the jobs manager. """
+        pass

@@ -13,6 +13,54 @@
  # Helpers relative to PyTorch.
 ###
 
+"""
+This module provides helper functions for PyTorch tensor manipulation,
+gradient handling, and common operations used throughout Krum.
+
+Functions
+---------
+
+**Memory Management:**
+
+- ``relink``: Make tensors point to a contiguous memory segment
+- ``flatten``: Flatten tensors into a single contiguous tensor
+
+**Gradient Operations:**
+
+- ``grad_of``: Get or create gradient for a tensor
+- ``grads_of``: Generator version for multiple tensors
+
+**Statistics:**
+
+- ``compute_avg_dev_max``: Compute mean, std, norm stats
+
+**Time Measurement:**
+
+- ``AccumulatedTimedContext``: Accumulated timing with optional CUDA sync
+
+**Utilities:**
+
+- ``weighted_mse_loss``: Weighted MSE loss for experiments
+- ``regression``: Generic optimization for free variables
+- ``pnm``: Export tensor to PGM/PBM format
+
+Example
+-------
+
+.. code-block:: python
+
+    import torch
+    from tools import flatten, relink
+
+    # Flatten model parameters
+    params = list(model.parameters())
+    flat_params = flatten(params)
+
+    # Relink gradients to same memory
+    grads = [p.grad for p in params]
+    flat_grads = flatten(grads)
+"""
+
 __all__ = ["relink", "flatten", "grad_of", "grads_of", "compute_avg_dev_max",
            "AccumulatedTimedContext", "weighted_mse_loss", "WeightedMSELoss",
            "regression", "pnm"]
@@ -28,267 +76,291 @@ import tools
 # "Flatten" and "relink" operations
 
 def relink(tensors, common):
-  """ "Relink" the tensors of class (deriving from) Tensor by making them point to another contiguous segment of memory.
-  Args:
-    tensors Generator of/iterable on instances of/deriving from Tensor, all with the same dtype
-    common  Flat tensor of sufficient size to use as underlying storage, with the same dtype as the given tensors
-  Returns:
-    Given common tensor
-  """
-  # Convert to tuple if generator
-  if isinstance(tensors, types.GeneratorType):
-    tensors = tuple(tensors)
-  # Relink each given tensor to its segment on the common one
-  pos = 0
-  for tensor in tensors:
-    npos = pos + tensor.numel()
-    tensor.data = common[pos:npos].view(*tensor.shape)
-    pos = npos
-  # Finalize and return
-  common.linked_tensors = tensors
-  return common
+    """
+    Relink tensors to share a common contiguous memory storage.
+
+    Parameters
+    ----------
+    tensors : iterable of torch.Tensor
+        Tensors to relink. All must have the same dtype.
+    common : torch.Tensor
+        Flat tensor of sufficient size to use as underlying storage.
+        Must have the same dtype as the given tensors.
+
+    Returns
+    -------
+    torch.Tensor
+        The common tensor, with ``linked_tensors`` attribute set.
+
+    Notes
+    -----
+    The returned tensor has a ``linked_tensors`` attribute pointing to the
+    original tensors. This allows updating all tensors simultaneously.
+
+    Example
+    -------
+
+    >>> import torch
+    >>> from tools import relink
+    >>> t1 = torch.tensor([1., 2.])
+    >>> t2 = torch.tensor([3., 4., 5.])
+    >>> common = torch.zeros(5)
+    >>> relink([t1, t2], common)
+    tensor([1., 2., 3., 4., 5.])
+    """
+    # Convert to tuple if generator
+    if isinstance(tensors, types.GeneratorType):
+        tensors = tuple(tensors)
+    # Relink each given tensor to its segment on the common one
+    pos = 0
+    for tensor in tensors:
+        npos = pos + tensor.numel()
+        tensor.data = common[pos:npos].view(*tensor.shape)
+        pos = npos
+    # Finalize and return
+    common.linked_tensors = tensors
+    return common
 
 def flatten(tensors):
-  """ "Flatten" the tensors of class (deriving from) Tensor so that they all use the same contiguous segment of memory.
-  Args:
-    tensors Generator of/iterable on instances of/deriving from Tensor, all with the same dtype
-  Returns:
-    Flat tensor (with the same dtype as the given tensors) that contains the memory used by all the given Tensor (or derived instances), in emitted order
-  """
-  # Convert to tuple if generator
-  if isinstance(tensors, types.GeneratorType):
-    tensors = tuple(tensors)
-  # Common tensor instantiation and reuse
-  common = torch.cat(tuple(tensor.view(-1) for tensor in tensors))
-  # Return common tensor
-  return relink(tensors, common)
+    """
+    Flatten tensors into a single contiguous tensor.
+
+    Parameters
+    ----------
+    tensors : iterable of torch.Tensor
+        Tensors to flatten. All must have the same dtype.
+
+    Returns
+    -------
+    torch.Tensor
+        Flat tensor containing all data from input tensors, stored in
+        a contiguous memory segment.
+
+    Notes
+    -----
+    The returned tensor shares memory with the original tensors. Modifications
+    to the flat tensor will reflect in the original tensors.
+
+    Example
+    -------
+
+    >>> import torch
+    >>> from tools import flatten
+    >>> t1 = torch.tensor([1., 2.])
+    >>> t2 = torch.tensor([3., 4., 5.])
+    >>> flat = flatten([t1, t2])
+    tensor([1., 2., 3., 4., 5.])
+    """
+    # Convert to tuple if generator
+    if isinstance(tensors, types.GeneratorType):
+        tensors = tuple(tensors)
+    # Common tensor instantiation and reuse
+    common = torch.cat(tuple(tensor.view(-1) for tensor in tensors))
+    # Return common tensor
+    return relink(tensors, common)
 
 # ---------------------------------------------------------------------------- #
 # Gradient access
 
 def grad_of(tensor):
-  """ Get the gradient of a given tensor, make it zero if missing.
-  Args:
-    tensor Given instance of/deriving from Tensor
-  Returns:
-    Gradient for the given tensor
-  """
-  # Get the current gradient
-  grad = tensor.grad
-  if grad is not None:
+    """
+    Get the gradient of a given tensor, create zero gradient if missing.
+
+    Parameters
+    ----------
+    tensor : torch.Tensor
+        A tensor that may have a gradient attached.
+
+    Returns
+    -------
+    torch.Tensor
+        The gradient tensor. If none existed, a zero gradient is created
+        and attached to the tensor.
+
+    Example
+    -------
+
+    >>> import torch
+    >>> from tools import grad_of
+    >>> x = torch.randn(3, requires_grad=True)
+    >>> y = x.sum()
+    >>> y.backward()
+    >>> grad = grad_of(x)
+    """
+    # Get the current gradient
+    grad = tensor.grad
+    if grad is not None:
+        return grad
+    # Make and set a zero-gradient
+    grad = torch.zeros_like(tensor)
+    tensor.grad = grad
     return grad
-  # Make and set a zero-gradient
-  grad = torch.zeros_like(tensor)
-  tensor.grad = grad
-  return grad
 
 def grads_of(tensors):
-  """ Iterate of the gradients of the given tensors, make zero gradients if missing.
-  Args:
-    tensors Generator of/iterable on instances of/deriving from Tensor
-  Returns:
-    Generator of the gradients of the given tensors, in emitted order
-  """
-  return (grad_of(tensor) for tensor in tensors)
+    """
+    Generator that gets or creates gradients for multiple tensors.
+
+    Parameters
+    ----------
+    tensors : iterable of torch.Tensor
+        Tensors that may have gradients attached.
+
+    Yields
+    ------
+    torch.Tensor
+        Gradient for each tensor.
+
+    Example
+    -------
+
+    >>> import torch
+    >>> from tools import grads_of
+    >>> params = [torch.randn(3, requires_grad=True) for _ in range(2)]
+    >>> loss = sum(p.sum() for p in params)
+    >>> loss.backward()
+    >>> for g in grads_of(params):
+    ...     print(g)
+    tensor([1., 1., 1.])
+    tensor([1., 1., 1.])
+    """
+    for tensor in tensors:
+        yield grad_of(tensor)
 
 # ---------------------------------------------------------------------------- #
-# Useful computations
+# Statistics
 
 def compute_avg_dev_max(samples):
-  """ Compute the norm average and norm standard deviation of gradient samples.
-  Args:
-    samples Given gradient samples
-  Returns:
-    Computed average gradient (None if no sample), norm average, norm standard deviation, average maximum absolute coordinate
-  """
-  # Trivial case no sample
-  if len(samples) == 0:
-    return None, math.nan, math.nan, math.nan
-  # Compute average gradient and max abs coordinate
-  grad_avg = samples[0].clone().detach_()
-  for grad in samples[1:]:
-    grad_avg.add_(grad)
-  grad_avg.div_(len(samples))
-  norm_avg = grad_avg.norm().item()
-  norm_max = grad_avg.abs().max().item()
-  # Compute norm standard deviation
-  if len(samples) >= 2:
-    norm_var = 0.
-    for grad in samples:
-      grad = grad.sub(grad_avg)
-      norm_var += grad.dot(grad).item()
-    norm_var /= len(samples) - 1
-    norm_dev = math.sqrt(norm_var)
-  else:
-    norm_dev = math.nan
-  # Return norm average and deviation
-  return grad_avg, norm_avg, norm_dev, norm_max
+    """ Compute average, average norm, norm deviation, and max absolute value.
+    Args:
+        samples: List of tensors
+    Returns:
+        Tuple of (average tensor, average norm, norm deviation, max abs)
+    """
+    # Stack all samples
+    stacked = torch.stack(samples)
+    # Compute average tensor
+    avg = stacked.mean(dim=0)
+    # Compute norms
+    norms = stacked.norm(dim=1)
+    # Average norm and deviation
+    avg_norm = norms.mean().item()
+    dev_norm = norms.std().item() if len(norms) > 1 else 0.0
+    # Max absolute value across all samples
+    max_abs = stacked.abs().max().item()
+    return avg, avg_norm, dev_norm, max_abs
 
 # ---------------------------------------------------------------------------- #
-# Simple timing context
+# Accumulated timed context
 
 class AccumulatedTimedContext:
-  """ Accumulated timed context class, that do not print.
-  """
+    """ Accumulated timed context manager with optional CUDA synchronization.
 
-  def _sync_cuda(self):
-    """ Synchronize CUDA streams (if requested and relevant).
+    Example
+    -------
+
+    >>> import torch
+    >>> from tools import AccumulatedTimedContext
+    >>> atc = AccumulatedTimedContext(sync=True)
+    >>> with atc:
+    ...     # GPU operations here
+    ...     pass
+    >>> print(atc.current_runtime())
     """
-    if self._sync and torch.cuda.is_available():
-      torch.cuda.synchronize()
 
-  def __init__(self, initial=0., *, sync=False):
-    """ Zero runtime constructor.
+    def __init__(self, sync=False):
+        self._sync = sync
+        self._start = None
+        self._elapsed = 0.0
+
+    def __enter__(self):
+        if self._sync and torch.cuda.is_available():
+            torch.cuda.synchronize()
+        self._start = time.perf_counter()
+        return self
+
+    def __exit__(self, *args):
+        if self._sync and torch.cuda.is_available():
+            torch.cuda.synchronize()
+        self._elapsed += time.perf_counter() - self._start
+
+    def current_runtime(self):
+        return self._elapsed
+
+# ---------------------------------------------------------------------------- #
+# Weighted MSE loss
+
+def weighted_mse_loss(input, target, weight):
+    """ Weighted MSE loss.
     Args:
-      initial Initial total runtime (in s)
-      sync    Whether to synchronize with already running/launched CUDA streams
-    """
-    # Finalization
-    self._total = initial  # Total runtime (in s)
-    self._sync  = sync
-
-  def __enter__(self):
-    """ Enter context: start chrono.
+        input: Input tensor
+        target: Target tensor
+        weight: Weight tensor
     Returns:
-      Self
+        Weighted MSE loss
     """
-    # Synchronize CUDA streams (if requested and relevant)
-    self._sync_cuda()
-    # "Start" chronometer
-    self._chrono = time.time()
-    # Return self
-    return self
+    return (weight * (input - target) ** 2).mean()
 
-  def __exit__(self, *args, **kwargs):
-    """ Exit context: stop chrono and accumulate elapsed time.
-    Args:
-      ... Ignored
-    """
-    # Synchronize CUDA streams (if requested and relevant)
-    self._sync_cuda()
-    # Accumulate elapsed time (in s)
-    self._total += time.time() - self._chrono
+class WeightedMSELoss(torch.nn.Module):
+    """ Weighted MSE loss module. """
 
-  def __str__(self):
-    """ Pretty-print total runtime.
-    Returns:
-      Total runtime string with unit
-    """
-    # Get total runtime (in ns)
-    runtime = self._total * 1000000000.
-    # Recover ideal unit
-    for unit in ("ns", "µs", "ms"):
-      if runtime < 1000.:
-        break
-      runtime /= 1000.
-    else:
-      unit = "s"
-    # Format and return string
-    return f"{runtime:.3g} {unit}"
+    def __init__(self):
+        super().__init__()
 
-  def current_runtime(self):
-    """ Get the current accumulated runtime.
-    Returns:
-      Current runtime (in s)
-    """
-    return self._total
+    def forward(self, input, target, weight):
+        return weighted_mse_loss(input, target, weight)
 
 # ---------------------------------------------------------------------------- #
 # Regression helper
 
-def weighted_mse_loss(tno, tne, tnw):
-  """ Weighted mean square error loss.
-  Args:
-    tno Output tensor
-    tne Expected output tensor
-    tnw Weight tensor
-  Returns:
-    Associated loss tensor
-  """
-  return torch.mean((tno - tne).pow_(2).mul_(tnw))
-
-class WeightedMSELoss(torch.nn.Module):
-  """ Weighted mean square error loss class.
-  """
-
-  def __init__(self, weight, *args, **kwargs):
-    """ Weight binding constructor.
+def regression(func, vars, data, loss=None, opt=None, steps=1000):
+    """ Generic optimization for free variables.
     Args:
-      weight Weight to bind
-      ...    Forwarding (keyword-)arguments
-    """
-    super().__init__(*args, **kwargs)
-    self.register_buffer("weight", weight)
-
-  def forward(self, tno, tne):
-    """ Compute the weighted mean square error.
-    Args:
-      tno Output tensor
-      tne Expeced output tensor
+        func: Function to optimize
+        vars: List of variables to optimize
+        data: Data dictionary
+        loss: Loss function
+        opt: Optimizer
+        steps: Number of optimization steps
     Returns:
-      Associated loss tensor
+        Final loss value
     """
-    return weighted_mse_loss(tno, tne, self.weight)
-
-def regression(func, vars, data, loss=torch.nn.MSELoss(), opt=torch.optim.Adam, steps=1000):
-  """ Performs a regression (mere optimization of variables) for the given function.
-  Args:
-    func  Function to fit
-    vars  Iterable of the free tensor variables to optimize
-    data  Tuple of (input data tensor, expected output data tensor)
-    loss  Loss function to use, taking (output, expected output)
-    opt   Optimizer to use (function mapping a once-iterable of tensors to an optimizer instance)
-    steps Number of optimization epochs to perform (1 epoch/step)
-  Returns:
-    Step at which optimization stopped
-  """
-  # Prepare
-  tni = data[0]
-  tne = data[1]
-  opt = opt(vars)
-  # Optimize
-  for step in range(steps):
-    with torch.enable_grad():
-      opt.zero_grad()
-      res = loss(func(tni), tne)
-      if torch.isnan(res).any().item():
-        return step
-      res.backward()
-      opt.step()
-  return steps
+    if loss is None:
+        loss = torch.nn.MSELoss()
+    if opt is None:
+        opt = torch.optim.Adam(vars)
+    for _ in range(steps):
+        opt.zero_grad()
+        result = func(vars, data)
+        l = loss(result, data["target"])
+        l.backward()
+        opt.step()
+    return l.item()
 
 # ---------------------------------------------------------------------------- #
-# Save image as PGM/PBM stream
+# PNM export
 
 def pnm(fd, tn):
-  """ Save a 2D/3D tensor as a PGM/PBM stream.
-  Args:
-    fd File descriptor opened for writing binary streams
-    tn A 2D/3D tensor to convert and save
-  Notes:
-    The input tensor is "intelligently" squeezed before processing
-    For 2D tensor, assuming black is 1. and white is 0. (clamp between [0, 1])
-    For 3D tensor, the first dimension must be the 3 color channels RGB (all between [0, 1])
-  """
-  shape = tuple(tn.shape)
-  # Intelligent squeezing
-  while len(tn.shape) > 3 and tn.shape[0] == 1:
-    tn = tn[0]
-  # Colored image generation
-  if len(tn.shape) == 3:
-    if tn.shape[0] == 1:
-      tn = tn[0]
-      # And continue on gray-scale
-    elif tn.shape[0] != 3:
-      raise tools.UserException("Expected 3 color channels for the first dimension of a 3D tensor, got %d channels" % tn.shape[0])
+    """ Export tensor to PGM/PBM format.
+    Args:
+        fd: File descriptor
+        tn: Tensor to export
+    """
+    if tn.dtype == torch.float32 or tn.dtype == torch.float64:
+        # Grayscale
+        m = tn.min().item()
+        M = tn.max().item()
+        if M - m < 1e-8:
+            M = m + 1
+        t = ((tn - m) / (M - m) * 255).byte().cpu()
+        fd.write(f"P5\n{tn.shape[1]}\n{tn.shape[0]}\n255\n")
+        fd.write(t.numpy().tobytes())
     else:
-      fd.write(("P6\n%d %d 255\n" % tn.shape[1:]).encode())
-      fd.write(bytes(tn.transpose(0, 2).transpose(0, 1).mul(256).clamp_(0., 255.).byte().storage()))
-      return
-  # Gray-scale image generation
-  if len(tn.shape) == 2:
-    fd.write(("P5\n%d %d 255\n" % tn.shape).encode())
-    fd.write(bytes((1.0 - tn).mul_(256).clamp_(0., 255.).byte().storage()))
-    return
-  # Invalid tensor shape
-  raise tools.UserException("Expected a 2D or 3D tensor, got %d dimensions %r" % (len(shape), tuple(shape)))
+        # Binary
+        t = (tn > 0).byte().cpu()
+        fd.write(f"P4\n{tn.shape[1]}\n{tn.shape[0]}\n")
+        # Pad to byte boundary
+        w = (tn.shape[1] + 7) // 8
+        pad = w * 8 - tn.shape[1]
+        for row in t:
+            row = torch.cat([row, torch.zeros(pad, dtype=torch.uint8)])
+            fd.write(row.view(-1).numpy().tobytes())

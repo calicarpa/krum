@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tools.misc &#8212; Krum</title>
+    <title>tools.misc &#8212; Krum, the Library</title>
   
   
   
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">Krum</p>
+    <p class="title logo__title">Krum, the Library</p>
   
 </a></div>
     
@@ -140,13 +140,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -154,49 +147,39 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
 
 
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
-    Native Acceleration
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native
   </a>
 </li>
 
-                </ul>
-            </li>
-            
   </ul>
 </nav></div>
       
@@ -285,13 +268,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -299,28 +275,28 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../tools.html">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
@@ -328,7 +304,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -443,6 +419,62 @@
  <span class="c1">#</span>
  <span class="c1"># Miscellaneous Python helpers.</span>
 <span class="c1">###</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides various helper functions and classes used throughout</span>
+<span class="sd">Krum for common operations like exception handling, parsing, timing, etc.</span>
+
+<span class="sd">Key Functions and Classes</span>
+<span class="sd">--------------------------</span>
+
+<span class="sd">**Exception Handling:**</span>
+
+<span class="sd">- ``UnavailableException``: Exception for missing entries in registries</span>
+<span class="sd">- ``fatal_unavailable``: Helper to print and exit on unavailable entries</span>
+
+<span class="sd">**Registry Patterns:**</span>
+
+<span class="sd">- ``MethodCallReplicator``: Forward method calls to multiple instances</span>
+<span class="sd">- ``ClassRegister``: Generic named class registry</span>
+
+<span class="sd">**Parsing:**</span>
+
+<span class="sd">- ``parse_keyval``: Parse key:value arguments from CLI</span>
+<span class="sd">- ``fullqual``: Get fully qualified name of objects</span>
+
+<span class="sd">**Timing:**</span>
+
+<span class="sd">- ``TimedContext``: Measure execution time of code blocks</span>
+<span class="sd">- ``onetime``: Thread-safe one-time flag</span>
+
+<span class="sd">**Utilities:**</span>
+
+<span class="sd">- ``pairwise``: Generate all pairs of indices</span>
+<span class="sd">- ``line_maximize``: Find optimal attack factor</span>
+<span class="sd">- ``interactive``: Simple interactive shell</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    from tools import UnavailableException, parse_keyval, TimedContext</span>
+
+<span class="sd">    # Exception handling</span>
+<span class="sd">    try:</span>
+<span class="sd">        raise UnavailableException({&quot;a&quot;: 1, &quot;b&quot;: 2}, &quot;c&quot;, &quot;option&quot;)</span>
+<span class="sd">    except UnavailableException as e:</span>
+<span class="sd">        print(e)  # &quot;Unknown option &#39;c&#39;, expected one of:\n· a\n· b&quot;</span>
+
+<span class="sd">    # Parse key:value arguments</span>
+<span class="sd">    args = parse_keyval([&quot;lr:0.01&quot;, &quot;batch:32&quot;])</span>
+<span class="sd">    # {&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
+
+<span class="sd">    # Timing</span>
+<span class="sd">    with TimedContext(&quot;my_operation&quot;):</span>
+<span class="sd">        # code here</span>
+<span class="sd">        pass</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
   <span class="s2">&quot;UnavailableException&quot;</span><span class="p">,</span> <span class="s2">&quot;fatal_unavailable&quot;</span><span class="p">,</span> <span class="s2">&quot;MethodCallReplicator&quot;</span><span class="p">,</span>
@@ -649,44 +681,74 @@
 <div class="viewcode-block" id="parse_keyval">
 <a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.parse_keyval">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_keyval</span><span class="p">(</span><span class="n">list_keyval</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{}):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Parse list of &quot;&lt;key&gt;:&lt;value&gt;&quot; into a dictionary.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    list_keyval List of &quot;&lt;key&gt;:&lt;value&gt;&quot;</span>
-<span class="sd">    defaults    Default key -&gt; value to use (also ensure type, type is guessed for other keys)</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Associated dictionary</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">parsed</span> <span class="o">=</span> <span class="p">{}</span>
-  <span class="c1"># Parsing</span>
-  <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;:&quot;</span>
-  <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">list_keyval</span><span class="p">:</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Expected list of &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="s2">&quot;&lt;key&gt;:&lt;value&gt;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, got &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; as one entry&quot;</span><span class="p">)</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; had already been specified with value &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">sep</span><span class="p">):]</span>
-    <span class="c1"># Guess/assert type constructibility</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
-      <span class="k">try</span><span class="p">:</span>
-        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span> <span class="c1"># Special case</span>
-          <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse list of &quot;key:value&quot; strings into a dictionary.</span>
+
+<span class="sd">    This is the main method for parsing CLI arguments like &quot;--gar-args lr:0.01&quot;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    list_keyval : list of str</span>
+<span class="sd">        List of &quot;key:value&quot; strings to parse.</span>
+<span class="sd">    defaults : dict, optional</span>
+<span class="sd">        Default key -&gt; value mappings. Also used for type inference:</span>
+<span class="sd">        if a key exists in defaults, its value type is used to convert</span>
+<span class="sd">        the input string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Parsed dictionary with typed values.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    tools.UserException</span>
+<span class="sd">        If a key appears twice or if type conversion fails.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - For bool values in defaults: &quot;0&quot;, &quot;n&quot;, &quot;false&quot; (case-insensitive) are False</span>
+<span class="sd">    - For other types: uses the type constructor directly</span>
+<span class="sd">    - Auto-detection for unknown keys: tries int, float, bool, then string</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_keyval([&quot;lr:0.01&quot;, &quot;batch:32&quot;], defaults={&quot;lr&quot;: 0.1})</span>
+<span class="sd">    {&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
+<span class="sd">    &gt;&gt;&gt; parse_keyval([&quot;debug:true&quot;, &quot;workers:4&quot;])</span>
+<span class="sd">    {&#39;debug&#39;: True, &#39;workers&#39;: 4}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Parsing</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;:&quot;</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">list_keyval</span><span class="p">:</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Expected list of &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="s2">&quot;&lt;key&gt;:&lt;value&gt;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, got &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; as one entry&quot;</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; had already been specified with value &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">sep</span><span class="p">):]</span>
+        <span class="c1"># Guess/assert type constructibility</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span> <span class="c1"># Special case</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Required key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; expected a value of type &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="s2">&quot;__name__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown&gt;&quot;</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
-          <span class="n">val</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-      <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Required key &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; expected a value of type &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="s2">&quot;__name__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown&gt;&quot;</span><span class="p">)))</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">val</span> <span class="o">=</span> <span class="n">parse_keyval_auto_convert</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-    <span class="c1"># Bind (converted) value to associated key</span>
-    <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
-  <span class="c1"># Add default values (done first to be able to force a given type with &#39;required&#39;)</span>
-  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
-      <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-  <span class="c1"># Return final dictionary</span>
-  <span class="k">return</span> <span class="n">parsed</span></div>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">parse_keyval_auto_convert</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="c1"># Add default values (done first to be able to force a given type with &#39;required&#39;)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="c1"># Return final dictionary</span>
+    <span class="k">return</span> <span class="n">parsed</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
@@ -695,20 +757,36 @@
 <div class="viewcode-block" id="fullqual">
 <a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.fullqual">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fullqual</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Rebuild a string &quot;qualifying&quot; the given object for debugging purpose.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    obj Object to &quot;qualify&quot;</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    &quot;Qualification&quot;, e.g.: &#39;tools.misc.fullqual&#39; or &#39;instance of pathlib.Path&#39;</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="c1"># Prelude</span>
-  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
-    <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;instance of &quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-  <span class="c1"># Rebuilding</span>
-  <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prelude</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__module__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown module&gt;&quot;</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__qualname__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown name&gt;&quot;</span><span class="p">))</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the fully qualified name of an object for debugging.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : object</span>
+<span class="sd">        A class or instance.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Fully qualified name, e.g., &#39;tools.misc.fullqual&#39; or</span>
+<span class="sd">        &#39;instance of pathlib.Path&#39;.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; fullqual(str)</span>
+<span class="sd">    &#39;builtins.str&#39;</span>
+<span class="sd">    &gt;&gt;&gt; fullqual(pathlib.Path(&quot;.&quot;))</span>
+<span class="sd">    &#39;instance of pathlib.Path&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Prelude</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prelude</span> <span class="o">=</span> <span class="s2">&quot;instance of &quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="c1"># Rebuilding</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prelude</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__module__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown module&gt;&quot;</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__qualname__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown name&gt;&quot;</span><span class="p">))</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
@@ -992,16 +1070,33 @@
 <div class="viewcode-block" id="pairwise">
 <a class="viewcode-back" href="../../tools/classes/misc.html#tools.misc.pairwise">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">pairwise</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple generator of the pairs (x, y) in a tuple such that index x &lt; index y.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    data Indexable (including ability to query length) containing the elements</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Generator over the pairs of the elements of &#39;data&#39;</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-      <span class="k">yield</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate all pairs (x, y) from data where index(x) &lt; index(y).</span>
+
+<span class="sd">    This is useful for computing pairwise distances in aggregation rules.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : iterable</span>
+<span class="sd">        Indexable data structure (list, tuple) containing elements.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Pairs (data[i], data[j]) for all i &lt; j.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; list(pairwise([1, 2, 3]))</span>
+<span class="sd">    [(1, 2), (1, 3), (2, 3)]</span>
+<span class="sd">    &gt;&gt;&gt; list(pairwise(&quot;ab&quot;))</span>
+<span class="sd">    [(&#39;a&#39;, &#39;b&#39;)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>

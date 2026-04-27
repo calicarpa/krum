@@ -13,6 +13,41 @@
  # Bunch of useful tools, but each too small to have its own package.
 ###
 
+"""
+Core Utility Module for Krum.
+
+This module provides the fundamental infrastructure utilities used throughout
+Krum, including logging, error handling, and common operations.
+
+Key Components
+--------------
+
+**Exceptions:**
+
+- ``UserException``: Base exception for user-facing errors
+- ``Context``: Thread-local context for colored logging
+
+**Logging:**
+
+- ``info()``, ``success()``, ``warning()``, ``error()``: Colored logging functions
+- ``fatal()``: Print error and exit
+
+**I/O:**
+
+- ``ContextIOWrapper``: Wrapper for stdout/stderr with context prefixing
+
+**Module Loading:**
+
+- ``import_directory()``: Load all Python modules from a directory
+- ``import_exported_symbols()``: Import symbols from a module
+
+**Utilities:**
+
+- ``parse_keyval()``: Parse key:value CLI arguments
+- ``fullqual()``: Get fully qualified name of objects
+- ``onetime()``: Thread-safe one-time flag
+"""
+
 import io
 import os
 import pathlib

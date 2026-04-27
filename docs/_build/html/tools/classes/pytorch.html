@@ -143,6 +143,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -172,7 +179,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -266,6 +273,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -295,7 +309,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -349,7 +363,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Tools:</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Utility Modules:</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">PyTorch Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Utilities</a></li>
@@ -416,36 +430,87 @@
                   
   <section id="module-tools.pytorch">
 <span id="pytorch-utilities"></span><h1>PyTorch Utilities<a class="headerlink" href="#module-tools.pytorch" title="Link to this heading">#</a></h1>
+<p>This module provides helper functions for PyTorch tensor manipulation,
+gradient handling, and common operations used throughout Krum.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<p><strong>Memory Management:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">relink</span></code>: Make tensors point to a contiguous memory segment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatten</span></code>: Flatten tensors into a single contiguous tensor</p></li>
+</ul>
+<p><strong>Gradient Operations:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">grad_of</span></code>: Get or create gradient for a tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grads_of</span></code>: Generator version for multiple tensors</p></li>
+</ul>
+<p><strong>Statistics:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_avg_dev_max</span></code>: Compute mean, std, norm stats</p></li>
+</ul>
+<p><strong>Time Measurement:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AccumulatedTimedContext</span></code>: Accumulated timing with optional CUDA sync</p></li>
+</ul>
+<p><strong>Utilities:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">weighted_mse_loss</span></code>: Weighted MSE loss for experiments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regression</span></code>: Generic optimization for free variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pnm</span></code>: Export tensor to PGM/PBM format</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span><span class="p">,</span> <span class="n">relink</span>
+
+<span class="c1"># Flatten model parameters</span>
+<span class="n">params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="n">flat_params</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+<span class="c1"># Relink gradients to same memory</span>
+<span class="n">grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+<span class="n">flat_grads</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.pytorch.AccumulatedTimedContext">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">AccumulatedTimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">AccumulatedTimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Accumulated timed context class, that do not print.</p>
+<p>Accumulated timed context manager with optional CUDA synchronization.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccumulatedTimedContext</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atc</span> <span class="o">=</span> <span class="n">AccumulatedTimedContext</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">atc</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="c1"># GPU operations here</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">atc</span><span class="o">.</span><span class="n">current_runtime</span><span class="p">())</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.pytorch.AccumulatedTimedContext.current_runtime">
 <span class="sig-name descname"><span class="pre">current_runtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext.current_runtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext.current_runtime" title="Link to this definition">#</a></dt>
-<dd><p>Get the current accumulated runtime.
-:Returns: <strong>Current runtime</strong> (<em>in s</em>)</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.pytorch.WeightedMSELoss">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">WeightedMSELoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">WeightedMSELoss</span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Weighted mean square error loss class.</p>
+<p>Weighted MSE loss module.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.pytorch.WeightedMSELoss.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tno</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tne</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss.forward" title="Link to this definition">#</a></dt>
-<dd><p>Compute the weighted mean square error.
-:param tno Output tensor:
-:param tne Expeced output tensor:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Associated loss tensor</strong></p>
-</dd>
-</dl>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss.forward" title="Link to this definition">#</a></dt>
+<dd><p>Define the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -453,11 +518,11 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.compute_avg_dev_max">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">compute_avg_dev_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#compute_avg_dev_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.compute_avg_dev_max" title="Link to this definition">#</a></dt>
-<dd><p>Compute the norm average and norm standard deviation of gradient samples.
-:param samples Given gradient samples:</p>
+<dd><p>Compute average, average norm, norm deviation, and max absolute value.
+:param samples: List of tensors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Computed average gradient</strong> (<em>None if no sample</em>)</p>
+<dd class="field-odd"><p><strong>Tuple of</strong> (<em>average tensor, average norm, norm deviation, max abs</em>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -465,71 +530,101 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.flatten">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#flatten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.flatten" title="Link to this definition">#</a></dt>
-<dd><p>“Flatten” the tensors of class (deriving from) Tensor so that they all use the same contiguous segment of memory.
-:param tensors Generator of/iterable on instances of/deriving from Tensor:
-:param all with the same dtype:</p>
+<dd><p>Flatten tensors into a single contiguous tensor.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Flat tensor</strong> (<em>with the same dtype as the given tensors) that contains the memory used by all the given Tensor (or derived instances</em>)</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tensors</strong> (<em>iterable</em><em> of </em><em>torch.Tensor</em>) – Tensors to flatten. All must have the same dtype.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Flat tensor containing all data from input tensors, stored in
+a contiguous memory segment.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The returned tensor shares memory with the original tensors. Modifications
+to the flat tensor will reflect in the original tensors.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flat</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">([</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">])</span>
+<span class="go">tensor([1., 2., 3., 4., 5.])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.grad_of">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">grad_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#grad_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.grad_of" title="Link to this definition">#</a></dt>
-<dd><p>Get the gradient of a given tensor, make it zero if missing.
-:param tensor Given instance of/deriving from Tensor:</p>
+<dd><p>Get the gradient of a given tensor, create zero gradient if missing.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Gradient for the given tensor</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tensor</strong> (<em>torch.Tensor</em>) – A tensor that may have a gradient attached.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – The gradient tensor. If none existed, a zero gradient is created
+and attached to the tensor.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">grad_of</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad_of</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.grads_of">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">grads_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#grads_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.grads_of" title="Link to this definition">#</a></dt>
-<dd><p>Iterate of the gradients of the given tensors, make zero gradients if missing.
-:param tensors Generator of/iterable on instances of/deriving from Tensor:</p>
+<dd><p>Generator that gets or creates gradients for multiple tensors.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Generator of the gradients of the given tensors, in emitted order</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tensors</strong> (<em>iterable</em><em> of </em><em>torch.Tensor</em>) – Tensors that may have gradients attached.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>torch.Tensor</em> – Gradient for each tensor.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">grads_of</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads_of</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">tensor([1., 1., 1.])</span>
+<span class="go">tensor([1., 1., 1.])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.pnm">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">pnm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#pnm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.pnm" title="Link to this definition">#</a></dt>
-<dd><p>Save a 2D/3D tensor as a PGM/PBM stream.
-:param fd File descriptor opened for writing binary streams:
-:param tn A 2D/3D tensor to convert and save:</p>
-<p class="rubric">Notes</p>
-<p>The input tensor is “intelligently” squeezed before processing
-For 2D tensor, assuming black is 1. and white is 0. (clamp between [0, 1])
-For 3D tensor, the first dimension must be the 3 color channels RGB (all between [0, 1])</p>
+<dd><p>Export tensor to PGM/PBM format.
+:param fd: File descriptor
+:param tn: Tensor to export</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.regression">
-<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">MSELoss()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'torch.optim.adam.Adam'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.regression" title="Link to this definition">#</a></dt>
-<dd><p>Performs a regression (mere optimization of variables) for the given function.
-:param func  Function to fit:
-:param vars  Iterable of the free tensor variables to optimize:
-:param data  Tuple of:
-:type data  Tuple of: input data tensor, expected output data tensor
-:param loss  Loss function to use:
-:type loss  Loss function to use: output, expected output
-:param taking:
-:type taking: output, expected output
-:param opt   Optimizer to use:
-:type opt   Optimizer to use: function mapping a once-iterable of tensors to an optimizer instance
-:param steps Number of optimization epochs to perform:
-:type steps Number of optimization epochs to perform: 1 epoch/step</p>
+<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.regression" title="Link to this definition">#</a></dt>
+<dd><p>Generic optimization for free variables.
+:param func: Function to optimize
+:param vars: List of variables to optimize
+:param data: Data dictionary
+:param loss: Loss function
+:param opt: Optimizer
+:param steps: Number of optimization steps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Step at which optimization stopped</strong></p>
+<dd class="field-odd"><p><strong>Final loss value</strong></p>
 </dd>
 </dl>
 </dd></dl>
@@ -537,28 +632,44 @@ For 3D tensor, the first dimension must be the 3 color channels RGB (all between
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.relink">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">relink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#relink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.relink" title="Link to this definition">#</a></dt>
-<dd><p>“Relink” the tensors of class (deriving from) Tensor by making them point to another contiguous segment of memory.
-:param tensors Generator of/iterable on instances of/deriving from Tensor:
-:param all with the same dtype:
-:param common  Flat tensor of sufficient size to use as underlying storage:
-:param with the same dtype as the given tensors:</p>
+<dd><p>Relink tensors to share a common contiguous memory storage.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Given common tensor</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tensors</strong> (<em>iterable</em><em> of </em><em>torch.Tensor</em>) – Tensors to relink. All must have the same dtype.</p></li>
+<li><p><strong>common</strong> (<em>torch.Tensor</em>) – Flat tensor of sufficient size to use as underlying storage.
+Must have the same dtype as the given tensors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – The common tensor, with <code class="docutils literal notranslate"><span class="pre">linked_tensors</span></code> attribute set.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The returned tensor has a <code class="docutils literal notranslate"><span class="pre">linked_tensors</span></code> attribute pointing to the
+original tensors. This allows updating all tensors simultaneously.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">relink</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">common</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relink</span><span class="p">([</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">],</span> <span class="n">common</span><span class="p">)</span>
+<span class="go">tensor([1., 2., 3., 4., 5.])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.weighted_mse_loss">
-<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">weighted_mse_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tno</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tne</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tnw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#weighted_mse_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.weighted_mse_loss" title="Link to this definition">#</a></dt>
-<dd><p>Weighted mean square error loss.
-:param tno Output tensor:
-:param tne Expected output tensor:
-:param tnw Weight tensor:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">weighted_mse_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#weighted_mse_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.weighted_mse_loss" title="Link to this definition">#</a></dt>
+<dd><p>Weighted MSE loss.
+:param input: Input tensor
+:param target: Target tensor
+:param weight: Weight tensor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Associated loss tensor</strong></p>
+<dd class="field-odd"><p><strong>Weighted MSE loss</strong></p>
 </dd>
 </dl>
 </dd></dl>
@@ -612,6 +723,7 @@ For 3D tensor, the first dimension must be the 3 color channels RGB (all between
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.pytorch.AccumulatedTimedContext"><code class="docutils literal notranslate"><span class="pre">AccumulatedTimedContext</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.pytorch.AccumulatedTimedContext.current_runtime"><code class="docutils literal notranslate"><span class="pre">AccumulatedTimedContext.current_runtime()</span></code></a></li>
 </ul>

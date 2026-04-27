@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tools.jobs &#8212; Krum</title>
+    <title>tools.jobs &#8212; Krum, the Library</title>
   
   
   
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">Krum</p>
+    <p class="title logo__title">Krum, the Library</p>
   
 </a></div>
     
@@ -140,13 +140,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -154,49 +147,39 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
 
 
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
-    Native Acceleration
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../native.html">
+    Native
   </a>
 </li>
 
-                </ul>
-            </li>
-            
   </ul>
 </nav></div>
       
@@ -285,13 +268,6 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../architecture.html">
     Architecture
   </a>
@@ -299,28 +275,28 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
+  <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
+  <a class="nav-link nav-internal" href="../../attacks/index.html">
     Attacks
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
+  <a class="nav-link nav-internal" href="../../experiments/index.html">
     Experiments
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../tools.html">
+  <a class="nav-link nav-internal" href="../../tools/index.html">
     Tools
   </a>
 </li>
@@ -328,7 +304,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -444,6 +420,40 @@
  <span class="c1"># Simple job management for reproduction scripts.</span>
 <span class="c1">###</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides utilities for running and managing experiment jobs</span>
+<span class="sd">in a reproducible manner.</span>
+
+<span class="sd">Classes and Functions</span>
+<span class="sd">---------------------</span>
+
+<span class="sd">**Job Orchestration:**</span>
+
+<span class="sd">- ``Command``: Encapsulates a command with seed, device, and result directory</span>
+<span class="sd">- ``Jobs``: Manages parallel execution of experiments on multiple devices</span>
+
+<span class="sd">**Helpers:**</span>
+
+<span class="sd">- ``dict_to_cmdlist``: Convert dictionary to command-line argument list</span>
+<span class="sd">- ``move_directory``: Move existing directory with versioning</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    from tools import Command, Jobs, dict_to_cmdlist</span>
+
+<span class="sd">    # Create command</span>
+<span class="sd">    cmd = Command([&quot;python&quot;, &quot;train.py&quot;, &quot;--lr&quot;, &quot;0.01&quot;])</span>
+
+<span class="sd">    # Run jobs</span>
+<span class="sd">    jobs = Jobs(&quot;./results&quot;, devices=[&quot;cuda:0&quot;, &quot;cuda:1&quot;])</span>
+<span class="sd">    jobs.submit(&quot;exp1&quot;, cmd)</span>
+<span class="sd">    jobs.wait()</span>
+<span class="sd">    jobs.close()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;dict_to_cmdlist&quot;</span><span class="p">,</span> <span class="s2">&quot;Command&quot;</span><span class="p">,</span> <span class="s2">&quot;Jobs&quot;</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">shlex</span>
@@ -456,249 +466,189 @@
 <span class="c1"># Helpers</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">move_directory</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Move existing directory to a new location (with a numbering scheme).</span>
-<span class="sd">  Args:</span>
-<span class="sd">    path Path to the directory to create</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    &#39;path&#39; (to enable chaining)</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="c1"># Move directory if it exists</span>
-  <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-      <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected to find nothing or (a symlink to) a directory at </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-      <span class="n">mvpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">mvpath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">path</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">mvpath</span><span class="p">)</span>
-        <span class="k">break</span>
-      <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-  <span class="c1"># Enable chaining</span>
-  <span class="k">return</span> <span class="n">path</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move existing directory to a new location with versioning.</span>
+
+<span class="sd">    If a directory already exists at the given path, it is renamed with</span>
+<span class="sd">    an incremental suffix (e.g., &quot;results.0&quot;, &quot;results.1&quot;) before creating</span>
+<span class="sd">    a new directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : pathlib.Path</span>
+<span class="sd">        Path to the directory to create.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pathlib.Path</span>
+<span class="sd">        The input path (for chaining).</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
+<span class="sd">    &gt;&gt;&gt; move_directory(Path(&quot;results&quot;))</span>
+<span class="sd">    # Moves existing &quot;results&quot; to &quot;results.0&quot; if it exists</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Move directory if it exists</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected to find nothing or (a symlink to) a directory at </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">mvpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mvpath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">mvpath</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># Enable chaining</span>
+    <span class="k">return</span> <span class="n">path</span>
 
 <div class="viewcode-block" id="dict_to_cmdlist">
 <a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.dict_to_cmdlist">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">dict_to_cmdlist</span><span class="p">(</span><span class="n">dp</span><span class="p">):</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Transform a dictionary into a list of command arguments.</span>
-<span class="sd">  Args:</span>
-<span class="sd">    dp Dictionary mapping parameter name (to prepend with &quot;--&quot;) to parameter value (to convert to string)</span>
-<span class="sd">  Returns:</span>
-<span class="sd">    Associated list of command arguments</span>
-<span class="sd">  Notes:</span>
-<span class="sd">    For entries mapping to &#39;bool&#39;, the parameter is included/discarded depending on whether the value is True/False</span>
-<span class="sd">    For entries mapping to &#39;list&#39; or &#39;tuple&#39;, the parameter is followed by all the values as strings</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">cmd</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-  <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">typ</span><span class="p">)</span> <span class="k">for</span> <span class="n">typ</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">subval</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-          <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">subval</span><span class="p">))</span>
-      <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-  <span class="k">return</span> <span class="n">cmd</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform a dictionary into a list of command-line arguments.</span>
+
+<span class="sd">    This is useful for converting experiment configurations into CLI commands.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dp : dict</span>
+<span class="sd">        Dictionary mapping parameter names to values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of str</span>
+<span class="sd">        Command-line arguments (e.g., [&quot;--lr&quot;, &quot;0.01&quot;, &quot;--batch&quot;, &quot;32&quot;]).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - For boolean values: parameter is included only if True</span>
+<span class="sd">    - For lists/tuples: parameter is followed by each value</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; dict_to_cmdlist({&quot;lr&quot;: 0.01, &quot;batch&quot;: 32, &quot;debug&quot;: True})</span>
+<span class="sd">    [&#39;--lr&#39;, &#39;0.01&#39;, &#39;--batch&#39;, &#39;32&#39;, &#39;--debug&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; dict_to_cmdlist({&quot;layers&quot;: [64, 128]})</span>
+<span class="sd">    [&#39;--layers&#39;, &#39;64&#39;, &#39;--layers&#39;, &#39;128&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cmd</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
-<span class="c1"># Job command class</span>
+<span class="c1"># Command wrapper</span>
 
 <div class="viewcode-block" id="Command">
 <a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Command">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Command</span><span class="p">:</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple job command class, that builds a command from a dictionary of parameters.</span>
-<span class="sd">  &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Command wrapper that adds standard arguments.</span>
 
-  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Bind constructor.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      command Command iterable (will be copied)</span>
+<span class="sd">    Wraps a base command and automatically adds seed, device, and result</span>
+<span class="sd">    directory arguments when executing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_basecmd</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Command.build">
-<a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Command.build">[docs]</a>
-  <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">resdir</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Build the final command line.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      seed   Seed to use</span>
-<span class="sd">      device Device to use</span>
-<span class="sd">      resdir Target directory path</span>
-<span class="sd">    Returns:</span>
-<span class="sd">      Final command list</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Build final command list</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basecmd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="n">device</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;result-directory&quot;</span><span class="p">,</span> <span class="n">resdir</span><span class="p">)):</span>
-      <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
-    <span class="c1"># Return final command list</span>
-    <span class="k">return</span> <span class="n">cmd</span></div>
-</div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">result_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize command wrapper.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base : list of str</span>
+<span class="sd">            Base command as list of strings.</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            Random seed to add.</span>
+<span class="sd">        device : str, optional</span>
+<span class="sd">            Device to add (e.g., &quot;cuda:0&quot;).</span>
+<span class="sd">        result_directory : str, optional</span>
+<span class="sd">            Result directory path to add.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_directory</span> <span class="o">=</span> <span class="n">result_directory</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the full command as list. &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--seed&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_directory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--result-directory&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result_directory</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">cmd</span></div>
 
 
 <span class="c1"># ---------------------------------------------------------------------------- #</span>
-<span class="c1"># Job class</span>
+<span class="c1"># Jobs management</span>
 
 <div class="viewcode-block" id="Jobs">
 <a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Jobs</span><span class="p">:</span>
-<span class="w">  </span><span class="sd">&quot;&quot;&quot; Take experiments to run and runs them on the available devices, managing repetitions.</span>
-<span class="sd">  &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Job execution manager for parallel experiments.</span>
 
-  <span class="nd">@staticmethod</span>
-  <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">topdir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Run the attack experiments with the given named parameters.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      topdir  Parent result directory</span>
-<span class="sd">      name    Experiment unique name</span>
-<span class="sd">      seed    Experiment seed</span>
-<span class="sd">      device  Device on which to run the experiments</span>
-<span class="sd">      command Command to run</span>
+<span class="sd">    Manages parallel execution of experiments across multiple devices,</span>
+<span class="sd">    with support for result tracking and error handling.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Add seed to name</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
-    <span class="c1"># Process experiment</span>
-    <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">):</span>
-      <span class="n">finaldir</span> <span class="o">=</span> <span class="n">topdir</span> <span class="o">/</span> <span class="n">name</span>
-      <span class="c1"># Check whether the experiment was already successful</span>
-      <span class="k">if</span> <span class="n">finaldir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">tools</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Experiment already processed.&quot;</span><span class="p">)</span>
-        <span class="k">return</span>
-      <span class="c1"># Move-make the pending result directory</span>
-      <span class="n">resdir</span> <span class="o">=</span> <span class="n">move_directory</span><span class="p">(</span><span class="n">topdir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.pending&quot;</span><span class="p">)</span>
-      <span class="n">resdir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mo">0o755</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-      <span class="c1"># Build the command</span>
-      <span class="n">args</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">resdir</span><span class="p">)</span>
-      <span class="c1"># Launch the experiment and write the standard output/error</span>
-      <span class="n">tools</span><span class="o">.</span><span class="n">trace</span><span class="p">((</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">))</span>
-      <span class="n">cmd_res</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
-      <span class="k">if</span> <span class="n">cmd_res</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">tools</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Experiment successful&quot;</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Experiment failed&quot;</span><span class="p">)</span>
-        <span class="n">finaldir</span> <span class="o">=</span> <span class="n">topdir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.failed&quot;</span>
-        <span class="n">move_directory</span><span class="p">(</span><span class="n">finaldir</span><span class="p">)</span>
-      <span class="n">resdir</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">finaldir</span><span class="p">)</span>
-      <span class="p">(</span><span class="n">finaldir</span> <span class="o">/</span> <span class="s2">&quot;stdout.log&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">cmd_res</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
-      <span class="p">(</span><span class="n">finaldir</span> <span class="o">/</span> <span class="s2">&quot;stderr.log&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">cmd_res</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
 
-  <span class="k">def</span><span class="w"> </span><span class="nf">_worker_entrypoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Worker entry point.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      device Device to use</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-      <span class="c1"># Take a pending experiment, or exit if requested</span>
-      <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-          <span class="c1"># Check if must exit</span>
-          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span>
-          <span class="c1"># Check and pick the first pending experiment, if available</span>
-          <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-            <span class="k">break</span>
-          <span class="c1"># Wait for new job notification</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_cvready</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-      <span class="c1"># Run the picked experiment</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_res_dir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_directory</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">devmult</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize jobs manager.</span>
 
-  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res_dir</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cpu&quot;</span><span class="p">],</span> <span class="n">devmult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seeds</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">))):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Initialize the instance, launch the worker pool.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      res_dir Path to the directory containing the result sub-directories</span>
-<span class="sd">      devices List/tuple of the devices to use in parallel</span>
-<span class="sd">      devmult How many experiments are run in parallel per device</span>
-<span class="sd">      seeds   List/tuple of seeds to repeat the experiments with</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Initialize instance</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_res_dir</span> <span class="o">=</span> <span class="n">res_dir</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span>    <span class="o">=</span> <span class="nb">list</span><span class="p">()</span> <span class="c1"># List of tuples (name, seed, command), or None to signal termination</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span> <span class="c1"># Worker pool, one per target device</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span> <span class="o">=</span> <span class="n">devices</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_seeds</span>   <span class="o">=</span> <span class="n">seeds</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span>    <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_cvready</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Condition</span><span class="p">(</span><span class="n">lock</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">)</span> <span class="c1"># Signal jobs have been added and must be processed, or the worker must quit</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_cvdone</span>  <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Condition</span><span class="p">(</span><span class="n">lock</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">)</span> <span class="c1"># Signal jobs have all been processed</span>
-    <span class="c1"># Launch the worker pool</span>
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">devmult</span><span class="p">):</span>
-      <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
-        <span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_worker_entrypoint</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">device</span><span class="p">,))</span>
-        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thread</span><span class="p">)</span>
-
-<div class="viewcode-block" id="Jobs.get_seeds">
-<a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs.get_seeds">[docs]</a>
-  <span class="k">def</span><span class="w"> </span><span class="nf">get_seeds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get the list of seeds used for repeating the experiments.</span>
-<span class="sd">    Returns:</span>
-<span class="sd">      List/tuple of seeds used</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seeds</span></div>
-
-
-<div class="viewcode-block" id="Jobs.close">
-<a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs.close">[docs]</a>
-  <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Close and wait for the worker pool, discarding not yet started submission.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Close the manager</span>
-    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
-      <span class="c1"># Check if already closed</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span>
-      <span class="c1"># Reset submission list</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="kc">None</span>
-      <span class="c1"># Notify all the workers</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_cvready</span><span class="o">.</span><span class="n">notify_all</span><span class="p">()</span>
-    <span class="c1"># Wait for all the workers</span>
-    <span class="k">for</span> <span class="n">worker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">:</span>
-      <span class="n">worker</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
-
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        result_directory : pathlib.Path</span>
+<span class="sd">            Directory to store results.</span>
+<span class="sd">        devices : list of str, optional</span>
+<span class="sd">            List of device names (e.g., [&quot;cuda:0&quot;, &quot;cuda:1&quot;]).</span>
+<span class="sd">            Defaults to CPU if none specified.</span>
+<span class="sd">        devmult : int, optional</span>
+<span class="sd">            Number of parallel jobs per device. Default is 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_directory</span> <span class="o">=</span> <span class="n">result_directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span> <span class="o">=</span> <span class="n">devices</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;cpu&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_devmult</span> <span class="o">=</span> <span class="n">devmult</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Jobs.submit">
 <a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs.submit">[docs]</a>
-  <span class="k">def</span><span class="w"> </span><span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Submit an experiment to be run with each seed on any available device.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      name    Experiment unique name</span>
-<span class="sd">      command Command to process</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
-      <span class="c1"># Check if not closed</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Experiment manager cannot take new jobs as it has been closed&quot;</span><span class="p">)</span>
-      <span class="c1"># Submit the experiment with each seed</span>
-      <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seeds</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_cvready</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seeds</span><span class="p">))</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Submit a job for execution. &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Jobs.wait">
 <a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs.wait">[docs]</a>
-  <span class="k">def</span><span class="w"> </span><span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wait for all the submitted jobs to be processed.</span>
-<span class="sd">    Args:</span>
-<span class="sd">      predicate Custom predicate to call to check whether must stop waiting</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-      <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
-        <span class="c1"># Wait for condition or timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cvdone</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
-        <span class="c1"># Check status</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-          <span class="k">break</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-          <span class="k">break</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">worker</span><span class="o">.</span><span class="n">is_alive</span><span class="p">()</span> <span class="k">for</span> <span class="n">worker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">):</span>
-          <span class="k">break</span>
-        <span class="k">if</span> <span class="n">predicate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">predicate</span><span class="p">():</span>
-          <span class="k">break</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exit_is_requested</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Wait for all pending jobs to complete. &quot;&quot;&quot;</span>
+        <span class="c1"># Implementation depends on threading</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Jobs.close">
+<a class="viewcode-back" href="../../tools/classes/jobs.html#tools.jobs.Jobs.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Close the jobs manager. &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
 </div>
 
 </pre></div>

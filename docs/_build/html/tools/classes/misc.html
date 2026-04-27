@@ -143,6 +143,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -172,7 +179,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -266,6 +273,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -295,7 +309,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -349,7 +363,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Tools:</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Utility Modules:</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pytorch.html">PyTorch Utilities</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Miscellaneous Utilities</a></li>
@@ -416,6 +430,60 @@
                   
   <section id="module-tools.misc">
 <span id="miscellaneous-utilities"></span><h1>Miscellaneous Utilities<a class="headerlink" href="#module-tools.misc" title="Link to this heading">#</a></h1>
+<p>This module provides various helper functions and classes used throughout
+Krum for common operations like exception handling, parsing, timing, etc.</p>
+<section id="key-functions-and-classes">
+<h2>Key Functions and Classes<a class="headerlink" href="#key-functions-and-classes" title="Link to this heading">#</a></h2>
+<p><strong>Exception Handling:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">UnavailableException</span></code>: Exception for missing entries in registries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fatal_unavailable</span></code>: Helper to print and exit on unavailable entries</p></li>
+</ul>
+<p><strong>Registry Patterns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MethodCallReplicator</span></code>: Forward method calls to multiple instances</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code>: Generic named class registry</p></li>
+</ul>
+<p><strong>Parsing:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_keyval</span></code>: Parse key:value arguments from CLI</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fullqual</span></code>: Get fully qualified name of objects</p></li>
+</ul>
+<p><strong>Timing:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TimedContext</span></code>: Measure execution time of code blocks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onetime</span></code>: Thread-safe one-time flag</p></li>
+</ul>
+<p><strong>Utilities:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pairwise</span></code>: Generate all pairs of indices</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">line_maximize</span></code>: Find optimal attack factor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interactive</span></code>: Simple interactive shell</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnavailableException</span><span class="p">,</span> <span class="n">parse_keyval</span><span class="p">,</span> <span class="n">TimedContext</span>
+
+<span class="c1"># Exception handling</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">UnavailableException</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">UnavailableException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># &quot;Unknown option &#39;c&#39;, expected one of:</span>
+</pre></div>
+</div>
+<p>· a
+· b”</p>
+<blockquote>
+<div><p># Parse key:value arguments
+args = parse_keyval([“lr:0.01”, “batch:32”])
+# {‘lr’: 0.01, ‘batch’: 32}</p>
+<p># Timing
+with TimedContext(“my_operation”):</p>
+<blockquote>
+<div><p># code here
+pass</p>
+</div></blockquote>
+</div></blockquote>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.misc.ClassRegister">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">ClassRegister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">singular</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optplural</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister" title="Link to this definition">#</a></dt>
@@ -506,13 +574,23 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.fullqual">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">fullqual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#fullqual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.fullqual" title="Link to this definition">#</a></dt>
-<dd><p>Rebuild a string “qualifying” the given object for debugging purpose.
-:param obj Object to “qualify”:</p>
+<dd><p>Get the fully qualified name of an object for debugging.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>“Qualification”, e.g.</strong> – ‘tools.misc.fullqual’ or ‘instance of pathlib.Path’</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – A class or instance.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>str</strong> – Fully qualified name, e.g., ‘tools.misc.fullqual’ or
+‘instance of pathlib.Path’.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fullqual</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="go">&#39;builtins.str&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fullqual</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">))</span>
+<span class="go">&#39;instance of pathlib.Path&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -587,28 +665,59 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.pairwise">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">pairwise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#pairwise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.pairwise" title="Link to this definition">#</a></dt>
-<dd><p>Simple generator of the pairs (x, y) in a tuple such that index x &lt; index y.
-:param data Indexable:
-:type data Indexable: including ability to query length</p>
+<dd><p>Generate all pairs (x, y) from data where index(x) &lt; index(y).</p>
+<p>This is useful for computing pairwise distances in aggregation rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Generator over the pairs of the elements of ‘data’</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>iterable</em>) – Indexable data structure (list, tuple) containing elements.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple</em> – Pairs (data[i], data[j]) for all i &lt; j.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">pairwise</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">[(1, 2), (1, 3), (2, 3)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">pairwise</span><span class="p">(</span><span class="s2">&quot;ab&quot;</span><span class="p">))</span>
+<span class="go">[(&#39;a&#39;, &#39;b&#39;)]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.parse_keyval">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">parse_keyval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_keyval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#parse_keyval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.parse_keyval" title="Link to this definition">#</a></dt>
-<dd><p>Parse list of “&lt;key&gt;:&lt;value&gt;” into a dictionary.
-:param list_keyval List of “&lt;key&gt;: &lt;value&gt;”
-:param defaults    Default key -&gt; value to use:
-:type defaults    Default key -&gt; value to use: also ensure type, type is guessed for other keys</p>
+<dd><p>Parse list of “key:value” strings into a dictionary.</p>
+<p>This is the main method for parsing CLI arguments like “–gar-args lr:0.01”.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Associated dictionary</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>list_keyval</strong> (<em>list</em><em> of </em><em>str</em>) – List of “key:value” strings to parse.</p></li>
+<li><p><strong>defaults</strong> (<em>dict</em><em>, </em><em>optional</em>) – Default key -&gt; value mappings. Also used for type inference:
+if a key exists in defaults, its value type is used to convert
+the input string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dict</strong> – Parsed dictionary with typed values.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If a key appears twice or if type conversion fails.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>For bool values in defaults: “0”, “n”, “false” (case-insensitive) are False</p></li>
+<li><p>For other types: uses the type constructor directly</p></li>
+<li><p>Auto-detection for unknown keys: tries int, float, bool, then string</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">],</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">})</span>
+<span class="go">{&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;debug:true&quot;</span><span class="p">,</span> <span class="s2">&quot;workers:4&quot;</span><span class="p">])</span>
+<span class="go">{&#39;debug&#39;: True, &#39;workers&#39;: 4}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -660,6 +769,7 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-functions-and-classes">Key Functions and Classes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.misc.ClassRegister"><code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.misc.ClassRegister.instantiate"><code class="docutils literal notranslate"><span class="pre">ClassRegister.instantiate()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.misc.ClassRegister.itemize"><code class="docutils literal notranslate"><span class="pre">ClassRegister.itemize()</span></code></a></li>

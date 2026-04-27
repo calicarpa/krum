@@ -13,6 +13,62 @@
  # Miscellaneous Python helpers.
 ###
 
+"""
+This module provides various helper functions and classes used throughout
+Krum for common operations like exception handling, parsing, timing, etc.
+
+Key Functions and Classes
+--------------------------
+
+**Exception Handling:**
+
+- ``UnavailableException``: Exception for missing entries in registries
+- ``fatal_unavailable``: Helper to print and exit on unavailable entries
+
+**Registry Patterns:**
+
+- ``MethodCallReplicator``: Forward method calls to multiple instances
+- ``ClassRegister``: Generic named class registry
+
+**Parsing:**
+
+- ``parse_keyval``: Parse key:value arguments from CLI
+- ``fullqual``: Get fully qualified name of objects
+
+**Timing:**
+
+- ``TimedContext``: Measure execution time of code blocks
+- ``onetime``: Thread-safe one-time flag
+
+**Utilities:**
+
+- ``pairwise``: Generate all pairs of indices
+- ``line_maximize``: Find optimal attack factor
+- ``interactive``: Simple interactive shell
+
+Example
+-------
+
+.. code-block:: python
+
+    from tools import UnavailableException, parse_keyval, TimedContext
+
+    # Exception handling
+    try:
+        raise UnavailableException({"a": 1, "b": 2}, "c", "option")
+    except UnavailableException as e:
+        print(e)  # "Unknown option 'c', expected one of:\n· a\n· b"
+
+    # Parse key:value arguments
+    args = parse_keyval(["lr:0.01", "batch:32"])
+    # {'lr': 0.01, 'batch': 32}
+
+    # Timing
+    with TimedContext("my_operation"):
+        # code here
+        pass
+"""
+
 __all__ = [
   "UnavailableException", "fatal_unavailable", "MethodCallReplicator",
   "ClassRegister", "parse_keyval", "fullqual", "onetime", "TimedContext",
@@ -195,63 +251,110 @@ def parse_keyval_auto_convert(val):
   return val
 
 def parse_keyval(list_keyval, defaults={}):
-  """ Parse list of "<key>:<value>" into a dictionary.
-  Args:
-    list_keyval List of "<key>:<value>"
-    defaults    Default key -> value to use (also ensure type, type is guessed for other keys)
-  Returns:
-    Associated dictionary
-  """
-  parsed = {}
-  # Parsing
-  sep = ":"
-  for entry in list_keyval:
-    pos = entry.find(sep)
-    if pos < 0:
-      raise tools.UserException("Expected list of " + repr("<key>:<value>") + ", got " + repr(entry) + " as one entry")
-    key = entry[:pos]
-    if key in parsed:
-      raise tools.UserException("Key " + repr(key) + " had already been specified with value " + repr(parsed[key]))
-    val = entry[pos + len(sep):]
-    # Guess/assert type constructibility
-    if key in defaults:
-      try:
-        cls = type(defaults[key])
-        if cls is bool: # Special case
-          val = val.lower() not in ("", "0", "n", "false")
-        else:
-          val = cls(val)
-      except Exception:
-        raise tools.UserException("Required key " + repr(key) + " expected a value of type " + repr(getattr(type(defaults[key]), "__name__", "<unknown>")))
-    else:
-      val = parse_keyval_auto_convert(val)
-    # Bind (converted) value to associated key
-    parsed[key] = val
-  # Add default values (done first to be able to force a given type with 'required')
-  for key in defaults:
-    if key not in parsed:
-      parsed[key] = defaults[key]
-  # Return final dictionary
-  return parsed
+    """
+    Parse list of "key:value" strings into a dictionary.
+
+    This is the main method for parsing CLI arguments like "--gar-args lr:0.01".
+
+    Parameters
+    ----------
+    list_keyval : list of str
+        List of "key:value" strings to parse.
+    defaults : dict, optional
+        Default key -> value mappings. Also used for type inference:
+        if a key exists in defaults, its value type is used to convert
+        the input string.
+
+    Returns
+    -------
+    dict
+        Parsed dictionary with typed values.
+
+    Raises
+    ------
+    tools.UserException
+        If a key appears twice or if type conversion fails.
+
+    Notes
+    -----
+    - For bool values in defaults: "0", "n", "false" (case-insensitive) are False
+    - For other types: uses the type constructor directly
+    - Auto-detection for unknown keys: tries int, float, bool, then string
+
+    Example
+    -------
+
+    >>> parse_keyval(["lr:0.01", "batch:32"], defaults={"lr": 0.1})
+    {'lr': 0.01, 'batch': 32}
+    >>> parse_keyval(["debug:true", "workers:4"])
+    {'debug': True, 'workers': 4}
+    """
+    parsed = {}
+    # Parsing
+    sep = ":"
+    for entry in list_keyval:
+      pos = entry.find(sep)
+      if pos < 0:
+        raise tools.UserException("Expected list of " + repr("<key>:<value>") + ", got " + repr(entry) + " as one entry")
+      key = entry[:pos]
+      if key in parsed:
+        raise tools.UserException("Key " + repr(key) + " had already been specified with value " + repr(parsed[key]))
+      val = entry[pos + len(sep):]
+      # Guess/assert type constructibility
+      if key in defaults:
+        try:
+          cls = type(defaults[key])
+          if cls is bool: # Special case
+            val = val.lower() not in ("", "0", "n", "false")
+          else:
+            val = cls(val)
+        except Exception:
+          raise tools.UserException("Required key " + repr(key) + " expected a value of type " + repr(getattr(type(defaults[key]), "__name__", "<unknown>")))
+      else:
+        val = parse_keyval_auto_convert(val)
+      # Bind (converted) value to associated key
+      parsed[key] = val
+    # Add default values (done first to be able to force a given type with 'required')
+    for key in defaults:
+      if key not in parsed:
+        parsed[key] = defaults[key]
+    # Return final dictionary
+    return parsed
 
 # ---------------------------------------------------------------------------- #
 # Basic "full-qualification" string builder for a given instance/class
 
 def fullqual(obj):
-  """ Rebuild a string "qualifying" the given object for debugging purpose.
-  Args:
-    obj Object to "qualify"
-  Returns:
-    "Qualification", e.g.: 'tools.misc.fullqual' or 'instance of pathlib.Path'
-  """
-  # Prelude
-  if isinstance(obj, type):
-    prelude = ""
-  else:
-    prelude = "instance of "
-    obj = type(obj)
-  # Rebuilding
-  return "%s%s.%s" % (prelude, getattr(obj, "__module__", "<unknown module>"), getattr(obj, "__qualname__", "<unknown name>"))
+    """
+    Get the fully qualified name of an object for debugging.
+
+    Parameters
+    ----------
+    obj : object
+        A class or instance.
+
+    Returns
+    -------
+    str
+        Fully qualified name, e.g., 'tools.misc.fullqual' or
+        'instance of pathlib.Path'.
+
+    Example
+    -------
+
+    >>> fullqual(str)
+    'builtins.str'
+    >>> fullqual(pathlib.Path("."))
+    'instance of pathlib.Path'
+    """
+    # Prelude
+    if isinstance(obj, type):
+        prelude = ""
+    else:
+        prelude = "instance of "
+        obj = type(obj)
+    # Rebuilding
+    return "%s%s.%s" % (prelude, getattr(obj, "__module__", "<unknown module>"), getattr(obj, "__qualname__", "<unknown name>"))
 
 # ---------------------------------------------------------------------------- #
 # Basic "full-qualification" string builder for a given instance/class
@@ -517,16 +620,33 @@ def line_maximize(scape, evals=16, start=0., delta=1., ratio=0.8):
 # Simple generator on the pairs (x, y) of an indexable such that index x < index y
 
 def pairwise(data):
-  """ Simple generator of the pairs (x, y) in a tuple such that index x < index y.
-  Args:
-    data Indexable (including ability to query length) containing the elements
-  Returns:
-    Generator over the pairs of the elements of 'data'
-  """
-  n = len(data)
-  for i in range(n - 1):
-    for j in range(i + 1, n):
-      yield (data[i], data[j])
+    """
+    Generate all pairs (x, y) from data where index(x) < index(y).
+
+    This is useful for computing pairwise distances in aggregation rules.
+
+    Parameters
+    ----------
+    data : iterable
+        Indexable data structure (list, tuple) containing elements.
+
+    Yields
+    ------
+    tuple
+        Pairs (data[i], data[j]) for all i < j.
+
+    Example
+    -------
+
+    >>> list(pairwise([1, 2, 3]))
+    [(1, 2), (1, 3), (2, 3)]
+    >>> list(pairwise("ab"))
+    [('a', 'b')]
+    """
+    n = len(data)
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            yield (data[i], data[j])
 
 # ---------------------------------------------------------------------------- #
 # Simple duration helpers

@@ -56,7 +56,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Native Acceleration" href="../../native.html" />
+    <link rel="next" title="Native" href="../../native.html" />
     <link rel="prev" title="Miscellaneous Utilities" href="misc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -143,6 +143,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -172,7 +179,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -266,6 +273,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../aggregators/index.html">
     Aggregators
   </a>
@@ -295,7 +309,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -349,7 +363,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Tools:</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Utility Modules:</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pytorch.html">PyTorch Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Utilities</a></li>
@@ -416,58 +430,66 @@
                   
   <section id="module-tools.jobs">
 <span id="jobs-utilities"></span><h1>Jobs Utilities<a class="headerlink" href="#module-tools.jobs" title="Link to this heading">#</a></h1>
+<p>This module provides utilities for running and managing experiment jobs
+in a reproducible manner.</p>
+<section id="classes-and-functions">
+<h2>Classes and Functions<a class="headerlink" href="#classes-and-functions" title="Link to this heading">#</a></h2>
+<p><strong>Job Orchestration:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Command</span></code>: Encapsulates a command with seed, device, and result directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Jobs</span></code>: Manages parallel execution of experiments on multiple devices</p></li>
+</ul>
+<p><strong>Helpers:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dict_to_cmdlist</span></code>: Convert dictionary to command-line argument list</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">move_directory</span></code>: Move existing directory with versioning</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">Jobs</span><span class="p">,</span> <span class="n">dict_to_cmdlist</span>
+
+<span class="c1"># Create command</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="n">Command</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">,</span> <span class="s2">&quot;--lr&quot;</span><span class="p">,</span> <span class="s2">&quot;0.01&quot;</span><span class="p">])</span>
+
+<span class="c1"># Run jobs</span>
+<span class="n">jobs</span> <span class="o">=</span> <span class="n">Jobs</span><span class="p">(</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">,</span> <span class="s2">&quot;cuda:1&quot;</span><span class="p">])</span>
+<span class="n">jobs</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="s2">&quot;exp1&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+<span class="n">jobs</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="n">jobs</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.jobs.Command">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">Command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Command" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">Command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Command" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Simple job command class, that builds a command from a dictionary of parameters.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tools.jobs.Command.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Command.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Command.build" title="Link to this definition">#</a></dt>
-<dd><p>Build the final command line.
-:param seed   Seed to use:
-:param device Device to use:
-:param resdir Target directory path:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Final command list</strong></p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Command wrapper that adds standard arguments.</p>
+<p>Wraps a base command and automatically adds seed, device, and result
+directory arguments when executing.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.jobs.Jobs">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">Jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">devices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['cpu']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">devmult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">Jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">devices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">devmult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Take experiments to run and runs them on the available devices, managing repetitions.</p>
+<p>Job execution manager for parallel experiments.</p>
+<p>Manages parallel execution of experiments across multiple devices,
+with support for result tracking and error handling.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.close" title="Link to this definition">#</a></dt>
-<dd><p>Close and wait for the worker pool, discarding not yet started submission.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tools.jobs.Jobs.get_seeds">
-<span class="sig-name descname"><span class="pre">get_seeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.get_seeds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.get_seeds" title="Link to this definition">#</a></dt>
-<dd><p>Get the list of seeds used for repeating the experiments.
-:Returns: <strong>List/tuple of seeds used</strong></p>
+<dd><p>Close the jobs manager.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.submit">
 <span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.submit" title="Link to this definition">#</a></dt>
-<dd><p>Submit an experiment to be run with each seed on any available device.
-:param name    Experiment unique name:
-:param command Command to process:</p>
+<dd><p>Submit a job for execution.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.wait">
-<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predicate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.wait"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.wait" title="Link to this definition">#</a></dt>
-<dd><p>Wait for all the submitted jobs to be processed.
-:param predicate Custom predicate to call to check whether must stop waiting:</p>
+<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exit_is_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.wait"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.wait" title="Link to this definition">#</a></dt>
+<dd><p>Wait for all pending jobs to complete.</p>
 </dd></dl>
 
 </dd></dl>
@@ -475,17 +497,28 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.jobs.dict_to_cmdlist">
 <span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">dict_to_cmdlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#dict_to_cmdlist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.dict_to_cmdlist" title="Link to this definition">#</a></dt>
-<dd><p>Transform a dictionary into a list of command arguments.
-:param dp Dictionary mapping parameter name:
-:type dp Dictionary mapping parameter name: to prepend with “–”) to parameter value (to convert to string</p>
+<dd><p>Transform a dictionary into a list of command-line arguments.</p>
+<p>This is useful for converting experiment configurations into CLI commands.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Associated list of command arguments</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dp</strong> (<em>dict</em>) – Dictionary mapping parameter names to values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>list of str</strong> – Command-line arguments (e.g., [”–lr”, “0.01”, “–batch”, “32”]).</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>For entries mapping to ‘bool’, the parameter is included/discarded depending on whether the value is True/False
-For entries mapping to ‘list’ or ‘tuple’, the parameter is followed by all the values as strings</p>
+<ul class="simple">
+<li><p>For boolean values: parameter is included only if True</p></li>
+<li><p>For lists/tuples: parameter is followed by each value</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dict_to_cmdlist</span><span class="p">({</span><span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+<span class="go">[&#39;--lr&#39;, &#39;0.01&#39;, &#39;--batch&#39;, &#39;32&#39;, &#39;--debug&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dict_to_cmdlist</span><span class="p">({</span><span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">]})</span>
+<span class="go">[&#39;--layers&#39;, &#39;64&#39;, &#39;--layers&#39;, &#39;128&#39;]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -514,7 +547,7 @@ For entries mapping to ‘list’ or ‘tuple’, the parameter is followed by a
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Native Acceleration</p>
+        <p class="prev-next-title">Native</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -537,13 +570,10 @@ For entries mapping to ‘list’ or ‘tuple’, the parameter is followed by a
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Command"><code class="docutils literal notranslate"><span class="pre">Command</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Command.build"><code class="docutils literal notranslate"><span class="pre">Command.build()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-and-functions">Classes and Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Command"><code class="docutils literal notranslate"><span class="pre">Command</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Jobs"><code class="docutils literal notranslate"><span class="pre">Jobs</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Jobs.close"><code class="docutils literal notranslate"><span class="pre">Jobs.close()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Jobs.get_seeds"><code class="docutils literal notranslate"><span class="pre">Jobs.get_seeds()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Jobs.submit"><code class="docutils literal notranslate"><span class="pre">Jobs.submit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.jobs.Jobs.wait"><code class="docutils literal notranslate"><span class="pre">Jobs.wait()</span></code></a></li>
 </ul>

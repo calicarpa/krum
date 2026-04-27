@@ -143,6 +143,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../aggregators/index.html">
     Aggregators
   </a>
@@ -172,7 +179,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -266,6 +273,13 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture.html">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../aggregators/index.html">
     Aggregators
   </a>
@@ -295,7 +309,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../native.html">
-    Native Acceleration
+    Native
   </a>
 </li>
 
@@ -349,7 +363,7 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Tools:</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Utility Modules:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="classes/pytorch.html">PyTorch Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classes/misc.html">Miscellaneous Utilities</a></li>
@@ -413,51 +427,109 @@
                   
   <section id="tools">
 <h1>Tools<a class="headerlink" href="#tools" title="Link to this heading">#</a></h1>
-<p>Utility modules for Krum.</p>
+<p>Utility modules for Krum providing infrastructure, tensor operations, and job management.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-text">Tools</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 60.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Key Functions</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tools</span></code></p></td>
+<td><p>Core utilities (logging, exceptions, parsing)</p></td>
+<td><p>Context, UserException, parse_keyval</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tools.pytorch</span></code></p></td>
+<td><p>PyTorch helpers (tensor operations, gradients)</p></td>
+<td><p>flatten, relink, compute_avg_dev_max</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tools.misc</span></code></p></td>
+<td><p>Miscellaneous utilities (registries, timing)</p></td>
+<td><p>pairwise, line_maximize, fullqual</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tools.jobs</span></code></p></td>
+<td><p>Job management for experiments</p></td>
+<td><p>Command, Jobs, dict_to_cmdlist</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
+
+<span class="c1"># Logging with context</span>
+<span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">):</span>
+    <span class="n">tools</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting training...&quot;</span><span class="p">)</span>
+
+<span class="c1"># Parse CLI arguments</span>
+<span class="n">args</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">])</span>
+
+<span class="c1"># Flatten model parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+<span class="n">flat_params</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+
+<span class="c1"># Run jobs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">Jobs</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="n">Command</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">])</span>
+<span class="n">jobs</span> <span class="o">=</span> <span class="n">Jobs</span><span class="p">(</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="available-tools">
+<h2>Available Tools<a class="headerlink" href="#available-tools" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Available Tools:</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Utility Modules:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="classes/pytorch.html">PyTorch Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.AccumulatedTimedContext"><code class="docutils literal notranslate"><span class="pre">AccumulatedTimedContext</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.WeightedMSELoss"><code class="docutils literal notranslate"><span class="pre">WeightedMSELoss</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.compute_avg_dev_max"><code class="docutils literal notranslate"><span class="pre">compute_avg_dev_max()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.flatten"><code class="docutils literal notranslate"><span class="pre">flatten()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.grad_of"><code class="docutils literal notranslate"><span class="pre">grad_of()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.grads_of"><code class="docutils literal notranslate"><span class="pre">grads_of()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.pnm"><code class="docutils literal notranslate"><span class="pre">pnm()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.regression"><code class="docutils literal notranslate"><span class="pre">regression()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.relink"><code class="docutils literal notranslate"><span class="pre">relink()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/pytorch.html#tools.pytorch.weighted_mse_loss"><code class="docutils literal notranslate"><span class="pre">weighted_mse_loss()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/misc.html">Miscellaneous Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.ClassRegister"><code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.MethodCallReplicator"><code class="docutils literal notranslate"><span class="pre">MethodCallReplicator</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.TimedContext"><code class="docutils literal notranslate"><span class="pre">TimedContext</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.UnavailableException"><code class="docutils literal notranslate"><span class="pre">UnavailableException</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.deltatime_format"><code class="docutils literal notranslate"><span class="pre">deltatime_format()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.deltatime_point"><code class="docutils literal notranslate"><span class="pre">deltatime_point()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.fatal_unavailable"><code class="docutils literal notranslate"><span class="pre">fatal_unavailable()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.fullqual"><code class="docutils literal notranslate"><span class="pre">fullqual()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.get_loaded_dependencies"><code class="docutils literal notranslate"><span class="pre">get_loaded_dependencies()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.interactive"><code class="docutils literal notranslate"><span class="pre">interactive()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.line_maximize"><code class="docutils literal notranslate"><span class="pre">line_maximize()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.localtime"><code class="docutils literal notranslate"><span class="pre">localtime()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.onetime"><code class="docutils literal notranslate"><span class="pre">onetime()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.pairwise"><code class="docutils literal notranslate"><span class="pre">pairwise()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/misc.html#tools.misc.parse_keyval"><code class="docutils literal notranslate"><span class="pre">parse_keyval()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes/jobs.html">Jobs Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes/jobs.html#tools.jobs.Command"><code class="docutils literal notranslate"><span class="pre">Command</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/jobs.html#tools.jobs.Jobs"><code class="docutils literal notranslate"><span class="pre">Jobs</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes/jobs.html#tools.jobs.dict_to_cmdlist"><code class="docutils literal notranslate"><span class="pre">dict_to_cmdlist()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="classes/pytorch.html">PyTorch Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/misc.html">Miscellaneous Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </div>
+</section>
 <section id="module-tools">
-<span id="api"></span><h2>API<a class="headerlink" href="#module-tools" title="Link to this heading">#</a></h2>
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-tools" title="Link to this heading">#</a></h2>
+<p>Core Utility Module for Krum.</p>
+<p>This module provides the fundamental infrastructure utilities used throughout
+Krum, including logging, error handling, and common operations.</p>
+<section id="key-components">
+<h3>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">#</a></h3>
+<p><strong>Exceptions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">UserException</span></code>: Base exception for user-facing errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Context</span></code>: Thread-local context for colored logging</p></li>
+</ul>
+<p><strong>Logging:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">info()</span></code>, <code class="docutils literal notranslate"><span class="pre">success()</span></code>, <code class="docutils literal notranslate"><span class="pre">warning()</span></code>, <code class="docutils literal notranslate"><span class="pre">error()</span></code>: Colored logging functions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fatal()</span></code>: Print error and exit</p></li>
+</ul>
+<p><strong>I/O:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ContextIOWrapper</span></code>: Wrapper for stdout/stderr with context prefixing</p></li>
+</ul>
+<p><strong>Module Loading:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">import_directory()</span></code>: Load all Python modules from a directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">import_exported_symbols()</span></code>: Import symbols from a module</p></li>
+</ul>
+<p><strong>Utilities:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_keyval()</span></code>: Parse key:value CLI arguments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fullqual()</span></code>: Get fully qualified name of objects</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onetime()</span></code>: Thread-safe one-time flag</p></li>
+</ul>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.Context">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cntxtname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tools.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.Context" title="Link to this definition">#</a></dt>
@@ -646,7 +718,11 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tools">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-tools">Available Tools</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tools">API Reference</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-components">Key Components</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.Context"><code class="docutils literal notranslate"><span class="pre">Context</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.ContextIOWrapper"><code class="docutils literal notranslate"><span class="pre">ContextIOWrapper</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tools.ContextIOWrapper.write"><code class="docutils literal notranslate"><span class="pre">ContextIOWrapper.write()</span></code></a></li>
