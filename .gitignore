@@ -9,5 +9,12 @@
 !*.md
 !*.py
 
+# Except documentation files
+!docs/*
+!*.rst
+!*.html
+!*.css
+!*.js
+
 # IDE stuff
 .idea
