@@ -147,21 +147,57 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-experiments.optimizer">
 <span id="optimizer"></span><h1>Optimizer<a class="headerlink" href="#module-experiments.optimizer" title="Link to this heading">¶</a></h1>
+<p>Optimizer wrapper that resolves PyTorch optimizers by name.</p>
+<p>This module provides a thin wrapper around <code class="docutils literal notranslate"><span class="pre">torch.optim</span></code> that allows
+optimizers to be instantiated from CLI strings while exposing a uniform
+interface for learning-rate adjustments.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Model</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s2">&quot;lenet&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">optim</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="p">(</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">optim</span><span class="o">.</span><span class="n">set_lr</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">)</span>
+</span></pre></div>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.optimizer.Optimizer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.optimizer.</span></span><span class="sig-name descname"><span class="pre">Optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/optimizer.html#Optimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.optimizer.Optimizer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Optimizer wrapper class.</p>
+<p>Optimizer wrapper with name resolution and LR control.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Optimizer name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;adam&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sgd&quot;</span></code>) or a constructor
+function. Names are resolved against <code class="docutils literal notranslate"><span class="pre">torch.optim</span></code>.</p></li>
+<li><p><strong>model</strong> (<em>experiments.Model</em>) – Model whose parameters will be optimized.</p></li>
+<li><p><strong>*args</strong> (<em>object</em>) – Additional positional arguments forwarded to the optimizer
+constructor.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments forwarded to the optimizer
+constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tools.UnavailableException</strong> – If <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string that does not match any known
+    optimizer.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="experiments.optimizer.Optimizer.set_lr">
-<span class="sig-name descname"><span class="pre">set_lr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/optimizer.html#Optimizer.set_lr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.optimizer.Optimizer.set_lr" title="Link to this definition">¶</a></dt>
-<dd><p>Set the learning rate of the optimizer
-:param lr Learning rate to set:
-:type lr Learning rate to set: for each parameter group</p>
+<span class="sig-name descname"><span class="pre">set_lr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/experiments/optimizer.html#Optimizer.set_lr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.optimizer.Optimizer.set_lr" title="Link to this definition">¶</a></dt>
+<dd><p>Set the learning rate for all parameter groups.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>lr</strong> (<em>float</em>) – New learning rate.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the model whose parameters are optimized, see <a class="reference internal" href="model.html"><span class="doc">Model</span></a>.
+For the loss that drives optimization, see <a class="reference internal" href="loss.html"><span class="doc">Loss</span></a>.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">

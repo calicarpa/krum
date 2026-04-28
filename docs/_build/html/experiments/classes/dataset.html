@@ -153,40 +153,84 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-experiments.dataset">
 <span id="dataset"></span><h1>Dataset<a class="headerlink" href="#module-experiments.dataset" title="Link to this heading">¶</a></h1>
+<p>Dataset loading, batching, and sampling utilities.</p>
+<p>This module wraps <code class="docutils literal notranslate"><span class="pre">torchvision.datasets</span></code> and custom dataset modules into
+uniform infinite-batch generators. It also provides helpers for train/test
+splitting and raw-tensor batching.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">make_datasets</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">trainset</span><span class="p">,</span> <span class="n">testset</span> <span class="o">=</span> <span class="n">make_datasets</span><span class="p">(</span><span class="s2">&quot;cifar10&quot;</span><span class="p">,</span> <span class="n">train_batch</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">test_batch</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">trainset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</span></pre></div>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.dataset.Dataset">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.Dataset" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Dataset wrapper class.</p>
+<p>Unified dataset wrapper producing infinite batches.</p>
+<p>This class can wrap:</p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">torchvision</span></code> dataset loaded by name.</p></li>
+<li><p>A custom generator yielding batches forever.</p></li>
+<li><p>A single fixed batch repeated forever.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>str</em><em>, </em><em>generator</em><em>, or </em><em>object</em>) – Dataset name, infinite generator, or single batch.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – User-defined name for debugging.</p></li>
+<li><p><strong>root</strong> (<em>str</em><em> or </em><em>pathlib.Path</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Cache root directory. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>tools.UnavailableException</strong> – If <code class="docutils literal notranslate"><span class="pre">data</span></code> is an unknown dataset name.</p></li>
+<li><p><strong>TypeError</strong> – If constructor arguments are invalid.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="experiments.dataset.Dataset.epoch">
 <span class="sig-name descname"><span class="pre">epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#Dataset.epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.Dataset.epoch" title="Link to this definition">¶</a></dt>
-<dd><p>Return a full epoch iterable from this dataset.
-:param config Target configuration for the sampled tensors:</p>
+<dd><p>Return a finite epoch iterator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only works for DataLoader-based datasets.</p>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Full epoch iterable</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>experiments.Configuration</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Target configuration for tensor placement.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>generator</strong> – Finite iterator over one epoch.</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>Only work for dataset based on PyTorch’s DataLoader</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="experiments.dataset.Dataset.get_default_root">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_default_root</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#Dataset.get_default_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.Dataset.get_default_root" title="Link to this definition">¶</a></dt>
-<dd><p>Lazy-initialize and return the default dataset root directory path.
-:Returns: <strong>‘__default_root’</strong></p>
+<dd><p>Lazily initialize and return the default dataset cache directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pathlib.Path</strong> – Path to the dataset cache. Falls back to the system temp
+directory if the default does not exist.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="experiments.dataset.Dataset.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#Dataset.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.Dataset.sample" title="Link to this definition">¶</a></dt>
-<dd><p>Sample the next batch from this dataset.
-:param config Target configuration for the sampled tensors:</p>
+<dd><p>Sample the next batch.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Next batch</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>experiments.Configuration</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Target configuration for tensor placement.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tuple</strong> – Next batch, optionally moved to the target device.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -196,23 +240,20 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.dataset.batch_dataset">
 <span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">batch_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#batch_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.batch_dataset" title="Link to this definition">¶</a></dt>
-<dd><p>Batch a given raw (tensor) dataset into either a training or testing infinite sampler generators.
-:param inputs     Tensor of positive dimension containing input data:
-:param labels     Tensor of same shape as ‘inputs’ containing expected output data:
-:param train      Whether this is for training:
-:type train      Whether this is for training: basically adds shuffling
-:param batch_size Training batch size:
-:type batch_size Training batch size: or 0
-:param None:
-:type None: or 0
-:param split      Fraction of datapoints to use in the train set if &lt; 1:
-:param or #samples in the train set if ≥ 1:</p>
+<dd><p>Batch a raw tensor dataset into infinite sampler generators.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>Training or testing set infinite sampler generator</strong> (<em>with uniformly sampled batches</em>)</p></li>
-<li><p><strong>Test set infinite sampler generator</strong> (<em>without random sampling</em>)</p></li>
+<li><p><strong>inputs</strong> (<em>torch.Tensor</em>) – Input data tensor.</p></li>
+<li><p><strong>labels</strong> (<em>torch.Tensor</em>) – Label tensor with the same first-dimension size as <code class="docutils literal notranslate"><span class="pre">inputs</span></code>.</p></li>
+<li><p><strong>train</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to build a training set (adds shuffling) or a test set.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the full split size.</p></li>
+<li><p><strong>split</strong> (<em>float</em><em> or </em><em>int</em><em>, </em><em>optional</em>) – Fraction of samples for training when <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">1</span></code>, or absolute count
+when <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">1</span></code>.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>generator</strong> – Infinite sampler generator.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -220,14 +261,17 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.dataset.get_default_transform">
 <span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">get_default_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#get_default_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.get_default_transform" title="Link to this definition">¶</a></dt>
-<dd><p>Get the default transform associated with the given dataset name.
-:param dataset Case-sensitive dataset name:
-:param or None to get no transformation:
-:param train   Whether the transformation is for the training set:
-:type train   Whether the transformation is for the training set: always ignored if None is given for ‘dataset’</p>
+<dd><p>Return the default transform for a torchvision dataset.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Associated default transformations</strong> (<em>always exist</em>)</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>str</em><em> or </em><em>None</em>) – Case-sensitive dataset name. <code class="docutils literal notranslate"><span class="pre">None</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>train</strong> (<em>bool</em>) – Whether to return the training transform. Ignored when
+<code class="docutils literal notranslate"><span class="pre">dataset</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torchvision.transforms.Compose or None</strong> – Composed transform, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the dataset is unknown.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -235,22 +279,22 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.dataset.make_datasets">
 <span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">make_datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">custom_args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#make_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.make_datasets" title="Link to this definition">¶</a></dt>
-<dd><p>Helper to make new instances of training and testing datasets.
-:param dataset          Case-sensitive dataset name:
-:param train_batch      Training batch size:
-:param None or 0 for maximum possible:
-:param test_batch       Testing batch size:
-:param None or 0 for maximum possible:
-:param train_transforms Transformations to apply on the training set:
-:param None for default for the given dataset:
-:param test_transforms  Transformations to apply on the testing set:
-:param None for default for the given dataset:
-:param num_workers      Positive number of workers for each of the training and testing datasets:
-:param or tuple for each of them:
-:param …              Additional dataset-dependent keyword-arguments:</p>
+<dd><p>Build training and testing dataset wrappers.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Training dataset, testing dataset</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>str</em>) – Case-sensitive dataset name.</p></li>
+<li><p><strong>train_batch</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Training batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
+<li><p><strong>test_batch</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Testing batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
+<li><p><strong>train_transforms</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Transform for the training set. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
+<li><p><strong>test_transforms</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Transform for the testing set. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
+<li><p><strong>num_workers</strong> (<em>int</em><em> or </em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>optional</em>) – Number of workers for the training and testing loaders. An <code class="docutils literal notranslate"><span class="pre">int</span></code>
+applies to both; a tuple specifies <code class="docutils literal notranslate"><span class="pre">(train_workers,</span> <span class="pre">test_workers)</span></code>.</p></li>
+<li><p><strong>**custom_args</strong> (<em>object</em>) – Additional keyword arguments forwarded to the dataset constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tuple[Dataset, Dataset]</strong> – Training and testing dataset wrappers.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -258,15 +302,22 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.dataset.make_sampler">
 <span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">make_sampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loader</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/dataset.html#make_sampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.make_sampler" title="Link to this definition">¶</a></dt>
-<dd><p>Infinite sampler generator from a dataset loader.
-:param loader Dataset loader to use:</p>
+<dd><p>Create an infinite sampler from a DataLoader.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Yields<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Sample, forever (transparently iterating the given loader again and again)</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>loader</strong> (<em>torch.utils.data.DataLoader</em>) – Finite data loader.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple</em> – Batches, transparently restarting the loader when exhausted.</p>
 </dd>
 </dl>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the model that consumes these datasets, see <a class="reference internal" href="model.html"><span class="doc">Model</span></a>.
+For the configuration that controls tensor placement, see <a class="reference internal" href="configuration.html"><span class="doc">Configuration</span></a>.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">

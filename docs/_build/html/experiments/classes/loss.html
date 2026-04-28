@@ -145,20 +145,74 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-experiments.loss">
 <span id="loss"></span><h1>Loss<a class="headerlink" href="#module-experiments.loss" title="Link to this heading">¶</a></h1>
+<p>Loss and criterion wrappers for training and evaluation.</p>
+<p>This module provides:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#experiments.loss.Loss" title="experiments.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">Loss</span></code></a> — derivable loss functions (includes L1/L2 regularization
+and all PyTorch losses) with arithmetic composition support.</p></li>
+<li><p><a class="reference internal" href="#experiments.loss.Criterion" title="experiments.loss.Criterion"><code class="xref py py-class docutils literal notranslate"><span class="pre">Criterion</span></code></a> — non-derivable evaluation metrics (top-k accuracy,
+sigmoid accuracy).</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loss</span><span class="p">,</span> <span class="n">Criterion</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">Loss</span><span class="p">(</span><span class="s2">&quot;crossentropy&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">Loss</span><span class="p">(</span><span class="s2">&quot;l2&quot;</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">crit</span> <span class="o">=</span> <span class="n">Criterion</span><span class="p">(</span><span class="s2">&quot;top-k&quot;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></pre></div>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.loss.Criterion">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.loss.</span></span><span class="sig-name descname"><span class="pre">Criterion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/loss.html#Criterion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.loss.Criterion" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Criterion (1D tensor [#correct classification, batch size]) wrapper class.</p>
+<p>Non-derivable evaluation metric wrapper.</p>
+<p>Available criteria:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;top-k&quot;</span></code> — top-k classification accuracy.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;sigmoid&quot;</span></code> — binary accuracy with sigmoid threshold at 0.5.</p></li>
+</ul>
+<p>All criteria return a 1-D tensor <code class="docutils literal notranslate"><span class="pre">[num_correct,</span> <span class="pre">batch_size]</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Criterion name or constructor function.</p></li>
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the criterion constructor.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the criterion constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tools.UnavailableException</strong> – If <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is an unknown string.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.loss.Loss">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.loss.</span></span><span class="sig-name descname"><span class="pre">Loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/loss.html#Loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.loss.Loss" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Loss (must be derivable) wrapper class.</p>
+<p>Derivable loss function wrapper with composition support.</p>
+<p>Losses can be added (<code class="docutils literal notranslate"><span class="pre">loss1</span> <span class="pre">+</span> <span class="pre">loss2</span></code>) and scaled (<code class="docutils literal notranslate"><span class="pre">0.5</span> <span class="pre">*</span> <span class="pre">loss</span></code>).
+All standard PyTorch losses are available by lower-case name.
+Additionally, <code class="docutils literal notranslate"><span class="pre">&quot;l1&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;l2&quot;</span></code> provide parameter-norm
+regularization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Loss name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;crossentropy&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code>) or a callable
+with signature <code class="docutils literal notranslate"><span class="pre">(output,</span> <span class="pre">target,</span> <span class="pre">params)</span> <span class="pre">-&gt;</span> <span class="pre">tensor</span></code>.</p></li>
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tools.UnavailableException</strong> – If <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is an unknown string.</p>
+</dd>
+</dl>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the model that uses the loss, see <a class="reference internal" href="model.html"><span class="doc">Model</span></a>.
+For the optimizer that minimizes it, see <a class="reference internal" href="optimizer.html"><span class="doc">Optimizer</span></a>.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">

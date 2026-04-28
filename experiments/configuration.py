@@ -24,20 +24,52 @@ import torch
 # Trivial tensor configuration holder (dtype, device, ...) class
 
 class Configuration(Mapping):
-  """ Immutable tensor configuration holder class.
-  """
-
-  # Default selected device (GPU if available, else CPU)
-  default_device = "cuda" if torch.cuda.is_available() else "cpu"
-
-  def __init__(self, device=None, dtype=None, noblock=False, relink=False):
-    """ Immutable initialization constructor.
-    Args:
-      device  Device (either instance, formatted name or None) to use
-      dtype   Datatype to use, None for PyTorch default
-      noblock To try and avoid using blocking memory transfer operations from the host
-      relink  Relink instead of copying by default in some assignment operations
     """
+    Immutable tensor configuration holder.
+
+    This class bundles ``device``, ``dtype``, and memory-transfer options
+    into a single immutable mapping. It is used throughout ``experiments``
+    to ensure every created or moved tensor uses the same configuration.
+
+    Parameters
+    ----------
+    device : str, torch.device, or None, optional
+        Target device. ``None`` defaults to ``"cuda"`` when available,
+        otherwise ``"cpu"``. Strings such as ``"cuda:0"`` are resolved
+        automatically.
+    dtype : torch.dtype or None, optional
+        Tensor datatype. ``None`` uses PyTorch's current default dtype.
+    noblock : bool, optional
+        Whether to use non-blocking host-to-device transfers.
+    relink : bool, optional
+        Whether to relink instead of copying during parameter assignments.
+
+    Example
+    -------
+    >>> from experiments import Configuration
+    >>> config = Configuration(device="cpu", dtype=torch.float32)
+    >>> config["device"]
+    device(type='cpu')
+    """
+
+    # Default selected device (GPU if available, else CPU)
+    default_device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    def __init__(self, device=None, dtype=None, noblock=False, relink=False):
+        """
+        Initialize the configuration.
+
+        Parameters
+        ----------
+        device : str, torch.device, or None, optional
+            Target device. ``None`` selects the default device.
+        dtype : torch.dtype or None, optional
+            Tensor datatype.
+        noblock : bool, optional
+            Use non-blocking transfers.
+        relink : bool, optional
+            Relink instead of copy in assignments.
+        """
     # Convert formatted device name to device instance
     if device is None:
       # Use default device
@@ -59,43 +91,68 @@ class Configuration(Mapping):
       "non_blocking": noblock }
     self.relink = relink
 
-  def __len__(self):
-    """ Return the number of contained configuration entries.
-    Returns:
-      Number of configuration entries
-    """
-    return len(self._args)
+    def __len__(self):
+        """
+        Return the number of configuration entries.
 
-  def __getitem__(self, name):
-    """ Get a configuration value from its name.
-    Args:
-      name Configuration name
-    Returns:
-      Associated configuration value
-    """
-    return self._args[name]
+        Returns
+        -------
+        int
+            Number of entries in the configuration mapping.
+        """
+        return len(self._args)
 
-  def __iter__(self):
-    """ Build an iterator over all the configuration entries.
-    Return:
-      Built iterator
-    """
-    return self._args.__iter__()
+    def __getitem__(self, name):
+        """
+        Get a configuration value by name.
 
-  def __str__(self):
-    """ Compute the "informal", nicely printable string representation of this configuration.
-    Returns:
-      Nicely printable string
-    """
-    temp = self._args.copy()
-    temp["relink"] = self.relink
-    return str(temp)
+        Parameters
+        ----------
+        name : str
+            Configuration key (e.g. ``"device"``, ``"dtype"``).
 
-  def __repr__(self):
-    """ Compute the "official", Python-code string representation of this configuration.
-    Returns:
-      Python-code string evaluating (under conditions) to this configuration
-    """
-    display = {"non_blocking": "noblock"}
-    argrepr = (", ").join(f"{display.get(key, key)}={val!r}" for key, val in self._args.items())
-    return f"Configuration({argrepr}, relink={self.relink})"
+        Returns
+        -------
+        object
+            Associated configuration value.
+        """
+        return self._args[name]
+
+    def __iter__(self):
+        """
+        Iterate over all configuration keys.
+
+        Returns
+        -------
+        iterator
+            Iterator over configuration entry names.
+        """
+        return self._args.__iter__()
+
+    def __str__(self):
+        """
+        Return a nicely printable representation.
+
+        Returns
+        -------
+        str
+            Human-readable configuration summary.
+        """
+        temp = self._args.copy()
+        temp["relink"] = self.relink
+        return str(temp)
+
+    def __repr__(self):
+        """
+        Return an evaluable string representation.
+
+        Returns
+        -------
+        str
+            Python-code string that evaluates to this configuration.
+        """
+        display = {"non_blocking": "noblock"}
+        argrepr = (", ").join(
+            f"{display.get(key, key)}={val!r}" for key, val in self._args.items()
+        )
+        return f"Configuration({argrepr}, relink={self.relink})"

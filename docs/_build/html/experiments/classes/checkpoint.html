@@ -106,21 +106,7 @@ data-aria-dark="Switch to auto color mode">
     <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
       <i class="i-lucide close"></i>
     </button>
-    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#experiments.checkpoint.Checkpoint"><code class="docutils literal notranslate"><span class="pre">Checkpoint</span></code></a><ul>
-<li><a class="reference internal" href="#experiments.checkpoint.Checkpoint.load"><code class="docutils literal notranslate">load()</span></code></a></li>
-<li><a class="reference internal" href="#experiments.checkpoint.Checkpoint.restore"><code class="docutils literal notranslate">restore()</span></code></a></li>
-<li><a class="reference internal" href="#experiments.checkpoint.Checkpoint.save"><code class="docutils literal notranslate">save()</span></code></a></li>
-<li><a class="reference internal" href="#experiments.checkpoint.Checkpoint.snapshot"><code class="docutils literal notranslate">snapshot()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#experiments.checkpoint.Storage"><code class="docutils literal notranslate"><span class="pre">Storage</span></code></a><ul>
-<li><a class="reference internal" href="#experiments.checkpoint.Storage.load_state_dict"><code class="docutils literal notranslate">load_state_dict()</span></code></a></li>
-<li><a class="reference internal" href="#experiments.checkpoint.Storage.state_dict"><code class="docutils literal notranslate">state_dict()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
   <main class="sy-main w-full max-sm:max-w-full print:pt-6">
@@ -153,90 +139,13 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
   <article class="yue" role="main">
-          <section id="module-experiments.checkpoint">
-<span id="checkpoint"></span><h1>Checkpoint<a class="headerlink" href="#module-experiments.checkpoint" title="Link to this heading">¶</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.checkpoint.</span></span><span class="sig-name descname"><span class="pre">Checkpoint</span></span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A collection of state dictionaries with saving/loading helpers.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Checkpoint.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint.load" title="Link to this definition">¶</a></dt>
-<dd><p>Load/overwrite the storage from the given file.
-:param filepath  Given file path:
-:param overwrite Allow to overwrite any stored snapshot:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self</strong></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nothrow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Checkpoint.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint.restore" title="Link to this definition">¶</a></dt>
-<dd><p>Restore the snapshot for a given instance, warn if restoring a reference.
-:param instance Instance to restore:
-:param nothrow  Do not raise exception if no snapshot available for the instance:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self</strong></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Checkpoint.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint.save" title="Link to this definition">¶</a></dt>
-<dd><p>Save the current checkpoint in the given file.
-:param filepath  Given file path:
-:param overwrite Allow to overwrite if the file already exists:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self</strong></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint.snapshot">
-<span class="sig-name descname"><span class="pre">snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deepcopy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nowarnref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Checkpoint.snapshot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint.snapshot" title="Link to this definition">¶</a></dt>
-<dd><p>Take/overwrite the snapshot for a given instance.
-:param instance  Instance to snapshot:
-:param overwrite Overwrite any existing snapshot for the same class:
-:param deepcopy  Deep copy instance’s state dictionary instead of referencing:
-:param nowarnref To always avoid a warning in debug mode if restoring a state dictionary reference is the wanted behavior:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self</strong></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="experiments.checkpoint.Storage">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.checkpoint.</span></span><span class="sig-name descname"><span class="pre">Storage</span></span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Storage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Storage" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
-<p>Dictionary that implements “state_dict protocol” class.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Storage.load_state_dict">
-<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Storage.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Storage.load_state_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Update the state dictionary.
-:param state State to update the current storage with:</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="experiments.checkpoint.Storage.state_dict">
-<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/checkpoint.html#Storage.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Storage.state_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Access the state dictionary.
-:Returns: <strong>self</strong></p>
-</dd></dl>
-
-</dd></dl>
-
+          <section id="checkpoint">
+<h1>Checkpoint<a class="headerlink" href="#checkpoint" title="Link to this heading">¶</a></h1>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the model state being checkpointed, see <a class="reference internal" href="model.html"><span class="doc">Model</span></a>.
+For the optimizer state being checkpointed, see <a class="reference internal" href="optimizer.html"><span class="doc">Optimizer</span></a>.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">
