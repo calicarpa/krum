@@ -77,6 +77,13 @@ Quick Start
     ckpt = Checkpoint()
     ckpt.snapshot(model).snapshot(optimizer).save("run.pt")
 
+.. seealso::
+
+   For robust gradient aggregation, see :doc:`aggregators/index`.
+   For Byzantine attacks that generate malicious gradients, see
+   :doc:`attacks/index`.
+   For utility functions (logging, parsing, timing), see :doc:`tools/index`.
+
 Core Modules
 ------------
 

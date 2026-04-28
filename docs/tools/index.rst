@@ -49,6 +49,13 @@ Quick Start
     cmd = Command(["python", "train.py"])
     jobs = Jobs("./results", devices=["cuda:0"])
 
+.. seealso::
+
+   For the training loop that uses these utilities, see
+   :doc:`experiments/index`.
+   For aggregation rules that rely on ``tools.pairwise``, see
+   :doc:`aggregators/index`.
+
 Available Tools
 ---------------
 

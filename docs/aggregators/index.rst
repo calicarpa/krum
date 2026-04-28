@@ -62,8 +62,12 @@ All aggregators can be called with the same keyword-only interface:
     # Checking validity before calling
     if aggregators.krum.check(gradients=list_of_gradients, f=2) is None:
         result = aggregators.krum(gradients=list_of_gradients, f=2)
-      
-   
+
+.. seealso::
+
+   To see how aggregators fit into a full training loop, see the
+   :doc:`experiments/index` quick start.
+   For Byzantine attacks that test aggregation rules, see :doc:`attacks/index`.
 
 Available Aggregators
 ---------------------
@@ -83,4 +87,5 @@ API Reference
 
 .. automodule:: aggregators
    :members:
+   :undoc-members:
    :show-inheritance:

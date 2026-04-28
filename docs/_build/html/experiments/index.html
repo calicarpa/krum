@@ -233,6 +233,13 @@ configuration.</p>
 </span><span data-line="33"><span class="n">ckpt</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;run.pt&quot;</span><span class="p">)</span>
 </span></pre></div>
 </div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For robust gradient aggregation, see <span class="xref std std-doc">aggregators/index</span>.
+For Byzantine attacks that generate malicious gradients, see
+<span class="xref std std-doc">attacks/index</span>.
+For utility functions (logging, parsing, timing), see <span class="xref std std-doc">tools/index</span>.</p>
+</div>
 </section>
 <section id="core-modules">
 <h2>Core Modules<a class="headerlink" href="#core-modules" title="Link to this heading">¶</a></h2>
@@ -260,6 +267,30 @@ configuration.</p>
 </section>
 <section id="module-experiments">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-experiments" title="Link to this heading">¶</a></h2>
+<p>Experiment components for model training, dataset loading, and evaluation.</p>
+<p>This module groups the building blocks of a Krum training loop:</p>
+<ul class="simple">
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.configuration</span></code> — device and dtype configuration.</p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.model</span></code> — model wrapper with parameter flattening.</p></li>
+<li><p><a class="reference internal" href="classes/dataset.html#module-experiments.dataset" title="experiments.dataset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.dataset</span></code></a> — dataset loading and infinite batch sampling.</p></li>
+<li><p><a class="reference internal" href="classes/loss.html#module-experiments.loss" title="experiments.loss"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.loss</span></code></a> — derivable loss composition.</p></li>
+<li><p><a class="reference internal" href="classes/optimizer.html#module-experiments.optimizer" title="experiments.optimizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.optimizer</span></code></a> — optimizer wrapper with LR control.</p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.checkpoint</span></code> — save and restore state dictionaries.</p></li>
+</ul>
+<p>Custom models and datasets can be added under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code> and
+<code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code>; they are discovered automatically at import time.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span data-line="2">    <span class="n">Configuration</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">Loss</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">make_datasets</span><span class="p">,</span>
+</span><span data-line="5"><span class="p">)</span>
+</span><span data-line="6">
+</span><span data-line="7"><span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">)</span>
+</span><span data-line="8"><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s2">&quot;resnet18&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span><span data-line="9"><span class="n">trainset</span><span class="p">,</span> <span class="n">testset</span> <span class="o">=</span> <span class="n">make_datasets</span><span class="p">(</span><span class="s2">&quot;cifar10&quot;</span><span class="p">,</span> <span class="n">train_batch</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+</span></pre></div>
+</div>
 </section>
 </section>
 

@@ -69,6 +69,13 @@ All attacks can be called with the same keyword-only interface:
     if attacks.nan.check(grad_honests=honest_grads, f_real=1) is None:
         byzantine = attacks.nan(grad_honests=honest_grads, f_real=1)
 
+.. seealso::
+
+   For aggregation rules that defend against these attacks, see
+   :doc:`aggregators/index`.
+   For the training loop that wires attacks and aggregators together, see
+   :doc:`experiments/index`.
+
 Available Attacks
 -----------------
 
@@ -84,4 +91,5 @@ API Reference
 
 .. automodule:: attacks
    :members:
+   :undoc-members:
    :show-inheritance:
