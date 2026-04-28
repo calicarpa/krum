@@ -235,9 +235,9 @@ and optional theoretical bounds.</p>
 </section>
 <section id="module-aggregators">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aggregators" title="Link to this heading">¶</a></h2>
-<p>This module provides a collection of robust aggregation rules for distributed
-learning. Each rule can tolerate a certain number of Byzantine (malicious)
-workers while still converging correctly.</p>
+<p>Gradient aggregation rules (GARs) for Byzantine-resilient distributed learning.</p>
+<p>Each rule combines a keyword-only aggregation function with a validation
+function and optional metadata used by the training and experiment scripts.</p>
 <section id="contract">
 <h3>Contract<a class="headerlink" href="#contract" title="Link to this heading">¶</a></h3>
 <p>Each aggregation rule MUST:</p>
@@ -249,7 +249,7 @@ workers while still converging correctly.</p>
 <li><p>NOT return a tensor that aliases any input tensor</p></li>
 </ol>
 <p>Each rule MUST provide a <code class="docutils literal notranslate"><span class="pre">check</span></code> function that validates parameters and
-returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if valid, or an error message if invalid.</p>
+returns <code class="docutils literal notranslate"><span class="pre">None</span></code> when valid, or a user-facing error message otherwise.</p>
 <p>The module exposes three variants for each rule:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">rule</span></code>: The default version (checked in debug mode, unchecked in release)</p></li>
@@ -265,36 +265,41 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.make_gar">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">make_gar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unchecked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aggregators.html#make_gar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.make_gar" title="Link to this definition">¶</a></dt>
-<dd><p>GAR wrapper helper.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">make_gar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../_modules/aggregators.html#make_gar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.make_gar" title="Link to this definition">¶</a></dt>
+<dd><p>Wrap an unchecked GAR with validation and metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>unchecked</strong> (<em>callable</em>) – Associated function (see module description).</p></li>
-<li><p><strong>check</strong> (<em>callable</em>) – Parameter validity check function.</p></li>
-<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Compute the theoretical upper bound on the ratio non-Byzantine standard
-deviation / norm to use this aggregation rule: (n, f, d) -&gt; float.</p></li>
-<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Attack acceptance ratio function.</p></li>
+<li><p><strong>unchecked</strong> (<em>callable</em>) – Aggregation function implementing the rule without parameter checks.</p></li>
+<li><p><strong>check</strong> (<em>callable</em>) – Validation function. It must return <code class="docutils literal notranslate"><span class="pre">None</span></code> when parameters are valid,
+or an error message otherwise.</p></li>
+<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function computing the theoretical upper bound on the ratio between
+non-Byzantine standard deviation and gradient norm. The expected
+signature is <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">f,</span> <span class="pre">d)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code>.</p></li>
+<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function computing the accepted Byzantine-gradient ratio for a given
+set of honest and attack gradients.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>callable</strong> – Wrapped GAR.</p>
+<dd class="field-even"><p><strong>callable</strong> – Checked or unchecked GAR selected according to <code class="docutils literal notranslate"><span class="pre">__debug__</span></code>. The
+returned callable is annotated with <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">checked</span></code>,
+<code class="docutils literal notranslate"><span class="pre">unchecked</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code>, and <code class="docutils literal notranslate"><span class="pre">influence</span></code> attributes.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.register">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aggregators.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.register" title="Link to this definition">¶</a></dt>
-<dd><p>Simple registration-wrapper helper.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aggregators.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a gradient aggregation rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – GAR name.</p></li>
-<li><p><strong>unchecked</strong> (<em>callable</em>) – Associated function (see module description).</p></li>
-<li><p><strong>check</strong> (<em>callable</em>) – Parameter validity check function.</p></li>
-<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Compute the theoretical upper bound.</p></li>
-<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Attack acceptance ratio function.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – User-visible GAR name.</p></li>
+<li><p><strong>unchecked</strong> (<em>callable</em>) – Aggregation function implementing the rule without parameter checks.</p></li>
+<li><p><strong>check</strong> (<em>callable</em>) – Validation function associated with <code class="docutils literal notranslate"><span class="pre">unchecked</span></code>.</p></li>
+<li><p><strong>upper_bound</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function computing the rule’s theoretical upper bound.</p></li>
+<li><p><strong>influence</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function computing the accepted Byzantine-gradient ratio.</p></li>
 </ul>
 </dd>
 </dl>

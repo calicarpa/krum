@@ -266,22 +266,24 @@ Krum, including logging, error handling, and common operations.</p>
 <dt class="sig sig-object py" id="tools.Context">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cntxtname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tools.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.Context" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Per-thread context and color management static class.</p>
+<p>Per-thread logging context and color manager.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.ContextIOWrapper">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">ContextIOWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nocolor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tools.html#ContextIOWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.ContextIOWrapper" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Context-aware text IO wrapper class.</p>
+<p>Context-aware text I/O wrapper.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.ContextIOWrapper.write">
 <span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/tools.html#ContextIOWrapper.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.ContextIOWrapper.write" title="Link to this definition">¶</a></dt>
-<dd><p>Wrap the given text with the context if necessary.
-:param text Text to update and write:</p>
+<dd><p>Write text with the active context prefix and color.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – Text to write.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>int</strong> – Return value forwarded from the wrapped stream’s <code class="docutils literal notranslate"><span class="pre">write</span></code> method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -292,85 +294,123 @@ Krum, including logging, error handling, and common operations.</p>
 <dt class="sig sig-object py" id="tools.UserException">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">UserException</span></span><a class="reference internal" href="../_modules/tools.html#UserException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.UserException" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-<p>User exception base class.</p>
+<p>Base exception for user-facing errors.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.error">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.error" title="Link to this definition">¶</a></dt>
-<dd><p>Print in ‘color’.
-:param context Context name to use:
-:param …     Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.error" title="Link to this definition">¶</a></dt>
+<dd><p>Print inside the configured colored context.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded return value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+<li><p><strong>context</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Context name to use while printing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Return value forwarded from <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.fatal">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">fatal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_traceback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tools.html#fatal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.fatal" title="Link to this definition">¶</a></dt>
-<dd><p>Error colored print that calls ‘exit(1)’ instead of returning.
-:param with_traceback Include a traceback after the message:
-:param …            Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">fatal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_traceback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tools.html#fatal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.fatal" title="Link to this definition">¶</a></dt>
+<dd><p>Print an error message and terminate the process with exit code 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <a class="reference internal" href="#tools.error" title="tools.error"><code class="xref py py-func docutils literal notranslate"><span class="pre">error()</span></code></a>.</p></li>
+<li><p><strong>with_traceback</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to include the current traceback after the message.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <a class="reference internal" href="#tools.error" title="tools.error"><code class="xref py py-func docutils literal notranslate"><span class="pre">error()</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.import_directory">
 <span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">import_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">dirpath:</span> <span class="pre">~pathlib.Path,</span> <span class="pre">scope:</span> <span class="pre">dict,</span> <span class="pre">post:</span> <span class="pre">object</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">import_exported_symbols&gt;,</span> <span class="pre">ignore:</span> <span class="pre">list[str]</span> <span class="pre">=</span> <span class="pre">['__init__']</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tools.html#import_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.import_directory" title="Link to this definition">¶</a></dt>
-<dd><p>Import every module from the given directory in the given scope.
-:param dirpath Directory path:
-:param scope   Target scope:
-:param post    Post module import function:
-:type post    Post module import function: name, module, scope
-:param ignore  List of module names to ignore:</p>
+<dd><p>Import every Python module from a directory into a target scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dirpath</strong> (<em>pathlib.Path</em>) – Directory containing modules to import.</p></li>
+<li><p><strong>scope</strong> (<em>dict</em>) – Target scope used for imports and post-processing.</p></li>
+<li><p><strong>post</strong> (<em>object</em><em>, </em><em>optional</em>) – Post-import callback with signature <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">module,</span> <span class="pre">scope)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code>.</p></li>
+<li><p><strong>ignore</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Module names to ignore.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.import_exported_symbols">
 <span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">import_exported_symbols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tools.html#import_exported_symbols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.import_exported_symbols" title="Link to this definition">¶</a></dt>
-<dd><p>Import the exported objects of the loaded module into the given scope.
-:param name   Module name:
-:param module Module instance:
-:param scope  Target scope:</p>
+<dd><p>Import a module’s exported symbols into a target scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Source module name.</p></li>
+<li><p><strong>module</strong> (<em>module</em>) – Loaded module instance.</p></li>
+<li><p><strong>scope</strong> (<em>dict</em>) – Target scope to update with exported symbols.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.info">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.info" title="Link to this definition">¶</a></dt>
-<dd><p>Print in ‘color’.
-:param context Context name to use:
-:param …     Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.info" title="Link to this definition">¶</a></dt>
+<dd><p>Print inside the configured colored context.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded return value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+<li><p><strong>context</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Context name to use while printing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Return value forwarded from <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.success">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">success</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.success" title="Link to this definition">¶</a></dt>
-<dd><p>Print in ‘color’.
-:param context Context name to use:
-:param …     Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">success</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.success" title="Link to this definition">¶</a></dt>
+<dd><p>Print inside the configured colored context.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded return value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+<li><p><strong>context</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Context name to use while printing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Return value forwarded from <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.trace">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.trace" title="Link to this definition">¶</a></dt>
-<dd><p>Print in ‘color’.
-:param context Context name to use:
-:param …     Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.trace" title="Link to this definition">¶</a></dt>
+<dd><p>Print inside the configured colored context.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded return value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+<li><p><strong>context</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Context name to use while printing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Return value forwarded from <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -378,24 +418,31 @@ Krum, including logging, error handling, and common operations.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.uncaught_wrap">
 <span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">uncaught_wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/tools.html#uncaught_wrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.uncaught_wrap" title="Link to this definition">¶</a></dt>
-<dd><p>Wrap an uncaught hook with a context.
-:param hook Uncaught hook to wrap:</p>
+<dd><p>Wrap an uncaught exception hook with contextual logging.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Wrapped uncaught hook</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hook</strong> (<em>object</em>) – Uncaught exception hook to wrap.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Wrapped uncaught exception hook.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.warning">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.warning" title="Link to this definition">¶</a></dt>
-<dd><p>Print in ‘color’.
-:param context Context name to use:
-:param …     Forwarded arguments:</p>
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="headerlink" href="#tools.warning" title="Link to this definition">¶</a></dt>
+<dd><p>Print inside the configured colored context.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Forwarded return value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+<li><p><strong>context</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Context name to use while printing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Return value forwarded from <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>

@@ -144,63 +144,68 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-attacks.nan">
 <span id="nan"></span><h1>NaN<a class="headerlink" href="#module-attacks.nan" title="Link to this heading">¶</a></h1>
-<p>This attack generates gradients containing NaN (Not a Number) values. The goal
-is to disrupt training by introducing non-finite values into the aggregation
-process.</p>
+<p>NaN-valued Byzantine gradient attack.</p>
+<p>This attack generates gradients filled with NaN (Not a Number) values in order
+to test whether an aggregation rule detects, rejects, or propagates non-finite
+inputs.</p>
 <section id="use-case">
 <h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
-<p>Simple baseline attack to test the robustness of aggregation
-rules against non-finite values.</p>
+<p>Simple baseline attack for evaluating aggregation-rule robustness against
+non-finite values.</p>
 </section>
 <section id="properties">
 <h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>Simple: Generates gradients filled with NaN values</p></li>
-<li><p>Effective against naive aggregators</p></li>
-<li><p>Mitigated by coordinate-wise median and other robust methods</p></li>
+<li><p>Generates newly allocated gradients filled with NaN values.</p></li>
+<li><p>Reuses the same Byzantine tensor object for all returned gradients.</p></li>
+<li><p>Does not alias any honest input gradient.</p></li>
 </ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">attacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">nan</span>
-</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">honest_grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">])]</span>
-</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">byzantine_grads</span> <span class="o">=</span> <span class="n">nan</span><span class="p">(</span><span class="n">honest_grads</span><span class="o">=</span><span class="n">honest_grads</span><span class="p">,</span> <span class="n">f_decl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">f_real</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">byzantine_grads</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">grad_honests</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">])]</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">byzantine_grads</span> <span class="o">=</span> <span class="n">nan</span><span class="p">(</span><span class="n">grad_honests</span><span class="o">=</span><span class="n">grad_honests</span><span class="p">,</span> <span class="n">f_real</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="n">byzantine_grads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span data-line="6"><span class="go">tensor([nan, nan, nan])</span>
 </span></pre></div>
 </div>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.nan.attack">
-<span class="sig-prename descclassname"><span class="pre">attacks.nan.</span></span><span class="sig-name descname"><span class="pre">attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/nan.html#attack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.nan.attack" title="Link to this definition">¶</a></dt>
-<dd><p>Generate non-finite gradients.</p>
+<span class="sig-prename descclassname"><span class="pre">attacks.nan.</span></span><span class="sig-name descname"><span class="pre">attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/attacks/nan.html#attack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.nan.attack" title="Link to this definition">¶</a></dt>
+<dd><p>Generate NaN-valued Byzantine gradients.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grad_honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>grad_honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients. The first gradient is used as the
+shape, dtype, and device template for the generated Byzantine tensor.</p></li>
 <li><p><strong>f_real</strong> (<em>int</em>) – Number of Byzantine gradients to generate.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this attack.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>list of torch.Tensor</strong> – List of Byzantine gradients containing NaN values.</p>
+<dd class="field-even"><p><strong>list of torch.Tensor</strong> – List containing <code class="docutils literal notranslate"><span class="pre">f_real</span></code> references to the same newly allocated
+NaN-valued Byzantine tensor. The returned tensor does not alias any
+honest input gradient.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.nan.check">
-<span class="sig-prename descclassname"><span class="pre">attacks.nan.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/nan.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.nan.check" title="Link to this definition">¶</a></dt>
-<dd><p>Check parameter validity for this attack.</p>
+<span class="sig-prename descclassname"><span class="pre">attacks.nan.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/attacks/nan.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.nan.check" title="Link to this definition">¶</a></dt>
+<dd><p>Check parameter validity for the NaN attack.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grad_honests</strong> (<em>list</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>grad_honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
 <li><p><strong>f_real</strong> (<em>int</em>) – Number of Byzantine gradients to generate.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this check.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
+<dd class="field-even"><p><strong>str or None</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> when parameters are valid, otherwise a user-facing error
+message.</p>
 </dd>
 </dl>
 </dd></dl>

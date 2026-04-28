@@ -72,7 +72,7 @@ Learn more
 License
 -------
 
-Krum is open-sourced and distributed under the MIT License. See :ref:`license` for details.
+Krum is open-sourced and distributed under the MIT License. See `License <https://github.com/calicarpa/krum/blob/main/LICENSE>`_ for details.
 Our code is available on GitHub at `<https://github.com/calicarpa/krum>`_. We welcome contributions and feedback from the community.
 
 Indices and tables

@@ -104,9 +104,9 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
 <li><a class="reference internal" href="#use-case">Use Case</a></li>
 <li><a class="reference internal" href="#properties">Properties</a></li>
-<li><a class="reference internal" href="#theoretical-bound">Theoretical Bound</a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
@@ -147,38 +147,37 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-aggregators.bulyan">
 <span id="bulyan"></span><h1>Bulyan<a class="headerlink" href="#module-aggregators.bulyan" title="Link to this heading">¶</a></h1>
-<p>Bulyan is a sophisticated Byzantine-resilient aggregation rule that combines
-Multi-Krum selection with a coordinate-wise trimmed mean. It works in two
-stages:</p>
+<p>Bulyan aggregation rule built on top of Multi-Krum.</p>
+<p>Bulyan combines distance-based gradient selection with coordinate-wise
+robust averaging. It first selects a candidate set using a Multi-Krum-like
+criterion, then aggregates each coordinate from the values closest to the
+coordinate-wise median.</p>
+<section id="algorithm">
+<h2>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Multi-Krum Selection</strong>: Select <span class="math notranslate nohighlight">\(n - 2f\)</span> gradients using a modified
-Multi-Krum criterion. Iteratively selects gradients that are closest to the
-current center.</p></li>
-<li><p><strong>Coordinate-wise Trimmed Mean</strong>: For each coordinate, compute the median
-of the selected gradients, then average the <span class="math notranslate nohighlight">\(n - 4f\)</span> values closest
-to that median.</p></li>
+<li><p>Select candidate gradients with the smallest Multi-Krum scores.</p></li>
+<li><p>For each coordinate, compute the median over the selected candidates.</p></li>
+<li><p>Average the values closest to that median.</p></li>
 </ol>
+</section>
 <section id="use-case">
 <h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
-<p>Strong Byzantine-resilience with better theoretical guarantees
-than standalone Multi-Krum.</p>
+<p>Use Bulyan when stronger Byzantine resilience is needed than plain Multi-Krum
+can provide, and when the worker count is high enough to satisfy the stricter
+<code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&gt;=</span> <span class="pre">4f</span> <span class="pre">+</span> <span class="pre">3</span></code> requirement.</p>
 </section>
 <section id="properties">
 <h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>Two-stage: Combines geometric selection with coordinate-wise robustness.</p></li>
-<li><p>Higher complexity: Requires at least <span class="math notranslate nohighlight">\(4f + 3\)</span> workers.</p></li>
-<li><p>Stronger guarantees: More resilient to sophisticated attacks than Krum.</p></li>
+<li><p>Two-stage aggregation combining geometric and coordinate-wise robustness.</p></li>
+<li><p>Requires at least <span class="math notranslate nohighlight">\(4f + 3\)</span> submitted gradients.</p></li>
+<li><p>Uses only newly allocated output tensors and does not return aliases of input
+gradients.</p></li>
 </ul>
-</section>
-<section id="theoretical-bound">
-<h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">¶</a></h2>
-<p>Bulyan provides guarantees under the same condition as Multi-Krum, but with
-stronger resilience to attacks that try to mimic honest gradients.</p>
 <dl class="field-list simple">
 <dt class="field-odd">param m<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Number of gradients to consider in each Multi-Krum selection step.
-Default is <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>. Must satisfy <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">&lt;=</span> <span class="pre">m</span> <span class="pre">&lt;=</span> <span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p>
+<dd class="field-odd"><p>Number of gradients to consider in each Multi-Krum selection step. Defaults
+to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>. Must satisfy <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">&lt;=</span> <span class="pre">m</span> <span class="pre">&lt;=</span> <span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p>
 </dd>
 <dt class="field-even">type m<span class="colon">:</span></dt>
 <dd class="field-even"><p>int, optional</p>
@@ -203,80 +202,88 @@ Default is <code class="docutils literal notranslate"><span class="pre">n</span>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.bulyan.aggregate">
-<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.aggregate" title="Link to this definition">¶</a></dt>
-<dd><p>Compute the Bulyan aggregation.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.aggregate" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the Bulyan aggregate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of flattened gradients to aggregate. All tensors must
+have the same shape, dtype, and device.</p></li>
 <li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate. Must satisfy
 <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">&lt;=</span> <span class="pre">f</span> <span class="pre">&lt;=</span> <span class="pre">(n</span> <span class="pre">-</span> <span class="pre">3)</span> <span class="pre">//</span> <span class="pre">4</span></code> where <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">len(gradients)</span></code>.</p></li>
-<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of gradients to consider in Multi-Krum selection.
-Default is <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of nearest gradients considered in each Multi-Krum selection
+step. Defaults to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments. They are accepted for compatibility with
+the GAR interface and ignored by this implementation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>torch.Tensor</strong> – The Bulyan aggregated gradient.</p>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Bulyan-aggregated gradient.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>The output tensor is a new tensor, not aliasing any input tensor.</p>
+<p>The returned tensor is newly allocated and does not alias any input tensor.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.bulyan.aggregate_native">
-<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">aggregate_native</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#aggregate_native"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.aggregate_native" title="Link to this definition">¶</a></dt>
-<dd><p>Compute the Bulyan aggregation using native (C++/CUDA) acceleration.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">aggregate_native</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#aggregate_native"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.aggregate_native" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the Bulyan aggregate using native C++/CUDA acceleration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of flattened gradients to aggregate.</p></li>
 <li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
-<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of gradients to consider.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of nearest gradients considered in each Multi-Krum selection
+step. Defaults to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments. They are accepted for compatibility with
+the GAR interface and ignored by this implementation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>torch.Tensor</strong> – The Bulyan aggregated gradient.</p>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Bulyan-aggregated gradient.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.bulyan.check">
-<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.check" title="Link to this definition">¶</a></dt>
-<dd><p>Check parameter validity for Bulyan rule.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.check" title="Link to this definition">¶</a></dt>
+<dd><p>Check whether the Bulyan parameters satisfy the GAR contract.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradients</strong> (<em>list</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
 <li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
-<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of gradients to consider.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of nearest gradients considered in each Multi-Krum selection
+step. If provided, must satisfy <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">&lt;=</span> <span class="pre">m</span> <span class="pre">&lt;=</span> <span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments. They are accepted for compatibility with
+the GAR interface and ignored by this check.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
+<dd class="field-even"><p><strong>str or None</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> when parameters are valid, otherwise a user-facing error
+message.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.bulyan.upper_bound">
-<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.upper_bound" title="Link to this definition">¶</a></dt>
-<dd><p>Compute the theoretical upper bound on the ratio non-Byzantine standard
-deviation / norm to use this rule.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.bulyan.upper_bound" title="Link to this definition">¶</a></dt>
+<dd><p>Compute Bulyan’s theoretical resilience upper bound.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> (<em>int</em>) – Number of workers (Byzantine + non-Byzantine).</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Total number of workers, including Byzantine workers.</p></li>
 <li><p><strong>f</strong> (<em>int</em>) – Expected number of Byzantine workers.</p></li>
-<li><p><strong>d</strong> (<em>int</em>) – Dimension of the gradient space.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – Gradient dimension. Accepted for compatibility with the GAR metadata
+interface; the current formula does not depend on it.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>float</strong> – Theoretical upper-bound value.</p>
+<dd class="field-even"><p><strong>float</strong> – Upper bound on the ratio between non-Byzantine standard deviation and
+gradient norm under the Bulyan assumptions.</p>
 </dd>
 </dl>
 </dd></dl>

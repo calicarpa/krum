@@ -104,7 +104,7 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#key-functions-and-classes">Key Functions and Classes</a></li>
+<li><a class="reference internal" href="#categories">Categories</a></li>
 <li><a class="reference internal" href="#tools.misc.ClassRegister"><code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code></a><ul>
 <li><a class="reference internal" href="#tools.misc.ClassRegister.instantiate"><code class="docutils literal notranslate">instantiate()</span></code></a></li>
 <li><a class="reference internal" href="#tools.misc.ClassRegister.itemize"><code class="docutils literal notranslate">itemize()</span></code></a></li>
@@ -161,53 +161,39 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-tools.misc">
 <span id="miscellaneous-utilities"></span><h1>Miscellaneous Utilities<a class="headerlink" href="#module-tools.misc" title="Link to this heading">¶</a></h1>
-<p>This module provides various helper functions and classes used throughout
-Krum for common operations like exception handling, parsing, timing, etc.</p>
-<section id="key-functions-and-classes">
-<h2>Key Functions and Classes<a class="headerlink" href="#key-functions-and-classes" title="Link to this heading">¶</a></h2>
-<p><strong>Exception Handling:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">UnavailableException</span></code>: Exception for missing entries in registries</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fatal_unavailable</span></code>: Helper to print and exit on unavailable entries</p></li>
-</ul>
-<p><strong>Registry Patterns:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">MethodCallReplicator</span></code>: Forward method calls to multiple instances</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code>: Generic named class registry</p></li>
-</ul>
-<p><strong>Parsing:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">parse_keyval</span></code>: Parse key:value arguments from CLI</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fullqual</span></code>: Get fully qualified name of objects</p></li>
-</ul>
-<p><strong>Timing:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">TimedContext</span></code>: Measure execution time of code blocks</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">onetime</span></code>: Thread-safe one-time flag</p></li>
-</ul>
-<p><strong>Utilities:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">pairwise</span></code>: Generate all pairs of indices</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">line_maximize</span></code>: Find optimal attack factor</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">interactive</span></code>: Simple interactive shell</p></li>
-</ul>
+<p>Utilities shared across the repository.</p>
+<p>This module groups small helpers used for exception handling, parsing, timing,
+interactive exploration, and light registry patterns.</p>
+<section id="categories">
+<h2>Categories<a class="headerlink" href="#categories" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>Exception handling</dt><dd><p><code class="docutils literal notranslate"><span class="pre">UnavailableException</span></code> and <code class="docutils literal notranslate"><span class="pre">fatal_unavailable</span></code> build consistent
+user-facing errors for missing registry entries.</p>
+</dd>
+<dt>Registry helpers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">MethodCallReplicator</span></code> and <code class="docutils literal notranslate"><span class="pre">ClassRegister</span></code> provide small reusable
+patterns for dispatching calls and registering classes.</p>
+</dd>
+<dt>Parsing helpers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">parse_keyval</span></code> and <code class="docutils literal notranslate"><span class="pre">fullqual</span></code> handle CLI-style key/value parsing and
+qualified-name formatting.</p>
+</dd>
+<dt>Timing helpers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">TimedContext</span></code>, <code class="docutils literal notranslate"><span class="pre">onetime</span></code>, <code class="docutils literal notranslate"><span class="pre">localtime</span></code>, <code class="docutils literal notranslate"><span class="pre">deltatime_point</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">deltatime_format</span></code> support timing and one-shot flags.</p>
+</dd>
+<dt>Miscellaneous helpers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">pairwise</span></code>, <code class="docutils literal notranslate"><span class="pre">line_maximize</span></code>, <code class="docutils literal notranslate"><span class="pre">interactive</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">get_loaded_dependencies</span></code> cover assorted convenience tasks.</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnavailableException</span><span class="p">,</span> <span class="n">parse_keyval</span><span class="p">,</span> <span class="n">TimedContext</span>
 </span><span data-line="2">
-</span><span data-line="3"><span class="c1"># Exception handling</span>
-</span><span data-line="4"><span class="k">try</span><span class="p">:</span>
-</span><span data-line="5">    <span class="k">raise</span> <span class="n">UnavailableException</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span>
-</span><span data-line="6"><span class="k">except</span> <span class="n">UnavailableException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span data-line="7">    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># &quot;Unknown option &#39;c&#39;, expected one of: a, b&quot;</span>
-</span><span data-line="8">
-</span><span data-line="9"><span class="c1"># Parse key:value arguments</span>
-</span><span data-line="10"><span class="n">args</span> <span class="o">=</span> <span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">])</span>
-</span><span data-line="11"><span class="c1"># {&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
-</span><span data-line="12">
-</span><span data-line="13"><span class="c1"># Timing</span>
-</span><span data-line="14"><span class="k">with</span> <span class="n">TimedContext</span><span class="p">(</span><span class="s2">&quot;my_operation&quot;</span><span class="p">):</span>
-</span><span data-line="15">    <span class="c1"># code here</span>
-</span><span data-line="16">    <span class="k">pass</span>
+</span><span data-line="3"><span class="k">try</span><span class="p">:</span>
+</span><span data-line="4">    <span class="k">raise</span> <span class="n">UnavailableException</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span>
+</span><span data-line="5"><span class="k">except</span> <span class="n">UnavailableException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span data-line="6">    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</span><span data-line="7">
+</span><span data-line="8"><span class="n">args</span> <span class="o">=</span> <span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">])</span>
+</span><span data-line="9"><span class="k">with</span> <span class="n">TimedContext</span><span class="p">(</span><span class="s2">&quot;my_operation&quot;</span><span class="p">):</span>
+</span><span data-line="10">    <span class="k">pass</span>
 </span></pre></div>
 </div>
 </section>
@@ -215,16 +201,24 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dt class="sig sig-object py" id="tools.misc.ClassRegister">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">ClassRegister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">singular</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optplural</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Simple class register.</p>
+<p>Minimal registry mapping user-visible names to classes.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.misc.ClassRegister.instantiate">
-<span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister.instantiate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister.instantiate" title="Link to this definition">¶</a></dt>
-<dd><p>Instantiate a registered class.
-:param name Class name:
-:param …  Forwarded parameters:</p>
+<span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister.instantiate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister.instantiate" title="Link to this definition">¶</a></dt>
+<dd><p>Instantiate the class registered under <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Registered class instance</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Registered class name.</p></li>
+<li><p><strong>*args</strong> (<em>object</em>) – Positional arguments forwarded to the class constructor.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Keyword arguments forwarded to the class constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>object</strong> – Instance of the registered class.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If <code class="docutils literal notranslate"><span class="pre">name</span></code> is not registered.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -232,16 +226,21 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.misc.ClassRegister.itemize">
 <span class="sig-name descname"><span class="pre">itemize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister.itemize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister.itemize" title="Link to this definition">¶</a></dt>
-<dd><p>Build an iterable over the available class names.
-:Returns: <strong>Iterable over the available class names</strong></p>
+<dd><p>Return the registered class names.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.misc.ClassRegister.register">
 <span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#ClassRegister.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.ClassRegister.register" title="Link to this definition">¶</a></dt>
-<dd><p>Register a new class.
-:param name Class name:
-:param cls  Associated class:</p>
+<dd><p>Register a class under a user-visible name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name used to retrieve the class.</p></li>
+<li><p><strong>cls</strong> (<em>type</em>) – Class associated with <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -250,35 +249,39 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dt class="sig sig-object py" id="tools.misc.MethodCallReplicator">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">MethodCallReplicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#MethodCallReplicator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.MethodCallReplicator" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Simple method call replicator class.</p>
+<p>Proxy that replicates method calls across multiple instances.</p>
+<p>Accessing an attribute returns a callable that invokes the same named
+attribute on each bound instance, in order, and returns the list of results.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.misc.TimedContext">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">TimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#TimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.TimedContext" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">TimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#TimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.TimedContext" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../index.html#tools.Context" title="tools.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a></p>
-<p>Timed context class, that print the measure runtime.</p>
+<p>Context manager that logs the elapsed runtime of a block.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="tools.misc.UnavailableException">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">UnavailableException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#UnavailableException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.UnavailableException" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">UnavailableException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#UnavailableException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.UnavailableException" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
-<p>Exception due to missing entry in a dictionary, where the entry is controlled by the user.</p>
+<p>User-facing exception raised when a selected registry entry is missing.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.deltatime_format">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">deltatime_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#deltatime_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.deltatime_format" title="Link to this definition">¶</a></dt>
-<dd><p>Compute and format the time elapsed between two points in time.
-:param a Earlier point-in-time:
-:param b Later point-in-time:</p>
+<dd><p>Compute and format elapsed time between two captured points.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>Elapsed time integer</strong> (<em>in s</em>)</p></li>
-<li><p><strong>Formatted elapsed time string</strong> (<em>human-readable way</em>)</p></li>
+<li><p><strong>a</strong> (<em>int</em>) – Earlier point returned by <a class="reference internal" href="#tools.misc.deltatime_point" title="tools.misc.deltatime_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">deltatime_point()</span></code></a>.</p></li>
+<li><p><strong>b</strong> (<em>int</em>) – Later point returned by <a class="reference internal" href="#tools.misc.deltatime_point" title="tools.misc.deltatime_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">deltatime_point()</span></code></a>.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tuple[int, str]</strong> – Tuple <code class="docutils literal notranslate"><span class="pre">(seconds,</span> <span class="pre">text)</span></code> containing elapsed seconds and a
+human-readable duration string.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -286,36 +289,49 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.deltatime_point">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">deltatime_point</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#deltatime_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.deltatime_point" title="Link to this definition">¶</a></dt>
-<dd><p>Take a point in time.
-:Returns: <strong>Opaque point-in-time</strong></p>
+<dd><p>Capture an opaque point in monotonic time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>int</strong> – Monotonic timestamp rounded to seconds. The value is intended for use
+with <a class="reference internal" href="#tools.misc.deltatime_format" title="tools.misc.deltatime_format"><code class="xref py py-func docutils literal notranslate"><span class="pre">deltatime_format()</span></code></a>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.fatal_unavailable">
-<span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">fatal_unavailable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#fatal_unavailable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.fatal_unavailable" title="Link to this definition">¶</a></dt>
-<dd><p>Helper forwarding the ‘UnavailableException’ explanatory string to ‘fatal’.
-:param … Forward:
-:type … Forward: keyword-</p>
+<span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">fatal_unavailable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#fatal_unavailable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.fatal_unavailable" title="Link to this definition">¶</a></dt>
+<dd><p>Report an unavailable entry as a fatal user-facing error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>str</em>) – Positional arguments forwarded to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">make_unavailable_exception_text()</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>str</em>) – Keyword arguments forwarded to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">make_unavailable_exception_text()</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.fullqual">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">fullqual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#fullqual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.fullqual" title="Link to this definition">¶</a></dt>
-<dd><p>Get the fully qualified name of an object for debugging.</p>
+<dd><p>Return a class or instance’s fully qualified name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – A class or instance.</p>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – Class or instance to describe.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>str</strong> – Fully qualified name, e.g., ‘tools.misc.fullqual’ or
-‘instance of pathlib.Path’.</p>
+<dd class="field-even"><p><strong>str</strong> – Fully qualified class name. Instances are prefixed with
+<code class="docutils literal notranslate"><span class="pre">&quot;instance</span> <span class="pre">of</span> <span class="pre">&quot;</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">fullqual</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 </span><span data-line="2"><span class="go">&#39;builtins.str&#39;</span>
 </span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">fullqual</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">))</span>
-</span><span data-line="4"><span class="go">&#39;instance of pathlib.Path&#39;</span>
+</span><span data-line="4"><span class="go">&#39;instance of pathlib.PosixPath&#39;</span>
 </span></pre></div>
 </div>
 </dd></dl>
@@ -323,11 +339,16 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.get_loaded_dependencies">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">get_loaded_dependencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#get_loaded_dependencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.get_loaded_dependencies" title="Link to this definition">¶</a></dt>
-<dd><p>List non-builtin, currently loaded root module names and metadata.
-:Returns: <strong>List of tuples (&lt;root module name&gt;, &lt;version or ‘None’&gt;, &lt;0</strong> – is standard, 1: is site-specific, 2: is local&gt;)</p>
+<dd><p>List currently loaded non-built-in root modules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>'RuntimeError' on unsupported platforms</strong> – </p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>list[tuple[str, str | None, int]]</strong> – Tuples of <code class="docutils literal notranslate"><span class="pre">(root_module_name,</span> <span class="pre">version,</span> <span class="pre">flavor)</span></code>. <code class="docutils literal notranslate"><span class="pre">version</span></code> is the
+module’s <code class="docutils literal notranslate"><span class="pre">__version__</span></code> attribute when present, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+<code class="docutils literal notranslate"><span class="pre">flavor</span></code> is one of <code class="docutils literal notranslate"><span class="pre">IS_STANDARD</span></code>, <code class="docutils literal notranslate"><span class="pre">IS_SITE</span></code>, or <code class="docutils literal notranslate"><span class="pre">IS_LOCAL</span></code>.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If Python’s site-packages locations cannot be discovered on the current
+    platform.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -335,33 +356,42 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.interactive">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">interactive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">glbs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lcls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'&gt;&gt;&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cprmpt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'...</span> <span class="pre">'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#interactive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.interactive" title="Link to this definition">¶</a></dt>
-<dd><p>Switch to a simple interactive prompt, execute CTRL+D (or equivalent) to leave.
-:param glbs   Globals dictionary to use:
-:param None to use caller’s globals:
-:param lcls   Locals dictionary to use:
-:param None to use given globals or caller’s locals/globals:
-:param prompt Command prompt to display:
-:param cprmpt Command prompt to display when continuing a line:</p>
+<dd><p>Run a small interactive Python prompt.</p>
+<p>Press <code class="docutils literal notranslate"><span class="pre">Ctrl+D</span></code> or send an equivalent EOF signal to leave the prompt.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>glbs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Globals dictionary used when evaluating commands. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
+caller’s globals are used when available.</p></li>
+<li><p><strong>lcls</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Locals dictionary used when evaluating commands. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
+caller’s locals are used when available, otherwise <code class="docutils literal notranslate"><span class="pre">glbs</span></code> is used.</p></li>
+<li><p><strong>prompt</strong> (<em>str</em><em>, </em><em>optional</em>) – Prompt displayed for a new command.</p></li>
+<li><p><strong>cprmpt</strong> (<em>str</em><em>, </em><em>optional</em>) – Prompt displayed while continuing a multi-line command.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.line_maximize">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">line_maximize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#line_maximize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.line_maximize" title="Link to this definition">¶</a></dt>
-<dd><p>Best-effort arg-maximize a scape: ℝ⁺⟶ ℝ, by mere exploration.
-:param scape Function to best-effort arg-maximize:
-:param evals Maximum number of evaluations:
-:param must be a positive integer:
-:param start Initial x evaluated:
-:param must be a non-negative float:
-:param delta Initial step delta:
-:param must be a positive float:
-:param ratio Contraction ratio:
-:type ratio Contraction ratio: both excluded
-:param must be between 0.5 and 1.:
-:type must be between 0.5 and 1.: both excluded</p>
+<dd><p>Best-effort argmax search for a scalar function on non-negative inputs.</p>
+<p>The search first expands while values improve, then contracts the step size to
+refine the best point found within the evaluation budget.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Best-effort maximizer x under the evaluation budget</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scape</strong> (<em>callable</em>) – Function to maximize. It is called with non-negative <code class="docutils literal notranslate"><span class="pre">float</span></code> values and
+must return comparable scores.</p></li>
+<li><p><strong>evals</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of function evaluations.</p></li>
+<li><p><strong>start</strong> (<em>float</em><em>, </em><em>optional</em>) – Initial non-negative point to evaluate.</p></li>
+<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Initial positive step size.</p></li>
+<li><p><strong>ratio</strong> (<em>float</em><em>, </em><em>optional</em>) – Step contraction ratio, expected to be between <code class="docutils literal notranslate"><span class="pre">0.5</span></code> and <code class="docutils literal notranslate"><span class="pre">1.0</span></code>
+excluded.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Best point found under the evaluation budget.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -369,22 +399,26 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.localtime">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">localtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#localtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.localtime" title="Link to this definition">¶</a></dt>
-<dd><p>Return the formatted local time.
-:Returns: <strong>Human-readable local time</strong></p>
+<dd><p>Return the current local time formatted for logs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>str</strong> – Local time as <code class="docutils literal notranslate"><span class="pre">YYYY/MM/DD</span> <span class="pre">HH:MM:SS</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.onetime">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">onetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#onetime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.onetime" title="Link to this definition">¶</a></dt>
-<dd><p>Generate a one time-set (hidden) state variable getter and setter.
-:param name Optional name of the global:
-:param onetime variable to access:</p>
+<dd><p>Create or retrieve a thread-safe one-shot flag.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>·</strong> (<em>Threadsafe</em>)</p></li>
-<li><p><strong>·</strong> (<em>Threadsafe</em>)</p></li>
-</ul>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Optional global flag name. Reusing the same name returns the same
+getter/setter pair.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tuple[callable, callable]</strong> – <code class="docutils literal notranslate"><span class="pre">(getter,</span> <span class="pre">setter)</span></code> pair. <code class="docutils literal notranslate"><span class="pre">getter</span></code> returns whether the flag has been
+set, and <code class="docutils literal notranslate"><span class="pre">setter</span></code> permanently sets it to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -392,14 +426,13 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.pairwise">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">pairwise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#pairwise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.pairwise" title="Link to this definition">¶</a></dt>
-<dd><p>Generate all pairs (x, y) from data where index(x) &lt; index(y).</p>
-<p>This is useful for computing pairwise distances in aggregation rules.</p>
+<dd><p>Yield unordered pairs from an indexable collection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>iterable</em>) – Indexable data structure (list, tuple) containing elements.</p>
+<dd class="field-odd"><p><strong>data</strong> (<em>list</em><em> | </em><em>tuple</em>) – Indexable collection such as a <code class="docutils literal notranslate"><span class="pre">list</span></code> or <code class="docutils literal notranslate"><span class="pre">tuple</span></code>.</p>
 </dd>
 <dt class="field-even">Yields<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>tuple</em> – Pairs (data[i], data[j]) for all i &lt; j.</p>
+<dd class="field-even"><p><em>tuple</em> – Tuples <code class="docutils literal notranslate"><span class="pre">(data[i],</span> <span class="pre">data[j])</span></code> for every <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">j</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -414,34 +447,32 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.misc.parse_keyval">
 <span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">parse_keyval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_keyval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/misc.html#parse_keyval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.parse_keyval" title="Link to this definition">¶</a></dt>
-<dd><p>Parse list of “key:value” strings into a dictionary.</p>
-<p>This is the main method for parsing CLI arguments like “–gar-args lr:0.01”.</p>
+<dd><p>Parse <code class="docutils literal notranslate"><span class="pre">&lt;key&gt;:&lt;value&gt;</span></code> strings into a typed dictionary.</p>
+<p>This helper is used for command-line options such as
+<code class="docutils literal notranslate"><span class="pre">--gar-args</span> <span class="pre">lr:0.01</span></code>. Keys present in <code class="docutils literal notranslate"><span class="pre">defaults</span></code> are converted to the
+type of their default value; other keys are converted by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">parse_keyval_auto_convert()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>list_keyval</strong> (<em>list</em><em> of </em><em>str</em>) – List of “key:value” strings to parse.</p></li>
-<li><p><strong>defaults</strong> (<em>dict</em><em>, </em><em>optional</em>) – Default key -&gt; value mappings. Also used for type inference:
-if a key exists in defaults, its value type is used to convert
-the input string.</p></li>
+<li><p><strong>list_keyval</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Entries formatted as <code class="docutils literal notranslate"><span class="pre">&lt;key&gt;:&lt;value&gt;</span></code>.</p></li>
+<li><p><strong>defaults</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Default key/value mappings. These defaults are also used for type
+inference and are copied into the returned dictionary when the
+corresponding key is not explicitly provided.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dict</strong> – Parsed dictionary with typed values.</p>
+<dd class="field-even"><p><strong>dict[str, object]</strong> – Parsed key/value pairs with converted values.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If a key appears twice or if type conversion fails.</p>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If an entry is malformed, a key is provided more than once, or
+    conversion to a default value’s type fails.</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>For bool values in defaults: “0”, “n”, “false” (case-insensitive) are False</p></li>
-<li><p>For other types: uses the type constructor directly</p></li>
-<li><p>Auto-detection for unknown keys: tries int, float, bool, then string</p></li>
-</ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">],</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">})</span>
 </span><span data-line="2"><span class="go">{&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
-</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;debug:true&quot;</span><span class="p">,</span> <span class="s2">&quot;workers:4&quot;</span><span class="p">])</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;debug:true&quot;</span><span class="p">,</span> <span class="s2">&quot;workers:4&quot;</span><span class="p">],</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{})</span>
 </span><span data-line="4"><span class="go">{&#39;debug&#39;: True, &#39;workers&#39;: 4}</span>
 </span></pre></div>
 </div>

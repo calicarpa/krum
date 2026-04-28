@@ -155,7 +155,8 @@ behavior is expected.</p>
 </section>
 <section id="limitations">
 <h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">¶</a></h2>
-<p>Vulnerable to any Byzantine attack. A single malicious gradient can completely skew the result.</p>
+<p>Vulnerable to any Byzantine attack. A single malicious gradient can completely
+skew the result.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -168,18 +169,18 @@ behavior is expected.</p>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average.aggregate">
-<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/average.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.aggregate" title="Link to this definition">¶</a></dt>
-<dd><p>Compute the arithmetic mean of all gradients.</p>
+<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.aggregate" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the arithmetic mean of all submitted gradients.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate. Each gradient should be
 a 1-D tensor representing the flattened model parameters.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this rule.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>torch.Tensor</strong> – The arithmetic mean of all input gradients.</p>
+<dd class="field-even"><p><strong>torch.Tensor | float</strong> – The arithmetic mean of all input gradients.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -188,24 +189,25 @@ a 1-D tensor representing the flattened model parameters.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average.check">
-<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/average.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.check" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.check" title="Link to this definition">¶</a></dt>
 <dd><p>Check parameter validity for the averaging rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradients</strong> (<em>list</em>) – Non-empty list of gradients to aggregate.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this rule.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>None or str</strong> – None if valid, otherwise error message string.</p>
+<dd class="field-even"><p><strong>str or None</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> when parameters are valid, otherwise a user-facing error
+message.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average.influence">
-<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attacks</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/average.html#influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.influence" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">honests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attacks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.influence" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the ratio of accepted Byzantine gradients.</p>
 <p>For arithmetic mean, all submitted gradients are used in the aggregation,
 so the influence ratio is simply the fraction of Byzantine gradients
@@ -215,7 +217,7 @@ in the total.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
 <li><p><strong>attacks</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List of attack (Byzantine) gradients.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (ignored).</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this rule.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

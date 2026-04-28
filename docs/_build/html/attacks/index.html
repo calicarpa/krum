@@ -236,24 +236,26 @@ keyword-only contract and includes parameter validation.</p>
 </section>
 <section id="module-attacks">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-attacks" title="Link to this heading">¶</a></h2>
-<p>This module provides a collection of Byzantine attack strategies for testing
-the robustness of distributed learning algorithms.</p>
+<p>Byzantine attack registry used to evaluate aggregation-rule robustness.</p>
+<p>Each attack combines a keyword-only generation function with a validation
+function. Registered attacks are loaded dynamically and exposed as module-level
+callables.</p>
 <section id="contract">
 <h3>Contract<a class="headerlink" href="#contract" title="Link to this heading">¶</a></h3>
 <p>Each attack MUST:</p>
 <ol class="arabic simple">
-<li><p>Accept keyword-only arguments</p></li>
-<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">grad_honests</span></code> (non-empty list of honest gradients)</p></li>
-<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">f_decl</span></code> (number of declared Byzantine gradients)</p></li>
-<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">f_real</span></code> (number of Byzantine gradients to generate)</p></li>
-<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">model</span></code> (model with configured defaults)</p></li>
-<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">defense</span></code> (aggregation rule to defeat)</p></li>
-<li><p>Return exactly <code class="docutils literal notranslate"><span class="pre">f_real</span></code> tensors (list of Byzantine gradients)</p></li>
-<li><p>NOT return tensors that alias any honest input tensor</p></li>
-<li><p>MAY reuse the same Byzantine tensor object when all generated gradients are identical</p></li>
+<li><p>Accept keyword-only arguments.</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">grad_honests</span></code> (non-empty list of honest gradients).</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">f_decl</span></code> (number of declared Byzantine gradients).</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">f_real</span></code> (number of Byzantine gradients to generate).</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">model</span></code> (model with configured defaults).</p></li>
+<li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">defense</span></code> (aggregation rule to defeat).</p></li>
+<li><p>Return exactly <code class="docutils literal notranslate"><span class="pre">f_real</span></code> tensors (list of Byzantine gradients).</p></li>
+<li><p>NOT return tensors that alias any honest input tensor.</p></li>
+<li><p>MAY reuse the same Byzantine tensor object when all generated gradients are identical.</p></li>
 </ol>
 <p>Each attack MUST provide a <code class="docutils literal notranslate"><span class="pre">check</span></code> function that validates parameters and
-returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if valid, or an error message if invalid.</p>
+returns <code class="docutils literal notranslate"><span class="pre">None</span></code> when valid, or a user-facing error message otherwise.</p>
 <p>The module exposes three variants for each attack:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">attack</span></code>: The default version (checked in debug mode, unchecked in release)</p></li>
@@ -263,15 +265,20 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.register">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attacks.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.register" title="Link to this definition">¶</a></dt>
-<dd><p>Simple registration-wrapper helper.</p>
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/attacks.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a Byzantine attack.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – Attack name.</p></li>
-<li><p><strong>unchecked</strong> (<em>callable</em>) – Associated function (see module description).</p></li>
-<li><p><strong>check</strong> (<em>callable</em>) – Parameter validity check function.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – User-visible attack name.</p></li>
+<li><p><strong>unchecked</strong> (<em>callable</em>) – Attack implementation without parameter checks. It must return exactly
+<code class="docutils literal notranslate"><span class="pre">f_real</span></code> Byzantine gradients.</p></li>
+<li><p><strong>check</strong> (<em>callable</em>) – Validation function associated with <code class="docutils literal notranslate"><span class="pre">unchecked</span></code>. It must return
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when parameters are valid, or an error message otherwise.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>None</strong> – The attack is registered as a module-level callable.</p>
 </dd>
 </dl>
 </dd></dl>

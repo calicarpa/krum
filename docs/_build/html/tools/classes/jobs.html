@@ -149,31 +149,28 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-tools.jobs">
 <span id="jobs-utilities"></span><h1>Jobs Utilities<a class="headerlink" href="#module-tools.jobs" title="Link to this heading">¶</a></h1>
-<p>This module provides utilities for running and managing experiment jobs
-in a reproducible manner.</p>
+<p>Experiment job management helpers.</p>
+<p>This module provides utilities for running and managing experiment jobs in a
+reproducible manner.</p>
 <section id="classes-and-functions">
 <h2>Classes and Functions<a class="headerlink" href="#classes-and-functions" title="Link to this heading">¶</a></h2>
-<p><strong>Job Orchestration:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Command</span></code>: Encapsulates a command with seed, device, and result directory</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Jobs</span></code>: Manages parallel execution of experiments on multiple devices</p></li>
-</ul>
-<p><strong>Helpers:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dict_to_cmdlist</span></code>: Convert dictionary to command-line argument list</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">move_directory</span></code>: Move existing directory with versioning</p></li>
-</ul>
+<dl class="simple">
+<dt>Job orchestration</dt><dd><p><code class="docutils literal notranslate"><span class="pre">Command</span></code> encapsulates a command with seed, device, and result-directory
+arguments.
+<code class="docutils literal notranslate"><span class="pre">Jobs</span></code> manages parallel execution of experiments on multiple devices.</p>
+</dd>
+<dt>Helpers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">dict_to_cmdlist</span></code> converts dictionaries into command-line argument lists.
+<code class="docutils literal notranslate"><span class="pre">move_directory</span></code> moves an existing directory aside with versioning.</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">Jobs</span><span class="p">,</span> <span class="n">dict_to_cmdlist</span>
 </span><span data-line="2">
-</span><span data-line="3"><span class="c1"># Create command</span>
-</span><span data-line="4"><span class="n">cmd</span> <span class="o">=</span> <span class="n">Command</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">,</span> <span class="s2">&quot;--lr&quot;</span><span class="p">,</span> <span class="s2">&quot;0.01&quot;</span><span class="p">])</span>
-</span><span data-line="5">
-</span><span data-line="6"><span class="c1"># Run jobs</span>
-</span><span data-line="7"><span class="n">jobs</span> <span class="o">=</span> <span class="n">Jobs</span><span class="p">(</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">,</span> <span class="s2">&quot;cuda:1&quot;</span><span class="p">])</span>
-</span><span data-line="8"><span class="n">jobs</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="s2">&quot;exp1&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
-</span><span data-line="9"><span class="n">jobs</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-</span><span data-line="10"><span class="n">jobs</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span data-line="3"><span class="n">cmd</span> <span class="o">=</span> <span class="n">Command</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">,</span> <span class="s2">&quot;--lr&quot;</span><span class="p">,</span> <span class="s2">&quot;0.01&quot;</span><span class="p">])</span>
+</span><span data-line="4"><span class="n">jobs</span> <span class="o">=</span> <span class="n">Jobs</span><span class="p">(</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">,</span> <span class="s2">&quot;cuda:1&quot;</span><span class="p">])</span>
+</span><span data-line="5"><span class="n">jobs</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="s2">&quot;exp1&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+</span><span data-line="6"><span class="n">jobs</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</span><span data-line="7"><span class="n">jobs</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></pre></div>
 </div>
 </section>
@@ -181,9 +178,9 @@ in a reproducible manner.</p>
 <dt class="sig sig-object py" id="tools.jobs.Command">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">Command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/jobs.html#Command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Command" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Command wrapper that adds standard arguments.</p>
-<p>Wraps a base command and automatically adds seed, device, and result
-directory arguments when executing.</p>
+<p>Command wrapper that adds standard runtime arguments.</p>
+<p>This class wraps a base command and automatically appends seed, device, and
+result-directory arguments when executing it.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -216,20 +213,21 @@ with support for result tracking and error handling.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.jobs.dict_to_cmdlist">
 <span class="sig-prename descclassname"><span class="pre">tools.jobs.</span></span><span class="sig-name descname"><span class="pre">dict_to_cmdlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/jobs.html#dict_to_cmdlist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.dict_to_cmdlist" title="Link to this definition">¶</a></dt>
-<dd><p>Transform a dictionary into a list of command-line arguments.</p>
-<p>This is useful for converting experiment configurations into CLI commands.</p>
+<dd><p>Convert a dictionary into command-line arguments.</p>
+<p>This helper is useful for turning experiment configurations into CLI
+arguments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>dp</strong> (<em>dict</em>) – Dictionary mapping parameter names to values.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>list of str</strong> – Command-line arguments (e.g., [”–lr”, “0.01”, “–batch”, “32”]).</p>
+<dd class="field-even"><p><strong>list of str</strong> – Command-line arguments such as <code class="docutils literal notranslate"><span class="pre">[&quot;--lr&quot;,</span> <span class="pre">&quot;0.01&quot;,</span> <span class="pre">&quot;--batch&quot;,</span> <span class="pre">&quot;32&quot;]</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <ul class="simple">
-<li><p>For boolean values: parameter is included only if True</p></li>
-<li><p>For lists/tuples: parameter is followed by each value</p></li>
+<li><p>Boolean values are included only when they are <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p>Lists and tuples expand to repeated <code class="docutils literal notranslate"><span class="pre">--name</span> <span class="pre">value</span></code> pairs.</p></li>
 </ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">dict_to_cmdlist</span><span class="p">({</span><span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
