@@ -70,12 +70,14 @@ import time
 import torch
 import types
 
+from typing import Callable
+
 import tools
 
 # ---------------------------------------------------------------------------- #
 # "Flatten" and "relink" operations
 
-def relink(tensors, common):
+def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     """
     Relink tensors to share a common contiguous memory storage.
 
@@ -121,7 +123,7 @@ def relink(tensors, common):
     common.linked_tensors = tensors
     return common
 
-def flatten(tensors):
+def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
     """
     Flatten tensors into a single contiguous tensor.
 
@@ -162,7 +164,7 @@ def flatten(tensors):
 # ---------------------------------------------------------------------------- #
 # Gradient access
 
-def grad_of(tensor):
+def grad_of(tensor: torch.Tensor) -> torch.Tensor:
     """
     Get the gradient of a given tensor, create zero gradient if missing.
 
@@ -196,7 +198,7 @@ def grad_of(tensor):
     tensor.grad = grad
     return grad
 
-def grads_of(tensors):
+def grads_of(tensors: list[torch.Tensor]):
     """
     Generator that gets or creates gradients for multiple tensors.
 
@@ -229,7 +231,7 @@ def grads_of(tensors):
 # ---------------------------------------------------------------------------- #
 # Statistics
 
-def compute_avg_dev_max(samples):
+def compute_avg_dev_max(samples: list[torch.Tensor]) -> tuple[torch.Tensor, float, float, float]:
     """ Compute average, average norm, norm deviation, and max absolute value.
     Args:
         samples: List of tensors
@@ -267,7 +269,7 @@ class AccumulatedTimedContext:
     >>> print(atc.current_runtime())
     """
 
-    def __init__(self, sync=False):
+    def __init__(self, sync: bool = False) -> None:
         self._sync = sync
         self._start = None
         self._elapsed = 0.0
@@ -278,7 +280,7 @@ class AccumulatedTimedContext:
         self._start = time.perf_counter()
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         if self._sync and torch.cuda.is_available():
             torch.cuda.synchronize()
         self._elapsed += time.perf_counter() - self._start
@@ -289,7 +291,7 @@ class AccumulatedTimedContext:
 # ---------------------------------------------------------------------------- #
 # Weighted MSE loss
 
-def weighted_mse_loss(input, target, weight):
+def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
     """ Weighted MSE loss.
     Args:
         input: Input tensor
@@ -303,16 +305,16 @@ def weighted_mse_loss(input, target, weight):
 class WeightedMSELoss(torch.nn.Module):
     """ Weighted MSE loss module. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def forward(self, input, target, weight):
+    def forward(self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
         return weighted_mse_loss(input, target, weight)
 
 # ---------------------------------------------------------------------------- #
 # Regression helper
 
-def regression(func, vars, data, loss=None, opt=None, steps=1000):
+def regression(func: Callable[[torch.Tensor, dict], torch.Tensor], vars, data, loss=None, opt=None, steps=1000) -> float:
     """ Generic optimization for free variables.
     Args:
         func: Function to optimize
@@ -339,7 +341,7 @@ def regression(func, vars, data, loss=None, opt=None, steps=1000):
 # ---------------------------------------------------------------------------- #
 # PNM export
 
-def pnm(fd, tn):
+def pnm(fd: io.BufferedWriter, tn: torch.Tensor) -> None:
     """ Export tensor to PGM/PBM format.
     Args:
         fd: File descriptor

@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   jobs.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2020-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Simple job management for reproduction scripts.
+# @file   jobs.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2020-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Simple job management for reproduction scripts.
 ###
 
 """
@@ -52,13 +52,15 @@ __all__ = ["dict_to_cmdlist", "Command", "Jobs"]
 import shlex
 import subprocess
 import threading
+from pathlib import Path
 
 import tools
 
 # ---------------------------------------------------------------------------- #
 # Helpers
 
-def move_directory(path):
+
+def move_directory(path: Path) -> Path:
     """
     Move existing directory to a new location with versioning.
 
@@ -86,7 +88,9 @@ def move_directory(path):
     # Move directory if it exists
     if path.exists():
         if not path.is_dir():
-            raise RuntimeError(f"Expected to find nothing or (a symlink to) a directory at {str(path)!r}")
+            raise RuntimeError(
+                f"Expected to find nothing or (a symlink to) a directory at {str(path)!r}"
+            )
         i = 0
         while True:
             mvpath = path.parent / f"{path.name}.{i}"
@@ -97,7 +101,8 @@ def move_directory(path):
     # Enable chaining
     return path
 
-def dict_to_cmdlist(dp):
+
+def dict_to_cmdlist(dp: dict) -> list[str]:
     """
     Transform a dictionary into a list of command-line arguments.
 
@@ -140,8 +145,10 @@ def dict_to_cmdlist(dp):
             cmd.append(str(value))
     return cmd
 
+
 # ---------------------------------------------------------------------------- #
 # Command wrapper
+
 
 class Command:
     """
@@ -151,7 +158,7 @@ class Command:
     directory arguments when executing.
     """
 
-    def __init__(self, base, seed=None, device=None, result_directory=None):
+    def __init__(self, base: list[str], seed: int | None = None, device: str | None = None, result_directory: Path | None = None) -> None:
         """
         Initialize command wrapper.
 
@@ -172,7 +179,7 @@ class Command:
         self._result_directory = result_directory
 
     def __call__(self):
-        """ Get the full command as list. """
+        """Get the full command as list."""
         cmd = list(self._base)
         if self._seed is not None:
             cmd.extend(["--seed", str(self._seed)])
@@ -182,8 +189,10 @@ class Command:
             cmd.extend(["--result-directory", str(self._result_directory)])
         return cmd
 
+
 # ---------------------------------------------------------------------------- #
 # Jobs management
+
 
 class Jobs:
     """
@@ -193,7 +202,7 @@ class Jobs:
     with support for result tracking and error handling.
     """
 
-    def __init__(self, result_directory, devices=None, devmult=1):
+    def __init__(self, result_directory: Path, devices: list[str] | None = None, devmult: int = 1) -> None:
         """
         Initialize jobs manager.
 
@@ -213,16 +222,16 @@ class Jobs:
         self._pending = []
         self._lock = threading.Lock()
 
-    def submit(self, name, command):
+    def submit(self, name: str, command: list[str]) -> None:
         """ Submit a job for execution. """
         with self._lock:
             self._pending.append((name, command))
 
-    def wait(self, exit_is_requested=None):
+    def wait(self, exit_is_requested: bool | None = None) -> None:
         """ Wait for all pending jobs to complete. """
         # Implementation depends on threading
         pass
 
-    def close(self):
+    def close(self) -> None:
         """ Close the jobs manager. """
         pass

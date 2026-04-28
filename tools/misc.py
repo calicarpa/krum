@@ -88,7 +88,7 @@ import tools
 # ---------------------------------------------------------------------------- #
 # Unavailable user exception class
 
-def make_unavailable_exception_text(data, name, what="entry"):
+def make_unavailable_exception_text(data: list[str], name: str, what: str = "entry") -> str:
   """ Make the explanatory string for an 'UnavailableException'.
   Args:
     data Iterable (over str) data set
@@ -104,7 +104,7 @@ def make_unavailable_exception_text(data, name, what="entry"):
   # Final string cat
   return "Unknown %s %r, %s" % (what, name, end)
 
-def fatal_unavailable(*args, **kwargs):
+def fatal_unavailable(*args: str, **kwargs: str) -> None:
   """ Helper forwarding the 'UnavailableException' explanatory string to 'fatal'.
   Args:
     ... Forward (keyword-)arguments to 'make_unavailable_exception_text'
@@ -115,7 +115,7 @@ class UnavailableException(tools.UserException):
   """ Exception due to missing entry in a dictionary, where the entry is controlled by the user.
   """
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args: str, **kwargs: str) -> None:
     """ Error string constructor.
     Args:
       ... Forward (keyword-)arguments to 'make_unavailable_exception_text'
@@ -137,7 +137,7 @@ class MethodCallReplicator:
   """ Simple method call replicator class.
   """
 
-  def __init__(self, *args):
+  def __init__(self, *args: object) -> None:
     """ Bind constructor.
     Args:
       ... Instance on which to replicate method calls (in the given order)
@@ -147,7 +147,7 @@ class MethodCallReplicator:
     # Finalization
     self.__instances = args
 
-  def __getattr__(self, name):
+  def __getattr__(self, name: str) -> object:
     """ Returns a closure that replicate the method call.
     Args:
       name Name of the method
@@ -157,7 +157,7 @@ class MethodCallReplicator:
     # Target closures
     closures = [getattr(instance, name) for instance in self.__instances]
     # Replication closure
-    def calls(*args, **kwargs):
+    def calls(*args: object, **kwargs: object) -> list[object]:
       """ Simply replicate the calls, forwarding arguments.
       Args:
         ... Forwarded arguments
@@ -175,7 +175,7 @@ class ClassRegister:
   """ Simple class register.
   """
 
-  def __init__(self, singular, optplural=None):
+  def __init__(self, singular: str, optplural: str | None = None) -> None:
     """ Denomination constructor.
     Args:
       singular  Singular denomination of the registered class
@@ -188,14 +188,14 @@ class ClassRegister:
     self.__denoms = (singular, optplural)
     self.__register = {}
 
-  def itemize(self):
+  def itemize(self) -> list[str]:
     """ Build an iterable over the available class names.
     Returns:
       Iterable over the available class names
     """
     return self.__register.keys()
 
-  def register(self, name, cls):
+  def register(self, name: str, cls: type) -> None:
     """ Register a new class.
     Args:
       name Class name
@@ -206,7 +206,7 @@ class ClassRegister:
     # Registering
     self.__register[name] = cls
 
-  def instantiate(self, name, *args, **kwargs):
+  def instantiate(self, name: str, *args: object, **kwargs: object) -> object:
     """ Instantiate a registered class.
     Args:
       name Class name
@@ -228,7 +228,7 @@ class ClassRegister:
 # ---------------------------------------------------------------------------- #
 # Simple list of "<key>:<value>" into dictionary parser
 
-def parse_keyval_auto_convert(val):
+def parse_keyval_auto_convert(val: str) -> object:
   """ Guess the type of the string representation, and return the converted value.
   Args:
     val Value to convert after type guessing
@@ -250,7 +250,7 @@ def parse_keyval_auto_convert(val):
   # Else guess string
   return val
 
-def parse_keyval(list_keyval, defaults={}):
+def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = None) -> dict[str, object]:
     """
     Parse list of "key:value" strings into a dictionary.
 
@@ -324,7 +324,7 @@ def parse_keyval(list_keyval, defaults={}):
 # ---------------------------------------------------------------------------- #
 # Basic "full-qualification" string builder for a given instance/class
 
-def fullqual(obj):
+def fullqual(obj: object) -> str:
     """
     Get the fully qualified name of an object for debugging.
 
@@ -359,7 +359,7 @@ def fullqual(obj):
 # ---------------------------------------------------------------------------- #
 # Basic "full-qualification" string builder for a given instance/class
 
-def onetime(name=None):
+def onetime(name: str | None = None) -> tuple[callable, callable]:
   """ Generate a one time-set (hidden) state variable getter and setter.
   Args:
     name Optional name of the global, onetime variable to access
@@ -411,7 +411,7 @@ class TimedContext(tools.Context):
   """ Timed context class, that print the measure runtime.
   """
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args: object, **kwargs: object) -> None:
     """ Forward call to parent constructor.
     Args:
       ... Forwarded (keyword-)arguments
@@ -426,7 +426,7 @@ class TimedContext(tools.Context):
     self._chrono = time.time()
     return super().__enter__()
 
-  def __exit__(self, *args, **kwargs):
+  def __exit__(self, *args: object, **kwargs: object) -> None:
     """ Exit context: stop chrono and print elapsed time.
     Args:
       ... Forwarded arguments
@@ -448,7 +448,7 @@ class TimedContext(tools.Context):
 # ---------------------------------------------------------------------------- #
 # Switch to interactive mode, executing user inputs
 
-def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
+def interactive(glbs: dict[str, object] | None = None, lcls: dict[str, object] | None = None, prompt: str = ">>> ", cprmpt: str = "... ") -> None:
   """ Switch to a simple interactive prompt, execute CTRL+D (or equivalent) to leave.
   Args:
     glbs   Globals dictionary to use, None to use caller's globals
@@ -517,7 +517,7 @@ def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
 # ---------------------------------------------------------------------------- #
 # List non-standard, currently loaded module names and metadata.
 
-def get_loaded_dependencies():
+def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
   """ List non-builtin, currently loaded root module names and metadata.
   Returns:
     List of tuples (<root module name>, <version or 'None'>, <0: is standard, 1: is site-specific, 2: is local>)
@@ -568,7 +568,7 @@ get_loaded_dependencies.IS_LOCAL    = 2
 # ---------------------------------------------------------------------------- #
 # Find the x maximizing a function y = f(x), with (x, y) ∊ ℝ⁺× ℝ
 
-def line_maximize(scape, evals=16, start=0., delta=1., ratio=0.8):
+def line_maximize(scape: callable, evals: int = 16, start: float = 0., delta: float = 1., ratio: float = 0.8) -> float:
   """ Best-effort arg-maximize a scape: ℝ⁺⟶ ℝ, by mere exploration.
   Args:
     scape Function to best-effort arg-maximize
@@ -619,7 +619,7 @@ def line_maximize(scape, evals=16, start=0., delta=1., ratio=0.8):
 # ---------------------------------------------------------------------------- #
 # Simple generator on the pairs (x, y) of an indexable such that index x < index y
 
-def pairwise(data):
+def pairwise(data: list | tuple):
     """
     Generate all pairs (x, y) from data where index(x) < index(y).
 
@@ -651,7 +651,7 @@ def pairwise(data):
 # ---------------------------------------------------------------------------- #
 # Simple duration helpers
 
-def localtime():
+def localtime() -> str:
   """ Return the formatted local time.
   Returns:
     Human-readable local time
@@ -659,7 +659,7 @@ def localtime():
   lt = time.localtime()
   return f"{lt.tm_year:04}/{lt.tm_mon:02}/{lt.tm_mday:02} {lt.tm_hour:02}:{lt.tm_min:02}:{lt.tm_sec:02}"
 
-def deltatime_point():
+def deltatime_point() -> int:
   """ Take a point in time.
   Returns:
     Opaque point-in-time
@@ -667,7 +667,7 @@ def deltatime_point():
   point = time.monotonic_ns()
   return (point + 5 * 10 ** 8) // 10 ** 9
 
-def deltatime_format(a, b):
+def deltatime_format(a: int, b: int) -> tuple[int, str]:
   """ Compute and format the time elapsed between two points in time.
   Args:
     a Earlier point-in-time

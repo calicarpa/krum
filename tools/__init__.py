@@ -48,12 +48,12 @@ Key Components
 - ``onetime()``: Thread-safe one-time flag
 """
 
-import io
 import os
-import pathlib
 import sys
 import threading
 import traceback
+
+from pathlib import Path
 
 # ---------------------------------------------------------------------------- #
 # User exception base class, print string representation and exit(1) on uncaught
@@ -70,7 +70,7 @@ class Context:
   """ Per-thread context and color management static class.
   """
 
-  # Constants
+  # Constants
   __colors  = { "header": "\033[1;30m",
     "red": "\033[1;31m", "error": "\033[1;31m",
     "green": "\033[1;32m", "success": "\033[1;32m",
@@ -123,7 +123,7 @@ class Context:
     self.__local_init()
     return self.__local.header, self.__colors["header"], self.__local.color, self.__clrend
 
-  def __init__(self, cntxtname, colorname):
+  def __init__(self, cntxtname: str | None, colorname: str | None) -> None:
     """ Color selection constructor.
     Args:
       cntxtname Context name (None for none)
@@ -148,7 +148,7 @@ class Context:
     type(self).__rebuild()
     return self
 
-  def __exit__(self, *args, **kwargs):
+  def __exit__(self, *args: object, **kwargs: object) -> None:
     """ Leave context.
     Args:
       ... Ignored arguments
@@ -160,7 +160,7 @@ class ContextIOWrapper:
   """ Context-aware text IO wrapper class.
   """
 
-  def __init__(self, output, nocolor=None):
+  def __init__(self, output: object, nocolor: bool | None = None) -> None:
     """ New line no color assumed constructor.
     Args:
       output  Wrapped output
@@ -175,7 +175,7 @@ class ContextIOWrapper:
     self.__output  = output
     self.__nocolor = nocolor
 
-  def __getattr__(self, name):
+  def __getattr__(self, name: str) -> object:
     """ Forward non-overloaded attributes.
     Args:
       name Non-overloaded attribute name
@@ -184,7 +184,7 @@ class ContextIOWrapper:
     """
     return getattr(self.__output, name)
 
-  def write(self, text):
+  def write(self, text: str) -> int:
     """ Wrap the given text with the context if necessary.
     Args:
       text Text to update and write
@@ -211,14 +211,14 @@ class ContextIOWrapper:
     # Write the modified text with the right color
     return self.__output.write(text + clrend)
 
-def _make_color_print(color):
+def _make_color_print(color: str) -> object:
   """ Build the closure that wrap a 'print' inside a colored context.
   Args:
     color Target color name
   Returns:
     Print wrapper closure
   """
-  def color_print(*args, context=None, **kwargs):
+  def color_print(*args: object, context: str | None = None, **kwargs: object) -> object:
     """ Print in 'color'.
     Args:
       context Context name to use
@@ -233,7 +233,8 @@ def _make_color_print(color):
 # Shortcut for colored print
 for color in ["trace", "info", "success", "warning", "error"]:
   globals()[color] = _make_color_print(color)
-def fatal(*args, with_traceback=False, **kwargs):
+
+def fatal(*args: object, with_traceback: bool = False, **kwargs: object) -> None:
   """ Error colored print that calls 'exit(1)' instead of returning.
   Args:
     with_traceback Include a traceback after the message
@@ -253,14 +254,15 @@ sys.stderr = ContextIOWrapper(sys.stderr)
 # ---------------------------------------------------------------------------- #
 # Uncaught exception context wrapping
 
-def uncaught_wrap(hook):
+def uncaught_wrap(hook: object) -> object:
   """ Wrap an uncaught hook with a context.
   Args:
     hook Uncaught hook to wrap
   Returns:
     Wrapped uncaught hook
   """
-  def uncaught_call(etype, evalue, traceback):
+
+  def uncaught_call(etype: type, evalue: object, traceback: object) -> object:
     """ Update context, check if user exception or forward-call.
     Args:
       etype     Exception class
@@ -285,7 +287,7 @@ sys.excepthook = uncaught_wrap(sys.excepthook)
 
 _imported = dict() # Map symbol name -> module source name
 
-def import_exported_symbols(name, module, scope):
+def import_exported_symbols(name: str, module, scope: dict) -> None:
   """ Import the exported objects of the loaded module into the given scope.
   Args:
     name   Module name
@@ -312,7 +314,7 @@ def import_exported_symbols(name, module, scope):
       scope[symname] = getattr(module, symname)
       _imported[symname] = name
 
-def import_directory(dirpath, scope, post=import_exported_symbols, ignore=["__init__"]):
+def import_directory(dirpath: Path, scope: dict, post: object = import_exported_symbols, ignore: list[str] = ["__init__"]) -> None:
   """ Import every module from the given directory in the given scope.
   Args:
     dirpath Directory path
@@ -340,4 +342,4 @@ def import_directory(dirpath, scope, post=import_exported_symbols, ignore=["__in
               traceback.print_exc()
 
 with Context("tools", None):
-  import_directory(pathlib.Path(__file__).parent, globals())
+  import_directory(Path(__file__).parent, globals())
