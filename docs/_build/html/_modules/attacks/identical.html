@@ -143,29 +143,29 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for attacks.identical</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"><span class="c1"># @file   identical.py</span>
-</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"><span class="c1">#</span>
-</span><span data-line="6"><span class="c1"># @section LICENSE</span>
-</span><span data-line="7"><span class="c1">#</span>
-</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"><span class="c1">#</span>
-</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"><span class="c1">#</span>
-</span><span data-line="13"><span class="c1"># Collection of attacks which submit f identical gradients, which consist in</span>
-</span><span data-line="14"><span class="c1"># adding as much of one attack vector to the average of the honest gradients.</span>
-</span><span data-line="15"><span class="c1">#</span>
-</span><span data-line="16"><span class="c1"># These attacks have been introduced in/adapted from the following papers:</span>
-</span><span data-line="17"><span class="c1"># bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.</span>
-</span><span data-line="18"><span class="c1">#          The Hidden Vulnerability of Distributed Learning in Byzantium.</span>
-</span><span data-line="19"><span class="c1">#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html</span>
-</span><span data-line="20"><span class="c1"># empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.</span>
-</span><span data-line="21"><span class="c1">#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.</span>
-</span><span data-line="22"><span class="c1">#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf</span>
-</span><span data-line="23"><span class="c1"># little · Moran Baruch, Gilad Baruch, Yoav Goldberg.</span>
-</span><span data-line="24"><span class="c1">#          A Little Is Enough: Circumventing Defenses For Distributed Learning.</span>
-</span><span data-line="25"><span class="c1">#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1</span>
+</span><span data-line="3"> <span class="c1"># @file   identical.py</span>
+</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"> <span class="c1">#</span>
+</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
+</span><span data-line="7"> <span class="c1">#</span>
+</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"> <span class="c1">#</span>
+</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"> <span class="c1">#</span>
+</span><span data-line="13"> <span class="c1"># Collection of attacks which submit f identical gradients, which consist in</span>
+</span><span data-line="14"> <span class="c1"># adding as much of one attack vector to the average of the honest gradients.</span>
+</span><span data-line="15"> <span class="c1">#</span>
+</span><span data-line="16"> <span class="c1"># These attacks have been introduced in/adapted from the following papers:</span>
+</span><span data-line="17"> <span class="c1"># bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.</span>
+</span><span data-line="18"> <span class="c1">#          The Hidden Vulnerability of Distributed Learning in Byzantium.</span>
+</span><span data-line="19"> <span class="c1">#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html</span>
+</span><span data-line="20"> <span class="c1"># empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.</span>
+</span><span data-line="21"> <span class="c1">#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.</span>
+</span><span data-line="22"> <span class="c1">#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf</span>
+</span><span data-line="23"> <span class="c1"># little · Moran Baruch, Gilad Baruch, Yoav Goldberg.</span>
+</span><span data-line="24"> <span class="c1">#          A Little Is Enough: Circumventing Defenses For Distributed Learning.</span>
+</span><span data-line="25"> <span class="c1">#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1</span>
 </span><span data-line="26"><span class="c1">###</span>
 </span><span data-line="27">
 </span><span data-line="28"><span class="sd">&quot;&quot;&quot;</span>

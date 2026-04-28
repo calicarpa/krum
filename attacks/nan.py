@@ -18,10 +18,15 @@ This attack generates gradients containing NaN (Not a Number) values. The goal
 is to disrupt training by introducing non-finite values into the aggregation
 process.
 
-**Use case:** Simple baseline attack to test the robustness of aggregation
+Use Case
+--------
+
+Simple baseline attack to test the robustness of aggregation
 rules against non-finite values.
 
-**Properties:**
+Properties
+----------
+
 - Simple: Generates gradients filled with NaN values
 - Effective against naive aggregators
 - Mitigated by coordinate-wise median and other robust methods

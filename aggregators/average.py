@@ -18,11 +18,16 @@ This is the simplest aggregation rule, computing the arithmetic mean of all
 submitted gradients. It serves as a baseline for comparison with Byzantine-
 resilient methods.
 
-**Use case:** Baseline for non-adversarial settings or when no Byzantine
+Use Case
+--------
+
+Baseline for non-adversarial settings or when no Byzantine
 behavior is expected.
 
-**Limitations:** Vulnerable to any Byzantine attack. A single malicious
-gradient can completely skew the result.
+Limitations
+-----------
+
+Vulnerable to any Byzantine attack. A single malicious gradient can completely skew the result.
 
 Example
 -------

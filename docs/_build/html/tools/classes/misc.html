@@ -198,22 +198,18 @@ Krum for common operations like exception handling, parsing, timing, etc.</p>
 </span><span data-line="4"><span class="k">try</span><span class="p">:</span>
 </span><span data-line="5">    <span class="k">raise</span> <span class="n">UnavailableException</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span>
 </span><span data-line="6"><span class="k">except</span> <span class="n">UnavailableException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span data-line="7">    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># &quot;Unknown option &#39;c&#39;, expected one of:</span>
+</span><span data-line="7">    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># &quot;Unknown option &#39;c&#39;, expected one of: a, b&quot;</span>
+</span><span data-line="8">
+</span><span data-line="9"><span class="c1"># Parse key:value arguments</span>
+</span><span data-line="10"><span class="n">args</span> <span class="o">=</span> <span class="n">parse_keyval</span><span class="p">([</span><span class="s2">&quot;lr:0.01&quot;</span><span class="p">,</span> <span class="s2">&quot;batch:32&quot;</span><span class="p">])</span>
+</span><span data-line="11"><span class="c1"># {&#39;lr&#39;: 0.01, &#39;batch&#39;: 32}</span>
+</span><span data-line="12">
+</span><span data-line="13"><span class="c1"># Timing</span>
+</span><span data-line="14"><span class="k">with</span> <span class="n">TimedContext</span><span class="p">(</span><span class="s2">&quot;my_operation&quot;</span><span class="p">):</span>
+</span><span data-line="15">    <span class="c1"># code here</span>
+</span><span data-line="16">    <span class="k">pass</span>
 </span></pre></div>
 </div>
-<p>· a
-· b”</p>
-<blockquote>
-<div><p># Parse key:value arguments
-args = parse_keyval([“lr:0.01”, “batch:32”])
-# {‘lr’: 0.01, ‘batch’: 32}</p>
-<p># Timing
-with TimedContext(“my_operation”):</p>
-<blockquote>
-<div><p># code here
-pass</p>
-</div></blockquote>
-</div></blockquote>
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.misc.ClassRegister">

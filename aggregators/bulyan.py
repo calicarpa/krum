@@ -26,10 +26,15 @@ stages:
    of the selected gradients, then average the :math:`n - 4f` values closest
    to that median.
 
-**Use case:** Strong Byzantine-resilience with better theoretical guarantees
+Use Case
+--------
+
+Strong Byzantine-resilience with better theoretical guarantees
 than standalone Multi-Krum.
 
-**Properties:**
+Properties
+----------
+
 - Two-stage: Combines geometric selection with coordinate-wise robustness.
 - Higher complexity: Requires at least :math:`4f + 3` workers.
 - Stronger guarantees: More resilient to sophisticated attacks than Krum.

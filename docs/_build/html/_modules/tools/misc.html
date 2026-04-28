@@ -200,7 +200,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="57"><span class="sd">    try:</span>
 </span><span data-line="58"><span class="sd">        raise UnavailableException({&quot;a&quot;: 1, &quot;b&quot;: 2}, &quot;c&quot;, &quot;option&quot;)</span>
 </span><span data-line="59"><span class="sd">    except UnavailableException as e:</span>
-</span><span data-line="60"><span class="sd">        print(e)  # &quot;Unknown option &#39;c&#39;, expected one of:\n· a\n· b&quot;</span>
+</span><span data-line="60"><span class="sd">        print(e)  # &quot;Unknown option &#39;c&#39;, expected one of: a, b&quot;</span>
 </span><span data-line="61">
 </span><span data-line="62"><span class="sd">    # Parse key:value arguments</span>
 </span><span data-line="63"><span class="sd">    args = parse_keyval([&quot;lr:0.01&quot;, &quot;batch:32&quot;])</span>

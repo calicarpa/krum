@@ -28,7 +28,8 @@ Byzantine gradients will be far from the honest majority.
 **Use case:** General Byzantine-resilient aggregation when the attack model
 assumes that Byzantine gradients are significantly different from honest ones.
 
-**Properties:**
+Properties
+----------
 
 - Distance-based: Relies on geometric properties of gradients.
 - Selects subset: Not all gradients are used in the final average.

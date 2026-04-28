@@ -104,6 +104,8 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#attacks.nan.attack"><code class="docutils literal notranslate"><span class="pre">attack()</span></code></a></li>
 <li><a class="reference internal" href="#attacks.nan.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 </ul>
@@ -145,12 +147,18 @@ data-aria-dark="Switch to auto color mode">
 <p>This attack generates gradients containing NaN (Not a Number) values. The goal
 is to disrupt training by introducing non-finite values into the aggregation
 process.</p>
-<p><strong>Use case:</strong> Simple baseline attack to test the robustness of aggregation
+<section id="use-case">
+<h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
+<p>Simple baseline attack to test the robustness of aggregation
 rules against non-finite values.</p>
-<p><strong>Properties:</strong>
-- Simple: Generates gradients filled with NaN values
-- Effective against naive aggregators
-- Mitigated by coordinate-wise median and other robust methods</p>
+</section>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Simple: Generates gradients filled with NaN values</p></li>
+<li><p>Effective against naive aggregators</p></li>
+<li><p>Mitigated by coordinate-wise median and other robust methods</p></li>
+</ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">attacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">nan</span>
@@ -160,6 +168,7 @@ rules against non-finite values.</p>
 </span><span data-line="6"><span class="go">tensor([nan, nan, nan])</span>
 </span></pre></div>
 </div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.nan.attack">
 <span class="sig-prename descclassname"><span class="pre">attacks.nan.</span></span><span class="sig-name descname"><span class="pre">attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_honests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/attacks/nan.html#attack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.nan.attack" title="Link to this definition">¶</a></dt>

@@ -104,6 +104,7 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#theoretical-bound">Theoretical Bound</a></li>
 <li><a class="reference internal" href="#aggregators.median.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.median.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
@@ -151,13 +152,15 @@ non-finite values before aggregation. NaN values may propagate, while Inf values
 participate in the coordinate ordering.</p>
 <p><strong>Use case:</strong> Baseline for coordinate-wise robust aggregation in settings
 where input gradients are expected to be finite.</p>
-<p><strong>Properties:</strong></p>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Coordinate-wise: Each dimension is treated independently.</p></li>
 <li><p>Non-finite values are not filtered before aggregation.</p></li>
-<li><p>No theoretical guarantee: Unlike other methods, this rule has no proven</p></li>
+<li><p>No theoretical guarantee: Unlike other methods, this rule has no proven
+Byzantine-resilience guarantees for general attacks.</p></li>
 </ul>
-<p>Byzantine-resilience guarantees for general attacks.</p>
+</section>
 <section id="theoretical-bound">
 <h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">¶</a></h2>
 <p>The coordinate-wise median provides guarantees when the ratio of non-Byzantine

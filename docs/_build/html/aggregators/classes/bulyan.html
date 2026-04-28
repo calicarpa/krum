@@ -104,6 +104,8 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#theoretical-bound">Theoretical Bound</a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
@@ -156,12 +158,19 @@ current center.</p></li>
 of the selected gradients, then average the <span class="math notranslate nohighlight">\(n - 4f\)</span> values closest
 to that median.</p></li>
 </ol>
-<p><strong>Use case:</strong> Strong Byzantine-resilience with better theoretical guarantees
+<section id="use-case">
+<h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
+<p>Strong Byzantine-resilience with better theoretical guarantees
 than standalone Multi-Krum.</p>
-<p><strong>Properties:</strong>
-- Two-stage: Combines geometric selection with coordinate-wise robustness.
-- Higher complexity: Requires at least <span class="math notranslate nohighlight">\(4f + 3\)</span> workers.
-- Stronger guarantees: More resilient to sophisticated attacks than Krum.</p>
+</section>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Two-stage: Combines geometric selection with coordinate-wise robustness.</p></li>
+<li><p>Higher complexity: Requires at least <span class="math notranslate nohighlight">\(4f + 3\)</span> workers.</p></li>
+<li><p>Stronger guarantees: More resilient to sophisticated attacks than Krum.</p></li>
+</ul>
+</section>
 <section id="theoretical-bound">
 <h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">¶</a></h2>
 <p>Bulyan provides guarantees under the same condition as Multi-Krum, but with

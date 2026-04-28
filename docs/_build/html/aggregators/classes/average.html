@@ -104,6 +104,8 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+<li><a class="reference internal" href="#limitations">Limitations</a></li>
 <li><a class="reference internal" href="#aggregators.average.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
@@ -146,10 +148,14 @@ data-aria-dark="Switch to auto color mode">
 <p>This is the simplest aggregation rule, computing the arithmetic mean of all
 submitted gradients. It serves as a baseline for comparison with Byzantine-
 resilient methods.</p>
-<p><strong>Use case:</strong> Baseline for non-adversarial settings or when no Byzantine
+<section id="use-case">
+<h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
+<p>Baseline for non-adversarial settings or when no Byzantine
 behavior is expected.</p>
-<p><strong>Limitations:</strong> Vulnerable to any Byzantine attack. A single malicious
-gradient can completely skew the result.</p>
+</section>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">¶</a></h2>
+<p>Vulnerable to any Byzantine attack. A single malicious gradient can completely skew the result.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -159,6 +165,7 @@ gradient can completely skew the result.</p>
 </span><span data-line="6"><span class="go">tensor([2.5000, 3.5000, 4.5000])</span>
 </span></pre></div>
 </div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average.aggregate">
 <span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/average.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.aggregate" title="Link to this definition">¶</a></dt>

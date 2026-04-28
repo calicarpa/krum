@@ -19,17 +19,19 @@ The Brute aggregation rule finds the optimal subset of :math:`n - f` gradients
 The "diameter" of a set is the maximum pairwise distance between any two
 gradients in that set.
 
-**Use case:** Theoretical baseline for evaluating other aggregation rules.
+Use Case
+--------
+Theoretical baseline for evaluating other aggregation rules.
 Provides optimal Byzantine resilience but with exponential complexity.
 
-**Properties:**
+Properties
+----------
 - Exhaustive search: Checks all possible :math:`\\binom{n}{n-f}` subsets.
 - Optimal: Guarantees the smallest possible diameter among all valid subsets.
 - Not scalable: Only practical for small :math:`n` or research purposes.
 
 Theoretical Bound
-----------------
-
+-----------------
 The Brute rule provides the best theoretical guarantees:
 
 .. math::
@@ -40,14 +42,12 @@ where :math:`\\sigma` is the standard deviation of honest gradients.
 
 Complexity
 ----------
-
 - Time: :math:`O(\\binom{n}{n-f} \\cdot d \\cdot n^2)` where :math:`d` is the
   gradient dimension.
 - Space: :math:`O(n^2)` for storing pairwise distances.
 
 Example
 -------
-
 >>> import torch
 >>> from aggregators import brute
 >>> gradients = [

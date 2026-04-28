@@ -104,6 +104,7 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#theoretical-bound">Theoretical Bound</a></li>
 <li><a class="reference internal" href="#aggregators.krum.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.krum.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
@@ -158,13 +159,15 @@ aggregation rule. It works by:</p>
 Byzantine gradients will be far from the honest majority.</p>
 <p><strong>Use case:</strong> General Byzantine-resilient aggregation when the attack model
 assumes that Byzantine gradients are significantly different from honest ones.</p>
-<p><strong>Properties:</strong></p>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Distance-based: Relies on geometric properties of gradients.</p></li>
 <li><p>Selects subset: Not all gradients are used in the final average.</p></li>
 <li><p>Theoretical guarantee: Provides bounds under certain assumptions on the
 Byzantine attack.</p></li>
 </ul>
+</section>
 <section id="theoretical-bound">
 <h2>Theoretical Bound<a class="headerlink" href="#theoretical-bound" title="Link to this heading">¶</a></h2>
 <p>The Multi-Krum rule provides guarantees when:</p>

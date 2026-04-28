@@ -162,35 +162,35 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="19"><span class="sd">The &quot;diameter&quot; of a set is the maximum pairwise distance between any two</span>
 </span><span data-line="20"><span class="sd">gradients in that set.</span>
 </span><span data-line="21">
-</span><span data-line="22"><span class="sd">**Use case:** Theoretical baseline for evaluating other aggregation rules.</span>
-</span><span data-line="23"><span class="sd">Provides optimal Byzantine resilience but with exponential complexity.</span>
-</span><span data-line="24">
-</span><span data-line="25"><span class="sd">**Properties:**</span>
-</span><span data-line="26"><span class="sd">- Exhaustive search: Checks all possible :math:`\\binom{n}{n-f}` subsets.</span>
-</span><span data-line="27"><span class="sd">- Optimal: Guarantees the smallest possible diameter among all valid subsets.</span>
-</span><span data-line="28"><span class="sd">- Not scalable: Only practical for small :math:`n` or research purposes.</span>
-</span><span data-line="29">
-</span><span data-line="30"><span class="sd">Theoretical Bound</span>
-</span><span data-line="31"><span class="sd">----------------</span>
+</span><span data-line="22"><span class="sd">Use Case</span>
+</span><span data-line="23"><span class="sd">--------</span>
+</span><span data-line="24"><span class="sd">Theoretical baseline for evaluating other aggregation rules.</span>
+</span><span data-line="25"><span class="sd">Provides optimal Byzantine resilience but with exponential complexity.</span>
+</span><span data-line="26">
+</span><span data-line="27"><span class="sd">Properties</span>
+</span><span data-line="28"><span class="sd">----------</span>
+</span><span data-line="29"><span class="sd">- Exhaustive search: Checks all possible :math:`\\binom{n}{n-f}` subsets.</span>
+</span><span data-line="30"><span class="sd">- Optimal: Guarantees the smallest possible diameter among all valid subsets.</span>
+</span><span data-line="31"><span class="sd">- Not scalable: Only practical for small :math:`n` or research purposes.</span>
 </span><span data-line="32">
-</span><span data-line="33"><span class="sd">The Brute rule provides the best theoretical guarantees:</span>
-</span><span data-line="34">
-</span><span data-line="35"><span class="sd">.. math::</span>
+</span><span data-line="33"><span class="sd">Theoretical Bound</span>
+</span><span data-line="34"><span class="sd">-----------------</span>
+</span><span data-line="35"><span class="sd">The Brute rule provides the best theoretical guarantees:</span>
 </span><span data-line="36">
-</span><span data-line="37"><span class="sd">    \\frac{\\sigma}{\\|g\\|} \\leq \\frac{n - f}{\\sqrt{8} f}</span>
+</span><span data-line="37"><span class="sd">.. math::</span>
 </span><span data-line="38">
-</span><span data-line="39"><span class="sd">where :math:`\\sigma` is the standard deviation of honest gradients.</span>
+</span><span data-line="39"><span class="sd">    \\frac{\\sigma}{\\|g\\|} \\leq \\frac{n - f}{\\sqrt{8} f}</span>
 </span><span data-line="40">
-</span><span data-line="41"><span class="sd">Complexity</span>
-</span><span data-line="42"><span class="sd">----------</span>
-</span><span data-line="43">
-</span><span data-line="44"><span class="sd">- Time: :math:`O(\\binom{n}{n-f} \\cdot d \\cdot n^2)` where :math:`d` is the</span>
-</span><span data-line="45"><span class="sd">  gradient dimension.</span>
-</span><span data-line="46"><span class="sd">- Space: :math:`O(n^2)` for storing pairwise distances.</span>
-</span><span data-line="47">
-</span><span data-line="48"><span class="sd">Example</span>
-</span><span data-line="49"><span class="sd">-------</span>
-</span><span data-line="50">
+</span><span data-line="41"><span class="sd">where :math:`\\sigma` is the standard deviation of honest gradients.</span>
+</span><span data-line="42">
+</span><span data-line="43"><span class="sd">Complexity</span>
+</span><span data-line="44"><span class="sd">----------</span>
+</span><span data-line="45"><span class="sd">- Time: :math:`O(\\binom{n}{n-f} \\cdot d \\cdot n^2)` where :math:`d` is the</span>
+</span><span data-line="46"><span class="sd">  gradient dimension.</span>
+</span><span data-line="47"><span class="sd">- Space: :math:`O(n^2)` for storing pairwise distances.</span>
+</span><span data-line="48">
+</span><span data-line="49"><span class="sd">Example</span>
+</span><span data-line="50"><span class="sd">-------</span>
 </span><span data-line="51"><span class="sd">&gt;&gt;&gt; import torch</span>
 </span><span data-line="52"><span class="sd">&gt;&gt;&gt; from aggregators import brute</span>
 </span><span data-line="53"><span class="sd">&gt;&gt;&gt; gradients = [</span>

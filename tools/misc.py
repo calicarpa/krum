@@ -57,7 +57,7 @@ Example
     try:
         raise UnavailableException({"a": 1, "b": 2}, "c", "option")
     except UnavailableException as e:
-        print(e)  # "Unknown option 'c', expected one of:\n· a\n· b"
+        print(e)  # "Unknown option 'c', expected one of: a, b"
 
     # Parse key:value arguments
     args = parse_keyval(["lr:0.01", "batch:32"])

@@ -22,12 +22,13 @@ participate in the coordinate ordering.
 **Use case:** Baseline for coordinate-wise robust aggregation in settings
 where input gradients are expected to be finite.
 
-**Properties:**
+Properties
+----------
 
 - Coordinate-wise: Each dimension is treated independently.
 - Non-finite values are not filtered before aggregation.
 - No theoretical guarantee: Unlike other methods, this rule has no proven
-Byzantine-resilience guarantees for general attacks.
+  Byzantine-resilience guarantees for general attacks.
 
 Theoretical Bound
 -----------------
