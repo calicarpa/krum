@@ -109,6 +109,10 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#aggregators.average.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -172,7 +176,7 @@ gradient can completely skew the result.</p></li>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="aggregators.average.aggregate">
-<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.aggregate" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.average.aggregate" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the arithmetic mean of all submitted gradients.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -183,7 +187,7 @@ a 1-D tensor representing the flattened model parameters.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>torch.Tensor | float</strong> – The arithmetic mean of all input gradients.</p>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – The arithmetic mean of all input gradients.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -229,6 +233,35 @@ in the total.</p>
 </dl>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For coordinate-wise robustness, see <a class="reference internal" href="median.html"><span class="doc">Median</span></a>.
+For distance-based selection, see <a class="reference internal" href="krum.html"><span class="doc">Krum / Multi-Krum</span></a> or <a class="reference internal" href="bulyan.html"><span class="doc">Bulyan</span></a>.</p>
+</div>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">aggregators.average.</span></span><span class="sig-name descname"><span class="pre">influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">honests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attacks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/average.html#influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the ratio of accepted Byzantine gradients.</p>
+<p>For arithmetic mean, all submitted gradients are used in the aggregation,
+so the influence ratio is simply the fraction of Byzantine gradients
+in the total.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>attacks</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List of attack (Byzantine) gradients.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this rule.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Ratio of Byzantine gradients in the aggregation (attackers / total).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">

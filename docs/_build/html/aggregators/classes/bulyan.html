@@ -112,6 +112,10 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#aggregators.bulyan.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.bulyan.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -166,7 +170,7 @@ can provide, and when the worker count is high enough to satisfy the stricter
 <li><p>Requires at least <span class="math notranslate nohighlight">\(4f + 3\)</span> submitted gradients.</p></li>
 <li><p>Uses only newly allocated output tensors and does not return aliases of input
 gradients.</p></li>
-<li><p>Theoretical bound available through <a class="reference internal" href="#aggregators.bulyan.upper_bound" title="aggregators.bulyan.upper_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">upper_bound()</span></code></a>.</p></li>
+<li><p>Theoretical bound available through <a class="reference internal" href="#id0" title="aggregators.bulyan.upper_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">upper_bound()</span></code></a>.</p></li>
 </ul>
 </section>
 <section id="algorithm">
@@ -298,6 +302,34 @@ gradient norm under the Bulyan assumptions.</p>
 </dl>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Built on top of <a class="reference internal" href="krum.html"><span class="doc">Krum / Multi-Krum</span></a>.
+For optimal (but expensive) guarantees, see <a class="reference internal" href="brute.html"><span class="doc">Brute</span></a>.</p>
+</div>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">aggregators.bulyan.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/bulyan.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Compute Bulyan’s theoretical resilience upper bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Total number of workers, including Byzantine workers.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Expected number of Byzantine workers.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – Gradient dimension. Accepted for compatibility with the GAR metadata
+interface; the current formula does not depend on it.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Upper bound on the ratio between non-Byzantine standard deviation and
+gradient norm under the Bulyan assumptions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">

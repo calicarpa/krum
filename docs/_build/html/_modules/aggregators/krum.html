@@ -197,7 +197,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="54"><span class="sd">- :math:`\\|g\\|` is the norm of the honest gradient.</span>
 </span><span data-line="55">
 </span><span data-line="56"><span class="sd">Complexity</span>
-</span><span data-line="57"><span class="sd">-----------</span>
+</span><span data-line="57"><span class="sd">----------</span>
 </span><span data-line="58"><span class="sd">- Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and</span>
 </span><span data-line="59"><span class="sd">  :math:`d` is the gradient dimension.</span>
 </span><span data-line="60"><span class="sd">- Space: :math:`O(n^2)` for storing pairwise distances.</span>
@@ -364,7 +364,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="213">
 </span><span data-line="214"><span class="sd">    Parameters</span>
 </span><span data-line="215"><span class="sd">    ----------</span>
-</span><span data-line="216"><span class="sd">    gradients : list</span>
+</span><span data-line="216"><span class="sd">    gradients : list of torch.Tensor</span>
 </span><span data-line="217"><span class="sd">        Non-empty list of gradients to aggregate.</span>
 </span><span data-line="218"><span class="sd">    f : int</span>
 </span><span data-line="219"><span class="sd">        Number of Byzantine gradients to tolerate.</span>

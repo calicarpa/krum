@@ -193,19 +193,34 @@ with support for result tracking and error handling.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.close" title="Link to this definition">¶</a></dt>
-<dd><p>Close the jobs manager.</p>
+<dd><p>Close the jobs manager and release resources.</p>
+<p class="rubric">Notes</p>
+<p>No-op in the current stub implementation.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.submit">
 <span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.submit" title="Link to this definition">¶</a></dt>
 <dd><p>Submit a job for execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Job identifier.</p></li>
+<li><p><strong>command</strong> (<em>list</em><em> of </em><em>str</em>) – Full command to execute (as returned by <code class="docutils literal notranslate"><span class="pre">Command.__call__</span></code>).</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.jobs.Jobs.wait">
 <span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exit_is_requested</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/jobs.html#Jobs.wait"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.jobs.Jobs.wait" title="Link to this definition">¶</a></dt>
 <dd><p>Wait for all pending jobs to complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exit_is_requested</strong> (<em>bool</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optional external flag to request early termination.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -238,6 +253,11 @@ arguments.</p>
 </div>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For general utilities (parsing, timing, registries), see <a class="reference internal" href="misc.html"><span class="doc">Miscellaneous Utilities</span></a>.
+For PyTorch tensor helpers, see <a class="reference internal" href="pytorch.html"><span class="doc">PyTorch Utilities</span></a>.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">

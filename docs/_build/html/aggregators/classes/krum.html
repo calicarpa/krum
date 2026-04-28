@@ -113,6 +113,11 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#aggregators.krum.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.krum.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.krum.upper_bound"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">upper_bound()</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -167,7 +172,7 @@ be geometrically separated from honest gradients.</p>
 <li><p>Selects a subset: Not all gradients contribute to the final average.</p></li>
 <li><p>Multi-Krum: Averages the best <span class="math notranslate nohighlight">\(m\)</span> candidates instead of selecting only
 one candidate.</p></li>
-<li><p>Theoretical bound available through <a class="reference internal" href="#aggregators.krum.upper_bound" title="aggregators.krum.upper_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">upper_bound()</span></code></a>.</p></li>
+<li><p>Theoretical bound available through <a class="reference internal" href="#id0" title="aggregators.krum.upper_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">upper_bound()</span></code></a>.</p></li>
 </ul>
 </section>
 <section id="theoretical-bound">
@@ -266,7 +271,7 @@ Must satisfy <code class="docutils literal notranslate"><span class="pre">1</spa
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradients</strong> (<em>list</em>) – Non-empty list of gradients to aggregate.</p></li>
+<li><p><strong>gradients</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of gradients to aggregate.</p></li>
 <li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
 <li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of gradients to select.</p></li>
 <li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments, ignored by this implementation.</p></li>
@@ -319,6 +324,54 @@ gradient norm.</p>
 </dl>
 </dd></dl>
 
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For stronger two-stage resilience, see <a class="reference internal" href="bulyan.html"><span class="doc">Bulyan</span></a>.
+For a simple non-parametric baseline, see <a class="reference internal" href="median.html"><span class="doc">Median</span></a>.</p>
+</div>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">aggregators.krum.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/krum.html#upper_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the theoretical Multi-Krum robustness bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of workers, including honest and Byzantine workers.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Expected number of Byzantine workers.</p></li>
+<li><p><strong>d</strong> (<em>int</em>) – Dimension of the gradient space. This parameter is accepted for the
+standard GAR metadata contract and is not used by this formula.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Upper bound on the ratio between non-Byzantine standard deviation and
+gradient norm.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-prename descclassname"><span class="pre">aggregators.krum.</span></span><span class="sig-name descname"><span class="pre">influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">honests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attacks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/aggregators/krum.html#influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the ratio of Byzantine gradients selected by Multi-Krum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>honests</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – Non-empty list of honest gradients.</p></li>
+<li><p><strong>attacks</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List of attack, or Byzantine, gradients.</p></li>
+<li><p><strong>f</strong> (<em>int</em>) – Number of Byzantine gradients to tolerate.</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of gradients to select. Defaults to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">f</span> <span class="pre">-</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Additional keyword arguments forwarded to score computation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Ratio of selected gradients that come from <code class="docutils literal notranslate"><span class="pre">attacks</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">
