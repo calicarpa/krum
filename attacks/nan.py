@@ -54,7 +54,7 @@ from . import register
 # Non-finite gradient attack
 
 
-def attack(grad_honests, f_real, **kwargs):
+def attack(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> list[torch.Tensor]:
     """
     Generate NaN-valued Byzantine gradients.
 
@@ -85,13 +85,13 @@ def attack(grad_honests, f_real, **kwargs):
     return [byz_grad] * f_real
 
 
-def check(grad_honests, f_real, **kwargs):
+def check(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> str | None:
     """
     Check parameter validity for the NaN attack.
 
     Parameters
     ----------
-    grad_honests : list
+    grad_honests : list of torch.Tensor
         Non-empty list of honest gradients.
     f_real : int
         Number of Byzantine gradients to generate.

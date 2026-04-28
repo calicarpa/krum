@@ -86,7 +86,7 @@ except ImportError:
 # Bulyan GAR class
 
 
-def aggregate(gradients, f, m=None, **kwargs):
+def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
     """
     Compute the Bulyan aggregate.
 
@@ -101,7 +101,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     m : int, optional
         Number of nearest gradients considered in each Multi-Krum selection
         step. Defaults to ``n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this implementation.
 
@@ -170,7 +170,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     return avgmed
 
 
-def aggregate_native(gradients, f, m=None, **kwargs):
+def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
     """
     Compute the Bulyan aggregate using native C++/CUDA acceleration.
 
@@ -183,7 +183,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     m : int, optional
         Number of nearest gradients considered in each Multi-Krum selection
         step. Defaults to ``n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this implementation.
 
@@ -199,20 +199,20 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     return native.bulyan.aggregate(gradients, f, m)
 
 
-def check(gradients, f, m=None, **kwargs):
+def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None:
     """
     Check whether the Bulyan parameters satisfy the GAR contract.
 
     Parameters
     ----------
-    gradients : list
+    gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
     f : int
         Number of Byzantine gradients to tolerate.
     m : int, optional
         Number of nearest gradients considered in each Multi-Krum selection
         step. If provided, must satisfy ``1 <= m <= n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this check.
 
@@ -240,7 +240,7 @@ def check(gradients, f, m=None, **kwargs):
         )
 
 
-def upper_bound(n, f, d):
+def upper_bound(n: int, f: int, d: int) -> float:
     """
     Compute Bulyan's theoretical resilience upper bound.
 

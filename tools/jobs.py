@@ -1,34 +1,35 @@
 # coding: utf-8
 ###
-# @file   jobs.py
-# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
-#
-# @section LICENSE
-#
-# Copyright © 2020-2021 École Polytechnique Fédérale de Lausanne (EPFL).
-# See LICENSE file.
-#
-# @section DESCRIPTION
-#
-# Simple job management for reproduction scripts.
+ # @file   jobs.py
+ # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+ #
+ # @section LICENSE
+ #
+ # Copyright © 2020-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+ # See LICENSE file.
+ #
+ # @section DESCRIPTION
+ #
+ # Simple job management for reproduction scripts.
 ###
 
 """
-This module provides utilities for running and managing experiment jobs
-in a reproducible manner.
+Experiment job management helpers.
+
+This module provides utilities for running and managing experiment jobs in a
+reproducible manner.
 
 Classes and Functions
 ---------------------
 
-**Job Orchestration:**
+Job orchestration
+    ``Command`` encapsulates a command with seed, device, and result-directory
+    arguments.
+    ``Jobs`` manages parallel execution of experiments on multiple devices.
 
-- ``Command``: Encapsulates a command with seed, device, and result directory
-- ``Jobs``: Manages parallel execution of experiments on multiple devices
-
-**Helpers:**
-
-- ``dict_to_cmdlist``: Convert dictionary to command-line argument list
-- ``move_directory``: Move existing directory with versioning
+Helpers
+    ``dict_to_cmdlist`` converts dictionaries into command-line argument lists.
+    ``move_directory`` moves an existing directory aside with versioning.
 
 Example
 -------
@@ -37,10 +38,7 @@ Example
 
     from tools import Command, Jobs, dict_to_cmdlist
 
-    # Create command
     cmd = Command(["python", "train.py", "--lr", "0.01"])
-
-    # Run jobs
     jobs = Jobs("./results", devices=["cuda:0", "cuda:1"])
     jobs.submit("exp1", cmd)
     jobs.wait()
@@ -62,25 +60,24 @@ import tools
 
 def move_directory(path: Path) -> Path:
     """
-    Move existing directory to a new location with versioning.
+    Move an existing directory aside with versioning.
 
-    If a directory already exists at the given path, it is renamed with
-    an incremental suffix (e.g., "results.0", "results.1") before creating
-    a new directory.
+    If a directory already exists at the given path, it is renamed with an
+    incremental suffix (for example, ``results.0``, ``results.1``) before a
+    new directory is created.
 
     Parameters
     ----------
     path : pathlib.Path
-        Path to the directory to create.
+        Directory path to move aside if it already exists.
 
     Returns
     -------
     pathlib.Path
-        The input path (for chaining).
+        The input path, returned unchanged for chaining.
 
     Example
     -------
-
     >>> from pathlib import Path
     >>> move_directory(Path("results"))
     # Moves existing "results" to "results.0" if it exists
@@ -104,9 +101,10 @@ def move_directory(path: Path) -> Path:
 
 def dict_to_cmdlist(dp: dict) -> list[str]:
     """
-    Transform a dictionary into a list of command-line arguments.
+    Convert a dictionary into command-line arguments.
 
-    This is useful for converting experiment configurations into CLI commands.
+    This helper is useful for turning experiment configurations into CLI
+    arguments.
 
     Parameters
     ----------
@@ -116,16 +114,15 @@ def dict_to_cmdlist(dp: dict) -> list[str]:
     Returns
     -------
     list of str
-        Command-line arguments (e.g., ["--lr", "0.01", "--batch", "32"]).
+        Command-line arguments such as ``["--lr", "0.01", "--batch", "32"]``.
 
     Notes
     -----
-    - For boolean values: parameter is included only if True
-    - For lists/tuples: parameter is followed by each value
+    - Boolean values are included only when they are ``True``.
+    - Lists and tuples expand to repeated ``--name value`` pairs.
 
     Example
     -------
-
     >>> dict_to_cmdlist({"lr": 0.01, "batch": 32, "debug": True})
     ['--lr', '0.01', '--batch', '32', '--debug']
     >>> dict_to_cmdlist({"layers": [64, 128]})
@@ -152,25 +149,31 @@ def dict_to_cmdlist(dp: dict) -> list[str]:
 
 class Command:
     """
-    Command wrapper that adds standard arguments.
+    Command wrapper that adds standard runtime arguments.
 
-    Wraps a base command and automatically adds seed, device, and result
-    directory arguments when executing.
+    This class wraps a base command and automatically appends seed, device, and
+    result-directory arguments when executing it.
     """
 
-    def __init__(self, base: list[str], seed: int | None = None, device: str | None = None, result_directory: Path | None = None) -> None:
+    def __init__(
+        self,
+        base: list[str],
+        seed: int | None = None,
+        device: str | None = None,
+        result_directory: Path | None = None,
+    ) -> None:
         """
-        Initialize command wrapper.
+        Initialize the command wrapper.
 
         Parameters
         ----------
         base : list of str
-            Base command as list of strings.
+            Base command as a list of strings.
         seed : int, optional
             Random seed to add.
         device : str, optional
-            Device to add (e.g., "cuda:0").
-        result_directory : str, optional
+            Device to add, for example ``"cuda:0"``.
+        result_directory : pathlib.Path, optional
             Result directory path to add.
         """
         self._base = base
@@ -202,7 +205,9 @@ class Jobs:
     with support for result tracking and error handling.
     """
 
-    def __init__(self, result_directory: Path, devices: list[str] | None = None, devmult: int = 1) -> None:
+    def __init__(
+        self, result_directory: Path, devices: list[str] | None = None, devmult: int = 1
+    ) -> None:
         """
         Initialize jobs manager.
 
@@ -223,15 +228,15 @@ class Jobs:
         self._lock = threading.Lock()
 
     def submit(self, name: str, command: list[str]) -> None:
-        """ Submit a job for execution. """
+        """Submit a job for execution."""
         with self._lock:
             self._pending.append((name, command))
 
     def wait(self, exit_is_requested: bool | None = None) -> None:
-        """ Wait for all pending jobs to complete. """
+        """Wait for all pending jobs to complete."""
         # Implementation depends on threading
         pass
 
     def close(self) -> None:
-        """ Close the jobs manager. """
+        """Close the jobs manager."""
         pass

@@ -25,15 +25,15 @@ Contract
 
 Each attack MUST:
 
-1. Accept keyword-only arguments
-2. Accept the reserved parameter ``grad_honests`` (non-empty list of honest gradients)
-3. Accept the reserved parameter ``f_decl`` (number of declared Byzantine gradients)
-4. Accept the reserved parameter ``f_real`` (number of Byzantine gradients to generate)
-5. Accept the reserved parameter ``model`` (model with configured defaults)
-6. Accept the reserved parameter ``defense`` (aggregation rule to defeat)
-7. Return exactly ``f_real`` tensors (list of Byzantine gradients)
-8. NOT return tensors that alias any honest input tensor
-9. MAY reuse the same Byzantine tensor object when all generated gradients are identical
+1. Accept keyword-only arguments.
+2. Accept the reserved parameter ``grad_honests`` (non-empty list of honest gradients).
+3. Accept the reserved parameter ``f_decl`` (number of declared Byzantine gradients).
+4. Accept the reserved parameter ``f_real`` (number of Byzantine gradients to generate).
+5. Accept the reserved parameter ``model`` (model with configured defaults).
+6. Accept the reserved parameter ``defense`` (aggregation rule to defeat).
+7. Return exactly ``f_real`` tensors (list of Byzantine gradients).
+8. NOT return tensors that alias any honest input tensor.
+9. MAY reuse the same Byzantine tensor object when all generated gradients are identical.
 
 Each attack MUST provide a ``check`` function that validates parameters and
 returns ``None`` when valid, or a user-facing error message otherwise.
@@ -51,11 +51,13 @@ import torch
 
 import tools
 
+from typing import Callable
+
 # ---------------------------------------------------------------------------- #
 # Automated attack loader
 
 
-def register(name, unchecked, check):
+def register(name: str, unchecked: Callable, check: Callable) -> None:
     """
     Register a Byzantine attack.
 
@@ -69,6 +71,11 @@ def register(name, unchecked, check):
     check : callable
         Validation function associated with ``unchecked``. It must return
         ``None`` when parameters are valid, or an error message otherwise.
+
+    Returns
+    -------
+    None
+        The attack is registered as a module-level callable.
     """
     global attacks
     # Check if name already in use

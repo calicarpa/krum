@@ -14,57 +14,48 @@
 ###
 
 """
-This module provides various helper functions and classes used throughout
-Krum for common operations like exception handling, parsing, timing, etc.
+Utilities shared across the repository.
 
-Key Functions and Classes
---------------------------
+This module groups small helpers used for exception handling, parsing, timing,
+interactive exploration, and light registry patterns.
 
-**Exception Handling:**
+Categories
+----------
 
-- ``UnavailableException``: Exception for missing entries in registries
-- ``fatal_unavailable``: Helper to print and exit on unavailable entries
+Exception handling
+    ``UnavailableException`` and ``fatal_unavailable`` build consistent
+    user-facing errors for missing registry entries.
 
-**Registry Patterns:**
+Registry helpers
+    ``MethodCallReplicator`` and ``ClassRegister`` provide small reusable
+    patterns for dispatching calls and registering classes.
 
-- ``MethodCallReplicator``: Forward method calls to multiple instances
-- ``ClassRegister``: Generic named class registry
+Parsing helpers
+    ``parse_keyval`` and ``fullqual`` handle CLI-style key/value parsing and
+    qualified-name formatting.
 
-**Parsing:**
+Timing helpers
+    ``TimedContext``, ``onetime``, ``localtime``, ``deltatime_point``, and
+    ``deltatime_format`` support timing and one-shot flags.
 
-- ``parse_keyval``: Parse key:value arguments from CLI
-- ``fullqual``: Get fully qualified name of objects
-
-**Timing:**
-
-- ``TimedContext``: Measure execution time of code blocks
-- ``onetime``: Thread-safe one-time flag
-
-**Utilities:**
-
-- ``pairwise``: Generate all pairs of indices
-- ``line_maximize``: Find optimal attack factor
-- ``interactive``: Simple interactive shell
+Miscellaneous helpers
+    ``pairwise``, ``line_maximize``, ``interactive``, and
+    ``get_loaded_dependencies`` cover assorted convenience tasks.
 
 Example
 -------
+
 .. code-block:: python
 
     from tools import UnavailableException, parse_keyval, TimedContext
 
-    # Exception handling
     try:
         raise UnavailableException({"a": 1, "b": 2}, "c", "option")
     except UnavailableException as e:
-        print(e)  # "Unknown option 'c', expected one of: a, b"
+        print(e)
 
-    # Parse key:value arguments
     args = parse_keyval(["lr:0.01", "batch:32"])
-    # {'lr': 0.01, 'batch': 32}
-
-    # Timing
     with TimedContext("my_operation"):
-        # code here
         pass
 """
 
@@ -131,7 +122,7 @@ def make_unavailable_exception_text(
     return "Unknown %s %r, %s" % (what, name, end)
 
 
-def fatal_unavailable(*args: str, **kwargs: str) -> None:
+def fatal_unavailable(*args, **kwargs) -> None:
     """
     Report an unavailable entry as a fatal user-facing error.
 
@@ -150,7 +141,7 @@ def fatal_unavailable(*args: str, **kwargs: str) -> None:
 class UnavailableException(tools.UserException):
     """User-facing exception raised when a selected registry entry is missing."""
 
-    def __init__(self, *args: str, **kwargs: str) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
         Initialize the exception message.
 
@@ -217,7 +208,7 @@ class MethodCallReplicator:
         closures = [getattr(instance, name) for instance in self.__instances]
 
         # Replication closure
-        def calls(*args: object, **kwargs: object) -> list[object]:
+        def calls(*args, **kwargs) -> list[object]:
             """
             Call each target callable with the provided arguments.
 
@@ -294,7 +285,7 @@ class ClassRegister:
         # Registering
         self.__register[name] = cls
 
-    def instantiate(self, name: str, *args: object, **kwargs: object) -> object:
+    def instantiate(self, name: str, *args, **kwargs) -> object:
         """
         Instantiate the class registered under ``name``.
 
@@ -587,7 +578,7 @@ onetime_register = dict()
 class TimedContext(tools.Context):
     """Context manager that logs the elapsed runtime of a block."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
         Initialize the timed context.
 
@@ -612,7 +603,7 @@ class TimedContext(tools.Context):
         self._chrono = time.time()
         return super().__enter__()
 
-    def __exit__(self, *args: object, **kwargs: object) -> None:
+    def __exit__(self, *args, **kwargs) -> None:
         """
         Stop timing, log elapsed time, and exit the parent context.
 

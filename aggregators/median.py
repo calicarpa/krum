@@ -1,17 +1,17 @@
 # coding: utf-8
-###
-# @file   median.py
-# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
-#
-# @section LICENSE
-#
-# Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
-# See LICENSE file.
-#
-# @section DESCRIPTION
-#
-# Coordinate-wise median GAR.
-###
+ ###
+ # @file   median.py
+ # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+ #
+ # @section LICENSE
+ #
+ # Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
+ # See LICENSE file.
+ #
+ # @section DESCRIPTION
+ #
+ # Coordinate-wise median GAR.
+ ###
 
 """
 Coordinate-wise median aggregation rule.
@@ -78,7 +78,7 @@ except ImportError:
 # Coordinate-wise median GAR
 
 
-def aggregate(gradients, **kwargs):
+def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     """
     Compute the coordinate-wise median of all submitted gradients.
 
@@ -107,7 +107,7 @@ def aggregate(gradients, **kwargs):
     return torch.stack(gradients).median(dim=0)[0]
 
 
-def aggregate_native(gradients, **kwargs):
+def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     """
     Compute the coordinate-wise median using native C++/CUDA acceleration.
 
@@ -127,13 +127,13 @@ def aggregate_native(gradients, **kwargs):
     return native.median.aggregate(gradients)
 
 
-def check(gradients, **kwargs):
+def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
     """
     Check whether the median rule can be used with the given parameters.
 
     Parameters
     ----------
-    gradients : list
+    gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
     **kwargs : object
         Additional keyword arguments, accepted for compatibility with the GAR
@@ -151,7 +151,7 @@ def check(gradients, **kwargs):
         )
 
 
-def upper_bound(n, f, d):
+def upper_bound(n: int, f: int, d: int) -> float:
     """
     Compute the theoretical coordinate-wise median robustness bound.
 

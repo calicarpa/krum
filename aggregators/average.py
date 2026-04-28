@@ -43,11 +43,13 @@ tensor([2.5000, 3.5000, 4.5000])
 
 from . import register
 
+import torch
+
 # ---------------------------------------------------------------------------- #
 # Average GAR
 
 
-def aggregate(gradients, **kwargs):
+def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor | float:
     """
     Compute the arithmetic mean of all submitted gradients.
 
@@ -61,7 +63,7 @@ def aggregate(gradients, **kwargs):
 
     Returns
     -------
-    torch.Tensor
+    torch.Tensor | float
         The arithmetic mean of all input gradients.
 
     Notes
@@ -71,13 +73,13 @@ def aggregate(gradients, **kwargs):
     return sum(gradients) / len(gradients)
 
 
-def check(gradients, **kwargs):
+def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
     """
     Check parameter validity for the averaging rule.
 
     Parameters
     ----------
-    gradients : list
+    gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
     **kwargs : object
         Additional keyword arguments, ignored by this rule.
@@ -94,7 +96,7 @@ def check(gradients, **kwargs):
         )
 
 
-def influence(honests, attacks, **kwargs):
+def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], **kwargs) -> float:
     """
     Compute the ratio of accepted Byzantine gradients.
 

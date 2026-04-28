@@ -14,9 +14,10 @@
 ###
 
 """
-This module provides a collection of robust aggregation rules for distributed
-learning. Each rule can tolerate a certain number of Byzantine (malicious)
-workers while still converging correctly.
+Gradient aggregation rules (GARs) for Byzantine-resilient distributed learning.
+
+Each rule combines a keyword-only aggregation function with a validation
+function and optional metadata used by the training and experiment scripts.
 
 Contract
 --------
@@ -50,12 +51,13 @@ import pathlib
 import torch
 
 import tools
+from typing import Callable
 
 # ---------------------------------------------------------------------------- #
 # Automated GAR loader
 
 
-def make_gar(unchecked, check, upper_bound=None, influence=None):
+def make_gar(unchecked: Callable, check: Callable, upper_bound: Callable | None = None, influence: Callable | None = None) -> Callable:
     """
     Wrap an unchecked GAR with validation and metadata.
 
@@ -106,7 +108,7 @@ def make_gar(unchecked, check, upper_bound=None, influence=None):
     return func
 
 
-def register(name, unchecked, check, upper_bound=None, influence=None):
+def register(name: str, unchecked: Callable, check: Callable, upper_bound: Callable | None = None, influence: Callable | None = None) -> None:
     """
     Register a gradient aggregation rule.
 

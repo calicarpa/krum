@@ -94,7 +94,7 @@ except ImportError:
 # Multi-Krum GAR
 
 
-def _compute_scores(gradients, f, m, **kwargs):
+def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> list[tuple[float, torch.Tensor]]:
     """
     Compute Multi-Krum scores for all candidate gradients.
 
@@ -106,7 +106,7 @@ def _compute_scores(gradients, f, m, **kwargs):
         Number of Byzantine gradients to tolerate.
     m : int
         Number of gradients to select.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
     Returns
@@ -140,7 +140,7 @@ def _compute_scores(gradients, f, m, **kwargs):
     return scores
 
 
-def aggregate(gradients, f, m=None, **kwargs):
+def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
     """
     Aggregate gradients with Multi-Krum.
 
@@ -154,7 +154,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     m : int, optional
         Number of gradients to select for averaging. Defaults to
         ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
     Returns
@@ -174,7 +174,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     return sum(grad for _, grad in scores[:m]).div_(m)
 
 
-def aggregate_native(gradients, f, m=None, **kwargs):
+def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
     """
     Aggregate gradients with the native Multi-Krum implementation.
 
@@ -186,7 +186,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
         Number of Byzantine gradients to tolerate.
     m : int, optional
         Number of gradients to select. Defaults to ``n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
     Returns
@@ -201,7 +201,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     return native.krum.aggregate(gradients, f, m)
 
 
-def check(gradients, f, m=None, **kwargs):
+def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:
     """
     Check whether Multi-Krum can be used with the given parameters.
 
@@ -213,7 +213,7 @@ def check(gradients, f, m=None, **kwargs):
         Number of Byzantine gradients to tolerate.
     m : int, optional
         Number of gradients to select.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
     Returns
@@ -240,7 +240,7 @@ def check(gradients, f, m=None, **kwargs):
         )
 
 
-def upper_bound(n, f, d):
+def upper_bound(n: int, f: int, d: int) -> float:
     """
     Compute the theoretical Multi-Krum robustness bound.
 
@@ -263,7 +263,7 @@ def upper_bound(n, f, d):
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 
 
-def influence(honests, attacks, f, m=None, **kwargs):
+def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> float:
     """
     Compute the ratio of Byzantine gradients selected by Multi-Krum.
 
@@ -277,7 +277,7 @@ def influence(honests, attacks, f, m=None, **kwargs):
         Number of Byzantine gradients to tolerate.
     m : int, optional
         Number of gradients to select. Defaults to ``n - f - 2``.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments forwarded to score computation.
 
     Returns

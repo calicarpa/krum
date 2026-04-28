@@ -1,28 +1,28 @@
 # coding: utf-8
 ###
-# @file   identical.py
-# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
-#
-# @section LICENSE
-#
-# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
-# See LICENSE file.
-#
-# @section DESCRIPTION
-#
-# Collection of attacks which submit f identical gradients, which consist in
-# adding as much of one attack vector to the average of the honest gradients.
-#
-# These attacks have been introduced in/adapted from the following papers:
-# bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
-#          The Hidden Vulnerability of Distributed Learning in Byzantium.
-#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
-# empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
-#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
-#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
-# little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
-#          A Little Is Enough: Circumventing Defenses For Distributed Learning.
-#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
+ # @file   identical.py
+ # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+ #
+ # @section LICENSE
+ #
+ # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+ # See LICENSE file.
+ #
+ # @section DESCRIPTION
+ #
+ # Collection of attacks which submit f identical gradients, which consist in
+ # adding as much of one attack vector to the average of the honest gradients.
+ #
+ # These attacks have been introduced in/adapted from the following papers:
+ # bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
+ #          The Hidden Vulnerability of Distributed Learning in Byzantium.
+ #          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
+ # empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
+ #          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
+ #          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
+ # little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
+ #          A Little Is Enough: Circumventing Defenses For Distributed Learning.
+ #          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
 ###
 
 """
@@ -80,11 +80,13 @@ import tools
 
 from . import register
 
+from typing import Callable
+
 # ---------------------------------------------------------------------------- #
 # Generic attack implementation generator
 
 
-def make_attack(compute_direction):
+def make_attack(compute_direction: Callable) -> Callable:
     """
     Create an identical-gradient attack from a direction function.
 
@@ -101,15 +103,15 @@ def make_attack(compute_direction):
     """
 
     def attack(
-        grad_honests,
-        f_real,
-        f_decl,
-        defense,
-        model,
-        factor=-16,
-        negative=False,
+        grad_honests: list[torch.Tensor],
+        f_real: int,
+        f_decl: int,
+        defense: Callable,
+        model: torch.nn.Module,
+        factor: float | int = -16,
+        negative: bool = False,
         **kwargs,
-    ):
+    ) -> list[torch.Tensor]:
         """
         Generate identical Byzantine gradients.
 
@@ -179,13 +181,13 @@ def make_attack(compute_direction):
     return attack
 
 
-def check(grad_honests, f_real, defense, factor=-16, negative=False, **kwargs):
+def check(grad_honests: list[torch.Tensor], f_real: int, defense: Callable, factor: float | int = -16, negative: bool = False, **kwargs) -> str | None:
     """
     Check parameter validity for identical-gradient attacks.
 
     Parameters
     ----------
-    grad_honests : list
+    grad_honests : list of torch.Tensor
         Non-empty list of honest gradients.
     f_real : int
         Number of Byzantine gradients to generate.
@@ -231,7 +233,7 @@ def check(grad_honests, f_real, defense, factor=-16, negative=False, **kwargs):
 # Attack vector computations
 
 
-def bulyan(grad_stck, grad_avg, target_idx=-1, **kwargs):
+def bulyan(grad_stck: torch.Tensor, grad_avg: torch.Tensor, target_idx: int | str = -1, **kwargs) -> torch.Tensor:
     """
     Compute the Bulyan attack direction.
 
@@ -266,7 +268,7 @@ def bulyan(grad_stck, grad_avg, target_idx=-1, **kwargs):
         return grad_att
 
 
-def empire(grad_stck, grad_avg, **kwargs):
+def empire(grad_stck: torch.Tensor, grad_avg: torch.Tensor, **kwargs) -> torch.Tensor:
     """
     Compute the Empire attack direction.
 
@@ -289,7 +291,7 @@ def empire(grad_stck, grad_avg, **kwargs):
     return grad_avg.neg()
 
 
-def little(grad_stck, grad_avg, **kwargs):
+def little(grad_stck: torch.Tensor, grad_avg: torch.Tensor, **kwargs) -> torch.Tensor:
     """
     Compute the Little attack direction.
 

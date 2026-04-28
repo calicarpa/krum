@@ -82,7 +82,7 @@ except ImportError:
 # Brute GAR
 
 
-def _compute_selection(gradients, f, **kwargs):
+def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple[int, ...]:
     """
     Select the gradient indices forming the smallest-diameter subset.
 
@@ -92,8 +92,8 @@ def _compute_selection(gradients, f, **kwargs):
         Non-empty list of candidate gradients.
     f : int
         Number of Byzantine gradients to tolerate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this helper.
 
     Returns
     -------
@@ -136,7 +136,7 @@ def _compute_selection(gradients, f, **kwargs):
     return sel_iset
 
 
-def aggregate(gradients, f, **kwargs):
+def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
     """
     Compute the Brute aggregation (mean of smallest-diameter subset).
 
@@ -147,8 +147,8 @@ def aggregate(gradients, f, **kwargs):
     f : int
         Number of Byzantine gradients to tolerate. Must satisfy
         ``1 <= f <= (n - 1) // 2`` where ``n = len(gradients)``.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
@@ -164,7 +164,7 @@ def aggregate(gradients, f, **kwargs):
     return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
 
 
-def aggregate_native(gradients, f, **kwargs):
+def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
     """
     Compute the Brute aggregation using native C++/CUDA acceleration.
 
@@ -174,29 +174,29 @@ def aggregate_native(gradients, f, **kwargs):
         Non-empty list of gradients to aggregate.
     f : int
         Number of Byzantine gradients to tolerate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
-    torch.Tensor
+    torch.Tensor | float
         Mean of the subset selected by the native Brute implementation.
     """
     return native.brute.aggregate(gradients, f)
 
 
-def check(gradients, f, **kwargs):
+def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
     """
     Check parameter validity for the Brute aggregation rule.
 
     Parameters
     ----------
-    gradients : list
+    gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
     f : int
         Number of Byzantine gradients to tolerate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this check.
 
     Returns
     -------
@@ -215,7 +215,7 @@ def check(gradients, f, **kwargs):
         )
 
 
-def upper_bound(n, f, d):
+def upper_bound(n: int, f: int, d: int) -> float:
     """
     Compute the theoretical Brute resilience bound.
 
@@ -237,7 +237,7 @@ def upper_bound(n, f, d):
     return (n - f) / (math.sqrt(8) * f)
 
 
-def influence(honests, attacks, f, **kwargs):
+def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
     """
     Compute the ratio of Byzantine gradients selected by Brute.
 
@@ -249,7 +249,7 @@ def influence(honests, attacks, f, **kwargs):
         List of attack, or Byzantine, gradients.
     f : int
         Number of Byzantine gradients to tolerate.
-    **kwargs : dict
+    **kwargs : object
         Additional keyword arguments forwarded to the selection helper.
 
     Returns
