@@ -21,13 +21,6 @@ robust averaging. It first selects a candidate set using a Multi-Krum-like
 criterion, then aggregates each coordinate from the values closest to the
 coordinate-wise median.
 
-Algorithm
----------
-
-1. Select candidate gradients with the smallest Multi-Krum scores.
-2. For each coordinate, compute the median over the selected candidates.
-3. Average the values closest to that median.
-
 Use Case
 --------
 
