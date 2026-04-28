@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -143,29 +146,29 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for attacks.identical</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   identical.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Collection of attacks which submit f identical gradients, which consist in</span>
-</span><span data-line="14"> <span class="c1"># adding as much of one attack vector to the average of the honest gradients.</span>
-</span><span data-line="15"> <span class="c1">#</span>
-</span><span data-line="16"> <span class="c1"># These attacks have been introduced in/adapted from the following papers:</span>
-</span><span data-line="17"> <span class="c1"># bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.</span>
-</span><span data-line="18"> <span class="c1">#          The Hidden Vulnerability of Distributed Learning in Byzantium.</span>
-</span><span data-line="19"> <span class="c1">#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html</span>
-</span><span data-line="20"> <span class="c1"># empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.</span>
-</span><span data-line="21"> <span class="c1">#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.</span>
-</span><span data-line="22"> <span class="c1">#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf</span>
-</span><span data-line="23"> <span class="c1"># little · Moran Baruch, Gilad Baruch, Yoav Goldberg.</span>
-</span><span data-line="24"> <span class="c1">#          A Little Is Enough: Circumventing Defenses For Distributed Learning.</span>
-</span><span data-line="25"> <span class="c1">#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1</span>
+</span><span data-line="3"><span class="c1"># @file   identical.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Collection of attacks which submit f identical gradients, which consist in</span>
+</span><span data-line="14"><span class="c1"># adding as much of one attack vector to the average of the honest gradients.</span>
+</span><span data-line="15"><span class="c1">#</span>
+</span><span data-line="16"><span class="c1"># These attacks have been introduced in/adapted from the following papers:</span>
+</span><span data-line="17"><span class="c1"># bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.</span>
+</span><span data-line="18"><span class="c1">#          The Hidden Vulnerability of Distributed Learning in Byzantium.</span>
+</span><span data-line="19"><span class="c1">#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html</span>
+</span><span data-line="20"><span class="c1"># empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.</span>
+</span><span data-line="21"><span class="c1">#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.</span>
+</span><span data-line="22"><span class="c1">#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf</span>
+</span><span data-line="23"><span class="c1"># little · Moran Baruch, Gilad Baruch, Yoav Goldberg.</span>
+</span><span data-line="24"><span class="c1">#          A Little Is Enough: Circumventing Defenses For Distributed Learning.</span>
+</span><span data-line="25"><span class="c1">#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1</span>
 </span><span data-line="26"><span class="c1">###</span>
 </span><span data-line="27">
 </span><span data-line="28"><span class="sd">&quot;&quot;&quot;</span>
@@ -337,156 +340,168 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="191">
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.check">[docs]</a>
-</span><span data-line="192"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">defense</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="n">negative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="193"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="194"><span class="sd">    Check parameter validity for identical-gradient attacks.</span>
-</span><span data-line="195">
-</span><span data-line="196"><span class="sd">    Parameters</span>
-</span><span data-line="197"><span class="sd">    ----------</span>
-</span><span data-line="198"><span class="sd">    grad_honests : list of torch.Tensor</span>
-</span><span data-line="199"><span class="sd">        Non-empty list of honest gradients.</span>
-</span><span data-line="200"><span class="sd">    f_real : int</span>
-</span><span data-line="201"><span class="sd">        Number of Byzantine gradients to generate.</span>
-</span><span data-line="202"><span class="sd">    defense : callable</span>
-</span><span data-line="203"><span class="sd">        Aggregation rule to defeat.</span>
-</span><span data-line="204"><span class="sd">    factor : float or int, optional</span>
-</span><span data-line="205"><span class="sd">        Attack factor. Defaults to ``-16``.</span>
-</span><span data-line="206"><span class="sd">    negative : bool, optional</span>
-</span><span data-line="207"><span class="sd">        Whether to negate the selected factor. Defaults to ``False``.</span>
-</span><span data-line="208"><span class="sd">    **kwargs : object</span>
-</span><span data-line="209"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
-</span><span data-line="210">
-</span><span data-line="211"><span class="sd">    Returns</span>
-</span><span data-line="212"><span class="sd">    -------</span>
-</span><span data-line="213"><span class="sd">    str or None</span>
-</span><span data-line="214"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
-</span><span data-line="215"><span class="sd">        message.</span>
-</span><span data-line="216"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="217">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="218">        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
-</span><span data-line="219">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="220">        <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="221">            <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span>
-</span><span data-line="222">            <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
-</span><span data-line="223">        <span class="p">)</span>
-</span><span data-line="224">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">defense</span><span class="p">):</span>
-</span><span data-line="225">        <span class="k">return</span> <span class="s2">&quot;Expected a callable for the aggregation rule, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defense</span><span class="p">,)</span>
-</span><span data-line="226">    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
-</span><span data-line="227">        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-</span><span data-line="228">        <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
-</span><span data-line="229">    <span class="p">):</span>
-</span><span data-line="230">        <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="231">            <span class="s2">&quot;Expected a positive number or a negative integer for the attack factor, got </span><span class="si">%r</span><span class="s2">&quot;</span>
-</span><span data-line="232">            <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="p">,)</span>
-</span><span data-line="233">        <span class="p">)</span>
-</span><span data-line="234">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-</span><span data-line="235">        <span class="k">return</span> <span class="s2">&quot;Expected a boolean for optional parameter &#39;negative&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-</span><span data-line="236">            <span class="n">negative</span><span class="p">,</span>
-</span><span data-line="237">        <span class="p">)</span></div>
+</span><span data-line="192"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span>
+</span><span data-line="193">    <span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+</span><span data-line="194">    <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span data-line="195">    <span class="n">defense</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+</span><span data-line="196">    <span class="n">factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span>
+</span><span data-line="197">    <span class="n">negative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="198">    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span data-line="199"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="200"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="201"><span class="sd">    Check parameter validity for identical-gradient attacks.</span>
+</span><span data-line="202">
+</span><span data-line="203"><span class="sd">    Parameters</span>
+</span><span data-line="204"><span class="sd">    ----------</span>
+</span><span data-line="205"><span class="sd">    grad_honests : list of torch.Tensor</span>
+</span><span data-line="206"><span class="sd">        Non-empty list of honest gradients.</span>
+</span><span data-line="207"><span class="sd">    f_real : int</span>
+</span><span data-line="208"><span class="sd">        Number of Byzantine gradients to generate.</span>
+</span><span data-line="209"><span class="sd">    defense : callable</span>
+</span><span data-line="210"><span class="sd">        Aggregation rule to defeat.</span>
+</span><span data-line="211"><span class="sd">    factor : float or int, optional</span>
+</span><span data-line="212"><span class="sd">        Attack factor. Defaults to ``-16``.</span>
+</span><span data-line="213"><span class="sd">    negative : bool, optional</span>
+</span><span data-line="214"><span class="sd">        Whether to negate the selected factor. Defaults to ``False``.</span>
+</span><span data-line="215"><span class="sd">    **kwargs : object</span>
+</span><span data-line="216"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
+</span><span data-line="217">
+</span><span data-line="218"><span class="sd">    Returns</span>
+</span><span data-line="219"><span class="sd">    -------</span>
+</span><span data-line="220"><span class="sd">    str or None</span>
+</span><span data-line="221"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
+</span><span data-line="222"><span class="sd">        message.</span>
+</span><span data-line="223"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="224">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="225">        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
+</span><span data-line="226">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="227">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="228">            <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span>
+</span><span data-line="229">            <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
+</span><span data-line="230">        <span class="p">)</span>
+</span><span data-line="231">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">defense</span><span class="p">):</span>
+</span><span data-line="232">        <span class="k">return</span> <span class="s2">&quot;Expected a callable for the aggregation rule, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defense</span><span class="p">,)</span>
+</span><span data-line="233">    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+</span><span data-line="234">        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span data-line="235">        <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+</span><span data-line="236">    <span class="p">):</span>
+</span><span data-line="237">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="238">            <span class="s2">&quot;Expected a positive number or a negative integer for the attack factor, got </span><span class="si">%r</span><span class="s2">&quot;</span>
+</span><span data-line="239">            <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="p">,)</span>
+</span><span data-line="240">        <span class="p">)</span>
+</span><span data-line="241">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+</span><span data-line="242">        <span class="k">return</span> <span class="s2">&quot;Expected a boolean for optional parameter &#39;negative&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+</span><span data-line="243">            <span class="n">negative</span><span class="p">,</span>
+</span><span data-line="244">        <span class="p">)</span></div>
 
-</span><span data-line="238">
-</span><span data-line="239">
-</span><span data-line="240"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="241"><span class="c1"># Attack vector computations</span>
-</span><span data-line="242">
-</span><span data-line="243">
+</span><span data-line="245">
+</span><span data-line="246">
+</span><span data-line="247"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="248"><span class="c1"># Attack vector computations</span>
+</span><span data-line="249">
+</span><span data-line="250">
 <div class="viewcode-block" id="bulyan">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.bulyan">[docs]</a>
-</span><span data-line="244"><span class="k">def</span><span class="w"> </span><span class="nf">bulyan</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="245"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="246"><span class="sd">    Compute the Bulyan attack direction.</span>
-</span><span data-line="247">
-</span><span data-line="248"><span class="sd">    This direction is adapted from &quot;The Hidden Vulnerability of Distributed</span>
-</span><span data-line="249"><span class="sd">    Learning in Byzantium&quot;.</span>
-</span><span data-line="250">
-</span><span data-line="251"><span class="sd">    Parameters</span>
-</span><span data-line="252"><span class="sd">    ----------</span>
-</span><span data-line="253"><span class="sd">    grad_stck : torch.Tensor</span>
-</span><span data-line="254"><span class="sd">        Stacked honest gradients.</span>
-</span><span data-line="255"><span class="sd">    grad_avg : torch.Tensor</span>
-</span><span data-line="256"><span class="sd">        Average honest gradient.</span>
-</span><span data-line="257"><span class="sd">    target_idx : int or str, optional</span>
-</span><span data-line="258"><span class="sd">        Targeted coordinate index, or ``&quot;all&quot;`` to target every coordinate.</span>
-</span><span data-line="259"><span class="sd">        Defaults to ``-1``.</span>
-</span><span data-line="260"><span class="sd">    **kwargs : object</span>
-</span><span data-line="261"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
+</span><span data-line="251"><span class="k">def</span><span class="w"> </span><span class="nf">bulyan</span><span class="p">(</span>
+</span><span data-line="252">    <span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+</span><span data-line="253">    <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+</span><span data-line="254">    <span class="n">target_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+</span><span data-line="255">    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span data-line="256"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="257"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="258"><span class="sd">    Compute the Bulyan attack direction.</span>
+</span><span data-line="259">
+</span><span data-line="260"><span class="sd">    This direction is adapted from &quot;The Hidden Vulnerability of Distributed</span>
+</span><span data-line="261"><span class="sd">    Learning in Byzantium&quot;.</span>
 </span><span data-line="262">
-</span><span data-line="263"><span class="sd">    Returns</span>
-</span><span data-line="264"><span class="sd">    -------</span>
-</span><span data-line="265"><span class="sd">    torch.Tensor</span>
-</span><span data-line="266"><span class="sd">        Attack direction.</span>
-</span><span data-line="267"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="268">    <span class="k">if</span> <span class="n">target_idx</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-</span><span data-line="269">        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
-</span><span data-line="270">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="271">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span>
-</span><span data-line="272">            <span class="s2">&quot;Expected an integer or </span><span class="se">\&quot;</span><span class="s2">all</span><span class="se">\&quot;</span><span class="s2"> for &#39;target_idx&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_idx</span><span class="p">,)</span>
-</span><span data-line="273">        <span class="p">)</span>
-</span><span data-line="274">        <span class="n">grad_att</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
-</span><span data-line="275">        <span class="n">grad_att</span><span class="p">[</span><span class="n">target_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span data-line="276">        <span class="k">return</span> <span class="n">grad_att</span></div>
+</span><span data-line="263"><span class="sd">    Parameters</span>
+</span><span data-line="264"><span class="sd">    ----------</span>
+</span><span data-line="265"><span class="sd">    grad_stck : torch.Tensor</span>
+</span><span data-line="266"><span class="sd">        Stacked honest gradients.</span>
+</span><span data-line="267"><span class="sd">    grad_avg : torch.Tensor</span>
+</span><span data-line="268"><span class="sd">        Average honest gradient.</span>
+</span><span data-line="269"><span class="sd">    target_idx : int or str, optional</span>
+</span><span data-line="270"><span class="sd">        Targeted coordinate index, or ``&quot;all&quot;`` to target every coordinate.</span>
+</span><span data-line="271"><span class="sd">        Defaults to ``-1``.</span>
+</span><span data-line="272"><span class="sd">    **kwargs : object</span>
+</span><span data-line="273"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
+</span><span data-line="274">
+</span><span data-line="275"><span class="sd">    Returns</span>
+</span><span data-line="276"><span class="sd">    -------</span>
+</span><span data-line="277"><span class="sd">    torch.Tensor</span>
+</span><span data-line="278"><span class="sd">        Attack direction.</span>
+</span><span data-line="279"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="280">    <span class="k">if</span> <span class="n">target_idx</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+</span><span data-line="281">        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
+</span><span data-line="282">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="283">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span>
+</span><span data-line="284">            <span class="s2">&quot;Expected an integer or </span><span class="se">\&quot;</span><span class="s2">all</span><span class="se">\&quot;</span><span class="s2"> for &#39;target_idx&#39;, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_idx</span><span class="p">,)</span>
+</span><span data-line="285">        <span class="p">)</span>
+</span><span data-line="286">        <span class="n">grad_att</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad_avg</span><span class="p">)</span>
+</span><span data-line="287">        <span class="n">grad_att</span><span class="p">[</span><span class="n">target_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span data-line="288">        <span class="k">return</span> <span class="n">grad_att</span></div>
 
-</span><span data-line="277">
-</span><span data-line="278">
+</span><span data-line="289">
+</span><span data-line="290">
 <div class="viewcode-block" id="empire">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.empire">[docs]</a>
-</span><span data-line="279"><span class="k">def</span><span class="w"> </span><span class="nf">empire</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="280"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="281"><span class="sd">    Compute the Empire attack direction.</span>
-</span><span data-line="282">
-</span><span data-line="283"><span class="sd">    This direction is adapted from &quot;Fall of Empires&quot;.</span>
-</span><span data-line="284">
-</span><span data-line="285"><span class="sd">    Parameters</span>
-</span><span data-line="286"><span class="sd">    ----------</span>
-</span><span data-line="287"><span class="sd">    grad_stck : torch.Tensor</span>
-</span><span data-line="288"><span class="sd">        Stacked honest gradients.</span>
-</span><span data-line="289"><span class="sd">    grad_avg : torch.Tensor</span>
-</span><span data-line="290"><span class="sd">        Average honest gradient.</span>
-</span><span data-line="291"><span class="sd">    **kwargs : object</span>
-</span><span data-line="292"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
-</span><span data-line="293">
-</span><span data-line="294"><span class="sd">    Returns</span>
-</span><span data-line="295"><span class="sd">    -------</span>
-</span><span data-line="296"><span class="sd">    torch.Tensor</span>
-</span><span data-line="297"><span class="sd">        Attack direction, equal to the negative average honest gradient.</span>
-</span><span data-line="298"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="299">    <span class="k">return</span> <span class="n">grad_avg</span><span class="o">.</span><span class="n">neg</span><span class="p">()</span></div>
+</span><span data-line="291"><span class="k">def</span><span class="w"> </span><span class="nf">empire</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="292"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="293"><span class="sd">    Compute the Empire attack direction.</span>
+</span><span data-line="294">
+</span><span data-line="295"><span class="sd">    This direction is adapted from &quot;Fall of Empires&quot;.</span>
+</span><span data-line="296">
+</span><span data-line="297"><span class="sd">    Parameters</span>
+</span><span data-line="298"><span class="sd">    ----------</span>
+</span><span data-line="299"><span class="sd">    grad_stck : torch.Tensor</span>
+</span><span data-line="300"><span class="sd">        Stacked honest gradients.</span>
+</span><span data-line="301"><span class="sd">    grad_avg : torch.Tensor</span>
+</span><span data-line="302"><span class="sd">        Average honest gradient.</span>
+</span><span data-line="303"><span class="sd">    **kwargs : object</span>
+</span><span data-line="304"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
+</span><span data-line="305">
+</span><span data-line="306"><span class="sd">    Returns</span>
+</span><span data-line="307"><span class="sd">    -------</span>
+</span><span data-line="308"><span class="sd">    torch.Tensor</span>
+</span><span data-line="309"><span class="sd">        Attack direction, equal to the negative average honest gradient.</span>
+</span><span data-line="310"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="311">    <span class="k">return</span> <span class="n">grad_avg</span><span class="o">.</span><span class="n">neg</span><span class="p">()</span></div>
 
-</span><span data-line="300">
-</span><span data-line="301">
+</span><span data-line="312">
+</span><span data-line="313">
 <div class="viewcode-block" id="little">
 <a class="viewcode-back" href="../../attacks/classes/identical.html#attacks.identical.little">[docs]</a>
-</span><span data-line="302"><span class="k">def</span><span class="w"> </span><span class="nf">little</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="303"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="304"><span class="sd">    Compute the Little attack direction.</span>
-</span><span data-line="305">
-</span><span data-line="306"><span class="sd">    This direction is adapted from &quot;A Little Is Enough&quot;.</span>
-</span><span data-line="307">
-</span><span data-line="308"><span class="sd">    Parameters</span>
-</span><span data-line="309"><span class="sd">    ----------</span>
-</span><span data-line="310"><span class="sd">    grad_stck : torch.Tensor</span>
-</span><span data-line="311"><span class="sd">        Stacked honest gradients.</span>
-</span><span data-line="312"><span class="sd">    grad_avg : torch.Tensor</span>
-</span><span data-line="313"><span class="sd">        Average honest gradient.</span>
-</span><span data-line="314"><span class="sd">    **kwargs : object</span>
-</span><span data-line="315"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
-</span><span data-line="316">
-</span><span data-line="317"><span class="sd">    Returns</span>
-</span><span data-line="318"><span class="sd">    -------</span>
-</span><span data-line="319"><span class="sd">    torch.Tensor</span>
-</span><span data-line="320"><span class="sd">        Attack direction, computed as the coordinate-wise standard deviation of</span>
-</span><span data-line="321"><span class="sd">        honest gradients.</span>
-</span><span data-line="322"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="323">    <span class="k">return</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span></div>
-
-</span><span data-line="324">
-</span><span data-line="325">
-</span><span data-line="326"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="327"><span class="c1"># Attack registrations</span>
+</span><span data-line="314"><span class="k">def</span><span class="w"> </span><span class="nf">little</span><span class="p">(</span><span class="n">grad_stck</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">grad_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="315"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="316"><span class="sd">    Compute the Little attack direction.</span>
+</span><span data-line="317">
+</span><span data-line="318"><span class="sd">    This direction is adapted from &quot;A Little Is Enough&quot;.</span>
+</span><span data-line="319">
+</span><span data-line="320"><span class="sd">    Parameters</span>
+</span><span data-line="321"><span class="sd">    ----------</span>
+</span><span data-line="322"><span class="sd">    grad_stck : torch.Tensor</span>
+</span><span data-line="323"><span class="sd">        Stacked honest gradients.</span>
+</span><span data-line="324"><span class="sd">    grad_avg : torch.Tensor</span>
+</span><span data-line="325"><span class="sd">        Average honest gradient.</span>
+</span><span data-line="326"><span class="sd">    **kwargs : object</span>
+</span><span data-line="327"><span class="sd">        Additional keyword arguments, ignored by this direction.</span>
 </span><span data-line="328">
-</span><span data-line="329"><span class="c1"># Register the attacks</span>
-</span><span data-line="330"><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;bulyan&quot;</span><span class="p">,</span> <span class="n">bulyan</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;empire&quot;</span><span class="p">,</span> <span class="n">empire</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;little&quot;</span><span class="p">,</span> <span class="n">little</span><span class="p">)):</span>
-</span><span data-line="331">    <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">make_attack</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">check</span><span class="p">)</span>
+</span><span data-line="329"><span class="sd">    Returns</span>
+</span><span data-line="330"><span class="sd">    -------</span>
+</span><span data-line="331"><span class="sd">    torch.Tensor</span>
+</span><span data-line="332"><span class="sd">        Attack direction, computed as the coordinate-wise standard deviation of</span>
+</span><span data-line="333"><span class="sd">        honest gradients.</span>
+</span><span data-line="334"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="335">    <span class="k">return</span> <span class="n">grad_stck</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span></div>
+
+</span><span data-line="336">
+</span><span data-line="337">
+</span><span data-line="338"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="339"><span class="c1"># Attack registrations</span>
+</span><span data-line="340">
+</span><span data-line="341"><span class="c1"># Register the attacks</span>
+</span><span data-line="342"><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;bulyan&quot;</span><span class="p">,</span> <span class="n">bulyan</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;empire&quot;</span><span class="p">,</span> <span class="n">empire</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;little&quot;</span><span class="p">,</span> <span class="n">little</span><span class="p">)):</span>
+</span><span data-line="343">    <span class="n">register</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">make_attack</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">check</span><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -510,7 +525,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

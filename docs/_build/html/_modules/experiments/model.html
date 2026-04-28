@@ -72,7 +72,11 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/brute.html">Brute</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/identical.html">Identical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/nan.html">NaN</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../experiments/index.html">Experiments</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/dataset.html">Dataset</a></li>
@@ -138,17 +142,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for experiments.model</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   model.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Model wrappers/helpers.</span>
+</span><span data-line="3"><span class="c1"># @file   model.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Model wrappers/helpers.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -188,565 +192,562 @@ data-aria-dark="Switch to auto color mode">
 <div class="viewcode-block" id="Model">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model">[docs]</a>
 </span><span data-line="50"><span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">:</span>
-</span><span data-line="51"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="52"><span class="sd">  Unified model wrapper with parameter and gradient management.</span>
+</span><span data-line="51"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="52"><span class="sd">    Unified model wrapper with parameter and gradient management.</span>
 </span><span data-line="53">
-</span><span data-line="54"><span class="sd">  Models are resolved by lower-case name from ``torchvision.models`` and</span>
-</span><span data-line="55"><span class="sd">  from custom modules under ``experiments/models/``. Parameters are</span>
-</span><span data-line="56"><span class="sd">  automatically flattened into a contiguous vector accessible via</span>
-</span><span data-line="57"><span class="sd">  :meth:`get` and :meth:`set`.</span>
+</span><span data-line="54"><span class="sd">    Models are resolved by lower-case name from ``torchvision.models`` and</span>
+</span><span data-line="55"><span class="sd">    from custom modules under ``experiments/models/``. Parameters are</span>
+</span><span data-line="56"><span class="sd">    automatically flattened into a contiguous vector accessible via</span>
+</span><span data-line="57"><span class="sd">    :meth:`get` and :meth:`set`.</span>
 </span><span data-line="58">
-</span><span data-line="59"><span class="sd">  Data parallelism (``torch.nn.DataParallel``) is enabled automatically</span>
-</span><span data-line="60"><span class="sd">  when the model is placed on a non-indexed CUDA device.</span>
+</span><span data-line="59"><span class="sd">    Data parallelism (``torch.nn.DataParallel``) is enabled automatically</span>
+</span><span data-line="60"><span class="sd">    when the model is placed on a non-indexed CUDA device.</span>
 </span><span data-line="61">
-</span><span data-line="62"><span class="sd">  Parameters</span>
-</span><span data-line="63"><span class="sd">  ----------</span>
-</span><span data-line="64"><span class="sd">  name_build : str or callable</span>
-</span><span data-line="65"><span class="sd">      Model name (e.g. ``&quot;resnet18&quot;``, ``&quot;torchvision-resnet18&quot;``) or a</span>
-</span><span data-line="66"><span class="sd">      constructor function.</span>
-</span><span data-line="67"><span class="sd">  config : experiments.Configuration, optional</span>
-</span><span data-line="68"><span class="sd">      Target device and dtype configuration.</span>
-</span><span data-line="69"><span class="sd">  init_multi : str or callable or None, optional</span>
-</span><span data-line="70"><span class="sd">      Weight initializer for tensors of dimension ``&gt;= 2``.</span>
-</span><span data-line="71"><span class="sd">  init_multi_args : dict or None, optional</span>
-</span><span data-line="72"><span class="sd">      Keyword arguments for ``init_multi`` when it is a string.</span>
-</span><span data-line="73"><span class="sd">  init_mono : str or callable or None, optional</span>
-</span><span data-line="74"><span class="sd">      Weight initializer for tensors of dimension ``== 1``.</span>
-</span><span data-line="75"><span class="sd">  init_mono_args : dict or None, optional</span>
-</span><span data-line="76"><span class="sd">      Keyword arguments for ``init_mono`` when it is a string.</span>
-</span><span data-line="77"><span class="sd">  *args : object</span>
-</span><span data-line="78"><span class="sd">      Forwarded to the model constructor.</span>
-</span><span data-line="79"><span class="sd">  **kwargs : object</span>
-</span><span data-line="80"><span class="sd">      Forwarded to the model constructor.</span>
+</span><span data-line="62"><span class="sd">    Parameters</span>
+</span><span data-line="63"><span class="sd">    ----------</span>
+</span><span data-line="64"><span class="sd">    name_build : str or callable</span>
+</span><span data-line="65"><span class="sd">        Model name (e.g. ``&quot;resnet18&quot;``, ``&quot;torchvision-resnet18&quot;``) or a</span>
+</span><span data-line="66"><span class="sd">        constructor function.</span>
+</span><span data-line="67"><span class="sd">    config : experiments.Configuration, optional</span>
+</span><span data-line="68"><span class="sd">        Target device and dtype configuration.</span>
+</span><span data-line="69"><span class="sd">    init_multi : str or callable or None, optional</span>
+</span><span data-line="70"><span class="sd">        Weight initializer for tensors of dimension ``&gt;= 2``.</span>
+</span><span data-line="71"><span class="sd">    init_multi_args : dict or None, optional</span>
+</span><span data-line="72"><span class="sd">        Keyword arguments for ``init_multi`` when it is a string.</span>
+</span><span data-line="73"><span class="sd">    init_mono : str or callable or None, optional</span>
+</span><span data-line="74"><span class="sd">        Weight initializer for tensors of dimension ``== 1``.</span>
+</span><span data-line="75"><span class="sd">    init_mono_args : dict or None, optional</span>
+</span><span data-line="76"><span class="sd">        Keyword arguments for ``init_mono`` when it is a string.</span>
+</span><span data-line="77"><span class="sd">    *args : object</span>
+</span><span data-line="78"><span class="sd">        Forwarded to the model constructor.</span>
+</span><span data-line="79"><span class="sd">    **kwargs : object</span>
+</span><span data-line="80"><span class="sd">        Forwarded to the model constructor.</span>
 </span><span data-line="81">
-</span><span data-line="82"><span class="sd">  Raises</span>
-</span><span data-line="83"><span class="sd">  ------</span>
-</span><span data-line="84"><span class="sd">  tools.UnavailableException</span>
-</span><span data-line="85"><span class="sd">      If ``name_build`` is an unknown string.</span>
-</span><span data-line="86"><span class="sd">  tools.UserException</span>
-</span><span data-line="87"><span class="sd">      If the built object is not a ``torch.nn.Module``.</span>
-</span><span data-line="88"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="82"><span class="sd">    Raises</span>
+</span><span data-line="83"><span class="sd">    ------</span>
+</span><span data-line="84"><span class="sd">    tools.UnavailableException</span>
+</span><span data-line="85"><span class="sd">        If ``name_build`` is an unknown string.</span>
+</span><span data-line="86"><span class="sd">    tools.UserException</span>
+</span><span data-line="87"><span class="sd">        If the built object is not a ``torch.nn.Module``.</span>
+</span><span data-line="88"><span class="sd">    &quot;&quot;&quot;</span>
 </span><span data-line="89">
-</span><span data-line="90">  <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;model constructor&#39;</span>
-</span><span data-line="91">  <span class="n">__models</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="90">    <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;model constructor&#39;</span>
+</span><span data-line="91">    <span class="n">__models</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span data-line="92">
-</span><span data-line="93">  <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;tensor initializer&#39;</span>
-</span><span data-line="94">  <span class="n">__inits</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="93">    <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;tensor initializer&#39;</span>
+</span><span data-line="94">    <span class="n">__inits</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span data-line="95">
-</span><span data-line="96">  <span class="nd">@classmethod</span>
-</span><span data-line="97">  <span class="k">def</span><span class="w"> </span><span class="nf">_get_models</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span data-line="98"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="99"><span class="sd">    Lazily build the name-to-constructor mapping for models.</span>
+</span><span data-line="96">    <span class="nd">@classmethod</span>
+</span><span data-line="97">    <span class="k">def</span><span class="w"> </span><span class="nf">_get_models</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span data-line="98"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="99"><span class="sd">        Lazily build the name-to-constructor mapping for models.</span>
 </span><span data-line="100">
-</span><span data-line="101"><span class="sd">    Returns</span>
-</span><span data-line="102"><span class="sd">    -------</span>
-</span><span data-line="103"><span class="sd">    dict[str, callable]</span>
-</span><span data-line="104"><span class="sd">        Lower-case model names mapped to constructors.</span>
-</span><span data-line="105"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="106">    <span class="c1"># Fast-path already loaded</span>
-</span><span data-line="107">    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="108">      <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span>
-</span><span data-line="109">    <span class="c1"># Initialize the dictionary</span>
-</span><span data-line="110">    <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span data-line="111">    <span class="c1"># Populate with TorchVision&#39;s models</span>
-</span><span data-line="112">    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">):</span>
-</span><span data-line="113">      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
-</span><span data-line="114">        <span class="k">continue</span>
-</span><span data-line="115">      <span class="n">builder</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="116">      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span>
-</span><span data-line="117">        <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;torchvision-</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">builder</span>
-</span><span data-line="118">    <span class="c1"># Dynamically add custom models from subdirectory &#39;models/&#39;</span>
-</span><span data-line="119">    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_models</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
-</span><span data-line="120">      <span class="k">nonlocal</span> <span class="bp">cls</span>
-</span><span data-line="121">      <span class="n">exports</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="122">      <span class="k">if</span> <span class="n">exports</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="123">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="124">          <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not provide &#39;__all__&#39;; &quot;</span>
-</span><span data-line="125">          <span class="sa">f</span><span class="s2">&quot;falling back to &#39;__dict__&#39; for name discovery&quot;</span>
-</span><span data-line="126">        <span class="p">)</span>
-</span><span data-line="127">        <span class="n">exports</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="128">          <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span>
-</span><span data-line="129">        <span class="p">)</span>
-</span><span data-line="130">      <span class="n">exported</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="131">      <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">exports</span><span class="p">:</span>
-</span><span data-line="132">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="133">          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="134">            <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> exports non-string name &quot;</span>
-</span><span data-line="135">            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">; ignored&quot;</span>
-</span><span data-line="136">          <span class="p">)</span>
-</span><span data-line="137">          <span class="k">continue</span>
-</span><span data-line="138">        <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="139">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">constructor</span><span class="p">):</span>
-</span><span data-line="140">          <span class="k">continue</span>
-</span><span data-line="141">        <span class="n">exported</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span data-line="142">        <span class="n">fullname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span data-line="143">        <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">:</span>
-</span><span data-line="144">          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="145">            <span class="sa">f</span><span class="s2">&quot;Unable to make available model </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2"> from module &quot;</span>
-</span><span data-line="146">            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, as the name </span><span class="si">{</span><span class="n">fullname</span><span class="si">!r}</span><span class="s2"> already exists&quot;</span>
-</span><span data-line="147">          <span class="p">)</span>
-</span><span data-line="148">          <span class="k">continue</span>
-</span><span data-line="149">        <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="n">fullname</span><span class="p">]</span> <span class="o">=</span> <span class="n">constructor</span>
-</span><span data-line="150">      <span class="k">if</span> <span class="ow">not</span> <span class="n">exported</span><span class="p">:</span>
-</span><span data-line="151">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="152">          <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not export any valid &quot;</span>
-</span><span data-line="153">          <span class="sa">f</span><span class="s2">&quot;constructor name through &#39;__all__&#39;&quot;</span>
-</span><span data-line="154">        <span class="p">)</span>
-</span><span data-line="155">    <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="156">      <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span>
-</span><span data-line="157">        <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;models&quot;</span><span class="p">,</span>
-</span><span data-line="158">        <span class="p">{</span><span class="s2">&quot;__package__&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.models&quot;</span><span class="p">},</span>
-</span><span data-line="159">        <span class="n">post</span><span class="o">=</span><span class="n">add_custom_models</span><span class="p">,</span>
-</span><span data-line="160">      <span class="p">)</span>
-</span><span data-line="161">    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span>
+</span><span data-line="101"><span class="sd">        Returns</span>
+</span><span data-line="102"><span class="sd">        -------</span>
+</span><span data-line="103"><span class="sd">        dict[str, callable]</span>
+</span><span data-line="104"><span class="sd">            Lower-case model names mapped to constructors.</span>
+</span><span data-line="105"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="106">        <span class="c1"># Fast-path already loaded</span>
+</span><span data-line="107">        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="108">            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span>
+</span><span data-line="109">        <span class="c1"># Initialize the dictionary</span>
+</span><span data-line="110">        <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="111">        <span class="c1"># Populate with TorchVision&#39;s models</span>
+</span><span data-line="112">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">):</span>
+</span><span data-line="113">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+</span><span data-line="114">                <span class="k">continue</span>
+</span><span data-line="115">            <span class="n">builder</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="116">            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span>
+</span><span data-line="117">                <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;torchvision-</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">builder</span>
+</span><span data-line="118">
+</span><span data-line="119">        <span class="c1"># Dynamically add custom models from subdirectory &#39;models/&#39;</span>
+</span><span data-line="120">        <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_models</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+</span><span data-line="121">            <span class="k">nonlocal</span> <span class="bp">cls</span>
+</span><span data-line="122">            <span class="n">exports</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="123">            <span class="k">if</span> <span class="n">exports</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="124">                <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="125">                    <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not provide &#39;__all__&#39;; &quot;</span>
+</span><span data-line="126">                    <span class="sa">f</span><span class="s2">&quot;falling back to &#39;__dict__&#39; for name discovery&quot;</span>
+</span><span data-line="127">                <span class="p">)</span>
+</span><span data-line="128">                <span class="n">exports</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+</span><span data-line="129">            <span class="n">exported</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="130">            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">exports</span><span class="p">:</span>
+</span><span data-line="131">                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="132">                    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="133">                        <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> exports non-string name &quot;</span>
+</span><span data-line="134">                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">; ignored&quot;</span>
+</span><span data-line="135">                    <span class="p">)</span>
+</span><span data-line="136">                    <span class="k">continue</span>
+</span><span data-line="137">                <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="138">                <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">constructor</span><span class="p">):</span>
+</span><span data-line="139">                    <span class="k">continue</span>
+</span><span data-line="140">                <span class="n">exported</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span data-line="141">                <span class="n">fullname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span data-line="142">                <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">:</span>
+</span><span data-line="143">                    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="144">                        <span class="sa">f</span><span class="s2">&quot;Unable to make available model </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2"> from module &quot;</span>
+</span><span data-line="145">                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, as the name </span><span class="si">{</span><span class="n">fullname</span><span class="si">!r}</span><span class="s2"> already exists&quot;</span>
+</span><span data-line="146">                    <span class="p">)</span>
+</span><span data-line="147">                    <span class="k">continue</span>
+</span><span data-line="148">                <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span><span class="p">[</span><span class="n">fullname</span><span class="p">]</span> <span class="o">=</span> <span class="n">constructor</span>
+</span><span data-line="149">            <span class="k">if</span> <span class="ow">not</span> <span class="n">exported</span><span class="p">:</span>
+</span><span data-line="150">                <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="151">                    <span class="sa">f</span><span class="s2">&quot;Model module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not export any valid &quot;</span>
+</span><span data-line="152">                    <span class="sa">f</span><span class="s2">&quot;constructor name through &#39;__all__&#39;&quot;</span>
+</span><span data-line="153">                <span class="p">)</span>
+</span><span data-line="154">
+</span><span data-line="155">        <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="156">            <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span>
+</span><span data-line="157">                <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;models&quot;</span><span class="p">,</span>
+</span><span data-line="158">                <span class="p">{</span><span class="s2">&quot;__package__&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.models&quot;</span><span class="p">},</span>
+</span><span data-line="159">                <span class="n">post</span><span class="o">=</span><span class="n">add_custom_models</span><span class="p">,</span>
+</span><span data-line="160">            <span class="p">)</span>
+</span><span data-line="161">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__models</span>
 </span><span data-line="162">
-</span><span data-line="163">  <span class="nd">@classmethod</span>
-</span><span data-line="164">  <span class="k">def</span><span class="w"> </span><span class="nf">_get_inits</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span data-line="165"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="166"><span class="sd">    Lazily build the name-to-function mapping for initializers.</span>
+</span><span data-line="163">    <span class="nd">@classmethod</span>
+</span><span data-line="164">    <span class="k">def</span><span class="w"> </span><span class="nf">_get_inits</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span data-line="165"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="166"><span class="sd">        Lazily build the name-to-function mapping for initializers.</span>
 </span><span data-line="167">
-</span><span data-line="168"><span class="sd">    Returns</span>
-</span><span data-line="169"><span class="sd">    -------</span>
-</span><span data-line="170"><span class="sd">    dict[str, callable]</span>
-</span><span data-line="171"><span class="sd">        Lower-case initializer names mapped to functions.</span>
-</span><span data-line="172"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="173">    <span class="c1"># Fast-path already loaded</span>
-</span><span data-line="174">    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="175">      <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span>
-</span><span data-line="176">    <span class="c1"># Initialize the dictionary</span>
-</span><span data-line="177">    <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span data-line="178">    <span class="c1"># Populate with PyTorch&#39;s initialization functions</span>
-</span><span data-line="179">    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">):</span>
-</span><span data-line="180">      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
-</span><span data-line="181">        <span class="k">continue</span>
-</span><span data-line="182">      <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
-</span><span data-line="183">        <span class="k">continue</span>
-</span><span data-line="184">      <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="185">      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span>
-</span><span data-line="186">        <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span><span class="p">[</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">func</span>
-</span><span data-line="187">    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span>
+</span><span data-line="168"><span class="sd">        Returns</span>
+</span><span data-line="169"><span class="sd">        -------</span>
+</span><span data-line="170"><span class="sd">        dict[str, callable]</span>
+</span><span data-line="171"><span class="sd">            Lower-case initializer names mapped to functions.</span>
+</span><span data-line="172"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="173">        <span class="c1"># Fast-path already loaded</span>
+</span><span data-line="174">        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="175">            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span>
+</span><span data-line="176">        <span class="c1"># Initialize the dictionary</span>
+</span><span data-line="177">        <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="178">        <span class="c1"># Populate with PyTorch&#39;s initialization functions</span>
+</span><span data-line="179">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">):</span>
+</span><span data-line="180">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+</span><span data-line="181">                <span class="k">continue</span>
+</span><span data-line="182">            <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+</span><span data-line="183">                <span class="k">continue</span>
+</span><span data-line="184">            <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="185">            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">):</span>
+</span><span data-line="186">                <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span><span class="p">[</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">func</span>
+</span><span data-line="187">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__inits</span>
 </span><span data-line="188">
-</span><span data-line="189">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span data-line="190">    <span class="bp">self</span><span class="p">,</span>
-</span><span data-line="191">    <span class="n">name_build</span><span class="p">,</span>
-</span><span data-line="192">    <span class="n">config</span><span class="o">=</span><span class="n">Configuration</span><span class="p">(),</span>
-</span><span data-line="193">    <span class="n">init_multi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="194">    <span class="n">init_multi_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="195">    <span class="n">init_mono</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="196">    <span class="n">init_mono_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="197">    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
-</span><span data-line="198">    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span data-line="199">  <span class="p">):</span>
-</span><span data-line="200"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="201"><span class="sd">    Initialize the model wrapper.</span>
+</span><span data-line="189">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span data-line="190">        <span class="bp">self</span><span class="p">,</span>
+</span><span data-line="191">        <span class="n">name_build</span><span class="p">,</span>
+</span><span data-line="192">        <span class="n">config</span><span class="o">=</span><span class="n">Configuration</span><span class="p">(),</span>
+</span><span data-line="193">        <span class="n">init_multi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="194">        <span class="n">init_multi_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="195">        <span class="n">init_mono</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="196">        <span class="n">init_mono_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="197">        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+</span><span data-line="198">        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span data-line="199">    <span class="p">):</span>
+</span><span data-line="200"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="201"><span class="sd">        Initialize the model wrapper.</span>
 </span><span data-line="202">
-</span><span data-line="203"><span class="sd">    Parameters</span>
-</span><span data-line="204"><span class="sd">    ----------</span>
-</span><span data-line="205"><span class="sd">    name_build : str or callable</span>
-</span><span data-line="206"><span class="sd">        Model name or constructor.</span>
-</span><span data-line="207"><span class="sd">    config : experiments.Configuration, optional</span>
-</span><span data-line="208"><span class="sd">        Tensor configuration.</span>
-</span><span data-line="209"><span class="sd">    init_multi : str or callable or None, optional</span>
-</span><span data-line="210"><span class="sd">        Multi-dimensional initializer.</span>
-</span><span data-line="211"><span class="sd">    init_multi_args : dict or None, optional</span>
-</span><span data-line="212"><span class="sd">        Arguments for multi-dimensional initializer.</span>
-</span><span data-line="213"><span class="sd">    init_mono : str or callable or None, optional</span>
-</span><span data-line="214"><span class="sd">        Mono-dimensional initializer.</span>
-</span><span data-line="215"><span class="sd">    init_mono_args : dict or None, optional</span>
-</span><span data-line="216"><span class="sd">        Arguments for mono-dimensional initializer.</span>
-</span><span data-line="217"><span class="sd">    *args : object</span>
-</span><span data-line="218"><span class="sd">        Forwarded to the model constructor.</span>
-</span><span data-line="219"><span class="sd">    **kwargs : object</span>
-</span><span data-line="220"><span class="sd">        Forwarded to the model constructor.</span>
-</span><span data-line="221"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="222">    <span class="k">def</span><span class="w"> </span><span class="nf">make_init</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
-</span><span data-line="223">      <span class="n">inits</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_inits</span><span class="p">()</span>
-</span><span data-line="224">      <span class="n">func</span> <span class="o">=</span> <span class="n">inits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="225">      <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="226">        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">inits</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;initializer name&quot;</span><span class="p">)</span>
-</span><span data-line="227">      <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">args</span>
-</span><span data-line="228">      <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-</span><span data-line="229">        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
-</span><span data-line="230">      <span class="k">return</span> <span class="n">init</span>
-</span><span data-line="231">    <span class="c1"># Recover name/constructor</span>
-</span><span data-line="232">    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">name_build</span><span class="p">):</span>
-</span><span data-line="233">      <span class="n">name</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
-</span><span data-line="234">      <span class="n">build</span> <span class="o">=</span> <span class="n">name_build</span>
-</span><span data-line="235">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="236">      <span class="n">models</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_models</span><span class="p">()</span>
-</span><span data-line="237">      <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
-</span><span data-line="238">      <span class="n">build</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="239">      <span class="k">if</span> <span class="n">build</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="240">        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model name&quot;</span><span class="p">)</span>
-</span><span data-line="241">    <span class="c1"># Recover initialization algorithms</span>
-</span><span data-line="242">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="243">      <span class="n">init_multi</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="n">init_multi_args</span><span class="p">)</span>
-</span><span data-line="244">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="245">      <span class="n">init_mono</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="n">init_mono_args</span><span class="p">)</span>
-</span><span data-line="246">    <span class="c1"># Build model</span>
-</span><span data-line="247">    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-</span><span data-line="248">      <span class="n">model</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="249">      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="250">        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="251">          <span class="sa">f</span><span class="s2">&quot;Expected built model </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> to be an instance of &quot;</span>
-</span><span data-line="252">          <span class="sa">f</span><span class="s2">&quot;&#39;torch.nn.Module&#39;, found &quot;</span>
-</span><span data-line="253">          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;__name__&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;unknown&gt;&#39;</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> instead&quot;</span>
-</span><span data-line="254">        <span class="p">)</span>
-</span><span data-line="255">      <span class="c1"># Initialize parameters</span>
-</span><span data-line="256">      <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-</span><span data-line="257">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span data-line="258">          <span class="k">if</span> <span class="n">init_multi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="259">            <span class="n">init_multi</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
-</span><span data-line="260">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="261">          <span class="k">if</span> <span class="n">init_mono</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="262">            <span class="n">init_mono</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
-</span><span data-line="263">      <span class="c1"># Move parameters to target device</span>
-</span><span data-line="264">      <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
-</span><span data-line="265">      <span class="n">device</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">]</span>
-</span><span data-line="266">      <span class="k">if</span> <span class="p">(</span>
-</span><span data-line="267">        <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span>
-</span><span data-line="268">        <span class="ow">and</span> <span class="n">device</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span>
-</span><span data-line="269">      <span class="p">):</span>
-</span><span data-line="270">        <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-</span><span data-line="271">    <span class="n">params</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
-</span><span data-line="272">    <span class="c1"># Finalization</span>
-</span><span data-line="273">    <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
-</span><span data-line="274">    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
-</span><span data-line="275">    <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
-</span><span data-line="276">    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
-</span><span data-line="277">    <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="278">    <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="279">      <span class="s2">&quot;trainset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="280">      <span class="s2">&quot;testset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="281">      <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="282">      <span class="s2">&quot;criterion&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="283">      <span class="s2">&quot;optimizer&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="284">    <span class="p">}</span>
-</span><span data-line="285">
-</span><span data-line="286">  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="287"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="288"><span class="sd">    Return a printable representation.</span>
-</span><span data-line="289">
-</span><span data-line="290"><span class="sd">    Returns</span>
-</span><span data-line="291"><span class="sd">    -------</span>
-</span><span data-line="292"><span class="sd">    str</span>
-</span><span data-line="293"><span class="sd">        Human-readable model name.</span>
-</span><span data-line="294"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="295">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;model </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span data-line="296">
-</span><span data-line="297">  <span class="nd">@property</span>
-</span><span data-line="298">  <span class="k">def</span><span class="w"> </span><span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="299"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="300"><span class="sd">    Return the immutable configuration.</span>
-</span><span data-line="301">
-</span><span data-line="302"><span class="sd">    Returns</span>
-</span><span data-line="303"><span class="sd">    -------</span>
-</span><span data-line="304"><span class="sd">    experiments.Configuration</span>
-</span><span data-line="305"><span class="sd">        Model configuration.</span>
-</span><span data-line="306"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="307">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
-</span><span data-line="308">
+</span><span data-line="203"><span class="sd">        Parameters</span>
+</span><span data-line="204"><span class="sd">        ----------</span>
+</span><span data-line="205"><span class="sd">        name_build : str or callable</span>
+</span><span data-line="206"><span class="sd">            Model name or constructor.</span>
+</span><span data-line="207"><span class="sd">        config : experiments.Configuration, optional</span>
+</span><span data-line="208"><span class="sd">            Tensor configuration.</span>
+</span><span data-line="209"><span class="sd">        init_multi : str or callable or None, optional</span>
+</span><span data-line="210"><span class="sd">            Multi-dimensional initializer.</span>
+</span><span data-line="211"><span class="sd">        init_multi_args : dict or None, optional</span>
+</span><span data-line="212"><span class="sd">            Arguments for multi-dimensional initializer.</span>
+</span><span data-line="213"><span class="sd">        init_mono : str or callable or None, optional</span>
+</span><span data-line="214"><span class="sd">            Mono-dimensional initializer.</span>
+</span><span data-line="215"><span class="sd">        init_mono_args : dict or None, optional</span>
+</span><span data-line="216"><span class="sd">            Arguments for mono-dimensional initializer.</span>
+</span><span data-line="217"><span class="sd">        *args : object</span>
+</span><span data-line="218"><span class="sd">            Forwarded to the model constructor.</span>
+</span><span data-line="219"><span class="sd">        **kwargs : object</span>
+</span><span data-line="220"><span class="sd">            Forwarded to the model constructor.</span>
+</span><span data-line="221"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="222">
+</span><span data-line="223">        <span class="k">def</span><span class="w"> </span><span class="nf">make_init</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+</span><span data-line="224">            <span class="n">inits</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_inits</span><span class="p">()</span>
+</span><span data-line="225">            <span class="n">func</span> <span class="o">=</span> <span class="n">inits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="226">            <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="227">                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">inits</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;initializer name&quot;</span><span class="p">)</span>
+</span><span data-line="228">            <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">args</span>
+</span><span data-line="229">
+</span><span data-line="230">            <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+</span><span data-line="231">                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+</span><span data-line="232">
+</span><span data-line="233">            <span class="k">return</span> <span class="n">init</span>
+</span><span data-line="234">
+</span><span data-line="235">        <span class="c1"># Recover name/constructor</span>
+</span><span data-line="236">        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">name_build</span><span class="p">):</span>
+</span><span data-line="237">            <span class="n">name</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
+</span><span data-line="238">            <span class="n">build</span> <span class="o">=</span> <span class="n">name_build</span>
+</span><span data-line="239">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="240">            <span class="n">models</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_models</span><span class="p">()</span>
+</span><span data-line="241">            <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name_build</span><span class="p">)</span>
+</span><span data-line="242">            <span class="n">build</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="243">            <span class="k">if</span> <span class="n">build</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="244">                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model name&quot;</span><span class="p">)</span>
+</span><span data-line="245">        <span class="c1"># Recover initialization algorithms</span>
+</span><span data-line="246">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="247">            <span class="n">init_multi</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_multi</span><span class="p">,</span> <span class="n">init_multi_args</span><span class="p">)</span>
+</span><span data-line="248">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="249">            <span class="n">init_mono</span> <span class="o">=</span> <span class="n">make_init</span><span class="p">(</span><span class="n">init_mono</span><span class="p">,</span> <span class="n">init_mono_args</span><span class="p">)</span>
+</span><span data-line="250">        <span class="c1"># Build model</span>
+</span><span data-line="251">        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span><span data-line="252">            <span class="n">model</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="253">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="254">                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="255">                    <span class="sa">f</span><span class="s2">&quot;Expected built model </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> to be an instance of &quot;</span>
+</span><span data-line="256">                    <span class="sa">f</span><span class="s2">&quot;&#39;torch.nn.Module&#39;, found &quot;</span>
+</span><span data-line="257">                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;__name__&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;unknown&gt;&#39;</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> instead&quot;</span>
+</span><span data-line="258">                <span class="p">)</span>
+</span><span data-line="259">            <span class="c1"># Initialize parameters</span>
+</span><span data-line="260">            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+</span><span data-line="261">                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="262">                    <span class="k">if</span> <span class="n">init_multi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="263">                        <span class="n">init_multi</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+</span><span data-line="264">                <span class="k">else</span><span class="p">:</span>
+</span><span data-line="265">                    <span class="k">if</span> <span class="n">init_mono</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="266">                        <span class="n">init_mono</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+</span><span data-line="267">            <span class="c1"># Move parameters to target device</span>
+</span><span data-line="268">            <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+</span><span data-line="269">            <span class="n">device</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">]</span>
+</span><span data-line="270">            <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span> <span class="ow">and</span> <span class="n">device</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="271">                <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</span><span data-line="272">        <span class="n">params</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+</span><span data-line="273">        <span class="c1"># Finalization</span>
+</span><span data-line="274">        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+</span><span data-line="275">        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span data-line="276">        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
+</span><span data-line="277">        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+</span><span data-line="278">        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="279">        <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="280">            <span class="s2">&quot;trainset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="281">            <span class="s2">&quot;testset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="282">            <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="283">            <span class="s2">&quot;criterion&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="284">            <span class="s2">&quot;optimizer&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="285">        <span class="p">}</span>
+</span><span data-line="286">
+</span><span data-line="287">    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="288"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="289"><span class="sd">        Return a printable representation.</span>
+</span><span data-line="290">
+</span><span data-line="291"><span class="sd">        Returns</span>
+</span><span data-line="292"><span class="sd">        -------</span>
+</span><span data-line="293"><span class="sd">        str</span>
+</span><span data-line="294"><span class="sd">            Human-readable model name.</span>
+</span><span data-line="295"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="296">        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;model </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span data-line="297">
+</span><span data-line="298">    <span class="nd">@property</span>
+</span><span data-line="299">    <span class="k">def</span><span class="w"> </span><span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="300"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="301"><span class="sd">        Return the immutable configuration.</span>
+</span><span data-line="302">
+</span><span data-line="303"><span class="sd">        Returns</span>
+</span><span data-line="304"><span class="sd">        -------</span>
+</span><span data-line="305"><span class="sd">        experiments.Configuration</span>
+</span><span data-line="306"><span class="sd">            Model configuration.</span>
+</span><span data-line="307"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="308">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+</span><span data-line="309">
 <div class="viewcode-block" id="Model.default">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.default">[docs]</a>
-</span><span data-line="309">  <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">erase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="310"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="311"><span class="sd">    Get and/or set a named default.</span>
-</span><span data-line="312">
-</span><span data-line="313"><span class="sd">    Parameters</span>
-</span><span data-line="314"><span class="sd">    ----------</span>
-</span><span data-line="315"><span class="sd">    name : str</span>
-</span><span data-line="316"><span class="sd">        Default key (e.g. ``&quot;trainset&quot;``, ``&quot;loss&quot;``, ``&quot;optimizer&quot;``).</span>
-</span><span data-line="317"><span class="sd">    new : object or None, optional</span>
-</span><span data-line="318"><span class="sd">        New value to set. Ignored unless ``new is not None`` or</span>
-</span><span data-line="319"><span class="sd">        ``erase`` is ``True``.</span>
-</span><span data-line="320"><span class="sd">    erase : bool, optional</span>
-</span><span data-line="321"><span class="sd">        Force the value to ``None``.</span>
-</span><span data-line="322">
-</span><span data-line="323"><span class="sd">    Returns</span>
-</span><span data-line="324"><span class="sd">    -------</span>
-</span><span data-line="325"><span class="sd">    object</span>
-</span><span data-line="326"><span class="sd">        Current (or old) value of the default.</span>
-</span><span data-line="327">
-</span><span data-line="328"><span class="sd">    Raises</span>
-</span><span data-line="329"><span class="sd">    ------</span>
-</span><span data-line="330"><span class="sd">    tools.UnavailableException</span>
-</span><span data-line="331"><span class="sd">        If ``name`` is not a known default.</span>
-</span><span data-line="332"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="333">    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
-</span><span data-line="334">      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span>
-</span><span data-line="335">        <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model default&quot;</span>
-</span><span data-line="336">      <span class="p">)</span>
-</span><span data-line="337">    <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-</span><span data-line="338">    <span class="k">if</span> <span class="n">erase</span> <span class="ow">or</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="339">      <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span>
-</span><span data-line="340">    <span class="k">return</span> <span class="n">old</span></div>
+</span><span data-line="310">    <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">erase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="311"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="312"><span class="sd">        Get and/or set a named default.</span>
+</span><span data-line="313">
+</span><span data-line="314"><span class="sd">        Parameters</span>
+</span><span data-line="315"><span class="sd">        ----------</span>
+</span><span data-line="316"><span class="sd">        name : str</span>
+</span><span data-line="317"><span class="sd">            Default key (e.g. ``&quot;trainset&quot;``, ``&quot;loss&quot;``, ``&quot;optimizer&quot;``).</span>
+</span><span data-line="318"><span class="sd">        new : object or None, optional</span>
+</span><span data-line="319"><span class="sd">            New value to set. Ignored unless ``new is not None`` or</span>
+</span><span data-line="320"><span class="sd">            ``erase`` is ``True``.</span>
+</span><span data-line="321"><span class="sd">        erase : bool, optional</span>
+</span><span data-line="322"><span class="sd">            Force the value to ``None``.</span>
+</span><span data-line="323">
+</span><span data-line="324"><span class="sd">        Returns</span>
+</span><span data-line="325"><span class="sd">        -------</span>
+</span><span data-line="326"><span class="sd">        object</span>
+</span><span data-line="327"><span class="sd">            Current (or old) value of the default.</span>
+</span><span data-line="328">
+</span><span data-line="329"><span class="sd">        Raises</span>
+</span><span data-line="330"><span class="sd">        ------</span>
+</span><span data-line="331"><span class="sd">        tools.UnavailableException</span>
+</span><span data-line="332"><span class="sd">            If ``name`` is not a known default.</span>
+</span><span data-line="333"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="334">        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
+</span><span data-line="335">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;model default&quot;</span><span class="p">)</span>
+</span><span data-line="336">        <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+</span><span data-line="337">        <span class="k">if</span> <span class="n">erase</span> <span class="ow">or</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="338">            <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span>
+</span><span data-line="339">        <span class="k">return</span> <span class="n">old</span></div>
 
-</span><span data-line="341">
-</span><span data-line="342">  <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="343"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="344"><span class="sd">    Replace ``None`` values with registered defaults.</span>
-</span><span data-line="345">
-</span><span data-line="346"><span class="sd">    Parameters</span>
-</span><span data-line="347"><span class="sd">    ----------</span>
-</span><span data-line="348"><span class="sd">    **kwargs : object</span>
-</span><span data-line="349"><span class="sd">        Keyword arguments where ``None`` means &quot;use the default&quot;.</span>
-</span><span data-line="350">
-</span><span data-line="351"><span class="sd">    Returns</span>
-</span><span data-line="352"><span class="sd">    -------</span>
-</span><span data-line="353"><span class="sd">    list[object]</span>
-</span><span data-line="354"><span class="sd">        Resolved values in argument order.</span>
-</span><span data-line="355">
-</span><span data-line="356"><span class="sd">    Raises</span>
-</span><span data-line="357"><span class="sd">    ------</span>
-</span><span data-line="358"><span class="sd">    RuntimeError</span>
-</span><span data-line="359"><span class="sd">        If a required default is missing.</span>
-</span><span data-line="360"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="361">    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-</span><span data-line="362">    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span data-line="363">      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="364">        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span data-line="365">        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="366">          <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing default </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="367">      <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-</span><span data-line="368">    <span class="k">return</span> <span class="n">res</span>
-</span><span data-line="369">
+</span><span data-line="340">
+</span><span data-line="341">    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="342"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="343"><span class="sd">        Replace ``None`` values with registered defaults.</span>
+</span><span data-line="344">
+</span><span data-line="345"><span class="sd">        Parameters</span>
+</span><span data-line="346"><span class="sd">        ----------</span>
+</span><span data-line="347"><span class="sd">        **kwargs : object</span>
+</span><span data-line="348"><span class="sd">            Keyword arguments where ``None`` means &quot;use the default&quot;.</span>
+</span><span data-line="349">
+</span><span data-line="350"><span class="sd">        Returns</span>
+</span><span data-line="351"><span class="sd">        -------</span>
+</span><span data-line="352"><span class="sd">        list[object]</span>
+</span><span data-line="353"><span class="sd">            Resolved values in argument order.</span>
+</span><span data-line="354">
+</span><span data-line="355"><span class="sd">        Raises</span>
+</span><span data-line="356"><span class="sd">        ------</span>
+</span><span data-line="357"><span class="sd">        RuntimeError</span>
+</span><span data-line="358"><span class="sd">            If a required default is missing.</span>
+</span><span data-line="359"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="360">        <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+</span><span data-line="361">        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span data-line="362">            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="363">                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span><span data-line="364">                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="365">                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing default </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="366">            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span data-line="367">        <span class="k">return</span> <span class="n">res</span>
+</span><span data-line="368">
 <div class="viewcode-block" id="Model.run">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.run">[docs]</a>
-</span><span data-line="370">  <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="371"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="372"><span class="sd">    Forward pass through the model.</span>
-</span><span data-line="373">
-</span><span data-line="374"><span class="sd">    Parameters</span>
-</span><span data-line="375"><span class="sd">    ----------</span>
-</span><span data-line="376"><span class="sd">    data : torch.Tensor</span>
-</span><span data-line="377"><span class="sd">        Input tensor.</span>
-</span><span data-line="378"><span class="sd">    training : bool, optional</span>
-</span><span data-line="379"><span class="sd">        Whether to use training mode (enables dropout, batch-norm</span>
-</span><span data-line="380"><span class="sd">        updates, etc.). Defaults to evaluation mode.</span>
-</span><span data-line="381">
-</span><span data-line="382"><span class="sd">    Returns</span>
-</span><span data-line="383"><span class="sd">    -------</span>
-</span><span data-line="384"><span class="sd">    torch.Tensor</span>
-</span><span data-line="385"><span class="sd">        Model output.</span>
-</span><span data-line="386"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="387">    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
-</span><span data-line="388">      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-</span><span data-line="389">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="390">      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-</span><span data-line="391">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+</span><span data-line="369">    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="370"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="371"><span class="sd">        Forward pass through the model.</span>
+</span><span data-line="372">
+</span><span data-line="373"><span class="sd">        Parameters</span>
+</span><span data-line="374"><span class="sd">        ----------</span>
+</span><span data-line="375"><span class="sd">        data : torch.Tensor</span>
+</span><span data-line="376"><span class="sd">            Input tensor.</span>
+</span><span data-line="377"><span class="sd">        training : bool, optional</span>
+</span><span data-line="378"><span class="sd">            Whether to use training mode (enables dropout, batch-norm</span>
+</span><span data-line="379"><span class="sd">            updates, etc.). Defaults to evaluation mode.</span>
+</span><span data-line="380">
+</span><span data-line="381"><span class="sd">        Returns</span>
+</span><span data-line="382"><span class="sd">        -------</span>
+</span><span data-line="383"><span class="sd">        torch.Tensor</span>
+</span><span data-line="384"><span class="sd">            Model output.</span>
+</span><span data-line="385"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="386">        <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+</span><span data-line="387">            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</span><span data-line="388">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="389">            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</span><span data-line="390">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
-</span><span data-line="392">
-</span><span data-line="393">  <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="394"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Forward to :meth:`run`.&quot;&quot;&quot;</span>
-</span><span data-line="395">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="396">
+</span><span data-line="391">
+</span><span data-line="392">    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="393"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward to :meth:`run`.&quot;&quot;&quot;</span>
+</span><span data-line="394">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="395">
 <div class="viewcode-block" id="Model.get">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.get">[docs]</a>
-</span><span data-line="397">  <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="398"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="399"><span class="sd">    Get a reference to the flat parameter vector.</span>
-</span><span data-line="400">
-</span><span data-line="401"><span class="sd">    Returns</span>
-</span><span data-line="402"><span class="sd">    -------</span>
-</span><span data-line="403"><span class="sd">    torch.Tensor</span>
-</span><span data-line="404"><span class="sd">        Flat parameter tensor. Future calls to :meth:`set` will modify</span>
-</span><span data-line="405"><span class="sd">        it in place.</span>
-</span><span data-line="406"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="407">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span></div>
+</span><span data-line="396">    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="397"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="398"><span class="sd">        Get a reference to the flat parameter vector.</span>
+</span><span data-line="399">
+</span><span data-line="400"><span class="sd">        Returns</span>
+</span><span data-line="401"><span class="sd">        -------</span>
+</span><span data-line="402"><span class="sd">        torch.Tensor</span>
+</span><span data-line="403"><span class="sd">            Flat parameter tensor. Future calls to :meth:`set` will modify</span>
+</span><span data-line="404"><span class="sd">            it in place.</span>
+</span><span data-line="405"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="406">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span></div>
 
-</span><span data-line="408">
+</span><span data-line="407">
 <div class="viewcode-block" id="Model.set">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.set">[docs]</a>
-</span><span data-line="409">  <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="410"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="411"><span class="sd">    Overwrite parameters with the given flat vector.</span>
-</span><span data-line="412">
-</span><span data-line="413"><span class="sd">    Parameters</span>
-</span><span data-line="414"><span class="sd">    ----------</span>
-</span><span data-line="415"><span class="sd">    params : torch.Tensor</span>
-</span><span data-line="416"><span class="sd">        New flat parameter vector.</span>
-</span><span data-line="417"><span class="sd">    relink : bool or None, optional</span>
-</span><span data-line="418"><span class="sd">        Whether to relink instead of copying. ``None`` uses the</span>
-</span><span data-line="419"><span class="sd">        configuration default.</span>
-</span><span data-line="420"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="421">    <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
-</span><span data-line="422">    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
-</span><span data-line="423">      <span class="k">return</span>
-</span><span data-line="424">    <span class="c1"># Assignment</span>
-</span><span data-line="425">    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">):</span>
-</span><span data-line="426">      <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">params</span><span class="p">)</span>
-</span><span data-line="427">      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
-</span><span data-line="428">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="429">      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span>
-</span><span data-line="430">        <span class="n">params</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">]</span>
-</span><span data-line="431">      <span class="p">)</span></div>
+</span><span data-line="408">    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="409"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="410"><span class="sd">        Overwrite parameters with the given flat vector.</span>
+</span><span data-line="411">
+</span><span data-line="412"><span class="sd">        Parameters</span>
+</span><span data-line="413"><span class="sd">        ----------</span>
+</span><span data-line="414"><span class="sd">        params : torch.Tensor</span>
+</span><span data-line="415"><span class="sd">            New flat parameter vector.</span>
+</span><span data-line="416"><span class="sd">        relink : bool or None, optional</span>
+</span><span data-line="417"><span class="sd">            Whether to relink instead of copying. ``None`` uses the</span>
+</span><span data-line="418"><span class="sd">            configuration default.</span>
+</span><span data-line="419"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="420">        <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
+</span><span data-line="421">        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+</span><span data-line="422">            <span class="k">return</span>
+</span><span data-line="423">        <span class="c1"># Assignment</span>
+</span><span data-line="424">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">:</span>
+</span><span data-line="425">            <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">params</span><span class="p">)</span>
+</span><span data-line="426">            <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+</span><span data-line="427">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="428">            <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">])</span></div>
 
-</span><span data-line="432">
+</span><span data-line="429">
 <div class="viewcode-block" id="Model.get_gradient">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.get_gradient">[docs]</a>
-</span><span data-line="433">  <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="434"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="435"><span class="sd">    Get (or create) the flat gradient vector.</span>
-</span><span data-line="436">
-</span><span data-line="437"><span class="sd">    Returns</span>
-</span><span data-line="438"><span class="sd">    -------</span>
-</span><span data-line="439"><span class="sd">    torch.Tensor</span>
-</span><span data-line="440"><span class="sd">        Flat gradient tensor. Future calls to :meth:`set_gradient` will</span>
-</span><span data-line="441"><span class="sd">        modify it in place.</span>
-</span><span data-line="442"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="443">    <span class="c1"># Fast path</span>
-</span><span data-line="444">    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="445">      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span>
-</span><span data-line="446">    <span class="c1"># Flatten (make if necessary)</span>
-</span><span data-line="447">    <span class="n">gradient</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()))</span>
-</span><span data-line="448">    <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
-</span><span data-line="449">    <span class="k">return</span> <span class="n">gradient</span></div>
+</span><span data-line="430">    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="431"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="432"><span class="sd">        Get (or create) the flat gradient vector.</span>
+</span><span data-line="433">
+</span><span data-line="434"><span class="sd">        Returns</span>
+</span><span data-line="435"><span class="sd">        -------</span>
+</span><span data-line="436"><span class="sd">        torch.Tensor</span>
+</span><span data-line="437"><span class="sd">            Flat gradient tensor. Future calls to :meth:`set_gradient` will</span>
+</span><span data-line="438"><span class="sd">            modify it in place.</span>
+</span><span data-line="439"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="440">        <span class="c1"># Fast path</span>
+</span><span data-line="441">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="442">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span>
+</span><span data-line="443">        <span class="c1"># Flatten (make if necessary)</span>
+</span><span data-line="444">        <span class="n">gradient</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()))</span>
+</span><span data-line="445">        <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
+</span><span data-line="446">        <span class="k">return</span> <span class="n">gradient</span></div>
 
-</span><span data-line="450">
+</span><span data-line="447">
 <div class="viewcode-block" id="Model.set_gradient">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.set_gradient">[docs]</a>
-</span><span data-line="451">  <span class="k">def</span><span class="w"> </span><span class="nf">set_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="452"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="453"><span class="sd">    Overwrite the gradient with the given flat vector.</span>
-</span><span data-line="454">
-</span><span data-line="455"><span class="sd">    Parameters</span>
-</span><span data-line="456"><span class="sd">    ----------</span>
-</span><span data-line="457"><span class="sd">    gradient : torch.Tensor</span>
-</span><span data-line="458"><span class="sd">        New flat gradient.</span>
-</span><span data-line="459"><span class="sd">    relink : bool or None, optional</span>
-</span><span data-line="460"><span class="sd">        Whether to relink instead of copying. ``None`` uses the</span>
-</span><span data-line="461"><span class="sd">        configuration default.</span>
-</span><span data-line="462"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="463">    <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
-</span><span data-line="464">    <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span><span class="p">:</span>
-</span><span data-line="465">      <span class="k">return</span>
-</span><span data-line="466">    <span class="c1"># Assignment</span>
-</span><span data-line="467">    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">):</span>
-</span><span data-line="468">      <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()),</span> <span class="n">gradient</span><span class="p">)</span>
-</span><span data-line="469">      <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
-</span><span data-line="470">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="471">      <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span>
-</span><span data-line="472">        <span class="n">gradient</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">]</span>
-</span><span data-line="473">      <span class="p">)</span></div>
+</span><span data-line="448">    <span class="k">def</span><span class="w"> </span><span class="nf">set_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="449"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="450"><span class="sd">        Overwrite the gradient with the given flat vector.</span>
+</span><span data-line="451">
+</span><span data-line="452"><span class="sd">        Parameters</span>
+</span><span data-line="453"><span class="sd">        ----------</span>
+</span><span data-line="454"><span class="sd">        gradient : torch.Tensor</span>
+</span><span data-line="455"><span class="sd">            New flat gradient.</span>
+</span><span data-line="456"><span class="sd">        relink : bool or None, optional</span>
+</span><span data-line="457"><span class="sd">            Whether to relink instead of copying. ``None`` uses the</span>
+</span><span data-line="458"><span class="sd">            configuration default.</span>
+</span><span data-line="459"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="460">        <span class="c1"># Fast path &#39;set(get())&#39;-like</span>
+</span><span data-line="461">        <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span><span class="p">:</span>
+</span><span data-line="462">            <span class="k">return</span>
+</span><span data-line="463">        <span class="c1"># Assignment</span>
+</span><span data-line="464">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">:</span>
+</span><span data-line="465">            <span class="n">tools</span><span class="o">.</span><span class="n">relink</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">grads_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()),</span> <span class="n">gradient</span><span class="p">)</span>
+</span><span data-line="466">            <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="n">gradient</span>
+</span><span data-line="467">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="468">            <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span>
+</span><span data-line="469">                <span class="n">gradient</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">]</span>
+</span><span data-line="470">            <span class="p">)</span></div>
 
-</span><span data-line="474">
+</span><span data-line="471">
 <div class="viewcode-block" id="Model.loss">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.loss">[docs]</a>
-</span><span data-line="475">  <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="476"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="477"><span class="sd">    Estimate loss on a batch from the given dataset.</span>
-</span><span data-line="478">
-</span><span data-line="479"><span class="sd">    Parameters</span>
-</span><span data-line="480"><span class="sd">    ----------</span>
-</span><span data-line="481"><span class="sd">    dataset : experiments.Dataset or None, optional</span>
-</span><span data-line="482"><span class="sd">        Dataset to sample from. ``None`` uses the default trainset.</span>
-</span><span data-line="483"><span class="sd">    loss : experiments.Loss or None, optional</span>
-</span><span data-line="484"><span class="sd">        Loss function. ``None`` uses the default loss.</span>
-</span><span data-line="485"><span class="sd">    training : bool or None, optional</span>
-</span><span data-line="486"><span class="sd">        Whether this is a training run. ``None`` guesses from</span>
-</span><span data-line="487"><span class="sd">        ``torch.is_grad_enabled()``.</span>
-</span><span data-line="488">
-</span><span data-line="489"><span class="sd">    Returns</span>
-</span><span data-line="490"><span class="sd">    -------</span>
-</span><span data-line="491"><span class="sd">    torch.Tensor</span>
-</span><span data-line="492"><span class="sd">        Scalar loss value.</span>
-</span><span data-line="493"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="494">    <span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">trainset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
-</span><span data-line="495">    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
-</span><span data-line="496">    <span class="k">if</span> <span class="n">training</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="497">      <span class="n">training</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_grad_enabled</span><span class="p">()</span>
-</span><span data-line="498">    <span class="k">return</span> <span class="n">loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span></div>
+</span><span data-line="472">    <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="473"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="474"><span class="sd">        Estimate loss on a batch from the given dataset.</span>
+</span><span data-line="475">
+</span><span data-line="476"><span class="sd">        Parameters</span>
+</span><span data-line="477"><span class="sd">        ----------</span>
+</span><span data-line="478"><span class="sd">        dataset : experiments.Dataset or None, optional</span>
+</span><span data-line="479"><span class="sd">            Dataset to sample from. ``None`` uses the default trainset.</span>
+</span><span data-line="480"><span class="sd">        loss : experiments.Loss or None, optional</span>
+</span><span data-line="481"><span class="sd">            Loss function. ``None`` uses the default loss.</span>
+</span><span data-line="482"><span class="sd">        training : bool or None, optional</span>
+</span><span data-line="483"><span class="sd">            Whether this is a training run. ``None`` guesses from</span>
+</span><span data-line="484"><span class="sd">            ``torch.is_grad_enabled()``.</span>
+</span><span data-line="485">
+</span><span data-line="486"><span class="sd">        Returns</span>
+</span><span data-line="487"><span class="sd">        -------</span>
+</span><span data-line="488"><span class="sd">        torch.Tensor</span>
+</span><span data-line="489"><span class="sd">            Scalar loss value.</span>
+</span><span data-line="490"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="491">        <span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">trainset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
+</span><span data-line="492">        <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+</span><span data-line="493">        <span class="k">if</span> <span class="n">training</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="494">            <span class="n">training</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_grad_enabled</span><span class="p">()</span>
+</span><span data-line="495">        <span class="k">return</span> <span class="n">loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span></div>
 
-</span><span data-line="499">
+</span><span data-line="496">
 <div class="viewcode-block" id="Model.backprop">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.backprop">[docs]</a>
-</span><span data-line="500">  <span class="nd">@torch</span><span class="o">.</span><span class="n">enable_grad</span><span class="p">()</span>
-</span><span data-line="501">  <span class="k">def</span><span class="w"> </span><span class="nf">backprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outloss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="502"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="503"><span class="sd">    Compute gradient on a batch from the given dataset.</span>
-</span><span data-line="504">
-</span><span data-line="505"><span class="sd">    Parameters</span>
-</span><span data-line="506"><span class="sd">    ----------</span>
-</span><span data-line="507"><span class="sd">    dataset : experiments.Dataset or None, optional</span>
-</span><span data-line="508"><span class="sd">        Dataset to sample from. ``None`` uses the default trainset.</span>
-</span><span data-line="509"><span class="sd">    loss : experiments.Loss or None, optional</span>
-</span><span data-line="510"><span class="sd">        Loss function. ``None`` uses the default loss.</span>
-</span><span data-line="511"><span class="sd">    outloss : bool, optional</span>
-</span><span data-line="512"><span class="sd">        Whether to also return the loss value.</span>
-</span><span data-line="513"><span class="sd">    **kwargs : object</span>
-</span><span data-line="514"><span class="sd">        Forwarded to ``loss.backward()``.</span>
-</span><span data-line="515">
-</span><span data-line="516"><span class="sd">    Returns</span>
-</span><span data-line="517"><span class="sd">    -------</span>
-</span><span data-line="518"><span class="sd">    torch.Tensor or tuple[torch.Tensor, torch.Tensor]</span>
-</span><span data-line="519"><span class="sd">        Flat gradient, optionally paired with the loss value.</span>
-</span><span data-line="520"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="521">    <span class="c1"># Detach and zero the gradient</span>
-</span><span data-line="522">    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">linked_tensors</span><span class="p">:</span>
-</span><span data-line="523">      <span class="n">grad</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span>
-</span><span data-line="524">      <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="525">        <span class="n">grad</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
-</span><span data-line="526">        <span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-</span><span data-line="527">    <span class="c1"># Forward and backward passes</span>
-</span><span data-line="528">    <span class="n">loss_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
-</span><span data-line="529">    <span class="n">loss_val</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="530">    <span class="c1"># Relink needed if graph of derivatives was created</span>
-</span><span data-line="531">    <span class="k">if</span> <span class="s2">&quot;create_graph&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-</span><span data-line="532">      <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="533">    <span class="c1"># Return the flat gradient (and the loss if requested)</span>
-</span><span data-line="534">    <span class="k">if</span> <span class="n">outloss</span><span class="p">:</span>
-</span><span data-line="535">      <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">(),</span> <span class="n">loss_val</span><span class="p">)</span>
-</span><span data-line="536">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span></div>
+</span><span data-line="497">    <span class="nd">@torch</span><span class="o">.</span><span class="n">enable_grad</span><span class="p">()</span>
+</span><span data-line="498">    <span class="k">def</span><span class="w"> </span><span class="nf">backprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outloss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="499"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="500"><span class="sd">        Compute gradient on a batch from the given dataset.</span>
+</span><span data-line="501">
+</span><span data-line="502"><span class="sd">        Parameters</span>
+</span><span data-line="503"><span class="sd">        ----------</span>
+</span><span data-line="504"><span class="sd">        dataset : experiments.Dataset or None, optional</span>
+</span><span data-line="505"><span class="sd">            Dataset to sample from. ``None`` uses the default trainset.</span>
+</span><span data-line="506"><span class="sd">        loss : experiments.Loss or None, optional</span>
+</span><span data-line="507"><span class="sd">            Loss function. ``None`` uses the default loss.</span>
+</span><span data-line="508"><span class="sd">        outloss : bool, optional</span>
+</span><span data-line="509"><span class="sd">            Whether to also return the loss value.</span>
+</span><span data-line="510"><span class="sd">        **kwargs : object</span>
+</span><span data-line="511"><span class="sd">            Forwarded to ``loss.backward()``.</span>
+</span><span data-line="512">
+</span><span data-line="513"><span class="sd">        Returns</span>
+</span><span data-line="514"><span class="sd">        -------</span>
+</span><span data-line="515"><span class="sd">        torch.Tensor or tuple[torch.Tensor, torch.Tensor]</span>
+</span><span data-line="516"><span class="sd">            Flat gradient, optionally paired with the loss value.</span>
+</span><span data-line="517"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="518">        <span class="c1"># Detach and zero the gradient</span>
+</span><span data-line="519">        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">linked_tensors</span><span class="p">:</span>
+</span><span data-line="520">            <span class="n">grad</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span>
+</span><span data-line="521">            <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="522">                <span class="n">grad</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+</span><span data-line="523">                <span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+</span><span data-line="524">        <span class="c1"># Forward and backward passes</span>
+</span><span data-line="525">        <span class="n">loss_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">)</span>
+</span><span data-line="526">        <span class="n">loss_val</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="527">        <span class="c1"># Relink needed if graph of derivatives was created</span>
+</span><span data-line="528">        <span class="k">if</span> <span class="s2">&quot;create_graph&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span data-line="529">            <span class="bp">self</span><span class="o">.</span><span class="n">_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="530">        <span class="c1"># Return the flat gradient (and the loss if requested)</span>
+</span><span data-line="531">        <span class="k">if</span> <span class="n">outloss</span><span class="p">:</span>
+</span><span data-line="532">            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">(),</span> <span class="n">loss_val</span><span class="p">)</span>
+</span><span data-line="533">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gradient</span><span class="p">()</span></div>
 
-</span><span data-line="537">
+</span><span data-line="534">
 <div class="viewcode-block" id="Model.update">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.update">[docs]</a>
-</span><span data-line="538">  <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="539"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="540"><span class="sd">    Update parameters using the given gradient and optimizer.</span>
-</span><span data-line="541">
-</span><span data-line="542"><span class="sd">    Parameters</span>
-</span><span data-line="543"><span class="sd">    ----------</span>
-</span><span data-line="544"><span class="sd">    gradient : torch.Tensor</span>
-</span><span data-line="545"><span class="sd">        Flat gradient to apply.</span>
-</span><span data-line="546"><span class="sd">    optimizer : experiments.Optimizer or None, optional</span>
-</span><span data-line="547"><span class="sd">        Optimizer wrapper. ``None`` uses the default optimizer.</span>
-</span><span data-line="548"><span class="sd">    relink : bool or None, optional</span>
-</span><span data-line="549"><span class="sd">        Whether to relink the gradient. ``None`` uses the configuration</span>
-</span><span data-line="550"><span class="sd">        default.</span>
-</span><span data-line="551"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="552">    <span class="n">optimizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-</span><span data-line="553">    <span class="bp">self</span><span class="o">.</span><span class="n">set_gradient</span><span class="p">(</span>
-</span><span data-line="554">      <span class="n">gradient</span><span class="p">,</span>
-</span><span data-line="555">      <span class="n">relink</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">),</span>
-</span><span data-line="556">    <span class="p">)</span>
-</span><span data-line="557">    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span></div>
+</span><span data-line="535">    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="536"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="537"><span class="sd">        Update parameters using the given gradient and optimizer.</span>
+</span><span data-line="538">
+</span><span data-line="539"><span class="sd">        Parameters</span>
+</span><span data-line="540"><span class="sd">        ----------</span>
+</span><span data-line="541"><span class="sd">        gradient : torch.Tensor</span>
+</span><span data-line="542"><span class="sd">            Flat gradient to apply.</span>
+</span><span data-line="543"><span class="sd">        optimizer : experiments.Optimizer or None, optional</span>
+</span><span data-line="544"><span class="sd">            Optimizer wrapper. ``None`` uses the default optimizer.</span>
+</span><span data-line="545"><span class="sd">        relink : bool or None, optional</span>
+</span><span data-line="546"><span class="sd">            Whether to relink the gradient. ``None`` uses the configuration</span>
+</span><span data-line="547"><span class="sd">            default.</span>
+</span><span data-line="548"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="549">        <span class="n">optimizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span data-line="550">        <span class="bp">self</span><span class="o">.</span><span class="n">set_gradient</span><span class="p">(</span>
+</span><span data-line="551">            <span class="n">gradient</span><span class="p">,</span>
+</span><span data-line="552">            <span class="n">relink</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">relink</span> <span class="k">if</span> <span class="n">relink</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">relink</span><span class="p">),</span>
+</span><span data-line="553">        <span class="p">)</span>
+</span><span data-line="554">        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span></div>
 
-</span><span data-line="558">
+</span><span data-line="555">
 <div class="viewcode-block" id="Model.eval">
 <a class="viewcode-back" href="../../experiments/classes/model.html#experiments.model.Model.eval">[docs]</a>
-</span><span data-line="559">  <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
-</span><span data-line="560">  <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="561"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="562"><span class="sd">    Evaluate the model on a batch from the given dataset.</span>
-</span><span data-line="563">
-</span><span data-line="564"><span class="sd">    Parameters</span>
-</span><span data-line="565"><span class="sd">    ----------</span>
-</span><span data-line="566"><span class="sd">    dataset : experiments.Dataset or None, optional</span>
-</span><span data-line="567"><span class="sd">        Dataset to sample from. ``None`` uses the default testset.</span>
-</span><span data-line="568"><span class="sd">    criterion : experiments.Criterion or None, optional</span>
-</span><span data-line="569"><span class="sd">        Criterion function. ``None`` uses the default criterion.</span>
-</span><span data-line="570">
-</span><span data-line="571"><span class="sd">    Returns</span>
-</span><span data-line="572"><span class="sd">    -------</span>
-</span><span data-line="573"><span class="sd">    torch.Tensor</span>
-</span><span data-line="574"><span class="sd">        Mean criterion value over the sampled batch.</span>
-</span><span data-line="575"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="576">    <span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span>
-</span><span data-line="577">      <span class="n">testset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="n">criterion</span>
-</span><span data-line="578">    <span class="p">)</span>
-</span><span data-line="579">    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
-</span><span data-line="580">    <span class="k">return</span> <span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">)</span></div>
+</span><span data-line="556">    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+</span><span data-line="557">    <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="558"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="559"><span class="sd">        Evaluate the model on a batch from the given dataset.</span>
+</span><span data-line="560">
+</span><span data-line="561"><span class="sd">        Parameters</span>
+</span><span data-line="562"><span class="sd">        ----------</span>
+</span><span data-line="563"><span class="sd">        dataset : experiments.Dataset or None, optional</span>
+</span><span data-line="564"><span class="sd">            Dataset to sample from. ``None`` uses the default testset.</span>
+</span><span data-line="565"><span class="sd">        criterion : experiments.Criterion or None, optional</span>
+</span><span data-line="566"><span class="sd">            Criterion function. ``None`` uses the default criterion.</span>
+</span><span data-line="567">
+</span><span data-line="568"><span class="sd">        Returns</span>
+</span><span data-line="569"><span class="sd">        -------</span>
+</span><span data-line="570"><span class="sd">        torch.Tensor</span>
+</span><span data-line="571"><span class="sd">            Mean criterion value over the sampled batch.</span>
+</span><span data-line="572"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="573">        <span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_defaults</span><span class="p">(</span>
+</span><span data-line="574">            <span class="n">testset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="n">criterion</span>
+</span><span data-line="575">        <span class="p">)</span>
+</span><span data-line="576">        <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+</span><span data-line="577">        <span class="k">return</span> <span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">targets</span><span class="p">)</span></div>
 </div>
 
 </span></pre></div>

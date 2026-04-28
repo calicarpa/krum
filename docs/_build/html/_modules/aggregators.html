@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -139,17 +142,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for aggregators</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   __init__.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Loading of the local modules.</span>
+</span><span data-line="3"><span class="c1"># @file   __init__.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Loading of the local modules.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -198,99 +201,110 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="59">
 <div class="viewcode-block" id="make_gar">
 <a class="viewcode-back" href="../aggregators/index.html#aggregators.make_gar">[docs]</a>
-</span><span data-line="60"><span class="k">def</span><span class="w"> </span><span class="nf">make_gar</span><span class="p">(</span><span class="n">unchecked</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">influence</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-</span><span data-line="61"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="62"><span class="sd">    Wrap an unchecked GAR with validation and metadata.</span>
-</span><span data-line="63">
-</span><span data-line="64"><span class="sd">    Parameters</span>
-</span><span data-line="65"><span class="sd">    ----------</span>
-</span><span data-line="66"><span class="sd">    unchecked : callable</span>
-</span><span data-line="67"><span class="sd">        Aggregation function implementing the rule without parameter checks.</span>
-</span><span data-line="68"><span class="sd">    check : callable</span>
-</span><span data-line="69"><span class="sd">        Validation function. It must return ``None`` when parameters are valid,</span>
-</span><span data-line="70"><span class="sd">        or an error message otherwise.</span>
-</span><span data-line="71"><span class="sd">    upper_bound : callable, optional</span>
-</span><span data-line="72"><span class="sd">        Function computing the theoretical upper bound on the ratio between</span>
-</span><span data-line="73"><span class="sd">        non-Byzantine standard deviation and gradient norm. The expected</span>
-</span><span data-line="74"><span class="sd">        signature is ``(n, f, d) -&gt; float``.</span>
-</span><span data-line="75"><span class="sd">    influence : callable, optional</span>
-</span><span data-line="76"><span class="sd">        Function computing the accepted Byzantine-gradient ratio for a given</span>
-</span><span data-line="77"><span class="sd">        set of honest and attack gradients.</span>
-</span><span data-line="78">
-</span><span data-line="79"><span class="sd">    Returns</span>
-</span><span data-line="80"><span class="sd">    -------</span>
-</span><span data-line="81"><span class="sd">    callable</span>
-</span><span data-line="82"><span class="sd">        Checked or unchecked GAR selected according to ``__debug__``. The</span>
-</span><span data-line="83"><span class="sd">        returned callable is annotated with ``check``, ``checked``,</span>
-</span><span data-line="84"><span class="sd">        ``unchecked``, ``upper_bound``, and ``influence`` attributes.</span>
-</span><span data-line="85"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="86">
-</span><span data-line="87">    <span class="c1"># Closure wrapping the call with checks</span>
-</span><span data-line="88">    <span class="k">def</span><span class="w"> </span><span class="nf">checked</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="89">        <span class="c1"># Check parameter validity</span>
-</span><span data-line="90">        <span class="n">message</span> <span class="o">=</span> <span class="n">check</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="91">        <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="92">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="93">                <span class="s2">&quot;Aggregation rule </span><span class="si">%r</span><span class="s2"> cannot be used with the given parameters: </span><span class="si">%s</span><span class="s2">&quot;</span>
-</span><span data-line="94">                <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
-</span><span data-line="95">            <span class="p">)</span>
-</span><span data-line="96">        <span class="c1"># Aggregation (hard to assert return value, duck-typing is allowed...)</span>
-</span><span data-line="97">        <span class="k">return</span> <span class="n">unchecked</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="98">
-</span><span data-line="99">    <span class="c1"># Select which function to call by default</span>
-</span><span data-line="100">    <span class="n">func</span> <span class="o">=</span> <span class="n">checked</span> <span class="k">if</span> <span class="n">__debug__</span> <span class="k">else</span> <span class="n">unchecked</span>
-</span><span data-line="101">    <span class="c1"># Bind all the (sub) functions to the selected function</span>
-</span><span data-line="102">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
-</span><span data-line="103">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;checked&quot;</span><span class="p">,</span> <span class="n">checked</span><span class="p">)</span>
-</span><span data-line="104">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;unchecked&quot;</span><span class="p">,</span> <span class="n">unchecked</span><span class="p">)</span>
-</span><span data-line="105">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;upper_bound&quot;</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
-</span><span data-line="106">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;influence&quot;</span><span class="p">,</span> <span class="n">influence</span><span class="p">)</span>
-</span><span data-line="107">    <span class="c1"># Return the selected function with the associated name</span>
-</span><span data-line="108">    <span class="k">return</span> <span class="n">func</span></div>
+</span><span data-line="60"><span class="k">def</span><span class="w"> </span><span class="nf">make_gar</span><span class="p">(</span>
+</span><span data-line="61">    <span class="n">unchecked</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+</span><span data-line="62">    <span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+</span><span data-line="63">    <span class="n">upper_bound</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="64">    <span class="n">influence</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="65"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+</span><span data-line="66"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="67"><span class="sd">    Wrap an unchecked GAR with validation and metadata.</span>
+</span><span data-line="68">
+</span><span data-line="69"><span class="sd">    Parameters</span>
+</span><span data-line="70"><span class="sd">    ----------</span>
+</span><span data-line="71"><span class="sd">    unchecked : callable</span>
+</span><span data-line="72"><span class="sd">        Aggregation function implementing the rule without parameter checks.</span>
+</span><span data-line="73"><span class="sd">    check : callable</span>
+</span><span data-line="74"><span class="sd">        Validation function. It must return ``None`` when parameters are valid,</span>
+</span><span data-line="75"><span class="sd">        or an error message otherwise.</span>
+</span><span data-line="76"><span class="sd">    upper_bound : callable, optional</span>
+</span><span data-line="77"><span class="sd">        Function computing the theoretical upper bound on the ratio between</span>
+</span><span data-line="78"><span class="sd">        non-Byzantine standard deviation and gradient norm. The expected</span>
+</span><span data-line="79"><span class="sd">        signature is ``(n, f, d) -&gt; float``.</span>
+</span><span data-line="80"><span class="sd">    influence : callable, optional</span>
+</span><span data-line="81"><span class="sd">        Function computing the accepted Byzantine-gradient ratio for a given</span>
+</span><span data-line="82"><span class="sd">        set of honest and attack gradients.</span>
+</span><span data-line="83">
+</span><span data-line="84"><span class="sd">    Returns</span>
+</span><span data-line="85"><span class="sd">    -------</span>
+</span><span data-line="86"><span class="sd">    callable</span>
+</span><span data-line="87"><span class="sd">        Checked or unchecked GAR selected according to ``__debug__``. The</span>
+</span><span data-line="88"><span class="sd">        returned callable is annotated with ``check``, ``checked``,</span>
+</span><span data-line="89"><span class="sd">        ``unchecked``, ``upper_bound``, and ``influence`` attributes.</span>
+</span><span data-line="90"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="91">
+</span><span data-line="92">    <span class="c1"># Closure wrapping the call with checks</span>
+</span><span data-line="93">    <span class="k">def</span><span class="w"> </span><span class="nf">checked</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="94">        <span class="c1"># Check parameter validity</span>
+</span><span data-line="95">        <span class="n">message</span> <span class="o">=</span> <span class="n">check</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="96">        <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="97">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="98">                <span class="s2">&quot;Aggregation rule </span><span class="si">%r</span><span class="s2"> cannot be used with the given parameters: </span><span class="si">%s</span><span class="s2">&quot;</span>
+</span><span data-line="99">                <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</span><span data-line="100">            <span class="p">)</span>
+</span><span data-line="101">        <span class="c1"># Aggregation (hard to assert return value, duck-typing is allowed...)</span>
+</span><span data-line="102">        <span class="k">return</span> <span class="n">unchecked</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="103">
+</span><span data-line="104">    <span class="c1"># Select which function to call by default</span>
+</span><span data-line="105">    <span class="n">func</span> <span class="o">=</span> <span class="n">checked</span> <span class="k">if</span> <span class="n">__debug__</span> <span class="k">else</span> <span class="n">unchecked</span>
+</span><span data-line="106">    <span class="c1"># Bind all the (sub) functions to the selected function</span>
+</span><span data-line="107">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
+</span><span data-line="108">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;checked&quot;</span><span class="p">,</span> <span class="n">checked</span><span class="p">)</span>
+</span><span data-line="109">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;unchecked&quot;</span><span class="p">,</span> <span class="n">unchecked</span><span class="p">)</span>
+</span><span data-line="110">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;upper_bound&quot;</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+</span><span data-line="111">    <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;influence&quot;</span><span class="p">,</span> <span class="n">influence</span><span class="p">)</span>
+</span><span data-line="112">    <span class="c1"># Return the selected function with the associated name</span>
+</span><span data-line="113">    <span class="k">return</span> <span class="n">func</span></div>
 
-</span><span data-line="109">
-</span><span data-line="110">
+</span><span data-line="114">
+</span><span data-line="115">
 <div class="viewcode-block" id="register">
 <a class="viewcode-back" href="../aggregators/index.html#aggregators.register">[docs]</a>
-</span><span data-line="111"><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">unchecked</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">influence</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="112"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="113"><span class="sd">    Register a gradient aggregation rule.</span>
-</span><span data-line="114">
-</span><span data-line="115"><span class="sd">    Parameters</span>
-</span><span data-line="116"><span class="sd">    ----------</span>
-</span><span data-line="117"><span class="sd">    name : str</span>
-</span><span data-line="118"><span class="sd">        User-visible GAR name.</span>
-</span><span data-line="119"><span class="sd">    unchecked : callable</span>
-</span><span data-line="120"><span class="sd">        Aggregation function implementing the rule without parameter checks.</span>
-</span><span data-line="121"><span class="sd">    check : callable</span>
-</span><span data-line="122"><span class="sd">        Validation function associated with ``unchecked``.</span>
-</span><span data-line="123"><span class="sd">    upper_bound : callable, optional</span>
-</span><span data-line="124"><span class="sd">        Function computing the rule&#39;s theoretical upper bound.</span>
-</span><span data-line="125"><span class="sd">    influence : callable, optional</span>
-</span><span data-line="126"><span class="sd">        Function computing the accepted Byzantine-gradient ratio.</span>
-</span><span data-line="127"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="128">    <span class="k">global</span> <span class="n">gars</span>
-</span><span data-line="129">    <span class="c1"># Check if name already in use</span>
-</span><span data-line="130">    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">gars</span><span class="p">:</span>
-</span><span data-line="131">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to register </span><span class="si">%r</span><span class="s2"> GAR: name already in use&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="132">        <span class="k">return</span>
-</span><span data-line="133">    <span class="c1"># Export the selected function with the associated name</span>
-</span><span data-line="134">    <span class="n">gars</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_gar</span><span class="p">(</span>
-</span><span data-line="135">        <span class="n">unchecked</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span>
-</span><span data-line="136">    <span class="p">)</span></div>
+</span><span data-line="116"><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span>
+</span><span data-line="117">    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span data-line="118">    <span class="n">unchecked</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+</span><span data-line="119">    <span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+</span><span data-line="120">    <span class="n">upper_bound</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="121">    <span class="n">influence</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="122"><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="123"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="124"><span class="sd">    Register a gradient aggregation rule.</span>
+</span><span data-line="125">
+</span><span data-line="126"><span class="sd">    Parameters</span>
+</span><span data-line="127"><span class="sd">    ----------</span>
+</span><span data-line="128"><span class="sd">    name : str</span>
+</span><span data-line="129"><span class="sd">        User-visible GAR name.</span>
+</span><span data-line="130"><span class="sd">    unchecked : callable</span>
+</span><span data-line="131"><span class="sd">        Aggregation function implementing the rule without parameter checks.</span>
+</span><span data-line="132"><span class="sd">    check : callable</span>
+</span><span data-line="133"><span class="sd">        Validation function associated with ``unchecked``.</span>
+</span><span data-line="134"><span class="sd">    upper_bound : callable, optional</span>
+</span><span data-line="135"><span class="sd">        Function computing the rule&#39;s theoretical upper bound.</span>
+</span><span data-line="136"><span class="sd">    influence : callable, optional</span>
+</span><span data-line="137"><span class="sd">        Function computing the accepted Byzantine-gradient ratio.</span>
+</span><span data-line="138"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="139">    <span class="k">global</span> <span class="n">gars</span>
+</span><span data-line="140">    <span class="c1"># Check if name already in use</span>
+</span><span data-line="141">    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">gars</span><span class="p">:</span>
+</span><span data-line="142">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to register </span><span class="si">%r</span><span class="s2"> GAR: name already in use&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="143">        <span class="k">return</span>
+</span><span data-line="144">    <span class="c1"># Export the selected function with the associated name</span>
+</span><span data-line="145">    <span class="n">gars</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_gar</span><span class="p">(</span>
+</span><span data-line="146">        <span class="n">unchecked</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span>
+</span><span data-line="147">    <span class="p">)</span></div>
 
-</span><span data-line="137">
-</span><span data-line="138">
-</span><span data-line="139"><span class="c1"># Registered rules (mapping name -&gt; aggregation rule)</span>
-</span><span data-line="140"><span class="n">gars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span data-line="141">
-</span><span data-line="142"><span class="c1"># Load all local modules</span>
-</span><span data-line="143"><span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;aggregators&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="144">    <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
-</span><span data-line="145">
-</span><span data-line="146"><span class="c1"># Bind/overwrite the GAR name with the associated rules in globals()</span>
-</span><span data-line="147"><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">gars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span data-line="148">    <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span>
+</span><span data-line="148">
+</span><span data-line="149">
+</span><span data-line="150"><span class="c1"># Registered rules (mapping name -&gt; aggregation rule)</span>
+</span><span data-line="151"><span class="n">gars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="152">
+</span><span data-line="153"><span class="c1"># Load all local modules</span>
+</span><span data-line="154"><span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;aggregators&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="155">    <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
+</span><span data-line="156">
+</span><span data-line="157"><span class="c1"># Bind/overwrite the GAR name with the associated rules in globals()</span>
+</span><span data-line="158"><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">gars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span data-line="159">    <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -314,7 +328,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

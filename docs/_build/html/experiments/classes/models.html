@@ -111,6 +111,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#experiments.models.simples.full"><code class="docutils literal notranslate"><span class="pre">full()</span></code></a></li>
 <li><a class="reference internal" href="#experiments.models.simples.linear"><code class="docutils literal notranslate"><span class="pre">linear()</span></code></a></li>
 <li><a class="reference internal" href="#experiments.models.simples.logit"><code class="docutils literal notranslate"><span class="pre">logit()</span></code></a></li>
+<li><a class="reference internal" href="#adding-a-custom-model">Adding a custom model</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -203,6 +204,25 @@ data-aria-dark="Switch to auto color mode">
 <p class="admonition-title">See also</p>
 <p>For the model wrapper that loads these constructors, see <a class="reference internal" href="model.html"><span class="doc">Model</span></a>.</p>
 </div>
+<section id="adding-a-custom-model">
+<h2>Adding a custom model<a class="headerlink" href="#adding-a-custom-model" title="Link to this heading">¶</a></h2>
+<p>Custom models are discovered automatically from the <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code>
+directory. To register a new model, create a Python file in that folder
+(e.g. <code class="docutils literal notranslate"><span class="pre">experiments/models/wide_resnet.py</span></code>). The file name (without the
+<code class="docutils literal notranslate"><span class="pre">.py</span></code> extension) becomes the module prefix.</p>
+<p>The module must define <code class="docutils literal notranslate"><span class="pre">__all__</span></code> as a list of constructor names. Every
+name listed there must refer to a callable that returns a
+<code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>. The wrapper registers each constructor under the
+compound name <code class="docutils literal notranslate"><span class="pre">&lt;file_name&gt;-&lt;constructor_name&gt;</span></code>.</p>
+<p>For example, if you link an external repository under
+<code class="docutils literal notranslate"><span class="pre">submodules/wide-resnet</span></code> and create <code class="docutils literal notranslate"><span class="pre">experiments/models/wide-resnet.py</span></code>
+that exposes a callable <code class="docutils literal notranslate"><span class="pre">wide_resnet</span></code>, the model can be instantiated with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;wide-resnet-wide_resnet&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Because the loader only scans regular <code class="docutils literal notranslate"><span class="pre">.py</span></code> files, a symlink pointing to
+code inside <code class="docutils literal notranslate"><span class="pre">submodules/</span></code> works transparently.</p>
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">

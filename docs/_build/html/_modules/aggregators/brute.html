@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -143,17 +146,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for aggregators.brute</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   brute.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Brute GAR.</span>
+</span><span data-line="3"><span class="c1"># @file   brute.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Brute GAR.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -225,228 +228,234 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="82"><span class="c1"># Brute GAR</span>
 </span><span data-line="83">
 </span><span data-line="84">
-</span><span data-line="85"><span class="k">def</span><span class="w"> </span><span class="nf">_compute_selection</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span data-line="86"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="87"><span class="sd">    Select the gradient indices forming the smallest-diameter subset.</span>
-</span><span data-line="88">
-</span><span data-line="89"><span class="sd">    Parameters</span>
-</span><span data-line="90"><span class="sd">    ----------</span>
-</span><span data-line="91"><span class="sd">    gradients : list of torch.Tensor</span>
-</span><span data-line="92"><span class="sd">        Non-empty list of candidate gradients.</span>
-</span><span data-line="93"><span class="sd">    f : int</span>
-</span><span data-line="94"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
-</span><span data-line="95"><span class="sd">    **kwargs : object</span>
-</span><span data-line="96"><span class="sd">        Additional keyword arguments, ignored by this helper.</span>
-</span><span data-line="97">
-</span><span data-line="98"><span class="sd">    Returns</span>
-</span><span data-line="99"><span class="sd">    -------</span>
-</span><span data-line="100"><span class="sd">    tuple of int</span>
-</span><span data-line="101"><span class="sd">        Indices of the selected :math:`n - f` gradients.</span>
-</span><span data-line="102">
-</span><span data-line="103"><span class="sd">    Notes</span>
-</span><span data-line="104"><span class="sd">    -----</span>
-</span><span data-line="105"><span class="sd">    Candidate subsets containing non-finite pairwise distances are ignored.</span>
-</span><span data-line="106"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="107">    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
-</span><span data-line="108">    <span class="c1"># Compute all pairwise distances</span>
-</span><span data-line="109">    <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
-</span><span data-line="110">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)))):</span>
-</span><span data-line="111">        <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span data-line="112">    <span class="c1"># Select the set of smallest diameter</span>
-</span><span data-line="113">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="114">    <span class="n">sel_diam</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="115">    <span class="k">for</span> <span class="n">cur_iset</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">):</span>
-</span><span data-line="116">        <span class="c1"># Compute the current diameter (max of pairwise distances)</span>
-</span><span data-line="117">        <span class="n">cur_diam</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span data-line="118">        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="n">cur_iset</span><span class="p">):</span>
-</span><span data-line="119">            <span class="c1"># Get distance between these two gradients (&quot;magic&quot; formula valid since x &lt; y)</span>
-</span><span data-line="120">            <span class="n">cur_dist</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-</span><span data-line="121">            <span class="c1"># Check finite distance (non-Byzantine gradient must only contain finite coordinates), drop set if non-finite</span>
-</span><span data-line="122">            <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cur_dist</span><span class="p">):</span>
-</span><span data-line="123">                <span class="k">break</span>
-</span><span data-line="124">            <span class="c1"># Check if new maximum</span>
-</span><span data-line="125">            <span class="k">if</span> <span class="n">cur_dist</span> <span class="o">&gt;</span> <span class="n">cur_diam</span><span class="p">:</span>
-</span><span data-line="126">                <span class="n">cur_diam</span> <span class="o">=</span> <span class="n">cur_dist</span>
-</span><span data-line="127">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="128">            <span class="c1"># Check if new selected diameter</span>
-</span><span data-line="129">            <span class="k">if</span> <span class="n">sel_iset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cur_diam</span> <span class="o">&lt;</span> <span class="n">sel_diam</span><span class="p">:</span>
-</span><span data-line="130">                <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">cur_iset</span>
-</span><span data-line="131">                <span class="n">sel_diam</span> <span class="o">=</span> <span class="n">cur_diam</span>
-</span><span data-line="132">    <span class="c1"># Return the selected gradients</span>
-</span><span data-line="133">    <span class="k">assert</span> <span class="n">sel_iset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
-</span><span data-line="134">        <span class="s2">&quot;Too many non-finite gradients: a non-Byzantine gradient must only contain finite coordinates&quot;</span>
-</span><span data-line="135">    <span class="p">)</span>
-</span><span data-line="136">    <span class="k">return</span> <span class="n">sel_iset</span>
-</span><span data-line="137">
-</span><span data-line="138">
+</span><span data-line="85"><span class="k">def</span><span class="w"> </span><span class="nf">_compute_selection</span><span class="p">(</span>
+</span><span data-line="86">    <span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+</span><span data-line="87"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span data-line="88"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="89"><span class="sd">    Select the gradient indices forming the smallest-diameter subset.</span>
+</span><span data-line="90">
+</span><span data-line="91"><span class="sd">    Parameters</span>
+</span><span data-line="92"><span class="sd">    ----------</span>
+</span><span data-line="93"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="94"><span class="sd">        Non-empty list of candidate gradients.</span>
+</span><span data-line="95"><span class="sd">    f : int</span>
+</span><span data-line="96"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="97"><span class="sd">    **kwargs : object</span>
+</span><span data-line="98"><span class="sd">        Additional keyword arguments, ignored by this helper.</span>
+</span><span data-line="99">
+</span><span data-line="100"><span class="sd">    Returns</span>
+</span><span data-line="101"><span class="sd">    -------</span>
+</span><span data-line="102"><span class="sd">    tuple of int</span>
+</span><span data-line="103"><span class="sd">        Indices of the selected :math:`n - f` gradients.</span>
+</span><span data-line="104">
+</span><span data-line="105"><span class="sd">    Notes</span>
+</span><span data-line="106"><span class="sd">    -----</span>
+</span><span data-line="107"><span class="sd">    Candidate subsets containing non-finite pairwise distances are ignored.</span>
+</span><span data-line="108"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="109">    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="110">    <span class="c1"># Compute all pairwise distances</span>
+</span><span data-line="111">    <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="112">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)))):</span>
+</span><span data-line="113">        <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="114">    <span class="c1"># Select the set of smallest diameter</span>
+</span><span data-line="115">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="116">    <span class="n">sel_diam</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="117">    <span class="k">for</span> <span class="n">cur_iset</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">):</span>
+</span><span data-line="118">        <span class="c1"># Compute the current diameter (max of pairwise distances)</span>
+</span><span data-line="119">        <span class="n">cur_diam</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span data-line="120">        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="n">cur_iset</span><span class="p">):</span>
+</span><span data-line="121">            <span class="c1"># Get distance between these two gradients (&quot;magic&quot; formula valid since x &lt; y)</span>
+</span><span data-line="122">            <span class="n">cur_dist</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</span><span data-line="123">            <span class="c1"># Check finite distance (non-Byzantine gradient must only contain finite coordinates), drop set if non-finite</span>
+</span><span data-line="124">            <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cur_dist</span><span class="p">):</span>
+</span><span data-line="125">                <span class="k">break</span>
+</span><span data-line="126">            <span class="c1"># Check if new maximum</span>
+</span><span data-line="127">            <span class="k">if</span> <span class="n">cur_dist</span> <span class="o">&gt;</span> <span class="n">cur_diam</span><span class="p">:</span>
+</span><span data-line="128">                <span class="n">cur_diam</span> <span class="o">=</span> <span class="n">cur_dist</span>
+</span><span data-line="129">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="130">            <span class="c1"># Check if new selected diameter</span>
+</span><span data-line="131">            <span class="k">if</span> <span class="n">sel_iset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cur_diam</span> <span class="o">&lt;</span> <span class="n">sel_diam</span><span class="p">:</span>
+</span><span data-line="132">                <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">cur_iset</span>
+</span><span data-line="133">                <span class="n">sel_diam</span> <span class="o">=</span> <span class="n">cur_diam</span>
+</span><span data-line="134">    <span class="c1"># Return the selected gradients</span>
+</span><span data-line="135">    <span class="k">assert</span> <span class="n">sel_iset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
+</span><span data-line="136">        <span class="s2">&quot;Too many non-finite gradients: a non-Byzantine gradient must only contain finite coordinates&quot;</span>
+</span><span data-line="137">    <span class="p">)</span>
+</span><span data-line="138">    <span class="k">return</span> <span class="n">sel_iset</span>
+</span><span data-line="139">
+</span><span data-line="140">
 <div class="viewcode-block" id="aggregate">
 <a class="viewcode-back" href="../../aggregators/classes/brute.html#aggregators.brute.aggregate">[docs]</a>
-</span><span data-line="139"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="140"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="141"><span class="sd">    Compute the Brute aggregation (mean of smallest-diameter subset).</span>
-</span><span data-line="142">
-</span><span data-line="143"><span class="sd">    Parameters</span>
-</span><span data-line="144"><span class="sd">    ----------</span>
-</span><span data-line="145"><span class="sd">    gradients : list of torch.Tensor</span>
-</span><span data-line="146"><span class="sd">        Non-empty list of gradients to aggregate.</span>
-</span><span data-line="147"><span class="sd">    f : int</span>
-</span><span data-line="148"><span class="sd">        Number of Byzantine gradients to tolerate. Must satisfy</span>
-</span><span data-line="149"><span class="sd">        ``1 &lt;= f &lt;= (n - 1) // 2`` where ``n = len(gradients)``.</span>
-</span><span data-line="150"><span class="sd">    **kwargs : object</span>
-</span><span data-line="151"><span class="sd">        Additional keyword arguments, ignored by this implementation.</span>
-</span><span data-line="152">
-</span><span data-line="153"><span class="sd">    Returns</span>
-</span><span data-line="154"><span class="sd">    -------</span>
-</span><span data-line="155"><span class="sd">    torch.Tensor</span>
-</span><span data-line="156"><span class="sd">        Mean of the selected :math:`n - f` gradients with smallest finite</span>
-</span><span data-line="157"><span class="sd">        diameter.</span>
-</span><span data-line="158">
-</span><span data-line="159"><span class="sd">    Notes</span>
-</span><span data-line="160"><span class="sd">    -----</span>
-</span><span data-line="161"><span class="sd">    The returned tensor is newly computed and does not alias any input tensor.</span>
-</span><span data-line="162"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="163">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">_compute_selection</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="164">    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sel_iset</span><span class="p">)</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
+</span><span data-line="141"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="142"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="143"><span class="sd">    Compute the Brute aggregation (mean of smallest-diameter subset).</span>
+</span><span data-line="144">
+</span><span data-line="145"><span class="sd">    Parameters</span>
+</span><span data-line="146"><span class="sd">    ----------</span>
+</span><span data-line="147"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="148"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="149"><span class="sd">    f : int</span>
+</span><span data-line="150"><span class="sd">        Number of Byzantine gradients to tolerate. Must satisfy</span>
+</span><span data-line="151"><span class="sd">        ``1 &lt;= f &lt;= (n - 1) // 2`` where ``n = len(gradients)``.</span>
+</span><span data-line="152"><span class="sd">    **kwargs : object</span>
+</span><span data-line="153"><span class="sd">        Additional keyword arguments, ignored by this implementation.</span>
+</span><span data-line="154">
+</span><span data-line="155"><span class="sd">    Returns</span>
+</span><span data-line="156"><span class="sd">    -------</span>
+</span><span data-line="157"><span class="sd">    torch.Tensor</span>
+</span><span data-line="158"><span class="sd">        Mean of the selected :math:`n - f` gradients with smallest finite</span>
+</span><span data-line="159"><span class="sd">        diameter.</span>
+</span><span data-line="160">
+</span><span data-line="161"><span class="sd">    Notes</span>
+</span><span data-line="162"><span class="sd">    -----</span>
+</span><span data-line="163"><span class="sd">    The returned tensor is newly computed and does not alias any input tensor.</span>
+</span><span data-line="164"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="165">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">_compute_selection</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="166">    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sel_iset</span><span class="p">)</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
 
-</span><span data-line="165">
-</span><span data-line="166">
+</span><span data-line="167">
+</span><span data-line="168">
 <div class="viewcode-block" id="aggregate_native">
 <a class="viewcode-back" href="../../aggregators/classes/brute.html#aggregators.brute.aggregate_native">[docs]</a>
-</span><span data-line="167"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="168"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="169"><span class="sd">    Compute the Brute aggregation using native C++/CUDA acceleration.</span>
-</span><span data-line="170">
-</span><span data-line="171"><span class="sd">    Parameters</span>
-</span><span data-line="172"><span class="sd">    ----------</span>
-</span><span data-line="173"><span class="sd">    gradients : list of torch.Tensor</span>
-</span><span data-line="174"><span class="sd">        Non-empty list of gradients to aggregate.</span>
-</span><span data-line="175"><span class="sd">    f : int</span>
-</span><span data-line="176"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
-</span><span data-line="177"><span class="sd">    **kwargs : object</span>
-</span><span data-line="178"><span class="sd">        Additional keyword arguments, ignored by this implementation.</span>
-</span><span data-line="179">
-</span><span data-line="180"><span class="sd">    Returns</span>
-</span><span data-line="181"><span class="sd">    -------</span>
-</span><span data-line="182"><span class="sd">    torch.Tensor | float</span>
-</span><span data-line="183"><span class="sd">        Mean of the subset selected by the native Brute implementation.</span>
-</span><span data-line="184"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="185">    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">brute</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+</span><span data-line="169"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span>
+</span><span data-line="170">    <span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+</span><span data-line="171"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="172"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="173"><span class="sd">    Compute the Brute aggregation using native C++/CUDA acceleration.</span>
+</span><span data-line="174">
+</span><span data-line="175"><span class="sd">    Parameters</span>
+</span><span data-line="176"><span class="sd">    ----------</span>
+</span><span data-line="177"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="178"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="179"><span class="sd">    f : int</span>
+</span><span data-line="180"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="181"><span class="sd">    **kwargs : object</span>
+</span><span data-line="182"><span class="sd">        Additional keyword arguments, ignored by this implementation.</span>
+</span><span data-line="183">
+</span><span data-line="184"><span class="sd">    Returns</span>
+</span><span data-line="185"><span class="sd">    -------</span>
+</span><span data-line="186"><span class="sd">    torch.Tensor | float</span>
+</span><span data-line="187"><span class="sd">        Mean of the subset selected by the native Brute implementation.</span>
+</span><span data-line="188"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="189">    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">brute</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
-</span><span data-line="186">
-</span><span data-line="187">
+</span><span data-line="190">
+</span><span data-line="191">
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../aggregators/classes/brute.html#aggregators.brute.check">[docs]</a>
-</span><span data-line="188"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="189"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="190"><span class="sd">    Check parameter validity for the Brute aggregation rule.</span>
-</span><span data-line="191">
-</span><span data-line="192"><span class="sd">    Parameters</span>
-</span><span data-line="193"><span class="sd">    ----------</span>
-</span><span data-line="194"><span class="sd">    gradients : list of torch.Tensor</span>
-</span><span data-line="195"><span class="sd">        Non-empty list of gradients to aggregate.</span>
-</span><span data-line="196"><span class="sd">    f : int</span>
-</span><span data-line="197"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
-</span><span data-line="198"><span class="sd">    **kwargs : object</span>
-</span><span data-line="199"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
-</span><span data-line="200">
-</span><span data-line="201"><span class="sd">    Returns</span>
-</span><span data-line="202"><span class="sd">    -------</span>
-</span><span data-line="203"><span class="sd">    str or None</span>
-</span><span data-line="204"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
-</span><span data-line="205"><span class="sd">        message.</span>
-</span><span data-line="206"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="207">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span data-line="208">        <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="209">            <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
-</span><span data-line="210">        <span class="p">)</span>
-</span><span data-line="211">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="192"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="193"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="194"><span class="sd">    Check parameter validity for the Brute aggregation rule.</span>
+</span><span data-line="195">
+</span><span data-line="196"><span class="sd">    Parameters</span>
+</span><span data-line="197"><span class="sd">    ----------</span>
+</span><span data-line="198"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="199"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="200"><span class="sd">    f : int</span>
+</span><span data-line="201"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="202"><span class="sd">    **kwargs : object</span>
+</span><span data-line="203"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
+</span><span data-line="204">
+</span><span data-line="205"><span class="sd">    Returns</span>
+</span><span data-line="206"><span class="sd">    -------</span>
+</span><span data-line="207"><span class="sd">    str or None</span>
+</span><span data-line="208"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
+</span><span data-line="209"><span class="sd">        message.</span>
+</span><span data-line="210"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="211">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
 </span><span data-line="212">        <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="213">            <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span>
-</span><span data-line="214">            <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
-</span><span data-line="215">        <span class="p">)</span></div>
+</span><span data-line="213">            <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
+</span><span data-line="214">        <span class="p">)</span>
+</span><span data-line="215">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="216">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="217">            <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span>
+</span><span data-line="218">            <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="219">        <span class="p">)</span></div>
 
-</span><span data-line="216">
-</span><span data-line="217">
+</span><span data-line="220">
+</span><span data-line="221">
 <div class="viewcode-block" id="upper_bound">
 <a class="viewcode-back" href="../../aggregators/classes/brute.html#aggregators.brute.upper_bound">[docs]</a>
-</span><span data-line="218"><span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="219"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="220"><span class="sd">    Compute the theoretical Brute resilience bound.</span>
-</span><span data-line="221">
-</span><span data-line="222"><span class="sd">    Parameters</span>
-</span><span data-line="223"><span class="sd">    ----------</span>
-</span><span data-line="224"><span class="sd">    n : int</span>
-</span><span data-line="225"><span class="sd">        Total number of workers, including Byzantine workers.</span>
-</span><span data-line="226"><span class="sd">    f : int</span>
-</span><span data-line="227"><span class="sd">        Expected number of Byzantine workers.</span>
-</span><span data-line="228"><span class="sd">    d : int</span>
-</span><span data-line="229"><span class="sd">        Dimension of the gradient space.</span>
-</span><span data-line="230">
-</span><span data-line="231"><span class="sd">    Returns</span>
-</span><span data-line="232"><span class="sd">    -------</span>
-</span><span data-line="233"><span class="sd">    float</span>
-</span><span data-line="234"><span class="sd">        Upper bound on the ratio between non-Byzantine standard deviation and</span>
-</span><span data-line="235"><span class="sd">        gradient norm under which the rule is expected to apply.</span>
-</span><span data-line="236"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="237">    <span class="k">return</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span></div>
+</span><span data-line="222"><span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="223"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="224"><span class="sd">    Compute the theoretical Brute resilience bound.</span>
+</span><span data-line="225">
+</span><span data-line="226"><span class="sd">    Parameters</span>
+</span><span data-line="227"><span class="sd">    ----------</span>
+</span><span data-line="228"><span class="sd">    n : int</span>
+</span><span data-line="229"><span class="sd">        Total number of workers, including Byzantine workers.</span>
+</span><span data-line="230"><span class="sd">    f : int</span>
+</span><span data-line="231"><span class="sd">        Expected number of Byzantine workers.</span>
+</span><span data-line="232"><span class="sd">    d : int</span>
+</span><span data-line="233"><span class="sd">        Dimension of the gradient space.</span>
+</span><span data-line="234">
+</span><span data-line="235"><span class="sd">    Returns</span>
+</span><span data-line="236"><span class="sd">    -------</span>
+</span><span data-line="237"><span class="sd">    float</span>
+</span><span data-line="238"><span class="sd">        Upper bound on the ratio between non-Byzantine standard deviation and</span>
+</span><span data-line="239"><span class="sd">        gradient norm under which the rule is expected to apply.</span>
+</span><span data-line="240"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="241">    <span class="k">return</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span></div>
 
-</span><span data-line="238">
-</span><span data-line="239">
+</span><span data-line="242">
+</span><span data-line="243">
 <div class="viewcode-block" id="influence">
 <a class="viewcode-back" href="../../aggregators/classes/brute.html#aggregators.brute.influence">[docs]</a>
-</span><span data-line="240"><span class="k">def</span><span class="w"> </span><span class="nf">influence</span><span class="p">(</span><span class="n">honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">attacks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="241"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="242"><span class="sd">    Compute the ratio of Byzantine gradients selected by Brute.</span>
-</span><span data-line="243">
-</span><span data-line="244"><span class="sd">    Parameters</span>
-</span><span data-line="245"><span class="sd">    ----------</span>
-</span><span data-line="246"><span class="sd">    honests : list of torch.Tensor</span>
-</span><span data-line="247"><span class="sd">        Non-empty list of honest gradients.</span>
-</span><span data-line="248"><span class="sd">    attacks : list of torch.Tensor</span>
-</span><span data-line="249"><span class="sd">        List of attack, or Byzantine, gradients.</span>
-</span><span data-line="250"><span class="sd">    f : int</span>
-</span><span data-line="251"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
-</span><span data-line="252"><span class="sd">    **kwargs : object</span>
-</span><span data-line="253"><span class="sd">        Additional keyword arguments forwarded to the selection helper.</span>
-</span><span data-line="254">
-</span><span data-line="255"><span class="sd">    Returns</span>
-</span><span data-line="256"><span class="sd">    -------</span>
-</span><span data-line="257"><span class="sd">    float</span>
-</span><span data-line="258"><span class="sd">        Fraction of selected gradients that come from ``attacks``.</span>
-</span><span data-line="259"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="260">    <span class="n">gradients</span> <span class="o">=</span> <span class="n">honests</span> <span class="o">+</span> <span class="n">attacks</span>
-</span><span data-line="261">    <span class="c1"># Compute the selection set</span>
-</span><span data-line="262">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">_compute_selection</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="263">    <span class="c1"># Compute the influence ratio</span>
-</span><span data-line="264">    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span data-line="265">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sel_iset</span><span class="p">:</span>
-</span><span data-line="266">        <span class="n">gradient</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-</span><span data-line="267">        <span class="k">for</span> <span class="n">attack</span> <span class="ow">in</span> <span class="n">attacks</span><span class="p">:</span>
-</span><span data-line="268">            <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="n">attack</span><span class="p">:</span>
-</span><span data-line="269">                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span data-line="270">                <span class="k">break</span>
-</span><span data-line="271">    <span class="k">return</span> <span class="n">count</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
+</span><span data-line="244"><span class="k">def</span><span class="w"> </span><span class="nf">influence</span><span class="p">(</span>
+</span><span data-line="245">    <span class="n">honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">attacks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+</span><span data-line="246"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="247"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="248"><span class="sd">    Compute the ratio of Byzantine gradients selected by Brute.</span>
+</span><span data-line="249">
+</span><span data-line="250"><span class="sd">    Parameters</span>
+</span><span data-line="251"><span class="sd">    ----------</span>
+</span><span data-line="252"><span class="sd">    honests : list of torch.Tensor</span>
+</span><span data-line="253"><span class="sd">        Non-empty list of honest gradients.</span>
+</span><span data-line="254"><span class="sd">    attacks : list of torch.Tensor</span>
+</span><span data-line="255"><span class="sd">        List of attack, or Byzantine, gradients.</span>
+</span><span data-line="256"><span class="sd">    f : int</span>
+</span><span data-line="257"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="258"><span class="sd">    **kwargs : object</span>
+</span><span data-line="259"><span class="sd">        Additional keyword arguments forwarded to the selection helper.</span>
+</span><span data-line="260">
+</span><span data-line="261"><span class="sd">    Returns</span>
+</span><span data-line="262"><span class="sd">    -------</span>
+</span><span data-line="263"><span class="sd">    float</span>
+</span><span data-line="264"><span class="sd">        Fraction of selected gradients that come from ``attacks``.</span>
+</span><span data-line="265"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="266">    <span class="n">gradients</span> <span class="o">=</span> <span class="n">honests</span> <span class="o">+</span> <span class="n">attacks</span>
+</span><span data-line="267">    <span class="c1"># Compute the selection set</span>
+</span><span data-line="268">    <span class="n">sel_iset</span> <span class="o">=</span> <span class="n">_compute_selection</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="269">    <span class="c1"># Compute the influence ratio</span>
+</span><span data-line="270">    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="271">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sel_iset</span><span class="p">:</span>
+</span><span data-line="272">        <span class="n">gradient</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span><span data-line="273">        <span class="k">for</span> <span class="n">attack</span> <span class="ow">in</span> <span class="n">attacks</span><span class="p">:</span>
+</span><span data-line="274">            <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="n">attack</span><span class="p">:</span>
+</span><span data-line="275">                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span data-line="276">                <span class="k">break</span>
+</span><span data-line="277">    <span class="k">return</span> <span class="n">count</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span></div>
 
-</span><span data-line="272">
-</span><span data-line="273">
-</span><span data-line="274"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="275"><span class="c1"># GAR registering</span>
-</span><span data-line="276">
-</span><span data-line="277"><span class="c1"># Register aggregation rule (pytorch version)</span>
-</span><span data-line="278"><span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;brute&quot;</span>
-</span><span data-line="279"><span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span><span class="p">)</span>
-</span><span data-line="280">
-</span><span data-line="281"><span class="c1"># Register aggregation rule (native version, if available)</span>
-</span><span data-line="282"><span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="283">    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
-</span><span data-line="284">    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
-</span><span data-line="285">    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
-</span><span data-line="286">        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
-</span><span data-line="287">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="288">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="289">            <span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span>
-</span><span data-line="290">            <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">)</span>
-</span><span data-line="291">        <span class="p">)</span>
+</span><span data-line="278">
+</span><span data-line="279">
+</span><span data-line="280"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="281"><span class="c1"># GAR registering</span>
+</span><span data-line="282">
+</span><span data-line="283"><span class="c1"># Register aggregation rule (pytorch version)</span>
+</span><span data-line="284"><span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;brute&quot;</span>
+</span><span data-line="285"><span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span><span class="p">)</span>
+</span><span data-line="286">
+</span><span data-line="287"><span class="c1"># Register aggregation rule (native version, if available)</span>
+</span><span data-line="288"><span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="289">    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
+</span><span data-line="290">    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
+</span><span data-line="291">    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
+</span><span data-line="292">        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+</span><span data-line="293">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="294">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="295">            <span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span>
+</span><span data-line="296">            <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">)</span>
+</span><span data-line="297">        <span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -470,7 +479,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

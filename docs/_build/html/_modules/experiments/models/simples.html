@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -139,17 +142,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for experiments.models.simples</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   simples.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Collection of simple models.</span>
+</span><span data-line="3"><span class="c1"># @file   simples.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Collection of simple models.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;full&quot;</span><span class="p">,</span> <span class="s2">&quot;conv&quot;</span><span class="p">,</span> <span class="s2">&quot;logit&quot;</span><span class="p">,</span> <span class="s2">&quot;linear&quot;</span><span class="p">]</span>
@@ -159,171 +162,176 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="20"><span class="c1"># ---------------------------------------------------------------------------- #</span>
 </span><span data-line="21"><span class="c1"># Simple fully-connected model, for MNIST</span>
 </span><span data-line="22">
-</span><span data-line="23"><span class="k">class</span><span class="w"> </span><span class="nc">_Full</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="24"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple, small fully connected model.</span>
-</span><span data-line="25"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="23">
+</span><span data-line="24"><span class="k">class</span><span class="w"> </span><span class="nc">_Full</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="25"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple, small fully connected model.&quot;&quot;&quot;</span>
 </span><span data-line="26">
-</span><span data-line="27">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="28"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model parameter constructor.</span>
-</span><span data-line="29"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="30">    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="31">    <span class="c1"># Build parameters</span>
-</span><span data-line="32">    <span class="bp">self</span><span class="o">.</span><span class="n">_f1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">28</span> <span class="o">*</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-</span><span data-line="33">    <span class="bp">self</span><span class="o">.</span><span class="n">_f2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-</span><span data-line="34">
-</span><span data-line="35">  <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span data-line="36"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model&#39;s forward pass.</span>
-</span><span data-line="37"><span class="sd">    Args:</span>
-</span><span data-line="38"><span class="sd">      x Input tensor</span>
-</span><span data-line="39"><span class="sd">    Returns:</span>
-</span><span data-line="40"><span class="sd">      Output tensor</span>
-</span><span data-line="41"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="42">    <span class="c1"># Forward pass</span>
-</span><span data-line="43">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f1</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">28</span> <span class="o">*</span> <span class="mi">28</span><span class="p">)))</span>
-</span><span data-line="44">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f2</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span data-line="45">    <span class="k">return</span> <span class="n">x</span>
+</span><span data-line="27">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="28"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model parameter constructor.&quot;&quot;&quot;</span>
+</span><span data-line="29">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="30">        <span class="c1"># Build parameters</span>
+</span><span data-line="31">        <span class="bp">self</span><span class="o">.</span><span class="n">_f1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">28</span> <span class="o">*</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span><span data-line="32">        <span class="bp">self</span><span class="o">.</span><span class="n">_f2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</span><span data-line="33">
+</span><span data-line="34">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span data-line="35"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model&#39;s forward pass.</span>
+</span><span data-line="36"><span class="sd">        Args:</span>
+</span><span data-line="37"><span class="sd">          x Input tensor</span>
+</span><span data-line="38"><span class="sd">        Returns:</span>
+</span><span data-line="39"><span class="sd">          Output tensor</span>
+</span><span data-line="40"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="41">        <span class="c1"># Forward pass</span>
+</span><span data-line="42">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f1</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">28</span> <span class="o">*</span> <span class="mi">28</span><span class="p">)))</span>
+</span><span data-line="43">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f2</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="44">        <span class="k">return</span> <span class="n">x</span>
+</span><span data-line="45">
 </span><span data-line="46">
 <div class="viewcode-block" id="full">
 <a class="viewcode-back" href="../../../experiments/classes/models.html#experiments.models.simples.full">[docs]</a>
 </span><span data-line="47"><span class="k">def</span><span class="w"> </span><span class="nf">full</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="48"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Build a new simple, fully connected model.</span>
-</span><span data-line="49"><span class="sd">  Args:</span>
-</span><span data-line="50"><span class="sd">    ... Forwarded (keyword-)arguments</span>
-</span><span data-line="51"><span class="sd">  Returns:</span>
-</span><span data-line="52"><span class="sd">    Fully connected model</span>
-</span><span data-line="53"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="54">  <span class="k">global</span> <span class="n">_Full</span>
-</span><span data-line="55">  <span class="k">return</span> <span class="n">_Full</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</span><span data-line="48"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a new simple, fully connected model.</span>
+</span><span data-line="49"><span class="sd">    Args:</span>
+</span><span data-line="50"><span class="sd">      ... Forwarded (keyword-)arguments</span>
+</span><span data-line="51"><span class="sd">    Returns:</span>
+</span><span data-line="52"><span class="sd">      Fully connected model</span>
+</span><span data-line="53"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="54">    <span class="k">global</span> <span class="n">_Full</span>
+</span><span data-line="55">    <span class="k">return</span> <span class="n">_Full</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </span><span data-line="56">
-</span><span data-line="57"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="58"><span class="c1"># Simple convolutional model, for MNIST</span>
-</span><span data-line="59">
-</span><span data-line="60"><span class="k">class</span><span class="w"> </span><span class="nc">_Conv</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="61"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple, small convolutional model.</span>
-</span><span data-line="62"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="63">
-</span><span data-line="64">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="65"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model parameter constructor.</span>
-</span><span data-line="66"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="67">    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="68">    <span class="c1"># Build parameters</span>
-</span><span data-line="69">    <span class="bp">self</span><span class="o">.</span><span class="n">_c1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span data-line="70">    <span class="bp">self</span><span class="o">.</span><span class="n">_c2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span data-line="71">    <span class="bp">self</span><span class="o">.</span><span class="n">_f1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
-</span><span data-line="72">    <span class="bp">self</span><span class="o">.</span><span class="n">_f2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</span><span data-line="57">
+</span><span data-line="58"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="59"><span class="c1"># Simple convolutional model, for MNIST</span>
+</span><span data-line="60">
+</span><span data-line="61">
+</span><span data-line="62"><span class="k">class</span><span class="w"> </span><span class="nc">_Conv</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="63"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple, small convolutional model.&quot;&quot;&quot;</span>
+</span><span data-line="64">
+</span><span data-line="65">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="66"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model parameter constructor.&quot;&quot;&quot;</span>
+</span><span data-line="67">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="68">        <span class="c1"># Build parameters</span>
+</span><span data-line="69">        <span class="bp">self</span><span class="o">.</span><span class="n">_c1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span data-line="70">        <span class="bp">self</span><span class="o">.</span><span class="n">_c2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span data-line="71">        <span class="bp">self</span><span class="o">.</span><span class="n">_f1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+</span><span data-line="72">        <span class="bp">self</span><span class="o">.</span><span class="n">_f2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 </span><span data-line="73">
-</span><span data-line="74">  <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span data-line="75"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model&#39;s forward pass.</span>
-</span><span data-line="76"><span class="sd">    Args:</span>
-</span><span data-line="77"><span class="sd">      x Input tensor</span>
-</span><span data-line="78"><span class="sd">    Returns:</span>
-</span><span data-line="79"><span class="sd">      Output tensor</span>
-</span><span data-line="80"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="81">    <span class="c1"># Forward pass</span>
-</span><span data-line="82">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-</span><span data-line="83">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-</span><span data-line="84">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-</span><span data-line="85">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-</span><span data-line="86">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f1</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">800</span><span class="p">)))</span>
-</span><span data-line="87">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f2</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span data-line="88">    <span class="k">return</span> <span class="n">x</span>
+</span><span data-line="74">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span data-line="75"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model&#39;s forward pass.</span>
+</span><span data-line="76"><span class="sd">        Args:</span>
+</span><span data-line="77"><span class="sd">          x Input tensor</span>
+</span><span data-line="78"><span class="sd">        Returns:</span>
+</span><span data-line="79"><span class="sd">          Output tensor</span>
+</span><span data-line="80"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="81">        <span class="c1"># Forward pass</span>
+</span><span data-line="82">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</span><span data-line="83">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="84">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</span><span data-line="85">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="86">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f1</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">800</span><span class="p">)))</span>
+</span><span data-line="87">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_f2</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="88">        <span class="k">return</span> <span class="n">x</span>
 </span><span data-line="89">
+</span><span data-line="90">
 <div class="viewcode-block" id="conv">
 <a class="viewcode-back" href="../../../experiments/classes/models.html#experiments.models.simples.conv">[docs]</a>
-</span><span data-line="90"><span class="k">def</span><span class="w"> </span><span class="nf">conv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="91"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Build a new simple, convolutional model.</span>
-</span><span data-line="92"><span class="sd">  Args:</span>
-</span><span data-line="93"><span class="sd">    ... Forwarded (keyword-)arguments</span>
-</span><span data-line="94"><span class="sd">  Returns:</span>
-</span><span data-line="95"><span class="sd">    Convolutional model</span>
-</span><span data-line="96"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="97">  <span class="k">global</span> <span class="n">_Conv</span>
-</span><span data-line="98">  <span class="k">return</span> <span class="n">_Conv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</span><span data-line="91"><span class="k">def</span><span class="w"> </span><span class="nf">conv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="92"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a new simple, convolutional model.</span>
+</span><span data-line="93"><span class="sd">    Args:</span>
+</span><span data-line="94"><span class="sd">      ... Forwarded (keyword-)arguments</span>
+</span><span data-line="95"><span class="sd">    Returns:</span>
+</span><span data-line="96"><span class="sd">      Convolutional model</span>
+</span><span data-line="97"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="98">    <span class="k">global</span> <span class="n">_Conv</span>
+</span><span data-line="99">    <span class="k">return</span> <span class="n">_Conv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-</span><span data-line="99">
-</span><span data-line="100"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="101"><span class="c1"># Simple(r) logistic regression model</span>
-</span><span data-line="102">
-</span><span data-line="103"><span class="k">class</span><span class="w"> </span><span class="nc">_Logit</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="104"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple logistic regression model.</span>
-</span><span data-line="105"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="106">
-</span><span data-line="107">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span data-line="108"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model parameter constructor.</span>
-</span><span data-line="109"><span class="sd">    Args:</span>
-</span><span data-line="110"><span class="sd">      din  Number of input dimensions</span>
-</span><span data-line="111"><span class="sd">      dout Number of output dimensions</span>
-</span><span data-line="112"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="113">    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="114">    <span class="c1"># Store model parameters</span>
-</span><span data-line="115">    <span class="bp">self</span><span class="o">.</span><span class="n">_din</span>  <span class="o">=</span> <span class="n">din</span>
-</span><span data-line="116">    <span class="bp">self</span><span class="o">.</span><span class="n">_dout</span> <span class="o">=</span> <span class="n">dout</span>
-</span><span data-line="117">    <span class="c1"># Build parameters</span>
-</span><span data-line="118">    <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="p">)</span>
-</span><span data-line="119">
-</span><span data-line="120">  <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span data-line="121"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model&#39;s forward pass.</span>
-</span><span data-line="122"><span class="sd">    Args:</span>
-</span><span data-line="123"><span class="sd">      x Input tensor</span>
-</span><span data-line="124"><span class="sd">    Returns:</span>
-</span><span data-line="125"><span class="sd">      Output tensor</span>
-</span><span data-line="126"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="127">    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_din</span><span class="p">)))</span>
-</span><span data-line="128">
+</span><span data-line="100">
+</span><span data-line="101">
+</span><span data-line="102"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="103"><span class="c1"># Simple(r) logistic regression model</span>
+</span><span data-line="104">
+</span><span data-line="105">
+</span><span data-line="106"><span class="k">class</span><span class="w"> </span><span class="nc">_Logit</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="107"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple logistic regression model.&quot;&quot;&quot;</span>
+</span><span data-line="108">
+</span><span data-line="109">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span data-line="110"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model parameter constructor.</span>
+</span><span data-line="111"><span class="sd">        Args:</span>
+</span><span data-line="112"><span class="sd">          din  Number of input dimensions</span>
+</span><span data-line="113"><span class="sd">          dout Number of output dimensions</span>
+</span><span data-line="114"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="115">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="116">        <span class="c1"># Store model parameters</span>
+</span><span data-line="117">        <span class="bp">self</span><span class="o">.</span><span class="n">_din</span> <span class="o">=</span> <span class="n">din</span>
+</span><span data-line="118">        <span class="bp">self</span><span class="o">.</span><span class="n">_dout</span> <span class="o">=</span> <span class="n">dout</span>
+</span><span data-line="119">        <span class="c1"># Build parameters</span>
+</span><span data-line="120">        <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="p">)</span>
+</span><span data-line="121">
+</span><span data-line="122">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span data-line="123"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model&#39;s forward pass.</span>
+</span><span data-line="124"><span class="sd">        Args:</span>
+</span><span data-line="125"><span class="sd">          x Input tensor</span>
+</span><span data-line="126"><span class="sd">        Returns:</span>
+</span><span data-line="127"><span class="sd">          Output tensor</span>
+</span><span data-line="128"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="129">        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_din</span><span class="p">)))</span>
+</span><span data-line="130">
+</span><span data-line="131">
 <div class="viewcode-block" id="logit">
 <a class="viewcode-back" href="../../../experiments/classes/models.html#experiments.models.simples.logit">[docs]</a>
-</span><span data-line="129"><span class="k">def</span><span class="w"> </span><span class="nf">logit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="130"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Build a new simple, fully connected model.</span>
-</span><span data-line="131"><span class="sd">  Args:</span>
-</span><span data-line="132"><span class="sd">    ... Forwarded (keyword-)arguments</span>
-</span><span data-line="133"><span class="sd">  Returns:</span>
-</span><span data-line="134"><span class="sd">    Fully connected model</span>
-</span><span data-line="135"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="136">  <span class="k">global</span> <span class="n">_Logit</span>
-</span><span data-line="137">  <span class="k">return</span> <span class="n">_Logit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</span><span data-line="132"><span class="k">def</span><span class="w"> </span><span class="nf">logit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="133"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a new simple, fully connected model.</span>
+</span><span data-line="134"><span class="sd">    Args:</span>
+</span><span data-line="135"><span class="sd">      ... Forwarded (keyword-)arguments</span>
+</span><span data-line="136"><span class="sd">    Returns:</span>
+</span><span data-line="137"><span class="sd">      Fully connected model</span>
+</span><span data-line="138"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="139">    <span class="k">global</span> <span class="n">_Logit</span>
+</span><span data-line="140">    <span class="k">return</span> <span class="n">_Logit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-</span><span data-line="138">
-</span><span data-line="139"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="140"><span class="c1"># Simple(st) linear model</span>
 </span><span data-line="141">
-</span><span data-line="142"><span class="k">class</span><span class="w"> </span><span class="nc">_Linear</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="143"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Simple linear model.</span>
-</span><span data-line="144"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="142">
+</span><span data-line="143"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="144"><span class="c1"># Simple(st) linear model</span>
 </span><span data-line="145">
-</span><span data-line="146">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span data-line="147"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model parameter constructor.</span>
-</span><span data-line="148"><span class="sd">    Args:</span>
-</span><span data-line="149"><span class="sd">      din  Number of input dimensions</span>
-</span><span data-line="150"><span class="sd">      dout Number of output dimensions</span>
-</span><span data-line="151"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="152">    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="153">    <span class="c1"># Store model parameters</span>
-</span><span data-line="154">    <span class="bp">self</span><span class="o">.</span><span class="n">_din</span>  <span class="o">=</span> <span class="n">din</span>
-</span><span data-line="155">    <span class="bp">self</span><span class="o">.</span><span class="n">_dout</span> <span class="o">=</span> <span class="n">dout</span>
-</span><span data-line="156">    <span class="c1"># Build parameters</span>
-</span><span data-line="157">    <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="p">)</span>
-</span><span data-line="158">
-</span><span data-line="159">  <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span data-line="160"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Model&#39;s forward pass.</span>
-</span><span data-line="161"><span class="sd">    Args:</span>
-</span><span data-line="162"><span class="sd">      x Input tensor</span>
-</span><span data-line="163"><span class="sd">    Returns:</span>
-</span><span data-line="164"><span class="sd">      Output tensor</span>
-</span><span data-line="165"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="166">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_din</span><span class="p">))</span>
-</span><span data-line="167">
+</span><span data-line="146">
+</span><span data-line="147"><span class="k">class</span><span class="w"> </span><span class="nc">_Linear</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="148"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple linear model.&quot;&quot;&quot;</span>
+</span><span data-line="149">
+</span><span data-line="150">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span data-line="151"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model parameter constructor.</span>
+</span><span data-line="152"><span class="sd">        Args:</span>
+</span><span data-line="153"><span class="sd">          din  Number of input dimensions</span>
+</span><span data-line="154"><span class="sd">          dout Number of output dimensions</span>
+</span><span data-line="155"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="156">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="157">        <span class="c1"># Store model parameters</span>
+</span><span data-line="158">        <span class="bp">self</span><span class="o">.</span><span class="n">_din</span> <span class="o">=</span> <span class="n">din</span>
+</span><span data-line="159">        <span class="bp">self</span><span class="o">.</span><span class="n">_dout</span> <span class="o">=</span> <span class="n">dout</span>
+</span><span data-line="160">        <span class="c1"># Build parameters</span>
+</span><span data-line="161">        <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="p">)</span>
+</span><span data-line="162">
+</span><span data-line="163">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span data-line="164"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Model&#39;s forward pass.</span>
+</span><span data-line="165"><span class="sd">        Args:</span>
+</span><span data-line="166"><span class="sd">          x Input tensor</span>
+</span><span data-line="167"><span class="sd">        Returns:</span>
+</span><span data-line="168"><span class="sd">          Output tensor</span>
+</span><span data-line="169"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="170">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_din</span><span class="p">))</span>
+</span><span data-line="171">
+</span><span data-line="172">
 <div class="viewcode-block" id="linear">
 <a class="viewcode-back" href="../../../experiments/classes/models.html#experiments.models.simples.linear">[docs]</a>
-</span><span data-line="168"><span class="k">def</span><span class="w"> </span><span class="nf">linear</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="169"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Build a new simple, fully connected model.</span>
-</span><span data-line="170"><span class="sd">  Args:</span>
-</span><span data-line="171"><span class="sd">    ... Forwarded (keyword-)arguments</span>
-</span><span data-line="172"><span class="sd">  Returns:</span>
-</span><span data-line="173"><span class="sd">    Fully connected model</span>
-</span><span data-line="174"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="175">  <span class="k">global</span> <span class="n">_Linear</span>
-</span><span data-line="176">  <span class="k">return</span> <span class="n">_Linear</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</span><span data-line="173"><span class="k">def</span><span class="w"> </span><span class="nf">linear</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="174"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a new simple, fully connected model.</span>
+</span><span data-line="175"><span class="sd">    Args:</span>
+</span><span data-line="176"><span class="sd">      ... Forwarded (keyword-)arguments</span>
+</span><span data-line="177"><span class="sd">    Returns:</span>
+</span><span data-line="178"><span class="sd">      Fully connected model</span>
+</span><span data-line="179"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="180">    <span class="k">global</span> <span class="n">_Linear</span>
+</span><span data-line="181">    <span class="k">return</span> <span class="n">_Linear</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -348,7 +356,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

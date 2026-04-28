@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -139,17 +142,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for tools</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   __init__.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Bunch of useful tools, but each too small to have its own package.</span>
+</span><span data-line="3"><span class="c1"># @file   __init__.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Bunch of useful tools, but each too small to have its own package.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -443,218 +446,216 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="292"><span class="sd">        Print wrapper closure.</span>
 </span><span data-line="293"><span class="sd">    &quot;&quot;&quot;</span>
 </span><span data-line="294">
-</span><span data-line="295">    <span class="k">def</span><span class="w"> </span><span class="nf">color_print</span><span class="p">(</span>
-</span><span data-line="296">        <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-</span><span data-line="297">    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-</span><span data-line="298"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="299"><span class="sd">        Print inside the configured colored context.</span>
-</span><span data-line="300">
-</span><span data-line="301"><span class="sd">        Parameters</span>
-</span><span data-line="302"><span class="sd">        ----------</span>
-</span><span data-line="303"><span class="sd">        *args : object</span>
-</span><span data-line="304"><span class="sd">            Positional arguments forwarded to :func:`print`.</span>
-</span><span data-line="305"><span class="sd">        context : str or None, optional</span>
-</span><span data-line="306"><span class="sd">            Context name to use while printing.</span>
-</span><span data-line="307"><span class="sd">        **kwargs : object</span>
-</span><span data-line="308"><span class="sd">            Keyword arguments forwarded to :func:`print`.</span>
-</span><span data-line="309">
-</span><span data-line="310"><span class="sd">        Returns</span>
-</span><span data-line="311"><span class="sd">        -------</span>
-</span><span data-line="312"><span class="sd">        object</span>
-</span><span data-line="313"><span class="sd">            Return value forwarded from :func:`print`.</span>
-</span><span data-line="314"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="315">        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
-</span><span data-line="316">            <span class="k">return</span> <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="295">    <span class="k">def</span><span class="w"> </span><span class="nf">color_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+</span><span data-line="296"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="297"><span class="sd">        Print inside the configured colored context.</span>
+</span><span data-line="298">
+</span><span data-line="299"><span class="sd">        Parameters</span>
+</span><span data-line="300"><span class="sd">        ----------</span>
+</span><span data-line="301"><span class="sd">        *args : object</span>
+</span><span data-line="302"><span class="sd">            Positional arguments forwarded to :func:`print`.</span>
+</span><span data-line="303"><span class="sd">        context : str or None, optional</span>
+</span><span data-line="304"><span class="sd">            Context name to use while printing.</span>
+</span><span data-line="305"><span class="sd">        **kwargs : object</span>
+</span><span data-line="306"><span class="sd">            Keyword arguments forwarded to :func:`print`.</span>
+</span><span data-line="307">
+</span><span data-line="308"><span class="sd">        Returns</span>
+</span><span data-line="309"><span class="sd">        -------</span>
+</span><span data-line="310"><span class="sd">        object</span>
+</span><span data-line="311"><span class="sd">            Return value forwarded from :func:`print`.</span>
+</span><span data-line="312"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="313">        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+</span><span data-line="314">            <span class="k">return</span> <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="315">
+</span><span data-line="316">    <span class="k">return</span> <span class="n">color_print</span>
 </span><span data-line="317">
-</span><span data-line="318">    <span class="k">return</span> <span class="n">color_print</span>
-</span><span data-line="319">
-</span><span data-line="320">
-</span><span data-line="321"><span class="c1"># Shortcut for colored print</span>
-</span><span data-line="322"><span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;trace&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">]:</span>
-</span><span data-line="323">    <span class="nb">globals</span><span class="p">()[</span><span class="n">color</span><span class="p">]</span> <span class="o">=</span> <span class="n">_make_color_print</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-</span><span data-line="324">
-</span><span data-line="325">
+</span><span data-line="318">
+</span><span data-line="319"><span class="c1"># Shortcut for colored print</span>
+</span><span data-line="320"><span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;trace&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">]:</span>
+</span><span data-line="321">    <span class="nb">globals</span><span class="p">()[</span><span class="n">color</span><span class="p">]</span> <span class="o">=</span> <span class="n">_make_color_print</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</span><span data-line="322">
+</span><span data-line="323">
 <div class="viewcode-block" id="fatal">
 <a class="viewcode-back" href="../tools/index.html#tools.fatal">[docs]</a>
-</span><span data-line="326"><span class="k">def</span><span class="w"> </span><span class="nf">fatal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">with_traceback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="327"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="328"><span class="sd">    Print an error message and terminate the process with exit code 1.</span>
-</span><span data-line="329">
-</span><span data-line="330"><span class="sd">    Parameters</span>
-</span><span data-line="331"><span class="sd">    ----------</span>
-</span><span data-line="332"><span class="sd">    *args : object</span>
-</span><span data-line="333"><span class="sd">        Positional arguments forwarded to :func:`error`.</span>
-</span><span data-line="334"><span class="sd">    with_traceback : bool, optional</span>
-</span><span data-line="335"><span class="sd">        Whether to include the current traceback after the message.</span>
-</span><span data-line="336"><span class="sd">    **kwargs : object</span>
-</span><span data-line="337"><span class="sd">        Keyword arguments forwarded to :func:`error`.</span>
-</span><span data-line="338"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="339">    <span class="k">global</span> <span class="n">error</span>
-</span><span data-line="340">    <span class="n">error</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="341">    <span class="k">if</span> <span class="n">with_traceback</span><span class="p">:</span>
-</span><span data-line="342">        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;traceback&quot;</span><span class="p">,</span> <span class="s2">&quot;trace&quot;</span><span class="p">):</span>
-</span><span data-line="343">            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
-</span><span data-line="344">    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+</span><span data-line="324"><span class="k">def</span><span class="w"> </span><span class="nf">fatal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">with_traceback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="325"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="326"><span class="sd">    Print an error message and terminate the process with exit code 1.</span>
+</span><span data-line="327">
+</span><span data-line="328"><span class="sd">    Parameters</span>
+</span><span data-line="329"><span class="sd">    ----------</span>
+</span><span data-line="330"><span class="sd">    *args : object</span>
+</span><span data-line="331"><span class="sd">        Positional arguments forwarded to :func:`error`.</span>
+</span><span data-line="332"><span class="sd">    with_traceback : bool, optional</span>
+</span><span data-line="333"><span class="sd">        Whether to include the current traceback after the message.</span>
+</span><span data-line="334"><span class="sd">    **kwargs : object</span>
+</span><span data-line="335"><span class="sd">        Keyword arguments forwarded to :func:`error`.</span>
+</span><span data-line="336"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="337">    <span class="k">global</span> <span class="n">error</span>
+</span><span data-line="338">    <span class="n">error</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="339">    <span class="k">if</span> <span class="n">with_traceback</span><span class="p">:</span>
+</span><span data-line="340">        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;traceback&quot;</span><span class="p">,</span> <span class="s2">&quot;trace&quot;</span><span class="p">):</span>
+</span><span data-line="341">            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+</span><span data-line="342">    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
-</span><span data-line="345">
-</span><span data-line="346">
-</span><span data-line="347"><span class="c1"># Wrap the standard text output wrappers</span>
-</span><span data-line="348"><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">ContextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
-</span><span data-line="349"><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">ContextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
-</span><span data-line="350">
-</span><span data-line="351"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="352"><span class="c1"># Uncaught exception context wrapping</span>
-</span><span data-line="353">
-</span><span data-line="354">
+</span><span data-line="343">
+</span><span data-line="344">
+</span><span data-line="345"><span class="c1"># Wrap the standard text output wrappers</span>
+</span><span data-line="346"><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">ContextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+</span><span data-line="347"><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">ContextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</span><span data-line="348">
+</span><span data-line="349"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="350"><span class="c1"># Uncaught exception context wrapping</span>
+</span><span data-line="351">
+</span><span data-line="352">
 <div class="viewcode-block" id="uncaught_wrap">
 <a class="viewcode-back" href="../tools/index.html#tools.uncaught_wrap">[docs]</a>
-</span><span data-line="355"><span class="k">def</span><span class="w"> </span><span class="nf">uncaught_wrap</span><span class="p">(</span><span class="n">hook</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-</span><span data-line="356"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="357"><span class="sd">    Wrap an uncaught exception hook with contextual logging.</span>
-</span><span data-line="358">
-</span><span data-line="359"><span class="sd">    Parameters</span>
-</span><span data-line="360"><span class="sd">    ----------</span>
-</span><span data-line="361"><span class="sd">    hook : object</span>
-</span><span data-line="362"><span class="sd">        Uncaught exception hook to wrap.</span>
-</span><span data-line="363">
-</span><span data-line="364"><span class="sd">    Returns</span>
-</span><span data-line="365"><span class="sd">    -------</span>
-</span><span data-line="366"><span class="sd">    object</span>
-</span><span data-line="367"><span class="sd">        Wrapped uncaught exception hook.</span>
-</span><span data-line="368"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="369">
-</span><span data-line="370">    <span class="k">def</span><span class="w"> </span><span class="nf">uncaught_call</span><span class="p">(</span><span class="n">etype</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">evalue</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">traceback</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-</span><span data-line="371"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="372"><span class="sd">        Handle uncaught exceptions with user-facing context.</span>
-</span><span data-line="373">
-</span><span data-line="374"><span class="sd">        Parameters</span>
-</span><span data-line="375"><span class="sd">        ----------</span>
-</span><span data-line="376"><span class="sd">        etype : type</span>
-</span><span data-line="377"><span class="sd">            Exception class.</span>
-</span><span data-line="378"><span class="sd">        evalue : object</span>
-</span><span data-line="379"><span class="sd">            Exception value.</span>
-</span><span data-line="380"><span class="sd">        traceback : object</span>
-</span><span data-line="381"><span class="sd">            Traceback associated with the exception.</span>
-</span><span data-line="382">
-</span><span data-line="383"><span class="sd">        Returns</span>
-</span><span data-line="384"><span class="sd">        -------</span>
-</span><span data-line="385"><span class="sd">        object</span>
-</span><span data-line="386"><span class="sd">            Return value forwarded from the wrapped hook for non-user exceptions.</span>
-</span><span data-line="387"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="388">        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="n">UserException</span><span class="p">):</span>
-</span><span data-line="389">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;fatal&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
-</span><span data-line="390">                <span class="nb">print</span><span class="p">(</span><span class="n">evalue</span><span class="p">)</span>
-</span><span data-line="391">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="392">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;uncaught&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
-</span><span data-line="393">                <span class="k">return</span> <span class="n">hook</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="n">evalue</span><span class="p">,</span> <span class="n">traceback</span><span class="p">)</span>
-</span><span data-line="394">
-</span><span data-line="395">    <span class="k">return</span> <span class="n">uncaught_call</span></div>
+</span><span data-line="353"><span class="k">def</span><span class="w"> </span><span class="nf">uncaught_wrap</span><span class="p">(</span><span class="n">hook</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+</span><span data-line="354"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="355"><span class="sd">    Wrap an uncaught exception hook with contextual logging.</span>
+</span><span data-line="356">
+</span><span data-line="357"><span class="sd">    Parameters</span>
+</span><span data-line="358"><span class="sd">    ----------</span>
+</span><span data-line="359"><span class="sd">    hook : object</span>
+</span><span data-line="360"><span class="sd">        Uncaught exception hook to wrap.</span>
+</span><span data-line="361">
+</span><span data-line="362"><span class="sd">    Returns</span>
+</span><span data-line="363"><span class="sd">    -------</span>
+</span><span data-line="364"><span class="sd">    object</span>
+</span><span data-line="365"><span class="sd">        Wrapped uncaught exception hook.</span>
+</span><span data-line="366"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="367">
+</span><span data-line="368">    <span class="k">def</span><span class="w"> </span><span class="nf">uncaught_call</span><span class="p">(</span><span class="n">etype</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">evalue</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">traceback</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+</span><span data-line="369"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="370"><span class="sd">        Handle uncaught exceptions with user-facing context.</span>
+</span><span data-line="371">
+</span><span data-line="372"><span class="sd">        Parameters</span>
+</span><span data-line="373"><span class="sd">        ----------</span>
+</span><span data-line="374"><span class="sd">        etype : type</span>
+</span><span data-line="375"><span class="sd">            Exception class.</span>
+</span><span data-line="376"><span class="sd">        evalue : object</span>
+</span><span data-line="377"><span class="sd">            Exception value.</span>
+</span><span data-line="378"><span class="sd">        traceback : object</span>
+</span><span data-line="379"><span class="sd">            Traceback associated with the exception.</span>
+</span><span data-line="380">
+</span><span data-line="381"><span class="sd">        Returns</span>
+</span><span data-line="382"><span class="sd">        -------</span>
+</span><span data-line="383"><span class="sd">        object</span>
+</span><span data-line="384"><span class="sd">            Return value forwarded from the wrapped hook for non-user exceptions.</span>
+</span><span data-line="385"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="386">        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="n">UserException</span><span class="p">):</span>
+</span><span data-line="387">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;fatal&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
+</span><span data-line="388">                <span class="nb">print</span><span class="p">(</span><span class="n">evalue</span><span class="p">)</span>
+</span><span data-line="389">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="390">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;uncaught&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
+</span><span data-line="391">                <span class="k">return</span> <span class="n">hook</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="n">evalue</span><span class="p">,</span> <span class="n">traceback</span><span class="p">)</span>
+</span><span data-line="392">
+</span><span data-line="393">    <span class="k">return</span> <span class="n">uncaught_call</span></div>
 
-</span><span data-line="396">
-</span><span data-line="397">
-</span><span data-line="398"><span class="c1"># Wrap the original exception hook</span>
-</span><span data-line="399"><span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">uncaught_wrap</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span><span class="p">)</span>
-</span><span data-line="400">
-</span><span data-line="401"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="402"><span class="c1"># Local module loading and post-processing</span>
+</span><span data-line="394">
+</span><span data-line="395">
+</span><span data-line="396"><span class="c1"># Wrap the original exception hook</span>
+</span><span data-line="397"><span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">uncaught_wrap</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span><span class="p">)</span>
+</span><span data-line="398">
+</span><span data-line="399"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="400"><span class="c1"># Local module loading and post-processing</span>
+</span><span data-line="401">
+</span><span data-line="402"><span class="n">_imported</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>  <span class="c1"># Map symbol name -&gt; module source name</span>
 </span><span data-line="403">
-</span><span data-line="404"><span class="n">_imported</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>  <span class="c1"># Map symbol name -&gt; module source name</span>
-</span><span data-line="405">
-</span><span data-line="406">
+</span><span data-line="404">
 <div class="viewcode-block" id="import_exported_symbols">
 <a class="viewcode-back" href="../tools/index.html#tools.import_exported_symbols">[docs]</a>
-</span><span data-line="407"><span class="k">def</span><span class="w"> </span><span class="nf">import_exported_symbols</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="408"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="409"><span class="sd">    Import a module&#39;s exported symbols into a target scope.</span>
-</span><span data-line="410">
-</span><span data-line="411"><span class="sd">    Parameters</span>
-</span><span data-line="412"><span class="sd">    ----------</span>
-</span><span data-line="413"><span class="sd">    name : str</span>
-</span><span data-line="414"><span class="sd">        Source module name.</span>
-</span><span data-line="415"><span class="sd">    module : module</span>
-</span><span data-line="416"><span class="sd">        Loaded module instance.</span>
-</span><span data-line="417"><span class="sd">    scope : dict</span>
-</span><span data-line="418"><span class="sd">        Target scope to update with exported symbols.</span>
-</span><span data-line="419"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="420">    <span class="k">global</span> <span class="n">_imported</span>
-</span><span data-line="421">    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">):</span>
-</span><span data-line="422">        <span class="k">for</span> <span class="n">symname</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">):</span>
-</span><span data-line="423">            <span class="c1"># Check name</span>
-</span><span data-line="424">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">symname</span><span class="p">):</span>
-</span><span data-line="425">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
-</span><span data-line="426">                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Symbol &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; exported but not defined&quot;</span><span class="p">)</span>
-</span><span data-line="427">                <span class="k">continue</span>
-</span><span data-line="428">            <span class="k">if</span> <span class="n">symname</span> <span class="ow">in</span> <span class="n">_imported</span><span class="p">:</span>
-</span><span data-line="429">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
-</span><span data-line="430">                    <span class="nb">print</span><span class="p">(</span>
-</span><span data-line="431">                        <span class="s2">&quot;Symbol &quot;</span>
-</span><span data-line="432">                        <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span>
-</span><span data-line="433">                        <span class="o">+</span> <span class="s2">&quot; already exported by &quot;</span>
-</span><span data-line="434">                        <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">_imported</span><span class="p">[</span><span class="n">symname</span><span class="p">])</span>
-</span><span data-line="435">                    <span class="p">)</span>
-</span><span data-line="436">                <span class="k">continue</span>
-</span><span data-line="437">            <span class="k">if</span> <span class="n">symname</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
-</span><span data-line="438">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
-</span><span data-line="439">                    <span class="nb">print</span><span class="p">(</span>
-</span><span data-line="440">                        <span class="s2">&quot;Symbol &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; already exported by &#39;__init__.py&#39;&quot;</span>
-</span><span data-line="441">                    <span class="p">)</span>
-</span><span data-line="442">                <span class="k">continue</span>
-</span><span data-line="443">            <span class="c1"># Import in module scope</span>
-</span><span data-line="444">            <span class="n">scope</span><span class="p">[</span><span class="n">symname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">symname</span><span class="p">)</span>
-</span><span data-line="445">            <span class="n">_imported</span><span class="p">[</span><span class="n">symname</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span></div>
+</span><span data-line="405"><span class="k">def</span><span class="w"> </span><span class="nf">import_exported_symbols</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="406"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="407"><span class="sd">    Import a module&#39;s exported symbols into a target scope.</span>
+</span><span data-line="408">
+</span><span data-line="409"><span class="sd">    Parameters</span>
+</span><span data-line="410"><span class="sd">    ----------</span>
+</span><span data-line="411"><span class="sd">    name : str</span>
+</span><span data-line="412"><span class="sd">        Source module name.</span>
+</span><span data-line="413"><span class="sd">    module : module</span>
+</span><span data-line="414"><span class="sd">        Loaded module instance.</span>
+</span><span data-line="415"><span class="sd">    scope : dict</span>
+</span><span data-line="416"><span class="sd">        Target scope to update with exported symbols.</span>
+</span><span data-line="417"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="418">    <span class="k">global</span> <span class="n">_imported</span>
+</span><span data-line="419">    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">):</span>
+</span><span data-line="420">        <span class="k">for</span> <span class="n">symname</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">):</span>
+</span><span data-line="421">            <span class="c1"># Check name</span>
+</span><span data-line="422">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">symname</span><span class="p">):</span>
+</span><span data-line="423">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
+</span><span data-line="424">                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Symbol &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; exported but not defined&quot;</span><span class="p">)</span>
+</span><span data-line="425">                <span class="k">continue</span>
+</span><span data-line="426">            <span class="k">if</span> <span class="n">symname</span> <span class="ow">in</span> <span class="n">_imported</span><span class="p">:</span>
+</span><span data-line="427">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
+</span><span data-line="428">                    <span class="nb">print</span><span class="p">(</span>
+</span><span data-line="429">                        <span class="s2">&quot;Symbol &quot;</span>
+</span><span data-line="430">                        <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span>
+</span><span data-line="431">                        <span class="o">+</span> <span class="s2">&quot; already exported by &quot;</span>
+</span><span data-line="432">                        <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">_imported</span><span class="p">[</span><span class="n">symname</span><span class="p">])</span>
+</span><span data-line="433">                    <span class="p">)</span>
+</span><span data-line="434">                <span class="k">continue</span>
+</span><span data-line="435">            <span class="k">if</span> <span class="n">symname</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+</span><span data-line="436">                <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
+</span><span data-line="437">                    <span class="nb">print</span><span class="p">(</span>
+</span><span data-line="438">                        <span class="s2">&quot;Symbol &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">symname</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; already exported by &#39;__init__.py&#39;&quot;</span>
+</span><span data-line="439">                    <span class="p">)</span>
+</span><span data-line="440">                <span class="k">continue</span>
+</span><span data-line="441">            <span class="c1"># Import in module scope</span>
+</span><span data-line="442">            <span class="n">scope</span><span class="p">[</span><span class="n">symname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">symname</span><span class="p">)</span>
+</span><span data-line="443">            <span class="n">_imported</span><span class="p">[</span><span class="n">symname</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span></div>
 
-</span><span data-line="446">
-</span><span data-line="447">
+</span><span data-line="444">
+</span><span data-line="445">
 <div class="viewcode-block" id="import_directory">
 <a class="viewcode-back" href="../tools/index.html#tools.import_directory">[docs]</a>
-</span><span data-line="448"><span class="k">def</span><span class="w"> </span><span class="nf">import_directory</span><span class="p">(</span>
-</span><span data-line="449">    <span class="n">dirpath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-</span><span data-line="450">    <span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-</span><span data-line="451">    <span class="n">post</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="n">import_exported_symbols</span><span class="p">,</span>
-</span><span data-line="452">    <span class="n">ignore</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__init__&quot;</span><span class="p">],</span>
-</span><span data-line="453"><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="454"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="455"><span class="sd">    Import every Python module from a directory into a target scope.</span>
-</span><span data-line="456">
-</span><span data-line="457"><span class="sd">    Parameters</span>
-</span><span data-line="458"><span class="sd">    ----------</span>
-</span><span data-line="459"><span class="sd">    dirpath : pathlib.Path</span>
-</span><span data-line="460"><span class="sd">        Directory containing modules to import.</span>
-</span><span data-line="461"><span class="sd">    scope : dict</span>
-</span><span data-line="462"><span class="sd">        Target scope used for imports and post-processing.</span>
-</span><span data-line="463"><span class="sd">    post : object, optional</span>
-</span><span data-line="464"><span class="sd">        Post-import callback with signature ``(name, module, scope) -&gt; None``.</span>
-</span><span data-line="465"><span class="sd">    ignore : list[str], optional</span>
-</span><span data-line="466"><span class="sd">        Module names to ignore.</span>
-</span><span data-line="467"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="468">    <span class="c1"># Import in the scope of the caller</span>
-</span><span data-line="469">    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dirpath</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
-</span><span data-line="470">        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.py&quot;</span><span class="p">:</span>
-</span><span data-line="471">            <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">stem</span>
-</span><span data-line="472">            <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">:</span>
-</span><span data-line="473">                <span class="k">continue</span>
-</span><span data-line="474">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="475">                <span class="k">try</span><span class="p">:</span>
-</span><span data-line="476">                    <span class="c1"># Load module</span>
-</span><span data-line="477">                    <span class="n">base</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;__package__&quot;</span><span class="p">],</span> <span class="n">scope</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
-</span><span data-line="478">                    <span class="c1"># Post processing</span>
-</span><span data-line="479">                    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">post</span><span class="p">):</span>
-</span><span data-line="480">                        <span class="n">post</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="n">scope</span><span class="p">)</span>
-</span><span data-line="481">                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-</span><span data-line="482">                    <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
-</span><span data-line="483">                        <span class="nb">print</span><span class="p">(</span>
-</span><span data-line="484">                            <span class="s2">&quot;Loading failed for module &quot;</span>
-</span><span data-line="485">                            <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-</span><span data-line="486">                            <span class="o">+</span> <span class="s2">&quot;: &quot;</span>
-</span><span data-line="487">                            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-</span><span data-line="488">                        <span class="p">)</span>
-</span><span data-line="489">                        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;traceback&quot;</span><span class="p">,</span> <span class="s2">&quot;trace&quot;</span><span class="p">):</span>
-</span><span data-line="490">                            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+</span><span data-line="446"><span class="k">def</span><span class="w"> </span><span class="nf">import_directory</span><span class="p">(</span>
+</span><span data-line="447">    <span class="n">dirpath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span data-line="448">    <span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+</span><span data-line="449">    <span class="n">post</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="n">import_exported_symbols</span><span class="p">,</span>
+</span><span data-line="450">    <span class="n">ignore</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__init__&quot;</span><span class="p">],</span>
+</span><span data-line="451"><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="452"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="453"><span class="sd">    Import every Python module from a directory into a target scope.</span>
+</span><span data-line="454">
+</span><span data-line="455"><span class="sd">    Parameters</span>
+</span><span data-line="456"><span class="sd">    ----------</span>
+</span><span data-line="457"><span class="sd">    dirpath : pathlib.Path</span>
+</span><span data-line="458"><span class="sd">        Directory containing modules to import.</span>
+</span><span data-line="459"><span class="sd">    scope : dict</span>
+</span><span data-line="460"><span class="sd">        Target scope used for imports and post-processing.</span>
+</span><span data-line="461"><span class="sd">    post : object, optional</span>
+</span><span data-line="462"><span class="sd">        Post-import callback with signature ``(name, module, scope) -&gt; None``.</span>
+</span><span data-line="463"><span class="sd">    ignore : list[str], optional</span>
+</span><span data-line="464"><span class="sd">        Module names to ignore.</span>
+</span><span data-line="465"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="466">    <span class="c1"># Import in the scope of the caller</span>
+</span><span data-line="467">    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dirpath</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+</span><span data-line="468">        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.py&quot;</span><span class="p">:</span>
+</span><span data-line="469">            <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">stem</span>
+</span><span data-line="470">            <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">:</span>
+</span><span data-line="471">                <span class="k">continue</span>
+</span><span data-line="472">            <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="473">                <span class="k">try</span><span class="p">:</span>
+</span><span data-line="474">                    <span class="c1"># Load module</span>
+</span><span data-line="475">                    <span class="n">base</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;__package__&quot;</span><span class="p">],</span> <span class="n">scope</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+</span><span data-line="476">                    <span class="c1"># Post processing</span>
+</span><span data-line="477">                    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">post</span><span class="p">):</span>
+</span><span data-line="478">                        <span class="n">post</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="n">scope</span><span class="p">)</span>
+</span><span data-line="479">                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+</span><span data-line="480">                    <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;warning&quot;</span><span class="p">):</span>
+</span><span data-line="481">                        <span class="nb">print</span><span class="p">(</span>
+</span><span data-line="482">                            <span class="s2">&quot;Loading failed for module &quot;</span>
+</span><span data-line="483">                            <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</span><span data-line="484">                            <span class="o">+</span> <span class="s2">&quot;: &quot;</span>
+</span><span data-line="485">                            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+</span><span data-line="486">                        <span class="p">)</span>
+</span><span data-line="487">                        <span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;traceback&quot;</span><span class="p">,</span> <span class="s2">&quot;trace&quot;</span><span class="p">):</span>
+</span><span data-line="488">                            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
 
-</span><span data-line="491">
-</span><span data-line="492">
-</span><span data-line="493"><span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="494">    <span class="n">import_directory</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
+</span><span data-line="489">
+</span><span data-line="490">
+</span><span data-line="491"><span class="k">with</span> <span class="n">Context</span><span class="p">(</span><span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="492">    <span class="n">import_directory</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -678,7 +679,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

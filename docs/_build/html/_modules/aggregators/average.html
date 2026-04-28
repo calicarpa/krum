@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -143,17 +146,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for aggregators.average</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   average.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Simple arithmetic mean aggregation rule.</span>
+</span><span data-line="3"><span class="c1"># @file   average.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Simple arithmetic mean aggregation rule.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -248,37 +251,39 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="99">
 <div class="viewcode-block" id="influence">
 <a class="viewcode-back" href="../../aggregators/classes/average.html#aggregators.average.influence">[docs]</a>
-</span><span data-line="100"><span class="k">def</span><span class="w"> </span><span class="nf">influence</span><span class="p">(</span><span class="n">honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">attacks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="101"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="102"><span class="sd">    Compute the ratio of accepted Byzantine gradients.</span>
-</span><span data-line="103">
-</span><span data-line="104"><span class="sd">    For arithmetic mean, all submitted gradients are used in the aggregation,</span>
-</span><span data-line="105"><span class="sd">    so the influence ratio is simply the fraction of Byzantine gradients</span>
-</span><span data-line="106"><span class="sd">    in the total.</span>
-</span><span data-line="107">
-</span><span data-line="108"><span class="sd">    Parameters</span>
-</span><span data-line="109"><span class="sd">    ----------</span>
-</span><span data-line="110"><span class="sd">    honests : list of torch.Tensor</span>
-</span><span data-line="111"><span class="sd">        Non-empty list of honest gradients.</span>
-</span><span data-line="112"><span class="sd">    attacks : list of torch.Tensor</span>
-</span><span data-line="113"><span class="sd">        List of attack (Byzantine) gradients.</span>
-</span><span data-line="114"><span class="sd">    **kwargs : object</span>
-</span><span data-line="115"><span class="sd">        Additional keyword arguments, ignored by this rule.</span>
-</span><span data-line="116">
-</span><span data-line="117"><span class="sd">    Returns</span>
-</span><span data-line="118"><span class="sd">    -------</span>
-</span><span data-line="119"><span class="sd">    float</span>
-</span><span data-line="120"><span class="sd">        Ratio of Byzantine gradients in the aggregation (attackers / total).</span>
-</span><span data-line="121"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="122">    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">honests</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">))</span></div>
+</span><span data-line="100"><span class="k">def</span><span class="w"> </span><span class="nf">influence</span><span class="p">(</span>
+</span><span data-line="101">    <span class="n">honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">attacks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span>
+</span><span data-line="102"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="103"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="104"><span class="sd">    Compute the ratio of accepted Byzantine gradients.</span>
+</span><span data-line="105">
+</span><span data-line="106"><span class="sd">    For arithmetic mean, all submitted gradients are used in the aggregation,</span>
+</span><span data-line="107"><span class="sd">    so the influence ratio is simply the fraction of Byzantine gradients</span>
+</span><span data-line="108"><span class="sd">    in the total.</span>
+</span><span data-line="109">
+</span><span data-line="110"><span class="sd">    Parameters</span>
+</span><span data-line="111"><span class="sd">    ----------</span>
+</span><span data-line="112"><span class="sd">    honests : list of torch.Tensor</span>
+</span><span data-line="113"><span class="sd">        Non-empty list of honest gradients.</span>
+</span><span data-line="114"><span class="sd">    attacks : list of torch.Tensor</span>
+</span><span data-line="115"><span class="sd">        List of attack (Byzantine) gradients.</span>
+</span><span data-line="116"><span class="sd">    **kwargs : object</span>
+</span><span data-line="117"><span class="sd">        Additional keyword arguments, ignored by this rule.</span>
+</span><span data-line="118">
+</span><span data-line="119"><span class="sd">    Returns</span>
+</span><span data-line="120"><span class="sd">    -------</span>
+</span><span data-line="121"><span class="sd">    float</span>
+</span><span data-line="122"><span class="sd">        Ratio of Byzantine gradients in the aggregation (attackers / total).</span>
+</span><span data-line="123"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="124">    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">honests</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">attacks</span><span class="p">))</span></div>
 
-</span><span data-line="123">
-</span><span data-line="124">
-</span><span data-line="125"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="126"><span class="c1"># GAR registering</span>
-</span><span data-line="127">
-</span><span data-line="128"><span class="c1"># Register aggregation rule</span>
-</span><span data-line="129"><span class="n">register</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span><span class="p">)</span>
+</span><span data-line="125">
+</span><span data-line="126">
+</span><span data-line="127"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="128"><span class="c1"># GAR registering</span>
+</span><span data-line="129">
+</span><span data-line="130"><span class="c1"># Register aggregation rule</span>
+</span><span data-line="131"><span class="n">register</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">influence</span><span class="o">=</span><span class="n">influence</span><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -302,7 +307,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

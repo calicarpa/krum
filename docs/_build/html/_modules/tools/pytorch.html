@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -143,17 +146,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for tools.pytorch</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   pytorch.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Helpers relative to PyTorch.</span>
+</span><span data-line="3"><span class="c1"># @file   pytorch.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Helpers relative to PyTorch.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -204,473 +207,497 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="61"><span class="sd">    flat_grads = flatten(grads)</span>
 </span><span data-line="62"><span class="sd">&quot;&quot;&quot;</span>
 </span><span data-line="63">
-</span><span data-line="64"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;relink&quot;</span><span class="p">,</span> <span class="s2">&quot;flatten&quot;</span><span class="p">,</span> <span class="s2">&quot;grad_of&quot;</span><span class="p">,</span> <span class="s2">&quot;grads_of&quot;</span><span class="p">,</span> <span class="s2">&quot;compute_avg_dev_max&quot;</span><span class="p">,</span>
-</span><span data-line="65">           <span class="s2">&quot;AccumulatedTimedContext&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted_mse_loss&quot;</span><span class="p">,</span> <span class="s2">&quot;WeightedMSELoss&quot;</span><span class="p">,</span>
-</span><span data-line="66">           <span class="s2">&quot;regression&quot;</span><span class="p">,</span> <span class="s2">&quot;pnm&quot;</span><span class="p">]</span>
-</span><span data-line="67">
-</span><span data-line="68"><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
-</span><span data-line="69"><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-</span><span data-line="70"><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-</span><span data-line="71"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span data-line="72"><span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
-</span><span data-line="73">
-</span><span data-line="74"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
-</span><span data-line="75">
-</span><span data-line="76"><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
-</span><span data-line="77">
-</span><span data-line="78"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="79"><span class="c1"># &quot;Flatten&quot; and &quot;relink&quot; operations</span>
-</span><span data-line="80">
+</span><span data-line="64"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="65">    <span class="s2">&quot;relink&quot;</span><span class="p">,</span>
+</span><span data-line="66">    <span class="s2">&quot;flatten&quot;</span><span class="p">,</span>
+</span><span data-line="67">    <span class="s2">&quot;grad_of&quot;</span><span class="p">,</span>
+</span><span data-line="68">    <span class="s2">&quot;grads_of&quot;</span><span class="p">,</span>
+</span><span data-line="69">    <span class="s2">&quot;compute_avg_dev_max&quot;</span><span class="p">,</span>
+</span><span data-line="70">    <span class="s2">&quot;AccumulatedTimedContext&quot;</span><span class="p">,</span>
+</span><span data-line="71">    <span class="s2">&quot;weighted_mse_loss&quot;</span><span class="p">,</span>
+</span><span data-line="72">    <span class="s2">&quot;WeightedMSELoss&quot;</span><span class="p">,</span>
+</span><span data-line="73">    <span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+</span><span data-line="74">    <span class="s2">&quot;pnm&quot;</span><span class="p">,</span>
+</span><span data-line="75"><span class="p">]</span>
+</span><span data-line="76">
+</span><span data-line="77"><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+</span><span data-line="78"><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span data-line="79"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="80"><span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+</span><span data-line="81">
+</span><span data-line="82"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+</span><span data-line="83">
+</span><span data-line="84">
+</span><span data-line="85"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="86"><span class="c1"># &quot;Flatten&quot; and &quot;relink&quot; operations</span>
+</span><span data-line="87">
+</span><span data-line="88">
 <div class="viewcode-block" id="relink">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.relink">[docs]</a>
-</span><span data-line="81"><span class="k">def</span><span class="w"> </span><span class="nf">relink</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">common</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="82"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="83"><span class="sd">    Relink tensors to share a common contiguous memory storage.</span>
-</span><span data-line="84">
-</span><span data-line="85"><span class="sd">    Parameters</span>
-</span><span data-line="86"><span class="sd">    ----------</span>
-</span><span data-line="87"><span class="sd">    tensors : iterable of torch.Tensor</span>
-</span><span data-line="88"><span class="sd">        Tensors to relink. All must have the same dtype.</span>
-</span><span data-line="89"><span class="sd">    common : torch.Tensor</span>
-</span><span data-line="90"><span class="sd">        Flat tensor of sufficient size to use as underlying storage.</span>
-</span><span data-line="91"><span class="sd">        Must have the same dtype as the given tensors.</span>
+</span><span data-line="89"><span class="k">def</span><span class="w"> </span><span class="nf">relink</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">common</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="90"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="91"><span class="sd">    Relink tensors to share a common contiguous memory storage.</span>
 </span><span data-line="92">
-</span><span data-line="93"><span class="sd">    Returns</span>
-</span><span data-line="94"><span class="sd">    -------</span>
-</span><span data-line="95"><span class="sd">    torch.Tensor</span>
-</span><span data-line="96"><span class="sd">        The common tensor, with ``linked_tensors`` attribute set.</span>
-</span><span data-line="97">
-</span><span data-line="98"><span class="sd">    Notes</span>
-</span><span data-line="99"><span class="sd">    -----</span>
-</span><span data-line="100"><span class="sd">    The returned tensor has a ``linked_tensors`` attribute pointing to the</span>
-</span><span data-line="101"><span class="sd">    original tensors. This allows updating all tensors simultaneously.</span>
-</span><span data-line="102">
-</span><span data-line="103"><span class="sd">    Example</span>
-</span><span data-line="104"><span class="sd">    -------</span>
+</span><span data-line="93"><span class="sd">    Parameters</span>
+</span><span data-line="94"><span class="sd">    ----------</span>
+</span><span data-line="95"><span class="sd">    tensors : iterable of torch.Tensor</span>
+</span><span data-line="96"><span class="sd">        Tensors to relink. All must have the same dtype.</span>
+</span><span data-line="97"><span class="sd">    common : torch.Tensor</span>
+</span><span data-line="98"><span class="sd">        Flat tensor of sufficient size to use as underlying storage.</span>
+</span><span data-line="99"><span class="sd">        Must have the same dtype as the given tensors.</span>
+</span><span data-line="100">
+</span><span data-line="101"><span class="sd">    Returns</span>
+</span><span data-line="102"><span class="sd">    -------</span>
+</span><span data-line="103"><span class="sd">    torch.Tensor</span>
+</span><span data-line="104"><span class="sd">        The common tensor, with ``linked_tensors`` attribute set.</span>
 </span><span data-line="105">
-</span><span data-line="106"><span class="sd">    &gt;&gt;&gt; import torch</span>
-</span><span data-line="107"><span class="sd">    &gt;&gt;&gt; from tools import relink</span>
-</span><span data-line="108"><span class="sd">    &gt;&gt;&gt; t1 = torch.tensor([1., 2.])</span>
-</span><span data-line="109"><span class="sd">    &gt;&gt;&gt; t2 = torch.tensor([3., 4., 5.])</span>
-</span><span data-line="110"><span class="sd">    &gt;&gt;&gt; common = torch.zeros(5)</span>
-</span><span data-line="111"><span class="sd">    &gt;&gt;&gt; relink([t1, t2], common)</span>
-</span><span data-line="112"><span class="sd">    tensor([1., 2., 3., 4., 5.])</span>
-</span><span data-line="113"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="114">    <span class="c1"># Convert to tuple if generator</span>
-</span><span data-line="115">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
-</span><span data-line="116">        <span class="n">tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tensors</span><span class="p">)</span>
-</span><span data-line="117">    <span class="c1"># Relink each given tensor to its segment on the common one</span>
-</span><span data-line="118">    <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span data-line="119">    <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
-</span><span data-line="120">        <span class="n">npos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">tensor</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
-</span><span data-line="121">        <span class="n">tensor</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">common</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">npos</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</span><span data-line="122">        <span class="n">pos</span> <span class="o">=</span> <span class="n">npos</span>
-</span><span data-line="123">    <span class="c1"># Finalize and return</span>
-</span><span data-line="124">    <span class="n">common</span><span class="o">.</span><span class="n">linked_tensors</span> <span class="o">=</span> <span class="n">tensors</span>
-</span><span data-line="125">    <span class="k">return</span> <span class="n">common</span></div>
+</span><span data-line="106"><span class="sd">    Notes</span>
+</span><span data-line="107"><span class="sd">    -----</span>
+</span><span data-line="108"><span class="sd">    The returned tensor has a ``linked_tensors`` attribute pointing to the</span>
+</span><span data-line="109"><span class="sd">    original tensors. This allows updating all tensors simultaneously.</span>
+</span><span data-line="110">
+</span><span data-line="111"><span class="sd">    Example</span>
+</span><span data-line="112"><span class="sd">    -------</span>
+</span><span data-line="113">
+</span><span data-line="114"><span class="sd">    &gt;&gt;&gt; import torch</span>
+</span><span data-line="115"><span class="sd">    &gt;&gt;&gt; from tools import relink</span>
+</span><span data-line="116"><span class="sd">    &gt;&gt;&gt; t1 = torch.tensor([1., 2.])</span>
+</span><span data-line="117"><span class="sd">    &gt;&gt;&gt; t2 = torch.tensor([3., 4., 5.])</span>
+</span><span data-line="118"><span class="sd">    &gt;&gt;&gt; common = torch.zeros(5)</span>
+</span><span data-line="119"><span class="sd">    &gt;&gt;&gt; relink([t1, t2], common)</span>
+</span><span data-line="120"><span class="sd">    tensor([1., 2., 3., 4., 5.])</span>
+</span><span data-line="121"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="122">    <span class="c1"># Convert to tuple if generator</span>
+</span><span data-line="123">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+</span><span data-line="124">        <span class="n">tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tensors</span><span class="p">)</span>
+</span><span data-line="125">    <span class="c1"># Relink each given tensor to its segment on the common one</span>
+</span><span data-line="126">    <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="127">    <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
+</span><span data-line="128">        <span class="n">npos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">tensor</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+</span><span data-line="129">        <span class="n">tensor</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">common</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">npos</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</span><span data-line="130">        <span class="n">pos</span> <span class="o">=</span> <span class="n">npos</span>
+</span><span data-line="131">    <span class="c1"># Finalize and return</span>
+</span><span data-line="132">    <span class="n">common</span><span class="o">.</span><span class="n">linked_tensors</span> <span class="o">=</span> <span class="n">tensors</span>
+</span><span data-line="133">    <span class="k">return</span> <span class="n">common</span></div>
 
-</span><span data-line="126">
+</span><span data-line="134">
+</span><span data-line="135">
 <div class="viewcode-block" id="flatten">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.flatten">[docs]</a>
-</span><span data-line="127"><span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="128"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="129"><span class="sd">    Flatten tensors into a single contiguous tensor.</span>
-</span><span data-line="130">
-</span><span data-line="131"><span class="sd">    Parameters</span>
-</span><span data-line="132"><span class="sd">    ----------</span>
-</span><span data-line="133"><span class="sd">    tensors : iterable of torch.Tensor</span>
-</span><span data-line="134"><span class="sd">        Tensors to flatten. All must have the same dtype.</span>
-</span><span data-line="135">
-</span><span data-line="136"><span class="sd">    Returns</span>
-</span><span data-line="137"><span class="sd">    -------</span>
-</span><span data-line="138"><span class="sd">    torch.Tensor</span>
-</span><span data-line="139"><span class="sd">        Flat tensor containing all data from input tensors, stored in</span>
-</span><span data-line="140"><span class="sd">        a contiguous memory segment.</span>
-</span><span data-line="141">
-</span><span data-line="142"><span class="sd">    Notes</span>
-</span><span data-line="143"><span class="sd">    -----</span>
-</span><span data-line="144"><span class="sd">    The returned tensor shares memory with the original tensors. Modifications</span>
-</span><span data-line="145"><span class="sd">    to the flat tensor will reflect in the original tensors.</span>
-</span><span data-line="146">
-</span><span data-line="147"><span class="sd">    Example</span>
-</span><span data-line="148"><span class="sd">    -------</span>
-</span><span data-line="149">
-</span><span data-line="150"><span class="sd">    &gt;&gt;&gt; import torch</span>
-</span><span data-line="151"><span class="sd">    &gt;&gt;&gt; from tools import flatten</span>
-</span><span data-line="152"><span class="sd">    &gt;&gt;&gt; t1 = torch.tensor([1., 2.])</span>
-</span><span data-line="153"><span class="sd">    &gt;&gt;&gt; t2 = torch.tensor([3., 4., 5.])</span>
-</span><span data-line="154"><span class="sd">    &gt;&gt;&gt; flat = flatten([t1, t2])</span>
-</span><span data-line="155"><span class="sd">    tensor([1., 2., 3., 4., 5.])</span>
-</span><span data-line="156"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="157">    <span class="c1"># Convert to tuple if generator</span>
-</span><span data-line="158">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
-</span><span data-line="159">        <span class="n">tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tensors</span><span class="p">)</span>
-</span><span data-line="160">    <span class="c1"># Common tensor instantiation and reuse</span>
-</span><span data-line="161">    <span class="n">common</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">))</span>
-</span><span data-line="162">    <span class="c1"># Return common tensor</span>
-</span><span data-line="163">    <span class="k">return</span> <span class="n">relink</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">common</span><span class="p">)</span></div>
+</span><span data-line="136"><span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="137"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="138"><span class="sd">    Flatten tensors into a single contiguous tensor.</span>
+</span><span data-line="139">
+</span><span data-line="140"><span class="sd">    Parameters</span>
+</span><span data-line="141"><span class="sd">    ----------</span>
+</span><span data-line="142"><span class="sd">    tensors : iterable of torch.Tensor</span>
+</span><span data-line="143"><span class="sd">        Tensors to flatten. All must have the same dtype.</span>
+</span><span data-line="144">
+</span><span data-line="145"><span class="sd">    Returns</span>
+</span><span data-line="146"><span class="sd">    -------</span>
+</span><span data-line="147"><span class="sd">    torch.Tensor</span>
+</span><span data-line="148"><span class="sd">        Flat tensor containing all data from input tensors, stored in</span>
+</span><span data-line="149"><span class="sd">        a contiguous memory segment.</span>
+</span><span data-line="150">
+</span><span data-line="151"><span class="sd">    Notes</span>
+</span><span data-line="152"><span class="sd">    -----</span>
+</span><span data-line="153"><span class="sd">    The returned tensor shares memory with the original tensors. Modifications</span>
+</span><span data-line="154"><span class="sd">    to the flat tensor will reflect in the original tensors.</span>
+</span><span data-line="155">
+</span><span data-line="156"><span class="sd">    Example</span>
+</span><span data-line="157"><span class="sd">    -------</span>
+</span><span data-line="158">
+</span><span data-line="159"><span class="sd">    &gt;&gt;&gt; import torch</span>
+</span><span data-line="160"><span class="sd">    &gt;&gt;&gt; from tools import flatten</span>
+</span><span data-line="161"><span class="sd">    &gt;&gt;&gt; t1 = torch.tensor([1., 2.])</span>
+</span><span data-line="162"><span class="sd">    &gt;&gt;&gt; t2 = torch.tensor([3., 4., 5.])</span>
+</span><span data-line="163"><span class="sd">    &gt;&gt;&gt; flat = flatten([t1, t2])</span>
+</span><span data-line="164"><span class="sd">    tensor([1., 2., 3., 4., 5.])</span>
+</span><span data-line="165"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="166">    <span class="c1"># Convert to tuple if generator</span>
+</span><span data-line="167">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+</span><span data-line="168">        <span class="n">tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tensors</span><span class="p">)</span>
+</span><span data-line="169">    <span class="c1"># Common tensor instantiation and reuse</span>
+</span><span data-line="170">    <span class="n">common</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">))</span>
+</span><span data-line="171">    <span class="c1"># Return common tensor</span>
+</span><span data-line="172">    <span class="k">return</span> <span class="n">relink</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">common</span><span class="p">)</span></div>
 
-</span><span data-line="164">
-</span><span data-line="165"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="166"><span class="c1"># Gradient access</span>
-</span><span data-line="167">
+</span><span data-line="173">
+</span><span data-line="174">
+</span><span data-line="175"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="176"><span class="c1"># Gradient access</span>
+</span><span data-line="177">
+</span><span data-line="178">
 <div class="viewcode-block" id="grad_of">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.grad_of">[docs]</a>
-</span><span data-line="168"><span class="k">def</span><span class="w"> </span><span class="nf">grad_of</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="169"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="170"><span class="sd">    Get the gradient of a given tensor, create zero gradient if missing.</span>
-</span><span data-line="171">
-</span><span data-line="172"><span class="sd">    Parameters</span>
-</span><span data-line="173"><span class="sd">    ----------</span>
-</span><span data-line="174"><span class="sd">    tensor : torch.Tensor</span>
-</span><span data-line="175"><span class="sd">        A tensor that may have a gradient attached.</span>
-</span><span data-line="176">
-</span><span data-line="177"><span class="sd">    Returns</span>
-</span><span data-line="178"><span class="sd">    -------</span>
-</span><span data-line="179"><span class="sd">    torch.Tensor</span>
-</span><span data-line="180"><span class="sd">        The gradient tensor. If none existed, a zero gradient is created</span>
-</span><span data-line="181"><span class="sd">        and attached to the tensor.</span>
+</span><span data-line="179"><span class="k">def</span><span class="w"> </span><span class="nf">grad_of</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="180"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="181"><span class="sd">    Get the gradient of a given tensor, create zero gradient if missing.</span>
 </span><span data-line="182">
-</span><span data-line="183"><span class="sd">    Example</span>
-</span><span data-line="184"><span class="sd">    -------</span>
-</span><span data-line="185">
-</span><span data-line="186"><span class="sd">    &gt;&gt;&gt; import torch</span>
-</span><span data-line="187"><span class="sd">    &gt;&gt;&gt; from tools import grad_of</span>
-</span><span data-line="188"><span class="sd">    &gt;&gt;&gt; x = torch.randn(3, requires_grad=True)</span>
-</span><span data-line="189"><span class="sd">    &gt;&gt;&gt; y = x.sum()</span>
-</span><span data-line="190"><span class="sd">    &gt;&gt;&gt; y.backward()</span>
-</span><span data-line="191"><span class="sd">    &gt;&gt;&gt; grad = grad_of(x)</span>
-</span><span data-line="192"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="193">    <span class="c1"># Get the current gradient</span>
-</span><span data-line="194">    <span class="n">grad</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">grad</span>
-</span><span data-line="195">    <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="196">        <span class="k">return</span> <span class="n">grad</span>
-</span><span data-line="197">    <span class="c1"># Make and set a zero-gradient</span>
-</span><span data-line="198">    <span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
-</span><span data-line="199">    <span class="n">tensor</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span>
-</span><span data-line="200">    <span class="k">return</span> <span class="n">grad</span></div>
+</span><span data-line="183"><span class="sd">    Parameters</span>
+</span><span data-line="184"><span class="sd">    ----------</span>
+</span><span data-line="185"><span class="sd">    tensor : torch.Tensor</span>
+</span><span data-line="186"><span class="sd">        A tensor that may have a gradient attached.</span>
+</span><span data-line="187">
+</span><span data-line="188"><span class="sd">    Returns</span>
+</span><span data-line="189"><span class="sd">    -------</span>
+</span><span data-line="190"><span class="sd">    torch.Tensor</span>
+</span><span data-line="191"><span class="sd">        The gradient tensor. If none existed, a zero gradient is created</span>
+</span><span data-line="192"><span class="sd">        and attached to the tensor.</span>
+</span><span data-line="193">
+</span><span data-line="194"><span class="sd">    Example</span>
+</span><span data-line="195"><span class="sd">    -------</span>
+</span><span data-line="196">
+</span><span data-line="197"><span class="sd">    &gt;&gt;&gt; import torch</span>
+</span><span data-line="198"><span class="sd">    &gt;&gt;&gt; from tools import grad_of</span>
+</span><span data-line="199"><span class="sd">    &gt;&gt;&gt; x = torch.randn(3, requires_grad=True)</span>
+</span><span data-line="200"><span class="sd">    &gt;&gt;&gt; y = x.sum()</span>
+</span><span data-line="201"><span class="sd">    &gt;&gt;&gt; y.backward()</span>
+</span><span data-line="202"><span class="sd">    &gt;&gt;&gt; grad = grad_of(x)</span>
+</span><span data-line="203"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="204">    <span class="c1"># Get the current gradient</span>
+</span><span data-line="205">    <span class="n">grad</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">grad</span>
+</span><span data-line="206">    <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="207">        <span class="k">return</span> <span class="n">grad</span>
+</span><span data-line="208">    <span class="c1"># Make and set a zero-gradient</span>
+</span><span data-line="209">    <span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
+</span><span data-line="210">    <span class="n">tensor</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span>
+</span><span data-line="211">    <span class="k">return</span> <span class="n">grad</span></div>
 
-</span><span data-line="201">
+</span><span data-line="212">
+</span><span data-line="213">
 <div class="viewcode-block" id="grads_of">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.grads_of">[docs]</a>
-</span><span data-line="202"><span class="k">def</span><span class="w"> </span><span class="nf">grads_of</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
-</span><span data-line="203"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="204"><span class="sd">    Generator that gets or creates gradients for multiple tensors.</span>
-</span><span data-line="205">
-</span><span data-line="206"><span class="sd">    Parameters</span>
-</span><span data-line="207"><span class="sd">    ----------</span>
-</span><span data-line="208"><span class="sd">    tensors : iterable of torch.Tensor</span>
-</span><span data-line="209"><span class="sd">        Tensors that may have gradients attached.</span>
-</span><span data-line="210">
-</span><span data-line="211"><span class="sd">    Yields</span>
-</span><span data-line="212"><span class="sd">    ------</span>
-</span><span data-line="213"><span class="sd">    torch.Tensor</span>
-</span><span data-line="214"><span class="sd">        Gradient for each tensor.</span>
-</span><span data-line="215">
-</span><span data-line="216"><span class="sd">    Example</span>
-</span><span data-line="217"><span class="sd">    -------</span>
-</span><span data-line="218">
-</span><span data-line="219"><span class="sd">    &gt;&gt;&gt; import torch</span>
-</span><span data-line="220"><span class="sd">    &gt;&gt;&gt; from tools import grads_of</span>
-</span><span data-line="221"><span class="sd">    &gt;&gt;&gt; params = [torch.randn(3, requires_grad=True) for _ in range(2)]</span>
-</span><span data-line="222"><span class="sd">    &gt;&gt;&gt; loss = sum(p.sum() for p in params)</span>
-</span><span data-line="223"><span class="sd">    &gt;&gt;&gt; loss.backward()</span>
-</span><span data-line="224"><span class="sd">    &gt;&gt;&gt; for g in grads_of(params):</span>
-</span><span data-line="225"><span class="sd">    ...     print(g)</span>
-</span><span data-line="226"><span class="sd">    tensor([1., 1., 1.])</span>
-</span><span data-line="227"><span class="sd">    tensor([1., 1., 1.])</span>
-</span><span data-line="228"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="229">    <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
-</span><span data-line="230">        <span class="k">yield</span> <span class="n">grad_of</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span></div>
+</span><span data-line="214"><span class="k">def</span><span class="w"> </span><span class="nf">grads_of</span><span class="p">(</span><span class="n">tensors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+</span><span data-line="215"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="216"><span class="sd">    Generator that gets or creates gradients for multiple tensors.</span>
+</span><span data-line="217">
+</span><span data-line="218"><span class="sd">    Parameters</span>
+</span><span data-line="219"><span class="sd">    ----------</span>
+</span><span data-line="220"><span class="sd">    tensors : iterable of torch.Tensor</span>
+</span><span data-line="221"><span class="sd">        Tensors that may have gradients attached.</span>
+</span><span data-line="222">
+</span><span data-line="223"><span class="sd">    Yields</span>
+</span><span data-line="224"><span class="sd">    ------</span>
+</span><span data-line="225"><span class="sd">    torch.Tensor</span>
+</span><span data-line="226"><span class="sd">        Gradient for each tensor.</span>
+</span><span data-line="227">
+</span><span data-line="228"><span class="sd">    Example</span>
+</span><span data-line="229"><span class="sd">    -------</span>
+</span><span data-line="230">
+</span><span data-line="231"><span class="sd">    &gt;&gt;&gt; import torch</span>
+</span><span data-line="232"><span class="sd">    &gt;&gt;&gt; from tools import grads_of</span>
+</span><span data-line="233"><span class="sd">    &gt;&gt;&gt; params = [torch.randn(3, requires_grad=True) for _ in range(2)]</span>
+</span><span data-line="234"><span class="sd">    &gt;&gt;&gt; loss = sum(p.sum() for p in params)</span>
+</span><span data-line="235"><span class="sd">    &gt;&gt;&gt; loss.backward()</span>
+</span><span data-line="236"><span class="sd">    &gt;&gt;&gt; for g in grads_of(params):</span>
+</span><span data-line="237"><span class="sd">    ...     print(g)</span>
+</span><span data-line="238"><span class="sd">    tensor([1., 1., 1.])</span>
+</span><span data-line="239"><span class="sd">    tensor([1., 1., 1.])</span>
+</span><span data-line="240"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="241">    <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
+</span><span data-line="242">        <span class="k">yield</span> <span class="n">grad_of</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span></div>
 
-</span><span data-line="231">
-</span><span data-line="232"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="233"><span class="c1"># Statistics</span>
-</span><span data-line="234">
+</span><span data-line="243">
+</span><span data-line="244">
+</span><span data-line="245"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="246"><span class="c1"># Statistics</span>
+</span><span data-line="247">
+</span><span data-line="248">
 <div class="viewcode-block" id="compute_avg_dev_max">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.compute_avg_dev_max">[docs]</a>
-</span><span data-line="235"><span class="k">def</span><span class="w"> </span><span class="nf">compute_avg_dev_max</span><span class="p">(</span><span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="236"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="237"><span class="sd">    Compute average, average norm, norm deviation, and max absolute value.</span>
-</span><span data-line="238">
-</span><span data-line="239"><span class="sd">    Parameters</span>
-</span><span data-line="240"><span class="sd">    ----------</span>
-</span><span data-line="241"><span class="sd">    samples : list of torch.Tensor</span>
-</span><span data-line="242"><span class="sd">        List of tensors to compute statistics on.</span>
-</span><span data-line="243">
-</span><span data-line="244"><span class="sd">    Returns</span>
-</span><span data-line="245"><span class="sd">    -------</span>
-</span><span data-line="246"><span class="sd">    tuple[torch.Tensor, float, float, float]</span>
-</span><span data-line="247"><span class="sd">        Tuple containing: average tensor, average norm, norm deviation, and</span>
-</span><span data-line="248"><span class="sd">        max absolute value.</span>
-</span><span data-line="249">
-</span><span data-line="250"><span class="sd">    Notes</span>
-</span><span data-line="251"><span class="sd">    -----</span>
-</span><span data-line="252"><span class="sd">    The returned tensor is newly created and does not alias any input tensor.</span>
-</span><span data-line="253"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="254">    <span class="c1"># Stack all samples</span>
-</span><span data-line="255">    <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
-</span><span data-line="256">    <span class="c1"># Compute average tensor</span>
-</span><span data-line="257">    <span class="n">avg</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</span><span data-line="258">    <span class="c1"># Compute norms</span>
-</span><span data-line="259">    <span class="n">norms</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span data-line="260">    <span class="c1"># Average norm and deviation</span>
-</span><span data-line="261">    <span class="n">avg_norm</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span data-line="262">    <span class="n">dev_norm</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">norms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
-</span><span data-line="263">    <span class="c1"># Max absolute value across all samples</span>
-</span><span data-line="264">    <span class="n">max_abs</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span data-line="265">    <span class="k">return</span> <span class="n">avg</span><span class="p">,</span> <span class="n">avg_norm</span><span class="p">,</span> <span class="n">dev_norm</span><span class="p">,</span> <span class="n">max_abs</span></div>
+</span><span data-line="249"><span class="k">def</span><span class="w"> </span><span class="nf">compute_avg_dev_max</span><span class="p">(</span>
+</span><span data-line="250">    <span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+</span><span data-line="251"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="252"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="253"><span class="sd">    Compute average, average norm, norm deviation, and max absolute value.</span>
+</span><span data-line="254">
+</span><span data-line="255"><span class="sd">    Parameters</span>
+</span><span data-line="256"><span class="sd">    ----------</span>
+</span><span data-line="257"><span class="sd">    samples : list of torch.Tensor</span>
+</span><span data-line="258"><span class="sd">        List of tensors to compute statistics on.</span>
+</span><span data-line="259">
+</span><span data-line="260"><span class="sd">    Returns</span>
+</span><span data-line="261"><span class="sd">    -------</span>
+</span><span data-line="262"><span class="sd">    tuple[torch.Tensor, float, float, float]</span>
+</span><span data-line="263"><span class="sd">        Tuple containing: average tensor, average norm, norm deviation, and</span>
+</span><span data-line="264"><span class="sd">        max absolute value.</span>
+</span><span data-line="265">
+</span><span data-line="266"><span class="sd">    Notes</span>
+</span><span data-line="267"><span class="sd">    -----</span>
+</span><span data-line="268"><span class="sd">    The returned tensor is newly created and does not alias any input tensor.</span>
+</span><span data-line="269"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="270">    <span class="c1"># Stack all samples</span>
+</span><span data-line="271">    <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+</span><span data-line="272">    <span class="c1"># Compute average tensor</span>
+</span><span data-line="273">    <span class="n">avg</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span data-line="274">    <span class="c1"># Compute norms</span>
+</span><span data-line="275">    <span class="n">norms</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="276">    <span class="c1"># Average norm and deviation</span>
+</span><span data-line="277">    <span class="n">avg_norm</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="278">    <span class="n">dev_norm</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">norms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+</span><span data-line="279">    <span class="c1"># Max absolute value across all samples</span>
+</span><span data-line="280">    <span class="n">max_abs</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="281">    <span class="k">return</span> <span class="n">avg</span><span class="p">,</span> <span class="n">avg_norm</span><span class="p">,</span> <span class="n">dev_norm</span><span class="p">,</span> <span class="n">max_abs</span></div>
 
-</span><span data-line="266">
-</span><span data-line="267"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="268"><span class="c1"># Accumulated timed context</span>
-</span><span data-line="269">
+</span><span data-line="282">
+</span><span data-line="283">
+</span><span data-line="284"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="285"><span class="c1"># Accumulated timed context</span>
+</span><span data-line="286">
+</span><span data-line="287">
 <div class="viewcode-block" id="AccumulatedTimedContext">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext">[docs]</a>
-</span><span data-line="270"><span class="k">class</span><span class="w"> </span><span class="nc">AccumulatedTimedContext</span><span class="p">:</span>
-</span><span data-line="271"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="272"><span class="sd">    Accumulated timed context manager with optional CUDA synchronization.</span>
-</span><span data-line="273">
-</span><span data-line="274"><span class="sd">    This context manager measures elapsed time across multiple entries,</span>
-</span><span data-line="275"><span class="sd">    with optional CUDA synchronization to ensure accurate GPU timing.</span>
-</span><span data-line="276">
-</span><span data-line="277"><span class="sd">    Parameters</span>
-</span><span data-line="278"><span class="sd">    ----------</span>
-</span><span data-line="279"><span class="sd">    sync : bool, optional</span>
-</span><span data-line="280"><span class="sd">        Whether to synchronize CUDA before and after timing. Defaults to</span>
-</span><span data-line="281"><span class="sd">        ``False``.</span>
-</span><span data-line="282">
-</span><span data-line="283"><span class="sd">    Example</span>
-</span><span data-line="284"><span class="sd">    -------</span>
-</span><span data-line="285"><span class="sd">    &gt;&gt;&gt; import torch</span>
-</span><span data-line="286"><span class="sd">    &gt;&gt;&gt; from tools import AccumulatedTimedContext</span>
-</span><span data-line="287"><span class="sd">    &gt;&gt;&gt; atc = AccumulatedTimedContext(sync=True)</span>
-</span><span data-line="288"><span class="sd">    &gt;&gt;&gt; with atc:</span>
-</span><span data-line="289"><span class="sd">    ...     # GPU operations here</span>
-</span><span data-line="290"><span class="sd">    ...     pass</span>
-</span><span data-line="291"><span class="sd">    &gt;&gt;&gt; print(atc.current_runtime())</span>
-</span><span data-line="292"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="293">
-</span><span data-line="294">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="295"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="296"><span class="sd">        Initialize the accumulated timed context.</span>
-</span><span data-line="297">
-</span><span data-line="298"><span class="sd">        Parameters</span>
-</span><span data-line="299"><span class="sd">        ----------</span>
-</span><span data-line="300"><span class="sd">        sync : bool, optional</span>
-</span><span data-line="301"><span class="sd">            Whether to synchronize CUDA before and after timing. Defaults to</span>
-</span><span data-line="302"><span class="sd">            ``False``.</span>
-</span><span data-line="303"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="304">        <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="o">=</span> <span class="n">sync</span>
-</span><span data-line="305">        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="306">        <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span data-line="307">
-</span><span data-line="308">    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="309"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="310"><span class="sd">        Enter the context and start timing.</span>
+</span><span data-line="288"><span class="k">class</span><span class="w"> </span><span class="nc">AccumulatedTimedContext</span><span class="p">:</span>
+</span><span data-line="289"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="290"><span class="sd">    Accumulated timed context manager with optional CUDA synchronization.</span>
+</span><span data-line="291">
+</span><span data-line="292"><span class="sd">    This context manager measures elapsed time across multiple entries,</span>
+</span><span data-line="293"><span class="sd">    with optional CUDA synchronization to ensure accurate GPU timing.</span>
+</span><span data-line="294">
+</span><span data-line="295"><span class="sd">    Parameters</span>
+</span><span data-line="296"><span class="sd">    ----------</span>
+</span><span data-line="297"><span class="sd">    sync : bool, optional</span>
+</span><span data-line="298"><span class="sd">        Whether to synchronize CUDA before and after timing. Defaults to</span>
+</span><span data-line="299"><span class="sd">        ``False``.</span>
+</span><span data-line="300">
+</span><span data-line="301"><span class="sd">    Example</span>
+</span><span data-line="302"><span class="sd">    -------</span>
+</span><span data-line="303"><span class="sd">    &gt;&gt;&gt; import torch</span>
+</span><span data-line="304"><span class="sd">    &gt;&gt;&gt; from tools import AccumulatedTimedContext</span>
+</span><span data-line="305"><span class="sd">    &gt;&gt;&gt; atc = AccumulatedTimedContext(sync=True)</span>
+</span><span data-line="306"><span class="sd">    &gt;&gt;&gt; with atc:</span>
+</span><span data-line="307"><span class="sd">    ...     # GPU operations here</span>
+</span><span data-line="308"><span class="sd">    ...     pass</span>
+</span><span data-line="309"><span class="sd">    &gt;&gt;&gt; print(atc.current_runtime())</span>
+</span><span data-line="310"><span class="sd">    &quot;&quot;&quot;</span>
 </span><span data-line="311">
-</span><span data-line="312"><span class="sd">        Returns</span>
-</span><span data-line="313"><span class="sd">        -------</span>
-</span><span data-line="314"><span class="sd">        AccumulatedTimedContext</span>
-</span><span data-line="315"><span class="sd">            Self reference for context management.</span>
-</span><span data-line="316"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="317">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
-</span><span data-line="318">            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
-</span><span data-line="319">        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-</span><span data-line="320">        <span class="k">return</span> <span class="bp">self</span>
-</span><span data-line="321">
-</span><span data-line="322">    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="323"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="324"><span class="sd">        Exit the context, stop timing, and accumulate elapsed time.</span>
+</span><span data-line="312">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sync</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="313"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="314"><span class="sd">        Initialize the accumulated timed context.</span>
+</span><span data-line="315">
+</span><span data-line="316"><span class="sd">        Parameters</span>
+</span><span data-line="317"><span class="sd">        ----------</span>
+</span><span data-line="318"><span class="sd">        sync : bool, optional</span>
+</span><span data-line="319"><span class="sd">            Whether to synchronize CUDA before and after timing. Defaults to</span>
+</span><span data-line="320"><span class="sd">            ``False``.</span>
+</span><span data-line="321"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="322">        <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="o">=</span> <span class="n">sync</span>
+</span><span data-line="323">        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="324">        <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span> <span class="o">=</span> <span class="mf">0.0</span>
 </span><span data-line="325">
-</span><span data-line="326"><span class="sd">        Parameters</span>
-</span><span data-line="327"><span class="sd">        ----------</span>
-</span><span data-line="328"><span class="sd">        *args : object</span>
-</span><span data-line="329"><span class="sd">            Positional arguments forwarded to the context exit.</span>
-</span><span data-line="330"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="331">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
-</span><span data-line="332">            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
-</span><span data-line="333">        <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span>
-</span><span data-line="334">
+</span><span data-line="326">    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="327"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="328"><span class="sd">        Enter the context and start timing.</span>
+</span><span data-line="329">
+</span><span data-line="330"><span class="sd">        Returns</span>
+</span><span data-line="331"><span class="sd">        -------</span>
+</span><span data-line="332"><span class="sd">        AccumulatedTimedContext</span>
+</span><span data-line="333"><span class="sd">            Self reference for context management.</span>
+</span><span data-line="334"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="335">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+</span><span data-line="336">            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+</span><span data-line="337">        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+</span><span data-line="338">        <span class="k">return</span> <span class="bp">self</span>
+</span><span data-line="339">
+</span><span data-line="340">    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="341"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="342"><span class="sd">        Exit the context, stop timing, and accumulate elapsed time.</span>
+</span><span data-line="343">
+</span><span data-line="344"><span class="sd">        Parameters</span>
+</span><span data-line="345"><span class="sd">        ----------</span>
+</span><span data-line="346"><span class="sd">        *args : object</span>
+</span><span data-line="347"><span class="sd">            Positional arguments forwarded to the context exit.</span>
+</span><span data-line="348"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="349">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+</span><span data-line="350">            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+</span><span data-line="351">        <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span>
+</span><span data-line="352">
 <div class="viewcode-block" id="AccumulatedTimedContext.current_runtime">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext.current_runtime">[docs]</a>
-</span><span data-line="335">    <span class="k">def</span><span class="w"> </span><span class="nf">current_runtime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="336"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="337"><span class="sd">        Return the accumulated runtime.</span>
-</span><span data-line="338">
-</span><span data-line="339"><span class="sd">        Returns</span>
-</span><span data-line="340"><span class="sd">        -------</span>
-</span><span data-line="341"><span class="sd">        float</span>
-</span><span data-line="342"><span class="sd">            Total accumulated time in seconds.</span>
-</span><span data-line="343"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="344">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span></div>
+</span><span data-line="353">    <span class="k">def</span><span class="w"> </span><span class="nf">current_runtime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="354"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="355"><span class="sd">        Return the accumulated runtime.</span>
+</span><span data-line="356">
+</span><span data-line="357"><span class="sd">        Returns</span>
+</span><span data-line="358"><span class="sd">        -------</span>
+</span><span data-line="359"><span class="sd">        float</span>
+</span><span data-line="360"><span class="sd">            Total accumulated time in seconds.</span>
+</span><span data-line="361"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="362">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elapsed</span></div>
 </div>
 
-</span><span data-line="345">
-</span><span data-line="346"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="347"><span class="c1"># Weighted MSE loss</span>
-</span><span data-line="348">
-</span><span data-line="349">
+</span><span data-line="363">
+</span><span data-line="364">
+</span><span data-line="365"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="366"><span class="c1"># Weighted MSE loss</span>
+</span><span data-line="367">
+</span><span data-line="368">
 <div class="viewcode-block" id="weighted_mse_loss">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.weighted_mse_loss">[docs]</a>
-</span><span data-line="350"><span class="k">def</span><span class="w"> </span><span class="nf">weighted_mse_loss</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="351"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="352"><span class="sd">    Compute weighted mean squared error loss.</span>
-</span><span data-line="353">
-</span><span data-line="354"><span class="sd">    Parameters</span>
-</span><span data-line="355"><span class="sd">    ----------</span>
-</span><span data-line="356"><span class="sd">    input : torch.Tensor</span>
-</span><span data-line="357"><span class="sd">        Input tensor.</span>
-</span><span data-line="358"><span class="sd">    target : torch.Tensor</span>
-</span><span data-line="359"><span class="sd">        Target tensor.</span>
-</span><span data-line="360"><span class="sd">    weight : torch.Tensor</span>
-</span><span data-line="361"><span class="sd">        Weight tensor for each element.</span>
-</span><span data-line="362">
-</span><span data-line="363"><span class="sd">    Returns</span>
-</span><span data-line="364"><span class="sd">    -------</span>
-</span><span data-line="365"><span class="sd">    torch.Tensor</span>
-</span><span data-line="366"><span class="sd">        Weighted MSE loss value.</span>
-</span><span data-line="367">
-</span><span data-line="368"><span class="sd">    Notes</span>
-</span><span data-line="369"><span class="sd">    -----</span>
-</span><span data-line="370"><span class="sd">    The returned tensor is newly created and does not alias any input tensor.</span>
-</span><span data-line="371"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="372">    <span class="k">return</span> <span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="nb">input</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
-
-</span><span data-line="373">
+</span><span data-line="369"><span class="k">def</span><span class="w"> </span><span class="nf">weighted_mse_loss</span><span class="p">(</span>
+</span><span data-line="370">    <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+</span><span data-line="371"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="372"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="373"><span class="sd">    Compute weighted mean squared error loss.</span>
 </span><span data-line="374">
+</span><span data-line="375"><span class="sd">    Parameters</span>
+</span><span data-line="376"><span class="sd">    ----------</span>
+</span><span data-line="377"><span class="sd">    input : torch.Tensor</span>
+</span><span data-line="378"><span class="sd">        Input tensor.</span>
+</span><span data-line="379"><span class="sd">    target : torch.Tensor</span>
+</span><span data-line="380"><span class="sd">        Target tensor.</span>
+</span><span data-line="381"><span class="sd">    weight : torch.Tensor</span>
+</span><span data-line="382"><span class="sd">        Weight tensor for each element.</span>
+</span><span data-line="383">
+</span><span data-line="384"><span class="sd">    Returns</span>
+</span><span data-line="385"><span class="sd">    -------</span>
+</span><span data-line="386"><span class="sd">    torch.Tensor</span>
+</span><span data-line="387"><span class="sd">        Weighted MSE loss value.</span>
+</span><span data-line="388">
+</span><span data-line="389"><span class="sd">    Notes</span>
+</span><span data-line="390"><span class="sd">    -----</span>
+</span><span data-line="391"><span class="sd">    The returned tensor is newly created and does not alias any input tensor.</span>
+</span><span data-line="392"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="393">    <span class="k">return</span> <span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="nb">input</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
+
+</span><span data-line="394">
+</span><span data-line="395">
 <div class="viewcode-block" id="WeightedMSELoss">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss">[docs]</a>
-</span><span data-line="375"><span class="k">class</span><span class="w"> </span><span class="nc">WeightedMSELoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-</span><span data-line="376"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="377"><span class="sd">    Weighted MSE loss module.</span>
-</span><span data-line="378">
-</span><span data-line="379"><span class="sd">    This module wraps :func:`weighted_mse_loss` as a PyTorch module.</span>
-</span><span data-line="380"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="381">
-</span><span data-line="382">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="383"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="384"><span class="sd">        Initialize the weighted MSE loss module.</span>
-</span><span data-line="385"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="386">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="387">
+</span><span data-line="396"><span class="k">class</span><span class="w"> </span><span class="nc">WeightedMSELoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="397"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="398"><span class="sd">    Weighted MSE loss module.</span>
+</span><span data-line="399">
+</span><span data-line="400"><span class="sd">    This module wraps :func:`weighted_mse_loss` as a PyTorch module.</span>
+</span><span data-line="401"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="402">
+</span><span data-line="403">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="404"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="405"><span class="sd">        Initialize the weighted MSE loss module.</span>
+</span><span data-line="406"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="407">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="408">
 <div class="viewcode-block" id="WeightedMSELoss.forward">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss.forward">[docs]</a>
-</span><span data-line="388">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-</span><span data-line="389"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="390"><span class="sd">        Compute weighted MSE loss.</span>
-</span><span data-line="391">
-</span><span data-line="392"><span class="sd">        Parameters</span>
-</span><span data-line="393"><span class="sd">        ----------</span>
-</span><span data-line="394"><span class="sd">        input : torch.Tensor</span>
-</span><span data-line="395"><span class="sd">            Input tensor.</span>
-</span><span data-line="396"><span class="sd">        target : torch.Tensor</span>
-</span><span data-line="397"><span class="sd">            Target tensor.</span>
-</span><span data-line="398"><span class="sd">        weight : torch.Tensor</span>
-</span><span data-line="399"><span class="sd">            Weight tensor.</span>
-</span><span data-line="400">
-</span><span data-line="401"><span class="sd">        Returns</span>
-</span><span data-line="402"><span class="sd">        -------</span>
-</span><span data-line="403"><span class="sd">        torch.Tensor</span>
-</span><span data-line="404"><span class="sd">            Weighted MSE loss value.</span>
-</span><span data-line="405"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="406">        <span class="k">return</span> <span class="n">weighted_mse_loss</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span></div>
+</span><span data-line="409">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+</span><span data-line="410">        <span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+</span><span data-line="411">    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+</span><span data-line="412"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="413"><span class="sd">        Compute weighted MSE loss.</span>
+</span><span data-line="414">
+</span><span data-line="415"><span class="sd">        Parameters</span>
+</span><span data-line="416"><span class="sd">        ----------</span>
+</span><span data-line="417"><span class="sd">        input : torch.Tensor</span>
+</span><span data-line="418"><span class="sd">            Input tensor.</span>
+</span><span data-line="419"><span class="sd">        target : torch.Tensor</span>
+</span><span data-line="420"><span class="sd">            Target tensor.</span>
+</span><span data-line="421"><span class="sd">        weight : torch.Tensor</span>
+</span><span data-line="422"><span class="sd">            Weight tensor.</span>
+</span><span data-line="423">
+</span><span data-line="424"><span class="sd">        Returns</span>
+</span><span data-line="425"><span class="sd">        -------</span>
+</span><span data-line="426"><span class="sd">        torch.Tensor</span>
+</span><span data-line="427"><span class="sd">            Weighted MSE loss value.</span>
+</span><span data-line="428"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="429">        <span class="k">return</span> <span class="n">weighted_mse_loss</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span></div>
 </div>
 
-</span><span data-line="407">
-</span><span data-line="408"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="409"><span class="c1"># Regression helper</span>
-</span><span data-line="410">
-</span><span data-line="411">
+</span><span data-line="430">
+</span><span data-line="431">
+</span><span data-line="432"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="433"><span class="c1"># Regression helper</span>
+</span><span data-line="434">
+</span><span data-line="435">
 <div class="viewcode-block" id="regression">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.regression">[docs]</a>
-</span><span data-line="412"><span class="k">def</span><span class="w"> </span><span class="nf">regression</span><span class="p">(</span>
-</span><span data-line="413">    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
-</span><span data-line="414">    <span class="nb">vars</span><span class="p">,</span>
-</span><span data-line="415">    <span class="n">data</span><span class="p">,</span>
-</span><span data-line="416">    <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="417">    <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="418">    <span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-</span><span data-line="419"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="420"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="421"><span class="sd">    Generic optimization for free variables.</span>
-</span><span data-line="422">
-</span><span data-line="423"><span class="sd">    Parameters</span>
-</span><span data-line="424"><span class="sd">    ----------</span>
-</span><span data-line="425"><span class="sd">    func : callable</span>
-</span><span data-line="426"><span class="sd">        Function to optimize. Takes variables and data dictionary as arguments.</span>
-</span><span data-line="427"><span class="sd">    vars : list</span>
-</span><span data-line="428"><span class="sd">        List of variables to optimize.</span>
-</span><span data-line="429"><span class="sd">    data : dict</span>
-</span><span data-line="430"><span class="sd">        Data dictionary, must contain a ``&quot;target&quot;`` key.</span>
-</span><span data-line="431"><span class="sd">    loss : torch.nn.Module, optional</span>
-</span><span data-line="432"><span class="sd">        Loss function. Defaults to ``torch.nn.MSELoss``.</span>
-</span><span data-line="433"><span class="sd">    opt : torch.optim.Optimizer, optional</span>
-</span><span data-line="434"><span class="sd">        Optimizer. Defaults to ``torch.optim.Adam``.</span>
-</span><span data-line="435"><span class="sd">    steps : int, optional</span>
-</span><span data-line="436"><span class="sd">        Number of optimization steps. Defaults to 1000.</span>
-</span><span data-line="437">
-</span><span data-line="438"><span class="sd">    Returns</span>
-</span><span data-line="439"><span class="sd">    -------</span>
-</span><span data-line="440"><span class="sd">    float</span>
-</span><span data-line="441"><span class="sd">        Final loss value after optimization.</span>
-</span><span data-line="442"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="443">    <span class="k">if</span> <span class="n">loss</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="444">        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
-</span><span data-line="445">    <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="446">        <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
-</span><span data-line="447">    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
-</span><span data-line="448">        <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-</span><span data-line="449">        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="nb">vars</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-</span><span data-line="450">        <span class="n">l</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">])</span>
-</span><span data-line="451">        <span class="n">l</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-</span><span data-line="452">        <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-</span><span data-line="453">    <span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">item</span><span class="p">()</span></div>
+</span><span data-line="436"><span class="k">def</span><span class="w"> </span><span class="nf">regression</span><span class="p">(</span>
+</span><span data-line="437">    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+</span><span data-line="438">    <span class="nb">vars</span><span class="p">,</span>
+</span><span data-line="439">    <span class="n">data</span><span class="p">,</span>
+</span><span data-line="440">    <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="441">    <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="442">    <span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+</span><span data-line="443"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="444"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="445"><span class="sd">    Generic optimization for free variables.</span>
+</span><span data-line="446">
+</span><span data-line="447"><span class="sd">    Parameters</span>
+</span><span data-line="448"><span class="sd">    ----------</span>
+</span><span data-line="449"><span class="sd">    func : callable</span>
+</span><span data-line="450"><span class="sd">        Function to optimize. Takes variables and data dictionary as arguments.</span>
+</span><span data-line="451"><span class="sd">    vars : list</span>
+</span><span data-line="452"><span class="sd">        List of variables to optimize.</span>
+</span><span data-line="453"><span class="sd">    data : dict</span>
+</span><span data-line="454"><span class="sd">        Data dictionary, must contain a ``&quot;target&quot;`` key.</span>
+</span><span data-line="455"><span class="sd">    loss : torch.nn.Module, optional</span>
+</span><span data-line="456"><span class="sd">        Loss function. Defaults to ``torch.nn.MSELoss``.</span>
+</span><span data-line="457"><span class="sd">    opt : torch.optim.Optimizer, optional</span>
+</span><span data-line="458"><span class="sd">        Optimizer. Defaults to ``torch.optim.Adam``.</span>
+</span><span data-line="459"><span class="sd">    steps : int, optional</span>
+</span><span data-line="460"><span class="sd">        Number of optimization steps. Defaults to 1000.</span>
+</span><span data-line="461">
+</span><span data-line="462"><span class="sd">    Returns</span>
+</span><span data-line="463"><span class="sd">    -------</span>
+</span><span data-line="464"><span class="sd">    float</span>
+</span><span data-line="465"><span class="sd">        Final loss value after optimization.</span>
+</span><span data-line="466"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="467">    <span class="k">if</span> <span class="n">loss</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="468">        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+</span><span data-line="469">    <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="470">        <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
+</span><span data-line="471">    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+</span><span data-line="472">        <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+</span><span data-line="473">        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="nb">vars</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span><span data-line="474">        <span class="n">l</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">])</span>
+</span><span data-line="475">        <span class="n">l</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</span><span data-line="476">        <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</span><span data-line="477">    <span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">item</span><span class="p">()</span></div>
 
-</span><span data-line="454">
-</span><span data-line="455">
-</span><span data-line="456"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="457"><span class="c1"># PNM export</span>
-</span><span data-line="458">
-</span><span data-line="459">
+</span><span data-line="478">
+</span><span data-line="479">
+</span><span data-line="480"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="481"><span class="c1"># PNM export</span>
+</span><span data-line="482">
+</span><span data-line="483">
 <div class="viewcode-block" id="pnm">
 <a class="viewcode-back" href="../../tools/classes/pytorch.html#tools.pytorch.pnm">[docs]</a>
-</span><span data-line="460"><span class="k">def</span><span class="w"> </span><span class="nf">pnm</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedWriter</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="461"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="462"><span class="sd">    Export tensor to PGM/PBM format.</span>
-</span><span data-line="463">
-</span><span data-line="464"><span class="sd">    Parameters</span>
-</span><span data-line="465"><span class="sd">    ----------</span>
-</span><span data-line="466"><span class="sd">    fd : io.BufferedWriter</span>
-</span><span data-line="467"><span class="sd">        File descriptor to write to.</span>
-</span><span data-line="468"><span class="sd">    tn : torch.Tensor</span>
-</span><span data-line="469"><span class="sd">        Tensor to export. Supports float32/float64 for grayscale (PGM) or</span>
-</span><span data-line="470"><span class="sd">        boolean/integer for binary (PBM).</span>
-</span><span data-line="471">
-</span><span data-line="472"><span class="sd">    Notes</span>
-</span><span data-line="473"><span class="sd">    -----</span>
-</span><span data-line="474"><span class="sd">    - Grayscale format (PGM): For float32/float64 tensors, normalizes to 0-255.</span>
-</span><span data-line="475"><span class="sd">    - Binary format (PBM): For other dtypes, converts to binary values.</span>
-</span><span data-line="476"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="477">    <span class="k">if</span> <span class="n">tn</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span> <span class="ow">or</span> <span class="n">tn</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
-</span><span data-line="478">        <span class="c1"># Grayscale</span>
-</span><span data-line="479">        <span class="n">m</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span data-line="480">        <span class="n">M</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span data-line="481">        <span class="k">if</span> <span class="n">M</span> <span class="o">-</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">:</span>
-</span><span data-line="482">            <span class="n">M</span> <span class="o">=</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span>
-</span><span data-line="483">        <span class="n">t</span> <span class="o">=</span> <span class="p">((</span><span class="n">tn</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">M</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">byte</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-</span><span data-line="484">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;P5</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">255</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="485">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
-</span><span data-line="486">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="487">        <span class="c1"># Binary</span>
-</span><span data-line="488">        <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">tn</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">byte</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-</span><span data-line="489">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;P4</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="490">        <span class="c1"># Pad to byte boundary</span>
-</span><span data-line="491">        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">7</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span>
-</span><span data-line="492">        <span class="n">pad</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span data-line="493">        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
-</span><span data-line="494">            <span class="n">row</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">row</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">)])</span>
-</span><span data-line="495">            <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span></div>
+</span><span data-line="484"><span class="k">def</span><span class="w"> </span><span class="nf">pnm</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedWriter</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="485"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="486"><span class="sd">    Export tensor to PGM/PBM format.</span>
+</span><span data-line="487">
+</span><span data-line="488"><span class="sd">    Parameters</span>
+</span><span data-line="489"><span class="sd">    ----------</span>
+</span><span data-line="490"><span class="sd">    fd : io.BufferedWriter</span>
+</span><span data-line="491"><span class="sd">        File descriptor to write to.</span>
+</span><span data-line="492"><span class="sd">    tn : torch.Tensor</span>
+</span><span data-line="493"><span class="sd">        Tensor to export. Supports float32/float64 for grayscale (PGM) or</span>
+</span><span data-line="494"><span class="sd">        boolean/integer for binary (PBM).</span>
+</span><span data-line="495">
+</span><span data-line="496"><span class="sd">    Notes</span>
+</span><span data-line="497"><span class="sd">    -----</span>
+</span><span data-line="498"><span class="sd">    - Grayscale format (PGM): For float32/float64 tensors, normalizes to 0-255.</span>
+</span><span data-line="499"><span class="sd">    - Binary format (PBM): For other dtypes, converts to binary values.</span>
+</span><span data-line="500"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="501">    <span class="k">if</span> <span class="n">tn</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span> <span class="ow">or</span> <span class="n">tn</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
+</span><span data-line="502">        <span class="c1"># Grayscale</span>
+</span><span data-line="503">        <span class="n">m</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="504">        <span class="n">M</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="505">        <span class="k">if</span> <span class="n">M</span> <span class="o">-</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">:</span>
+</span><span data-line="506">            <span class="n">M</span> <span class="o">=</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span data-line="507">        <span class="n">t</span> <span class="o">=</span> <span class="p">((</span><span class="n">tn</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">M</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">byte</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+</span><span data-line="508">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;P5</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">255</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="509">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+</span><span data-line="510">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="511">        <span class="c1"># Binary</span>
+</span><span data-line="512">        <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">tn</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">byte</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+</span><span data-line="513">        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;P4</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="514">        <span class="c1"># Pad to byte boundary</span>
+</span><span data-line="515">        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">7</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span>
+</span><span data-line="516">        <span class="n">pad</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">tn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span data-line="517">        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
+</span><span data-line="518">            <span class="n">row</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">row</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">)])</span>
+</span><span data-line="519">            <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -695,7 +722,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

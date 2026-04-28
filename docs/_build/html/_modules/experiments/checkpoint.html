@@ -72,7 +72,11 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/brute.html">Brute</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/identical.html">Identical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/nan.html">NaN</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../experiments/index.html">Experiments</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/dataset.html">Dataset</a></li>
@@ -138,17 +142,17 @@ data-aria-dark="Switch to auto color mode">
           <h1>Source code for experiments.checkpoint</h1><div class="highlight"><pre>
 <span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
 </span><span data-line="2"><span class="c1">###</span>
-</span><span data-line="3"> <span class="c1"># @file   checkpoint.py</span>
-</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
-</span><span data-line="5"> <span class="c1">#</span>
-</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
-</span><span data-line="7"> <span class="c1">#</span>
-</span><span data-line="8"> <span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
-</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
-</span><span data-line="10"> <span class="c1">#</span>
-</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
-</span><span data-line="12"> <span class="c1">#</span>
-</span><span data-line="13"> <span class="c1"># Checkpoint helpers.</span>
+</span><span data-line="3"><span class="c1"># @file   checkpoint.py</span>
+</span><span data-line="4"><span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"><span class="c1">#</span>
+</span><span data-line="6"><span class="c1"># @section LICENSE</span>
+</span><span data-line="7"><span class="c1">#</span>
+</span><span data-line="8"><span class="c1"># Copyright © 2019-2021 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"><span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"><span class="c1">#</span>
+</span><span data-line="11"><span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"><span class="c1">#</span>
+</span><span data-line="13"><span class="c1"># Checkpoint helpers.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
 </span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
@@ -187,281 +191,279 @@ data-aria-dark="Switch to auto color mode">
 <div class="viewcode-block" id="Checkpoint">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint">[docs]</a>
 </span><span data-line="49"><span class="k">class</span><span class="w"> </span><span class="nc">Checkpoint</span><span class="p">:</span>
-</span><span data-line="50"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="51"><span class="sd">  Collection of state dictionaries with saving/loading helpers.</span>
+</span><span data-line="50"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="51"><span class="sd">    Collection of state dictionaries with saving/loading helpers.</span>
 </span><span data-line="52">
-</span><span data-line="53"><span class="sd">  This class can snapshot any object implementing the ``state_dict`` /</span>
-</span><span data-line="54"><span class="sd">  ``load_state_dict`` protocol (e.g. ``torch.nn.Module``,</span>
-</span><span data-line="55"><span class="sd">  ``torch.optim.Optimizer``). It also knows how to unwrap</span>
-</span><span data-line="56"><span class="sd">  :class:`~experiments.model.Model` and</span>
-</span><span data-line="57"><span class="sd">  :class:`~experiments.optimizer.Optimizer` wrappers automatically.</span>
+</span><span data-line="53"><span class="sd">    This class can snapshot any object implementing the ``state_dict`` /</span>
+</span><span data-line="54"><span class="sd">    ``load_state_dict`` protocol (e.g. ``torch.nn.Module``,</span>
+</span><span data-line="55"><span class="sd">    ``torch.optim.Optimizer``). It also knows how to unwrap</span>
+</span><span data-line="56"><span class="sd">    :class:`~experiments.model.Model` and</span>
+</span><span data-line="57"><span class="sd">    :class:`~experiments.optimizer.Optimizer` wrappers automatically.</span>
 </span><span data-line="58">
-</span><span data-line="59"><span class="sd">  Example</span>
-</span><span data-line="60"><span class="sd">  -------</span>
+</span><span data-line="59"><span class="sd">    Example</span>
+</span><span data-line="60"><span class="sd">    -------</span>
 </span><span data-line="61">
-</span><span data-line="62"><span class="sd">  &gt;&gt;&gt; ckpt = Checkpoint()</span>
-</span><span data-line="63"><span class="sd">  &gt;&gt;&gt; ckpt.snapshot(model, deepcopy=True)</span>
-</span><span data-line="64"><span class="sd">  &gt;&gt;&gt; ckpt.restore(model)</span>
-</span><span data-line="65"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="62"><span class="sd">    &gt;&gt;&gt; ckpt = Checkpoint()</span>
+</span><span data-line="63"><span class="sd">    &gt;&gt;&gt; ckpt.snapshot(model, deepcopy=True)</span>
+</span><span data-line="64"><span class="sd">    &gt;&gt;&gt; ckpt.restore(model)</span>
+</span><span data-line="65"><span class="sd">    &quot;&quot;&quot;</span>
 </span><span data-line="66">
-</span><span data-line="67">  <span class="c1"># Transfer for handling local package&#39;s classes</span>
-</span><span data-line="68">  <span class="n">_transfers</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="69">    <span class="n">Model</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_model</span><span class="p">),</span>
-</span><span data-line="70">    <span class="n">Optimizer</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_optim</span><span class="p">),</span>
-</span><span data-line="71">  <span class="p">}</span>
+</span><span data-line="67">    <span class="c1"># Transfer for handling local package&#39;s classes</span>
+</span><span data-line="68">    <span class="n">_transfers</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="69">        <span class="n">Model</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_model</span><span class="p">),</span>
+</span><span data-line="70">        <span class="n">Optimizer</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_optim</span><span class="p">),</span>
+</span><span data-line="71">    <span class="p">}</span>
 </span><span data-line="72">
-</span><span data-line="73">  <span class="nd">@classmethod</span>
-</span><span data-line="74">  <span class="k">def</span><span class="w"> </span><span class="nf">_prepare</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
-</span><span data-line="75"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="76"><span class="sd">    Prepare an instance for checkpointing.</span>
+</span><span data-line="73">    <span class="nd">@classmethod</span>
+</span><span data-line="74">    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+</span><span data-line="75"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="76"><span class="sd">        Prepare an instance for checkpointing.</span>
 </span><span data-line="77">
-</span><span data-line="78"><span class="sd">    If the instance is a wrapped :class:`Model` or :class:`Optimizer`,</span>
-</span><span data-line="79"><span class="sd">    the underlying PyTorch object is returned instead.</span>
+</span><span data-line="78"><span class="sd">        If the instance is a wrapped :class:`Model` or :class:`Optimizer`,</span>
+</span><span data-line="79"><span class="sd">        the underlying PyTorch object is returned instead.</span>
 </span><span data-line="80">
-</span><span data-line="81"><span class="sd">    Parameters</span>
-</span><span data-line="82"><span class="sd">    ----------</span>
-</span><span data-line="83"><span class="sd">    instance : object</span>
-</span><span data-line="84"><span class="sd">        Instance to snapshot or restore.</span>
+</span><span data-line="81"><span class="sd">        Parameters</span>
+</span><span data-line="82"><span class="sd">        ----------</span>
+</span><span data-line="83"><span class="sd">        instance : object</span>
+</span><span data-line="84"><span class="sd">            Instance to snapshot or restore.</span>
 </span><span data-line="85">
-</span><span data-line="86"><span class="sd">    Returns</span>
-</span><span data-line="87"><span class="sd">    -------</span>
-</span><span data-line="88"><span class="sd">    tuple[object, str]</span>
-</span><span data-line="89"><span class="sd">        Checkpoint-able instance and its fully-qualified storage key.</span>
+</span><span data-line="86"><span class="sd">        Returns</span>
+</span><span data-line="87"><span class="sd">        -------</span>
+</span><span data-line="88"><span class="sd">        tuple[object, str]</span>
+</span><span data-line="89"><span class="sd">            Checkpoint-able instance and its fully-qualified storage key.</span>
 </span><span data-line="90">
-</span><span data-line="91"><span class="sd">    Raises</span>
-</span><span data-line="92"><span class="sd">    ------</span>
-</span><span data-line="93"><span class="sd">    tools.UserException</span>
-</span><span data-line="94"><span class="sd">        If the instance lacks ``state_dict`` or ``load_state_dict``.</span>
-</span><span data-line="95"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="96">    <span class="c1"># Recover instance&#39;s class</span>
-</span><span data-line="97">    <span class="n">inst_cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
-</span><span data-line="98">    <span class="c1"># Transfer if available</span>
-</span><span data-line="99">    <span class="k">if</span> <span class="n">inst_cls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_transfers</span><span class="p">:</span>
-</span><span data-line="100">      <span class="n">res</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_transfers</span><span class="p">[</span><span class="n">inst_cls</span><span class="p">](</span><span class="n">instance</span><span class="p">)</span>
-</span><span data-line="101">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="102">      <span class="n">res</span> <span class="o">=</span> <span class="n">instance</span>
-</span><span data-line="103">    <span class="c1"># Assert the instance is checkpoint-able</span>
-</span><span data-line="104">    <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;state_dict&quot;</span><span class="p">,</span> <span class="s2">&quot;load_state_dict&quot;</span><span class="p">):</span>
-</span><span data-line="105">      <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
-</span><span data-line="106">        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="107">          <span class="sa">f</span><span class="s2">&quot;Given instance </span><span class="si">{</span><span class="n">instance</span><span class="si">!r}</span><span class="s2"> is not checkpoint-able &quot;</span>
-</span><span data-line="108">          <span class="sa">f</span><span class="s2">&quot;(missing callable member </span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2">)&quot;</span>
-</span><span data-line="109">        <span class="p">)</span>
-</span><span data-line="110">    <span class="c1"># Return the instance and the associated storage key</span>
-</span><span data-line="111">    <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="n">inst_cls</span><span class="p">)</span>
+</span><span data-line="91"><span class="sd">        Raises</span>
+</span><span data-line="92"><span class="sd">        ------</span>
+</span><span data-line="93"><span class="sd">        tools.UserException</span>
+</span><span data-line="94"><span class="sd">            If the instance lacks ``state_dict`` or ``load_state_dict``.</span>
+</span><span data-line="95"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="96">        <span class="c1"># Recover instance&#39;s class</span>
+</span><span data-line="97">        <span class="n">inst_cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+</span><span data-line="98">        <span class="c1"># Transfer if available</span>
+</span><span data-line="99">        <span class="k">if</span> <span class="n">inst_cls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_transfers</span><span class="p">:</span>
+</span><span data-line="100">            <span class="n">res</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_transfers</span><span class="p">[</span><span class="n">inst_cls</span><span class="p">](</span><span class="n">instance</span><span class="p">)</span>
+</span><span data-line="101">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="102">            <span class="n">res</span> <span class="o">=</span> <span class="n">instance</span>
+</span><span data-line="103">        <span class="c1"># Assert the instance is checkpoint-able</span>
+</span><span data-line="104">        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;state_dict&quot;</span><span class="p">,</span> <span class="s2">&quot;load_state_dict&quot;</span><span class="p">):</span>
+</span><span data-line="105">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+</span><span data-line="106">                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="107">                    <span class="sa">f</span><span class="s2">&quot;Given instance </span><span class="si">{</span><span class="n">instance</span><span class="si">!r}</span><span class="s2"> is not checkpoint-able &quot;</span>
+</span><span data-line="108">                    <span class="sa">f</span><span class="s2">&quot;(missing callable member </span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+</span><span data-line="109">                <span class="p">)</span>
+</span><span data-line="110">        <span class="c1"># Return the instance and the associated storage key</span>
+</span><span data-line="111">        <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="n">inst_cls</span><span class="p">)</span>
 </span><span data-line="112">
-</span><span data-line="113">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="114"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="115"><span class="sd">    Create an empty checkpoint.</span>
-</span><span data-line="116"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="117">    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span data-line="118">    <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-</span><span data-line="119">      <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="113">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="114"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="115"><span class="sd">        Create an empty checkpoint.</span>
+</span><span data-line="116"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="117">        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="118">        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+</span><span data-line="119">            <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 </span><span data-line="120">
 <div class="viewcode-block" id="Checkpoint.snapshot">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.snapshot">[docs]</a>
-</span><span data-line="121">  <span class="k">def</span><span class="w"> </span><span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nowarnref</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="122"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="123"><span class="sd">    Take (or overwrite) a snapshot of an instance&#39;s state dictionary.</span>
+</span><span data-line="121">    <span class="k">def</span><span class="w"> </span><span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nowarnref</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="122"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="123"><span class="sd">        Take (or overwrite) a snapshot of an instance&#39;s state dictionary.</span>
 </span><span data-line="124">
-</span><span data-line="125"><span class="sd">    Parameters</span>
-</span><span data-line="126"><span class="sd">    ----------</span>
-</span><span data-line="127"><span class="sd">    instance : object</span>
-</span><span data-line="128"><span class="sd">        Instance to snapshot. Must support ``state_dict()``.</span>
-</span><span data-line="129"><span class="sd">    overwrite : bool, optional</span>
-</span><span data-line="130"><span class="sd">        Whether to overwrite an existing snapshot for the same class.</span>
-</span><span data-line="131"><span class="sd">    deepcopy : bool, optional</span>
-</span><span data-line="132"><span class="sd">        Whether to deep-copy the state dictionary instead of</span>
-</span><span data-line="133"><span class="sd">        shallow-copying.</span>
-</span><span data-line="134"><span class="sd">    nowarnref : bool, optional</span>
-</span><span data-line="135"><span class="sd">        Suppress the debug warning when restoring a reference is the</span>
-</span><span data-line="136"><span class="sd">        intended behavior.</span>
+</span><span data-line="125"><span class="sd">        Parameters</span>
+</span><span data-line="126"><span class="sd">        ----------</span>
+</span><span data-line="127"><span class="sd">        instance : object</span>
+</span><span data-line="128"><span class="sd">            Instance to snapshot. Must support ``state_dict()``.</span>
+</span><span data-line="129"><span class="sd">        overwrite : bool, optional</span>
+</span><span data-line="130"><span class="sd">            Whether to overwrite an existing snapshot for the same class.</span>
+</span><span data-line="131"><span class="sd">        deepcopy : bool, optional</span>
+</span><span data-line="132"><span class="sd">            Whether to deep-copy the state dictionary instead of</span>
+</span><span data-line="133"><span class="sd">            shallow-copying.</span>
+</span><span data-line="134"><span class="sd">        nowarnref : bool, optional</span>
+</span><span data-line="135"><span class="sd">            Suppress the debug warning when restoring a reference is the</span>
+</span><span data-line="136"><span class="sd">            intended behavior.</span>
 </span><span data-line="137">
-</span><span data-line="138"><span class="sd">    Returns</span>
-</span><span data-line="139"><span class="sd">    -------</span>
-</span><span data-line="140"><span class="sd">    Checkpoint</span>
-</span><span data-line="141"><span class="sd">        Self, for chaining.</span>
+</span><span data-line="138"><span class="sd">        Returns</span>
+</span><span data-line="139"><span class="sd">        -------</span>
+</span><span data-line="140"><span class="sd">        Checkpoint</span>
+</span><span data-line="141"><span class="sd">            Self, for chaining.</span>
 </span><span data-line="142">
-</span><span data-line="143"><span class="sd">    Raises</span>
-</span><span data-line="144"><span class="sd">    ------</span>
-</span><span data-line="145"><span class="sd">    tools.UserException</span>
-</span><span data-line="146"><span class="sd">        If a snapshot already exists and ``overwrite`` is ``False``.</span>
-</span><span data-line="147"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="148">    <span class="n">instance</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
-</span><span data-line="149">    <span class="c1"># Snapshot the state dictionary</span>
-</span><span data-line="150">    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">:</span>
-</span><span data-line="151">      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="152">        <span class="sa">f</span><span class="s2">&quot;A snapshot for </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> is already stored in the checkpoint&quot;</span>
-</span><span data-line="153">      <span class="p">)</span>
-</span><span data-line="154">    <span class="k">if</span> <span class="n">deepcopy</span><span class="p">:</span>
-</span><span data-line="155">      <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
-</span><span data-line="156">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="157">      <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span data-line="158">    <span class="c1"># Track whether a deepcopy was made</span>
-</span><span data-line="159">    <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-</span><span data-line="160">      <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span> <span class="ow">or</span> <span class="n">nowarnref</span>
-</span><span data-line="161">    <span class="c1"># Enable chaining</span>
-</span><span data-line="162">    <span class="k">return</span> <span class="bp">self</span></div>
+</span><span data-line="143"><span class="sd">        Raises</span>
+</span><span data-line="144"><span class="sd">        ------</span>
+</span><span data-line="145"><span class="sd">        tools.UserException</span>
+</span><span data-line="146"><span class="sd">            If a snapshot already exists and ``overwrite`` is ``False``.</span>
+</span><span data-line="147"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="148">        <span class="n">instance</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+</span><span data-line="149">        <span class="c1"># Snapshot the state dictionary</span>
+</span><span data-line="150">        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">:</span>
+</span><span data-line="151">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="152">                <span class="sa">f</span><span class="s2">&quot;A snapshot for </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> is already stored in the checkpoint&quot;</span>
+</span><span data-line="153">            <span class="p">)</span>
+</span><span data-line="154">        <span class="k">if</span> <span class="n">deepcopy</span><span class="p">:</span>
+</span><span data-line="155">            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+</span><span data-line="156">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="157">            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span data-line="158">        <span class="c1"># Track whether a deepcopy was made</span>
+</span><span data-line="159">        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+</span><span data-line="160">            <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span> <span class="ow">or</span> <span class="n">nowarnref</span>
+</span><span data-line="161">        <span class="c1"># Enable chaining</span>
+</span><span data-line="162">        <span class="k">return</span> <span class="bp">self</span></div>
 
 </span><span data-line="163">
 <div class="viewcode-block" id="Checkpoint.restore">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.restore">[docs]</a>
-</span><span data-line="164">  <span class="k">def</span><span class="w"> </span><span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">nothrow</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="165"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="166"><span class="sd">    Restore an instance from its stored snapshot.</span>
+</span><span data-line="164">    <span class="k">def</span><span class="w"> </span><span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">nothrow</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="165"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="166"><span class="sd">        Restore an instance from its stored snapshot.</span>
 </span><span data-line="167">
-</span><span data-line="168"><span class="sd">    Parameters</span>
-</span><span data-line="169"><span class="sd">    ----------</span>
-</span><span data-line="170"><span class="sd">    instance : object</span>
-</span><span data-line="171"><span class="sd">        Instance to restore. Must support ``load_state_dict()``.</span>
-</span><span data-line="172"><span class="sd">    nothrow : bool, optional</span>
-</span><span data-line="173"><span class="sd">        If ``True``, silently skip when no snapshot is available.</span>
+</span><span data-line="168"><span class="sd">        Parameters</span>
+</span><span data-line="169"><span class="sd">        ----------</span>
+</span><span data-line="170"><span class="sd">        instance : object</span>
+</span><span data-line="171"><span class="sd">            Instance to restore. Must support ``load_state_dict()``.</span>
+</span><span data-line="172"><span class="sd">        nothrow : bool, optional</span>
+</span><span data-line="173"><span class="sd">            If ``True``, silently skip when no snapshot is available.</span>
 </span><span data-line="174">
-</span><span data-line="175"><span class="sd">    Returns</span>
-</span><span data-line="176"><span class="sd">    -------</span>
-</span><span data-line="177"><span class="sd">    Checkpoint</span>
-</span><span data-line="178"><span class="sd">        Self, for chaining.</span>
+</span><span data-line="175"><span class="sd">        Returns</span>
+</span><span data-line="176"><span class="sd">        -------</span>
+</span><span data-line="177"><span class="sd">        Checkpoint</span>
+</span><span data-line="178"><span class="sd">            Self, for chaining.</span>
 </span><span data-line="179">
-</span><span data-line="180"><span class="sd">    Raises</span>
-</span><span data-line="181"><span class="sd">    ------</span>
-</span><span data-line="182"><span class="sd">    tools.UserException</span>
-</span><span data-line="183"><span class="sd">        If no snapshot exists and ``nothrow`` is ``False``.</span>
-</span><span data-line="184"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="185">    <span class="n">instance</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
-</span><span data-line="186">    <span class="c1"># Restore the state dictionary</span>
-</span><span data-line="187">    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">:</span>
-</span><span data-line="188">      <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-</span><span data-line="189">      <span class="c1"># Check if restoring a reference</span>
-</span><span data-line="190">      <span class="k">if</span> <span class="n">__debug__</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-</span><span data-line="191">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="192">          <span class="sa">f</span><span class="s2">&quot;Restoring a state dictionary reference in an instance of &quot;</span>
-</span><span data-line="193">          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">))</span><span class="si">}</span><span class="s2">; the resulting behavior &quot;</span>
-</span><span data-line="194">          <span class="sa">f</span><span class="s2">&quot;may not be the one expected&quot;</span>
-</span><span data-line="195">        <span class="p">)</span>
-</span><span data-line="196">    <span class="k">elif</span> <span class="ow">not</span> <span class="n">nothrow</span><span class="p">:</span>
-</span><span data-line="197">      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="198">        <span class="sa">f</span><span class="s2">&quot;No snapshot for </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> is available in the checkpoint&quot;</span>
-</span><span data-line="199">      <span class="p">)</span>
-</span><span data-line="200">    <span class="c1"># Enable chaining</span>
-</span><span data-line="201">    <span class="k">return</span> <span class="bp">self</span></div>
+</span><span data-line="180"><span class="sd">        Raises</span>
+</span><span data-line="181"><span class="sd">        ------</span>
+</span><span data-line="182"><span class="sd">        tools.UserException</span>
+</span><span data-line="183"><span class="sd">            If no snapshot exists and ``nothrow`` is ``False``.</span>
+</span><span data-line="184"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="185">        <span class="n">instance</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+</span><span data-line="186">        <span class="c1"># Restore the state dictionary</span>
+</span><span data-line="187">        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">:</span>
+</span><span data-line="188">            <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+</span><span data-line="189">            <span class="c1"># Check if restoring a reference</span>
+</span><span data-line="190">            <span class="k">if</span> <span class="n">__debug__</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+</span><span data-line="191">                <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="192">                    <span class="sa">f</span><span class="s2">&quot;Restoring a state dictionary reference in an instance of &quot;</span>
+</span><span data-line="193">                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">fullqual</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">))</span><span class="si">}</span><span class="s2">; the resulting behavior &quot;</span>
+</span><span data-line="194">                    <span class="sa">f</span><span class="s2">&quot;may not be the one expected&quot;</span>
+</span><span data-line="195">                <span class="p">)</span>
+</span><span data-line="196">        <span class="k">elif</span> <span class="ow">not</span> <span class="n">nothrow</span><span class="p">:</span>
+</span><span data-line="197">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="198">                <span class="sa">f</span><span class="s2">&quot;No snapshot for </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> is available in the checkpoint&quot;</span>
+</span><span data-line="199">            <span class="p">)</span>
+</span><span data-line="200">        <span class="c1"># Enable chaining</span>
+</span><span data-line="201">        <span class="k">return</span> <span class="bp">self</span></div>
 
 </span><span data-line="202">
 <div class="viewcode-block" id="Checkpoint.load">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.load">[docs]</a>
-</span><span data-line="203">  <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="204"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="205"><span class="sd">    Load checkpoint data from a file.</span>
+</span><span data-line="203">    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="204"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="205"><span class="sd">        Load checkpoint data from a file.</span>
 </span><span data-line="206">
-</span><span data-line="207"><span class="sd">    Parameters</span>
-</span><span data-line="208"><span class="sd">    ----------</span>
-</span><span data-line="209"><span class="sd">    filepath : str or pathlib.Path</span>
-</span><span data-line="210"><span class="sd">        Path to the saved checkpoint.</span>
-</span><span data-line="211"><span class="sd">    overwrite : bool, optional</span>
-</span><span data-line="212"><span class="sd">        Whether to overwrite any existing snapshots.</span>
+</span><span data-line="207"><span class="sd">        Parameters</span>
+</span><span data-line="208"><span class="sd">        ----------</span>
+</span><span data-line="209"><span class="sd">        filepath : str or pathlib.Path</span>
+</span><span data-line="210"><span class="sd">            Path to the saved checkpoint.</span>
+</span><span data-line="211"><span class="sd">        overwrite : bool, optional</span>
+</span><span data-line="212"><span class="sd">            Whether to overwrite any existing snapshots.</span>
 </span><span data-line="213">
-</span><span data-line="214"><span class="sd">    Returns</span>
-</span><span data-line="215"><span class="sd">    -------</span>
-</span><span data-line="216"><span class="sd">    Checkpoint</span>
-</span><span data-line="217"><span class="sd">        Self, for chaining.</span>
+</span><span data-line="214"><span class="sd">        Returns</span>
+</span><span data-line="215"><span class="sd">        -------</span>
+</span><span data-line="216"><span class="sd">        Checkpoint</span>
+</span><span data-line="217"><span class="sd">            Self, for chaining.</span>
 </span><span data-line="218">
-</span><span data-line="219"><span class="sd">    Raises</span>
-</span><span data-line="220"><span class="sd">    ------</span>
-</span><span data-line="221"><span class="sd">    tools.UserException</span>
-</span><span data-line="222"><span class="sd">        If the checkpoint is non-empty and ``overwrite`` is ``False``.</span>
-</span><span data-line="223"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="224">    <span class="c1"># Check if empty</span>
-</span><span data-line="225">    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="226">      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="227">        <span class="s2">&quot;Unable to load into a non-empty checkpoint&quot;</span>
-</span><span data-line="228">      <span class="p">)</span>
-</span><span data-line="229">    <span class="c1"># Load the file</span>
-</span><span data-line="230">    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-</span><span data-line="231">    <span class="c1"># Reset the &#39;copied&#39; flags accordingly</span>
-</span><span data-line="232">    <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-</span><span data-line="233">      <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span data-line="234">      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-</span><span data-line="235">        <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span data-line="236">    <span class="c1"># Enable chaining</span>
-</span><span data-line="237">    <span class="k">return</span> <span class="bp">self</span></div>
+</span><span data-line="219"><span class="sd">        Raises</span>
+</span><span data-line="220"><span class="sd">        ------</span>
+</span><span data-line="221"><span class="sd">        tools.UserException</span>
+</span><span data-line="222"><span class="sd">            If the checkpoint is non-empty and ``overwrite`` is ``False``.</span>
+</span><span data-line="223"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="224">        <span class="c1"># Check if empty</span>
+</span><span data-line="225">        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="226">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span><span class="s2">&quot;Unable to load into a non-empty checkpoint&quot;</span><span class="p">)</span>
+</span><span data-line="227">        <span class="c1"># Load the file</span>
+</span><span data-line="228">        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+</span><span data-line="229">        <span class="c1"># Reset the &#39;copied&#39; flags accordingly</span>
+</span><span data-line="230">        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+</span><span data-line="231">            <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span data-line="232">            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span data-line="233">                <span class="bp">self</span><span class="o">.</span><span class="n">_copied</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span data-line="234">        <span class="c1"># Enable chaining</span>
+</span><span data-line="235">        <span class="k">return</span> <span class="bp">self</span></div>
 
-</span><span data-line="238">
+</span><span data-line="236">
 <div class="viewcode-block" id="Checkpoint.save">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.save">[docs]</a>
-</span><span data-line="239">  <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="240"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="241"><span class="sd">    Save the current checkpoint to a file.</span>
-</span><span data-line="242">
-</span><span data-line="243"><span class="sd">    Parameters</span>
-</span><span data-line="244"><span class="sd">    ----------</span>
-</span><span data-line="245"><span class="sd">    filepath : str or pathlib.Path</span>
-</span><span data-line="246"><span class="sd">        Destination path.</span>
-</span><span data-line="247"><span class="sd">    overwrite : bool, optional</span>
-</span><span data-line="248"><span class="sd">        Whether to overwrite an existing file.</span>
-</span><span data-line="249">
-</span><span data-line="250"><span class="sd">    Returns</span>
-</span><span data-line="251"><span class="sd">    -------</span>
-</span><span data-line="252"><span class="sd">    Checkpoint</span>
-</span><span data-line="253"><span class="sd">        Self, for chaining.</span>
-</span><span data-line="254">
-</span><span data-line="255"><span class="sd">    Raises</span>
-</span><span data-line="256"><span class="sd">    ------</span>
-</span><span data-line="257"><span class="sd">    tools.UserException</span>
-</span><span data-line="258"><span class="sd">        If the file exists and ``overwrite`` is ``False``.</span>
-</span><span data-line="259"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="260">    <span class="c1"># Check if file already exists</span>
-</span><span data-line="261">    <span class="k">if</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
-</span><span data-line="262">      <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
-</span><span data-line="263">        <span class="sa">f</span><span class="s2">&quot;Unable to save checkpoint in existing file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> &quot;</span>
-</span><span data-line="264">        <span class="sa">f</span><span class="s2">&quot;(overwriting has not been allowed by the caller)&quot;</span>
-</span><span data-line="265">      <span class="p">)</span>
-</span><span data-line="266">    <span class="c1"># (Over)write the file</span>
-</span><span data-line="267">    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
-</span><span data-line="268">    <span class="c1"># Enable chaining</span>
-</span><span data-line="269">    <span class="k">return</span> <span class="bp">self</span></div>
+</span><span data-line="237">    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="238"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="239"><span class="sd">        Save the current checkpoint to a file.</span>
+</span><span data-line="240">
+</span><span data-line="241"><span class="sd">        Parameters</span>
+</span><span data-line="242"><span class="sd">        ----------</span>
+</span><span data-line="243"><span class="sd">        filepath : str or pathlib.Path</span>
+</span><span data-line="244"><span class="sd">            Destination path.</span>
+</span><span data-line="245"><span class="sd">        overwrite : bool, optional</span>
+</span><span data-line="246"><span class="sd">            Whether to overwrite an existing file.</span>
+</span><span data-line="247">
+</span><span data-line="248"><span class="sd">        Returns</span>
+</span><span data-line="249"><span class="sd">        -------</span>
+</span><span data-line="250"><span class="sd">        Checkpoint</span>
+</span><span data-line="251"><span class="sd">            Self, for chaining.</span>
+</span><span data-line="252">
+</span><span data-line="253"><span class="sd">        Raises</span>
+</span><span data-line="254"><span class="sd">        ------</span>
+</span><span data-line="255"><span class="sd">        tools.UserException</span>
+</span><span data-line="256"><span class="sd">            If the file exists and ``overwrite`` is ``False``.</span>
+</span><span data-line="257"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="258">        <span class="c1"># Check if file already exists</span>
+</span><span data-line="259">        <span class="k">if</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+</span><span data-line="260">            <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UserException</span><span class="p">(</span>
+</span><span data-line="261">                <span class="sa">f</span><span class="s2">&quot;Unable to save checkpoint in existing file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> &quot;</span>
+</span><span data-line="262">                <span class="sa">f</span><span class="s2">&quot;(overwriting has not been allowed by the caller)&quot;</span>
+</span><span data-line="263">            <span class="p">)</span>
+</span><span data-line="264">        <span class="c1"># (Over)write the file</span>
+</span><span data-line="265">        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+</span><span data-line="266">        <span class="c1"># Enable chaining</span>
+</span><span data-line="267">        <span class="k">return</span> <span class="bp">self</span></div>
 </div>
 
-</span><span data-line="270">
-</span><span data-line="271">
-</span><span data-line="272"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="273"><span class="c1"># Dictionary that implements &quot;state_dict protocol&quot;</span>
-</span><span data-line="274">
-</span><span data-line="275">
+</span><span data-line="268">
+</span><span data-line="269">
+</span><span data-line="270"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="271"><span class="c1"># Dictionary that implements &quot;state_dict protocol&quot;</span>
+</span><span data-line="272">
+</span><span data-line="273">
 <div class="viewcode-block" id="Storage">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Storage">[docs]</a>
-</span><span data-line="276"><span class="k">class</span><span class="w"> </span><span class="nc">Storage</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-</span><span data-line="277"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="278"><span class="sd">  Plain dictionary that implements the ``state_dict`` protocol.</span>
-</span><span data-line="279">
-</span><span data-line="280"><span class="sd">  This allows arbitrary key/value data to be snapshotted and restored</span>
-</span><span data-line="281"><span class="sd">  alongside models and optimizers using :class:`Checkpoint`.</span>
-</span><span data-line="282"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="283">
+</span><span data-line="274"><span class="k">class</span><span class="w"> </span><span class="nc">Storage</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+</span><span data-line="275"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="276"><span class="sd">    Plain dictionary that implements the ``state_dict`` protocol.</span>
+</span><span data-line="277">
+</span><span data-line="278"><span class="sd">    This allows arbitrary key/value data to be snapshotted and restored</span>
+</span><span data-line="279"><span class="sd">    alongside models and optimizers using :class:`Checkpoint`.</span>
+</span><span data-line="280"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="281">
 <div class="viewcode-block" id="Storage.state_dict">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Storage.state_dict">[docs]</a>
-</span><span data-line="284">  <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="285"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="286"><span class="sd">    Return the dictionary itself as state.</span>
-</span><span data-line="287">
-</span><span data-line="288"><span class="sd">    Returns</span>
-</span><span data-line="289"><span class="sd">    -------</span>
-</span><span data-line="290"><span class="sd">    dict</span>
-</span><span data-line="291"><span class="sd">        Self.</span>
-</span><span data-line="292"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="293">    <span class="k">return</span> <span class="bp">self</span></div>
+</span><span data-line="282">    <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="283"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="284"><span class="sd">        Return the dictionary itself as state.</span>
+</span><span data-line="285">
+</span><span data-line="286"><span class="sd">        Returns</span>
+</span><span data-line="287"><span class="sd">        -------</span>
+</span><span data-line="288"><span class="sd">        dict</span>
+</span><span data-line="289"><span class="sd">            Self.</span>
+</span><span data-line="290"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="291">        <span class="k">return</span> <span class="bp">self</span></div>
 
-</span><span data-line="294">
+</span><span data-line="292">
 <div class="viewcode-block" id="Storage.load_state_dict">
 <a class="viewcode-back" href="../../experiments/classes/checkpoint.html#experiments.checkpoint.Storage.load_state_dict">[docs]</a>
-</span><span data-line="295">  <span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-</span><span data-line="296"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="297"><span class="sd">    Replace contents with the given state.</span>
-</span><span data-line="298">
-</span><span data-line="299"><span class="sd">    Parameters</span>
-</span><span data-line="300"><span class="sd">    ----------</span>
-</span><span data-line="301"><span class="sd">    state : dict</span>
-</span><span data-line="302"><span class="sd">        New dictionary contents.</span>
-</span><span data-line="303"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="304">    <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+</span><span data-line="293">    <span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+</span><span data-line="294"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="295"><span class="sd">        Replace contents with the given state.</span>
+</span><span data-line="296">
+</span><span data-line="297"><span class="sd">        Parameters</span>
+</span><span data-line="298"><span class="sd">        ----------</span>
+</span><span data-line="299"><span class="sd">        state : dict</span>
+</span><span data-line="300"><span class="sd">            New dictionary contents.</span>
+</span><span data-line="301"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="302">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 </div>
 
 </span></pre></div>

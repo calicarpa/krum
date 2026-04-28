@@ -108,6 +108,7 @@ data-aria-dark="Switch to auto color mode">
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#experiments.datasets.svm.phishing"><code class="docutils literal notranslate"><span class="pre">phishing()</span></code></a></li>
+<li><a class="reference internal" href="#adding-a-custom-dataset">Adding a custom dataset</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -167,6 +168,26 @@ data-aria-dark="Switch to auto color mode">
 <p class="admonition-title">See also</p>
 <p>For the dataset wrapper that loads these constructors, see <a class="reference internal" href="dataset.html"><span class="doc">Dataset</span></a>.</p>
 </div>
+<section id="adding-a-custom-dataset">
+<h2>Adding a custom dataset<a class="headerlink" href="#adding-a-custom-dataset" title="Link to this heading">¶</a></h2>
+<p>Custom datasets are discovered automatically from the <code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code>
+directory. To register a new dataset, create a Python file in that folder
+(e.g. <code class="docutils literal notranslate"><span class="pre">experiments/datasets/mydata.py</span></code>). The file name (without the
+<code class="docutils literal notranslate"><span class="pre">.py</span></code> extension) becomes the module prefix.</p>
+<p>The module must define <code class="docutils literal notranslate"><span class="pre">__all__</span></code> as a list of builder names. Every name
+listed there must refer to a callable that returns an infinite batch
+generator (or any object compatible with <code class="xref py py-class docutils literal notranslate"><span class="pre">experiments.Dataset</span></code>).
+The wrapper registers each builder under the compound name
+<code class="docutils literal notranslate"><span class="pre">&lt;file_name&gt;-&lt;builder_name&gt;</span></code>.</p>
+<p>For example, if you link an external repository under
+<code class="docutils literal notranslate"><span class="pre">submodules/mydata</span></code> and create <code class="docutils literal notranslate"><span class="pre">experiments/datasets/mydata.py</span></code> that
+exposes a callable <code class="docutils literal notranslate"><span class="pre">load</span></code>, the dataset can be used with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">Dataset</span><span class="p">(</span><span class="s2">&quot;mydata-load&quot;</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Because the loader only scans regular <code class="docutils literal notranslate"><span class="pre">.py</span></code> files, a symlink pointing to
+code inside <code class="docutils literal notranslate"><span class="pre">submodules/</span></code> works transparently.</p>
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">
