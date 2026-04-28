@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -69,11 +72,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/brute.html">Brute</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/identical.html">Identical</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/nan.html">NaN</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../experiments/index.html">Experiments</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/dataset.html">Dataset</a></li>
@@ -91,7 +90,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -152,94 +151,183 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="13"> <span class="c1"># Configuration wrapper.</span>
 </span><span data-line="14"><span class="c1">###</span>
 </span><span data-line="15">
-</span><span data-line="16"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Configuration&quot;</span><span class="p">]</span>
-</span><span data-line="17">
-</span><span data-line="18"><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
-</span><span data-line="19">
-</span><span data-line="20"><span class="kn">from</span><span class="w">   </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
-</span><span data-line="21"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span data-line="22">
-</span><span data-line="23"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="24"><span class="c1"># Trivial tensor configuration holder (dtype, device, ...) class</span>
-</span><span data-line="25">
+</span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="17"><span class="sd">Experiment components for model training, dataset loading, and evaluation.</span>
+</span><span data-line="18">
+</span><span data-line="19"><span class="sd">This module groups the building blocks of a Krum training loop:</span>
+</span><span data-line="20">
+</span><span data-line="21"><span class="sd">- :mod:`experiments.configuration` — device and dtype configuration.</span>
+</span><span data-line="22"><span class="sd">- :mod:`experiments.model` — model wrapper with parameter flattening.</span>
+</span><span data-line="23"><span class="sd">- :mod:`experiments.dataset` — dataset loading and infinite batch sampling.</span>
+</span><span data-line="24"><span class="sd">- :mod:`experiments.loss` — derivable loss composition.</span>
+</span><span data-line="25"><span class="sd">- :mod:`experiments.optimizer` — optimizer wrapper with LR control.</span>
+</span><span data-line="26"><span class="sd">- :mod:`experiments.checkpoint` — save and restore state dictionaries.</span>
+</span><span data-line="27">
+</span><span data-line="28"><span class="sd">Custom models and datasets can be added under ``experiments/models/`` and</span>
+</span><span data-line="29"><span class="sd">``experiments/datasets/``; they are discovered automatically at import time.</span>
+</span><span data-line="30">
+</span><span data-line="31"><span class="sd">Example</span>
+</span><span data-line="32"><span class="sd">-------</span>
+</span><span data-line="33">
+</span><span data-line="34"><span class="sd">.. code-block:: python</span>
+</span><span data-line="35">
+</span><span data-line="36"><span class="sd">    from experiments import (</span>
+</span><span data-line="37"><span class="sd">        Configuration, Model, Dataset,</span>
+</span><span data-line="38"><span class="sd">        Loss, Criterion, Optimizer,</span>
+</span><span data-line="39"><span class="sd">        make_datasets,</span>
+</span><span data-line="40"><span class="sd">    )</span>
+</span><span data-line="41">
+</span><span data-line="42"><span class="sd">    config = Configuration(device=&quot;cuda:0&quot;)</span>
+</span><span data-line="43"><span class="sd">    model = Model(&quot;resnet18&quot;, config, num_classes=10)</span>
+</span><span data-line="44"><span class="sd">    trainset, testset = make_datasets(&quot;cifar10&quot;, train_batch=128)</span>
+</span><span data-line="45"><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="46">
+</span><span data-line="47"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Configuration&quot;</span><span class="p">]</span>
+</span><span data-line="48">
+</span><span data-line="49"><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
+</span><span data-line="50">
+</span><span data-line="51"><span class="kn">from</span><span class="w">   </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+</span><span data-line="52"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="53">
+</span><span data-line="54"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="55"><span class="c1"># Trivial tensor configuration holder (dtype, device, ...) class</span>
+</span><span data-line="56">
 <div class="viewcode-block" id="Configuration">
 <a class="viewcode-back" href="../../experiments/classes/configuration.html#experiments.configuration.Configuration">[docs]</a>
-</span><span data-line="26"><span class="k">class</span><span class="w"> </span><span class="nc">Configuration</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
-</span><span data-line="27"><span class="w">  </span><span class="sd">&quot;&quot;&quot; Immutable tensor configuration holder class.</span>
-</span><span data-line="28"><span class="sd">  &quot;&quot;&quot;</span>
-</span><span data-line="29">
-</span><span data-line="30">  <span class="c1"># Default selected device (GPU if available, else CPU)</span>
-</span><span data-line="31">  <span class="n">default_device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
-</span><span data-line="32">
-</span><span data-line="33">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noblock</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span data-line="34"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Immutable initialization constructor.</span>
-</span><span data-line="35"><span class="sd">    Args:</span>
-</span><span data-line="36"><span class="sd">      device  Device (either instance, formatted name or None) to use</span>
-</span><span data-line="37"><span class="sd">      dtype   Datatype to use, None for PyTorch default</span>
-</span><span data-line="38"><span class="sd">      noblock To try and avoid using blocking memory transfer operations from the host</span>
-</span><span data-line="39"><span class="sd">      relink  Relink instead of copying by default in some assignment operations</span>
-</span><span data-line="40"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="41">    <span class="c1"># Convert formatted device name to device instance</span>
-</span><span data-line="42">    <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="43">      <span class="c1"># Use default device</span>
-</span><span data-line="44">      <span class="n">device</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default_device</span>
-</span><span data-line="45">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="46">      <span class="c1"># Warn if CUDA is requested but not available</span>
-</span><span data-line="47">      <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="n">device</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span><span class="p">:</span>
-</span><span data-line="48">        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
-</span><span data-line="49">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;CUDA is unavailable on this node, falling back to CPU in the configuration&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;experiments&quot;</span><span class="p">)</span>
-</span><span data-line="50">      <span class="c1"># Convert</span>
-</span><span data-line="51">      <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-</span><span data-line="52">    <span class="c1"># Resolve the current default dtype if unspecified</span>
-</span><span data-line="53">    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="54">      <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">get_default_dtype</span><span class="p">()</span>
-</span><span data-line="55">    <span class="c1"># Finalization</span>
-</span><span data-line="56">    <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="57">      <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
-</span><span data-line="58">      <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="n">dtype</span><span class="p">,</span>
-</span><span data-line="59">      <span class="s2">&quot;non_blocking&quot;</span><span class="p">:</span> <span class="n">noblock</span> <span class="p">}</span>
-</span><span data-line="60">    <span class="bp">self</span><span class="o">.</span><span class="n">relink</span> <span class="o">=</span> <span class="n">relink</span>
-</span><span data-line="61">
-</span><span data-line="62">  <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="63"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Return the number of contained configuration entries.</span>
-</span><span data-line="64"><span class="sd">    Returns:</span>
-</span><span data-line="65"><span class="sd">      Number of configuration entries</span>
-</span><span data-line="66"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="67">    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">)</span>
-</span><span data-line="68">
-</span><span data-line="69">  <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-</span><span data-line="70"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Get a configuration value from its name.</span>
-</span><span data-line="71"><span class="sd">    Args:</span>
-</span><span data-line="72"><span class="sd">      name Configuration name</span>
-</span><span data-line="73"><span class="sd">    Returns:</span>
-</span><span data-line="74"><span class="sd">      Associated configuration value</span>
-</span><span data-line="75"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="76">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+</span><span data-line="57"><span class="k">class</span><span class="w"> </span><span class="nc">Configuration</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
+</span><span data-line="58"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="59"><span class="sd">  Immutable tensor configuration holder.</span>
+</span><span data-line="60">
+</span><span data-line="61"><span class="sd">  This class bundles ``device``, ``dtype``, and memory-transfer options</span>
+</span><span data-line="62"><span class="sd">  into a single immutable mapping. It is used throughout ``experiments``</span>
+</span><span data-line="63"><span class="sd">  to ensure every created or moved tensor uses the same configuration.</span>
+</span><span data-line="64">
+</span><span data-line="65"><span class="sd">  Parameters</span>
+</span><span data-line="66"><span class="sd">  ----------</span>
+</span><span data-line="67"><span class="sd">  device : str, torch.device, or None, optional</span>
+</span><span data-line="68"><span class="sd">      Target device. ``None`` defaults to ``&quot;cuda&quot;`` when available,</span>
+</span><span data-line="69"><span class="sd">      otherwise ``&quot;cpu&quot;``. Strings such as ``&quot;cuda:0&quot;`` are resolved</span>
+</span><span data-line="70"><span class="sd">      automatically.</span>
+</span><span data-line="71"><span class="sd">  dtype : torch.dtype or None, optional</span>
+</span><span data-line="72"><span class="sd">      Tensor datatype. ``None`` uses PyTorch&#39;s current default dtype.</span>
+</span><span data-line="73"><span class="sd">  noblock : bool, optional</span>
+</span><span data-line="74"><span class="sd">      Whether to use non-blocking host-to-device transfers.</span>
+</span><span data-line="75"><span class="sd">  relink : bool, optional</span>
+</span><span data-line="76"><span class="sd">      Whether to relink instead of copying during parameter assignments.</span>
 </span><span data-line="77">
-</span><span data-line="78">  <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="79"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Build an iterator over all the configuration entries.</span>
-</span><span data-line="80"><span class="sd">    Return:</span>
-</span><span data-line="81"><span class="sd">      Built iterator</span>
-</span><span data-line="82"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="83">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
-</span><span data-line="84">
-</span><span data-line="85">  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="86"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the &quot;informal&quot;, nicely printable string representation of this configuration.</span>
-</span><span data-line="87"><span class="sd">    Returns:</span>
-</span><span data-line="88"><span class="sd">      Nicely printable string</span>
-</span><span data-line="89"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="90">    <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span data-line="91">    <span class="n">temp</span><span class="p">[</span><span class="s2">&quot;relink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relink</span>
-</span><span data-line="92">    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+</span><span data-line="78"><span class="sd">  Example</span>
+</span><span data-line="79"><span class="sd">  -------</span>
+</span><span data-line="80">
+</span><span data-line="81"><span class="sd">  &gt;&gt;&gt; from experiments import Configuration</span>
+</span><span data-line="82"><span class="sd">  &gt;&gt;&gt; config = Configuration(device=&quot;cpu&quot;, dtype=torch.float32)</span>
+</span><span data-line="83"><span class="sd">  &gt;&gt;&gt; config[&quot;device&quot;]</span>
+</span><span data-line="84"><span class="sd">  device(type=&#39;cpu&#39;)</span>
+</span><span data-line="85"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="86">
+</span><span data-line="87">  <span class="c1"># Default selected device (GPU if available, else CPU)</span>
+</span><span data-line="88">  <span class="n">default_device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+</span><span data-line="89">
+</span><span data-line="90">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noblock</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">relink</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span data-line="91"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="92"><span class="sd">    Initialize the configuration.</span>
 </span><span data-line="93">
-</span><span data-line="94">  <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="95"><span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the &quot;official&quot;, Python-code string representation of this configuration.</span>
-</span><span data-line="96"><span class="sd">    Returns:</span>
-</span><span data-line="97"><span class="sd">      Python-code string evaluating (under conditions) to this configuration</span>
-</span><span data-line="98"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="99">    <span class="n">display</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">:</span> <span class="s2">&quot;noblock&quot;</span><span class="p">}</span>
-</span><span data-line="100">    <span class="n">argrepr</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">val</span><span class="si">!r}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-</span><span data-line="101">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Configuration(</span><span class="si">{</span><span class="n">argrepr</span><span class="si">}</span><span class="s2">, relink=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relink</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</span><span data-line="94"><span class="sd">    Parameters</span>
+</span><span data-line="95"><span class="sd">    ----------</span>
+</span><span data-line="96"><span class="sd">    device : str, torch.device, or None, optional</span>
+</span><span data-line="97"><span class="sd">        Target device. ``None`` selects the default device.</span>
+</span><span data-line="98"><span class="sd">    dtype : torch.dtype or None, optional</span>
+</span><span data-line="99"><span class="sd">        Tensor datatype.</span>
+</span><span data-line="100"><span class="sd">    noblock : bool, optional</span>
+</span><span data-line="101"><span class="sd">        Use non-blocking transfers.</span>
+</span><span data-line="102"><span class="sd">    relink : bool, optional</span>
+</span><span data-line="103"><span class="sd">        Relink instead of copy in assignments.</span>
+</span><span data-line="104"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="105">    <span class="c1"># Convert formatted device name to device instance</span>
+</span><span data-line="106">    <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="107">      <span class="c1"># Use default device</span>
+</span><span data-line="108">      <span class="n">device</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default_device</span>
+</span><span data-line="109">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="110">      <span class="c1"># Warn if CUDA is requested but not available</span>
+</span><span data-line="111">      <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="n">device</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span><span class="p">:</span>
+</span><span data-line="112">        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+</span><span data-line="113">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;CUDA is unavailable on this node, falling back to CPU in the configuration&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;experiments&quot;</span><span class="p">)</span>
+</span><span data-line="114">      <span class="c1"># Convert</span>
+</span><span data-line="115">      <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</span><span data-line="116">    <span class="c1"># Resolve the current default dtype if unspecified</span>
+</span><span data-line="117">    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="118">      <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">get_default_dtype</span><span class="p">()</span>
+</span><span data-line="119">    <span class="c1"># Finalization</span>
+</span><span data-line="120">    <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="121">      <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
+</span><span data-line="122">      <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="n">dtype</span><span class="p">,</span>
+</span><span data-line="123">      <span class="s2">&quot;non_blocking&quot;</span><span class="p">:</span> <span class="n">noblock</span> <span class="p">}</span>
+</span><span data-line="124">    <span class="bp">self</span><span class="o">.</span><span class="n">relink</span> <span class="o">=</span> <span class="n">relink</span>
+</span><span data-line="125">
+</span><span data-line="126">  <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="127"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="128"><span class="sd">    Return the number of configuration entries.</span>
+</span><span data-line="129">
+</span><span data-line="130"><span class="sd">    Returns</span>
+</span><span data-line="131"><span class="sd">    -------</span>
+</span><span data-line="132"><span class="sd">    int</span>
+</span><span data-line="133"><span class="sd">        Number of entries in the configuration mapping.</span>
+</span><span data-line="134"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="135">    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">)</span>
+</span><span data-line="136">
+</span><span data-line="137">  <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+</span><span data-line="138"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="139"><span class="sd">    Get a configuration value by name.</span>
+</span><span data-line="140">
+</span><span data-line="141"><span class="sd">    Parameters</span>
+</span><span data-line="142"><span class="sd">    ----------</span>
+</span><span data-line="143"><span class="sd">    name : str</span>
+</span><span data-line="144"><span class="sd">        Configuration key (e.g. ``&quot;device&quot;``, ``&quot;dtype&quot;``).</span>
+</span><span data-line="145">
+</span><span data-line="146"><span class="sd">    Returns</span>
+</span><span data-line="147"><span class="sd">    -------</span>
+</span><span data-line="148"><span class="sd">    object</span>
+</span><span data-line="149"><span class="sd">        Associated configuration value.</span>
+</span><span data-line="150"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="151">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+</span><span data-line="152">
+</span><span data-line="153">  <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="154"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="155"><span class="sd">    Iterate over all configuration keys.</span>
+</span><span data-line="156">
+</span><span data-line="157"><span class="sd">    Returns</span>
+</span><span data-line="158"><span class="sd">    -------</span>
+</span><span data-line="159"><span class="sd">    iterator</span>
+</span><span data-line="160"><span class="sd">        Iterator over configuration entry names.</span>
+</span><span data-line="161"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="162">    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+</span><span data-line="163">
+</span><span data-line="164">  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="165"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="166"><span class="sd">    Return a nicely printable representation.</span>
+</span><span data-line="167">
+</span><span data-line="168"><span class="sd">    Returns</span>
+</span><span data-line="169"><span class="sd">    -------</span>
+</span><span data-line="170"><span class="sd">    str</span>
+</span><span data-line="171"><span class="sd">        Human-readable configuration summary.</span>
+</span><span data-line="172"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="173">    <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span data-line="174">    <span class="n">temp</span><span class="p">[</span><span class="s2">&quot;relink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relink</span>
+</span><span data-line="175">    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+</span><span data-line="176">
+</span><span data-line="177">  <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="178"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="179"><span class="sd">    Return an evaluable string representation.</span>
+</span><span data-line="180">
+</span><span data-line="181"><span class="sd">    Returns</span>
+</span><span data-line="182"><span class="sd">    -------</span>
+</span><span data-line="183"><span class="sd">    str</span>
+</span><span data-line="184"><span class="sd">        Python-code string that evaluates to this configuration.</span>
+</span><span data-line="185"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="186">    <span class="n">display</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">:</span> <span class="s2">&quot;noblock&quot;</span><span class="p">}</span>
+</span><span data-line="187">    <span class="n">argrepr</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+</span><span data-line="188">        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">val</span><span class="si">!r}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span data-line="189">    <span class="p">)</span>
+</span><span data-line="190">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Configuration(</span><span class="si">{</span><span class="n">argrepr</span><span class="si">}</span><span class="s2">, relink=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relink</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -264,7 +352,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

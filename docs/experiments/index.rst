@@ -79,10 +79,10 @@ Quick Start
 
 .. seealso::
 
-   For robust gradient aggregation, see :doc:`aggregators/index`.
+   For robust gradient aggregation, see :doc:`../aggregators/index`.
    For Byzantine attacks that generate malicious gradients, see
-   :doc:`attacks/index`.
-   For utility functions (logging, parsing, timing), see :doc:`tools/index`.
+   :doc:`../attacks/index`.
+   For utility functions (logging, parsing, timing), see :doc:`../tools/index`.
 
 Core Modules
 ------------
@@ -115,3 +115,4 @@ API Reference
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:

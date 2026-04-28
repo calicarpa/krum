@@ -66,8 +66,8 @@ All aggregators can be called with the same keyword-only interface:
 .. seealso::
 
    To see how aggregators fit into a full training loop, see the
-   :doc:`experiments/index` quick start.
-   For Byzantine attacks that test aggregation rules, see :doc:`attacks/index`.
+   :doc:`../experiments/index` quick start.
+   For Byzantine attacks that test aggregation rules, see :doc:`../attacks/index`.
 
 Available Aggregators
 ---------------------
@@ -89,3 +89,4 @@ API Reference
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:

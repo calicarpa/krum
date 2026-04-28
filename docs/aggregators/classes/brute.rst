@@ -15,4 +15,6 @@ API Reference
 -------------
 
 .. autofunction:: aggregators.brute.upper_bound
+   :no-index:
 .. autofunction:: aggregators.brute.influence
+   :no-index:

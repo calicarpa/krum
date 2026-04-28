@@ -221,7 +221,7 @@ qualified-name formatting.</p>
 <dd class="field-even"><p><strong>object</strong> – Instance of the registered class.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If <code class="docutils literal notranslate"><span class="pre">name</span></code> is not registered.</p>
+<dd class="field-odd"><p><strong>tools.UserException</strong> – If <code class="docutils literal notranslate"><span class="pre">name</span></code> is not registered.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -260,14 +260,14 @@ attribute on each bound instance, in order, and returns the list of results.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="tools.misc.TimedContext">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">TimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#TimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.TimedContext" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../index.html#tools.Context" title="tools.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></p>
 <p>Context manager that logs the elapsed runtime of a block.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="tools.misc.UnavailableException">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.misc.</span></span><span class="sig-name descname"><span class="pre">UnavailableException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/misc.html#UnavailableException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.misc.UnavailableException" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></p>
 <p>User-facing exception raised when a selected registry entry is missing.</p>
 </dd></dl>
 
@@ -468,7 +468,7 @@ corresponding key is not explicitly provided.</p></li>
 <dd class="field-even"><p><strong>dict[str, object]</strong> – Parsed key/value pairs with converted values.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../index.html#tools.UserException" title="tools.UserException"><strong>tools.UserException</strong></a> – If an entry is malformed, a key is provided more than once, or
+<dd class="field-odd"><p><strong>tools.UserException</strong> – If an entry is malformed, a key is provided more than once, or
     conversion to a default value’s type fails.</p>
 </dd>
 </dl>

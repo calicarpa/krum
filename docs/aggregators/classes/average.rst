@@ -15,3 +15,4 @@ API Reference
 -------------
 
 .. autofunction:: aggregators.average.influence
+   :no-index:

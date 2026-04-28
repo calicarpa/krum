@@ -111,7 +111,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li><a class="reference internal" href="#core-modules">Core Modules</a></li>
 <li><a class="reference internal" href="#custom-models-datasets">Custom Models &amp; Datasets</a></li>
-<li><a class="reference internal" href="#module-experiments">API Reference</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -235,10 +235,10 @@ configuration.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>For robust gradient aggregation, see <span class="xref std std-doc">aggregators/index</span>.
+<p>For robust gradient aggregation, see <a class="reference internal" href="../aggregators/index.html"><span class="doc">Aggregators</span></a>.
 For Byzantine attacks that generate malicious gradients, see
-<span class="xref std std-doc">attacks/index</span>.
-For utility functions (logging, parsing, timing), see <span class="xref std std-doc">tools/index</span>.</p>
+<a class="reference internal" href="../attacks/index.html"><span class="doc">Attacks</span></a>.
+For utility functions (logging, parsing, timing), see <a class="reference internal" href="../tools/index.html"><span class="doc">Tools</span></a>.</p>
 </div>
 </section>
 <section id="core-modules">
@@ -265,17 +265,17 @@ For utility functions (logging, parsing, timing), see <span class="xref std std-
 </ul>
 </div>
 </section>
-<section id="module-experiments">
-<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-experiments" title="Link to this heading">¶</a></h2>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
 <p>Experiment components for model training, dataset loading, and evaluation.</p>
 <p>This module groups the building blocks of a Krum training loop:</p>
 <ul class="simple">
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.configuration</span></code> — device and dtype configuration.</p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.model</span></code> — model wrapper with parameter flattening.</p></li>
+<li><p><a class="reference internal" href="classes/configuration.html#module-experiments.configuration" title="experiments.configuration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.configuration</span></code></a> — device and dtype configuration.</p></li>
+<li><p><a class="reference internal" href="classes/model.html#module-experiments.model" title="experiments.model"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.model</span></code></a> — model wrapper with parameter flattening.</p></li>
 <li><p><a class="reference internal" href="classes/dataset.html#module-experiments.dataset" title="experiments.dataset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.dataset</span></code></a> — dataset loading and infinite batch sampling.</p></li>
 <li><p><a class="reference internal" href="classes/loss.html#module-experiments.loss" title="experiments.loss"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.loss</span></code></a> — derivable loss composition.</p></li>
 <li><p><a class="reference internal" href="classes/optimizer.html#module-experiments.optimizer" title="experiments.optimizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.optimizer</span></code></a> — optimizer wrapper with LR control.</p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.checkpoint</span></code> — save and restore state dictionaries.</p></li>
+<li><p><a class="reference internal" href="classes/checkpoint.html#module-experiments.checkpoint" title="experiments.checkpoint"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.checkpoint</span></code></a> — save and restore state dictionaries.</p></li>
 </ul>
 <p>Custom models and datasets can be added under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code> and
 <code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code>; they are discovered automatically at import time.</p>

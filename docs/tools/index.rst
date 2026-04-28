@@ -52,9 +52,9 @@ Quick Start
 .. seealso::
 
    For the training loop that uses these utilities, see
-   :doc:`experiments/index`.
+   :doc:`../experiments/index`.
    For aggregation rules that rely on ``tools.pairwise``, see
-   :doc:`aggregators/index`.
+   :doc:`../aggregators/index`.
 
 Available Tools
 ---------------
@@ -74,3 +74,4 @@ API Reference
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:

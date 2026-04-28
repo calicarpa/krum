@@ -71,10 +71,11 @@ All attacks can be called with the same keyword-only interface:
 
 .. seealso::
 
+   For a non-finite baseline attack, see :doc:`classes/nan`.
    For aggregation rules that defend against these attacks, see
-   :doc:`aggregators/index`.
+   :doc:`../aggregators/index`.
    For the training loop that wires attacks and aggregators together, see
-   :doc:`experiments/index`.
+   :doc:`../experiments/index`.
 
 Available Attacks
 -----------------
@@ -93,3 +94,4 @@ API Reference
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:

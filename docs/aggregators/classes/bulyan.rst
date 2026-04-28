@@ -15,3 +15,4 @@ API Reference
 -------------
 
 .. autofunction:: aggregators.bulyan.upper_bound
+   :no-index:

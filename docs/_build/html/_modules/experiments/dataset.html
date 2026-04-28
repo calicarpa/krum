@@ -72,11 +72,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/brute.html">Brute</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/identical.html">Identical</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/nan.html">NaN</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../experiments/index.html">Experiments</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/dataset.html">Dataset</a></li>
@@ -166,16 +162,16 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="24"><span class="sd">-------</span>
 </span><span data-line="25">
 </span><span data-line="26"><span class="sd">&gt;&gt;&gt; from experiments import Dataset, make_datasets</span>
-</span><span data-line="27"><span class="sd">&gt;&gt;&gt; trainset, testset = make_datasets(&quot;cifar10&quot;, train_batch=128, test_batch=256)</span>
+</span><span data-line="27"><span class="sd">&gt;&gt;&gt; trainset, testset = make_datasets(&quot;cifar10&quot;, train_batch=128)</span>
 </span><span data-line="28"><span class="sd">&gt;&gt;&gt; inputs, targets = trainset.sample(config)</span>
 </span><span data-line="29"><span class="sd">&quot;&quot;&quot;</span>
 </span><span data-line="30">
 </span><span data-line="31"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="32">    <span class="s2">&quot;get_default_transform&quot;</span><span class="p">,</span>
-</span><span data-line="33">    <span class="s2">&quot;Dataset&quot;</span><span class="p">,</span>
-</span><span data-line="34">    <span class="s2">&quot;make_sampler&quot;</span><span class="p">,</span>
-</span><span data-line="35">    <span class="s2">&quot;make_datasets&quot;</span><span class="p">,</span>
-</span><span data-line="36">    <span class="s2">&quot;batch_dataset&quot;</span><span class="p">,</span>
+</span><span data-line="32">  <span class="s2">&quot;get_default_transform&quot;</span><span class="p">,</span>
+</span><span data-line="33">  <span class="s2">&quot;Dataset&quot;</span><span class="p">,</span>
+</span><span data-line="34">  <span class="s2">&quot;make_sampler&quot;</span><span class="p">,</span>
+</span><span data-line="35">  <span class="s2">&quot;make_datasets&quot;</span><span class="p">,</span>
+</span><span data-line="36">  <span class="s2">&quot;batch_dataset&quot;</span><span class="p">,</span>
 </span><span data-line="37"><span class="p">]</span>
 </span><span data-line="38">
 </span><span data-line="39"><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
@@ -191,53 +187,53 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="49"><span class="c1"># Default image transformations</span>
 </span><span data-line="50">
 </span><span data-line="51"><span class="n">transforms_horizontalflip</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="52">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span>
-</span><span data-line="53">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+</span><span data-line="52">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span>
+</span><span data-line="53">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
 </span><span data-line="54"><span class="p">]</span>
 </span><span data-line="55"><span class="n">transforms_mnist</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="56">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-</span><span data-line="57">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,)),</span>
+</span><span data-line="56">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+</span><span data-line="57">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,)),</span>
 </span><span data-line="58"><span class="p">]</span>
 </span><span data-line="59"><span class="n">transforms_cifar</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="60">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span>
-</span><span data-line="61">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-</span><span data-line="62">    <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4822</span><span class="p">,</span> <span class="mf">0.4465</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2023</span><span class="p">,</span> <span class="mf">0.1994</span><span class="p">,</span> <span class="mf">0.2010</span><span class="p">)),</span>
+</span><span data-line="60">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span>
+</span><span data-line="61">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+</span><span data-line="62">  <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4822</span><span class="p">,</span> <span class="mf">0.4465</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2023</span><span class="p">,</span> <span class="mf">0.1994</span><span class="p">,</span> <span class="mf">0.2010</span><span class="p">)),</span>
 </span><span data-line="63"><span class="p">]</span>
 </span><span data-line="64">
 </span><span data-line="65"><span class="c1"># Per-dataset image transformations</span>
 </span><span data-line="66"><span class="n">transforms</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="67">    <span class="s2">&quot;mnist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_mnist</span><span class="p">,</span> <span class="n">transforms_mnist</span><span class="p">),</span>
-</span><span data-line="68">    <span class="s2">&quot;fashionmnist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_horizontalflip</span><span class="p">,</span> <span class="n">transforms_horizontalflip</span><span class="p">),</span>
-</span><span data-line="69">    <span class="s2">&quot;cifar10&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_cifar</span><span class="p">,</span> <span class="n">transforms_cifar</span><span class="p">),</span>
-</span><span data-line="70">    <span class="s2">&quot;cifar100&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_cifar</span><span class="p">,</span> <span class="n">transforms_cifar</span><span class="p">),</span>
-</span><span data-line="71">    <span class="s2">&quot;imagenet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_horizontalflip</span><span class="p">,</span> <span class="n">transforms_horizontalflip</span><span class="p">),</span>
+</span><span data-line="67">  <span class="s2">&quot;mnist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_mnist</span><span class="p">,</span> <span class="n">transforms_mnist</span><span class="p">),</span>
+</span><span data-line="68">  <span class="s2">&quot;fashionmnist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_horizontalflip</span><span class="p">,</span> <span class="n">transforms_horizontalflip</span><span class="p">),</span>
+</span><span data-line="69">  <span class="s2">&quot;cifar10&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_cifar</span><span class="p">,</span> <span class="n">transforms_cifar</span><span class="p">),</span>
+</span><span data-line="70">  <span class="s2">&quot;cifar100&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_cifar</span><span class="p">,</span> <span class="n">transforms_cifar</span><span class="p">),</span>
+</span><span data-line="71">  <span class="s2">&quot;imagenet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">transforms_horizontalflip</span><span class="p">,</span> <span class="n">transforms_horizontalflip</span><span class="p">),</span>
 </span><span data-line="72"><span class="p">}</span>
 </span><span data-line="73">
 </span><span data-line="74">
 <div class="viewcode-block" id="get_default_transform">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.get_default_transform">[docs]</a>
 </span><span data-line="75"><span class="k">def</span><span class="w"> </span><span class="nf">get_default_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
-</span><span data-line="76"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="77"><span class="sd">    Return the default transform for a torchvision dataset.</span>
+</span><span data-line="76"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="77"><span class="sd">  Return the default transform for a torchvision dataset.</span>
 </span><span data-line="78">
-</span><span data-line="79"><span class="sd">    Parameters</span>
-</span><span data-line="80"><span class="sd">    ----------</span>
-</span><span data-line="81"><span class="sd">    dataset : str or None</span>
-</span><span data-line="82"><span class="sd">        Case-sensitive dataset name. ``None`` returns ``None``.</span>
-</span><span data-line="83"><span class="sd">    train : bool</span>
-</span><span data-line="84"><span class="sd">        Whether to return the training transform. Ignored when</span>
-</span><span data-line="85"><span class="sd">        ``dataset`` is ``None``.</span>
+</span><span data-line="79"><span class="sd">  Parameters</span>
+</span><span data-line="80"><span class="sd">  ----------</span>
+</span><span data-line="81"><span class="sd">  dataset : str or None</span>
+</span><span data-line="82"><span class="sd">      Case-sensitive dataset name. ``None`` returns ``None``.</span>
+</span><span data-line="83"><span class="sd">  train : bool</span>
+</span><span data-line="84"><span class="sd">      Whether to return the training transform. Ignored when</span>
+</span><span data-line="85"><span class="sd">      ``dataset`` is ``None``.</span>
 </span><span data-line="86">
-</span><span data-line="87"><span class="sd">    Returns</span>
-</span><span data-line="88"><span class="sd">    -------</span>
-</span><span data-line="89"><span class="sd">    torchvision.transforms.Compose or None</span>
-</span><span data-line="90"><span class="sd">        Composed transform, or ``None`` if the dataset is unknown.</span>
-</span><span data-line="91"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="92">    <span class="k">global</span> <span class="n">transforms</span>
-</span><span data-line="93">    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
-</span><span data-line="94">    <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="95">        <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="96">    <span class="k">return</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="mi">1</span><span class="p">])</span></div>
+</span><span data-line="87"><span class="sd">  Returns</span>
+</span><span data-line="88"><span class="sd">  -------</span>
+</span><span data-line="89"><span class="sd">  torchvision.transforms.Compose or None</span>
+</span><span data-line="90"><span class="sd">      Composed transform, or ``None`` if the dataset is unknown.</span>
+</span><span data-line="91"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="92">  <span class="k">global</span> <span class="n">transforms</span>
+</span><span data-line="93">  <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+</span><span data-line="94">  <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="95">    <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="96">  <span class="k">return</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="mi">1</span><span class="p">])</span></div>
 
 </span><span data-line="97">
 </span><span data-line="98">
@@ -248,487 +244,478 @@ data-aria-dark="Switch to auto color mode">
 <div class="viewcode-block" id="Dataset">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.Dataset">[docs]</a>
 </span><span data-line="103"><span class="k">class</span><span class="w"> </span><span class="nc">Dataset</span><span class="p">:</span>
-</span><span data-line="104"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="105"><span class="sd">    Unified dataset wrapper producing infinite batches.</span>
+</span><span data-line="104"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="105"><span class="sd">  Unified dataset wrapper producing infinite batches.</span>
 </span><span data-line="106">
-</span><span data-line="107"><span class="sd">    This class can wrap:</span>
+</span><span data-line="107"><span class="sd">  This class can wrap:</span>
 </span><span data-line="108">
-</span><span data-line="109"><span class="sd">    - A ``torchvision`` dataset loaded by name.</span>
-</span><span data-line="110"><span class="sd">    - A custom generator yielding batches forever.</span>
-</span><span data-line="111"><span class="sd">    - A single fixed batch repeated forever.</span>
+</span><span data-line="109"><span class="sd">  - A ``torchvision`` dataset loaded by name.</span>
+</span><span data-line="110"><span class="sd">  - A custom generator yielding batches forever.</span>
+</span><span data-line="111"><span class="sd">  - A single fixed batch repeated forever.</span>
 </span><span data-line="112">
-</span><span data-line="113"><span class="sd">    Parameters</span>
-</span><span data-line="114"><span class="sd">    ----------</span>
-</span><span data-line="115"><span class="sd">    data : str, generator, or object</span>
-</span><span data-line="116"><span class="sd">        Dataset name, infinite generator, or single batch.</span>
-</span><span data-line="117"><span class="sd">    name : str or None, optional</span>
-</span><span data-line="118"><span class="sd">        User-defined name for debugging.</span>
-</span><span data-line="119"><span class="sd">    root : str or pathlib.Path or None, optional</span>
-</span><span data-line="120"><span class="sd">        Cache root directory. ``None`` uses the default.</span>
-</span><span data-line="121"><span class="sd">    *args : object</span>
-</span><span data-line="122"><span class="sd">        Forwarded to the dataset constructor when ``data`` is a string.</span>
-</span><span data-line="123"><span class="sd">    **kwargs : object</span>
-</span><span data-line="124"><span class="sd">        Forwarded to the dataset constructor when ``data`` is a string.</span>
+</span><span data-line="113"><span class="sd">  Parameters</span>
+</span><span data-line="114"><span class="sd">  ----------</span>
+</span><span data-line="115"><span class="sd">  data : str, generator, or object</span>
+</span><span data-line="116"><span class="sd">      Dataset name, infinite generator, or single batch.</span>
+</span><span data-line="117"><span class="sd">  name : str or None, optional</span>
+</span><span data-line="118"><span class="sd">      User-defined name for debugging.</span>
+</span><span data-line="119"><span class="sd">  root : str or pathlib.Path or None, optional</span>
+</span><span data-line="120"><span class="sd">      Cache root directory. ``None`` uses the default.</span>
+</span><span data-line="121"><span class="sd">  *args : object</span>
+</span><span data-line="122"><span class="sd">      Forwarded to the dataset constructor when ``data`` is a string.</span>
+</span><span data-line="123"><span class="sd">  **kwargs : object</span>
+</span><span data-line="124"><span class="sd">      Forwarded to the dataset constructor when ``data`` is a string.</span>
 </span><span data-line="125">
-</span><span data-line="126"><span class="sd">    Raises</span>
-</span><span data-line="127"><span class="sd">    ------</span>
-</span><span data-line="128"><span class="sd">    tools.UnavailableException</span>
-</span><span data-line="129"><span class="sd">        If ``data`` is an unknown dataset name.</span>
-</span><span data-line="130"><span class="sd">    TypeError</span>
-</span><span data-line="131"><span class="sd">        If constructor arguments are invalid.</span>
-</span><span data-line="132"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="126"><span class="sd">  Raises</span>
+</span><span data-line="127"><span class="sd">  ------</span>
+</span><span data-line="128"><span class="sd">  tools.UnavailableException</span>
+</span><span data-line="129"><span class="sd">      If ``data`` is an unknown dataset name.</span>
+</span><span data-line="130"><span class="sd">  TypeError</span>
+</span><span data-line="131"><span class="sd">      If constructor arguments are invalid.</span>
+</span><span data-line="132"><span class="sd">  &quot;&quot;&quot;</span>
 </span><span data-line="133">
-</span><span data-line="134">    <span class="c1"># Default dataset root directory path</span>
-</span><span data-line="135">    <span class="n">__default_root</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="134">  <span class="c1"># Default dataset root directory path</span>
+</span><span data-line="135">  <span class="n">__default_root</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span data-line="136">
 <div class="viewcode-block" id="Dataset.get_default_root">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.Dataset.get_default_root">[docs]</a>
-</span><span data-line="137">    <span class="nd">@classmethod</span>
-</span><span data-line="138">    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span data-line="139"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="140"><span class="sd">        Lazily initialize and return the default dataset cache directory.</span>
+</span><span data-line="137">  <span class="nd">@classmethod</span>
+</span><span data-line="138">  <span class="k">def</span><span class="w"> </span><span class="nf">get_default_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span data-line="139"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="140"><span class="sd">    Lazily initialize and return the default dataset cache directory.</span>
 </span><span data-line="141">
-</span><span data-line="142"><span class="sd">        Returns</span>
-</span><span data-line="143"><span class="sd">        -------</span>
-</span><span data-line="144"><span class="sd">        pathlib.Path</span>
-</span><span data-line="145"><span class="sd">            Path to the dataset cache. Falls back to the system temp</span>
-</span><span data-line="146"><span class="sd">            directory if the default does not exist.</span>
-</span><span data-line="147"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="148">        <span class="c1"># Fast-path already loaded</span>
-</span><span data-line="149">        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="150">            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span>
-</span><span data-line="151">        <span class="c1"># Generate the default path</span>
-</span><span data-line="152">        <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;datasets&quot;</span> <span class="o">/</span> <span class="s2">&quot;cache&quot;</span>
-</span><span data-line="153">        <span class="c1"># Warn if the path does not exist and fallback to &#39;/tmp&#39;</span>
-</span><span data-line="154">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-</span><span data-line="155">            <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
-</span><span data-line="156">            <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="157">                <span class="sa">f</span><span class="s2">&quot;Default dataset root </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> does not exist, &quot;</span>
-</span><span data-line="158">                <span class="sa">f</span><span class="s2">&quot;falling back to local temporary directory </span><span class="si">{</span><span class="n">tmpdir</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span data-line="159">                <span class="n">context</span><span class="o">=</span><span class="s2">&quot;experiments&quot;</span><span class="p">,</span>
-</span><span data-line="160">            <span class="p">)</span>
-</span><span data-line="161">            <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
-</span><span data-line="162">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span></div>
+</span><span data-line="142"><span class="sd">    Returns</span>
+</span><span data-line="143"><span class="sd">    -------</span>
+</span><span data-line="144"><span class="sd">    pathlib.Path</span>
+</span><span data-line="145"><span class="sd">        Path to the dataset cache. Falls back to the system temp</span>
+</span><span data-line="146"><span class="sd">        directory if the default does not exist.</span>
+</span><span data-line="147"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="148">    <span class="c1"># Fast-path already loaded</span>
+</span><span data-line="149">    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="150">      <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span>
+</span><span data-line="151">    <span class="c1"># Generate the default path</span>
+</span><span data-line="152">    <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;datasets&quot;</span> <span class="o">/</span> <span class="s2">&quot;cache&quot;</span>
+</span><span data-line="153">    <span class="c1"># Warn if the path does not exist and fallback to &#39;/tmp&#39;</span>
+</span><span data-line="154">    <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span data-line="155">      <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
+</span><span data-line="156">      <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="157">        <span class="sa">f</span><span class="s2">&quot;Default dataset root </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> does not exist, &quot;</span>
+</span><span data-line="158">        <span class="sa">f</span><span class="s2">&quot;falling back to local temporary directory </span><span class="si">{</span><span class="n">tmpdir</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span data-line="159">        <span class="n">context</span><span class="o">=</span><span class="s2">&quot;experiments&quot;</span><span class="p">,</span>
+</span><span data-line="160">      <span class="p">)</span>
+</span><span data-line="161">      <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+</span><span data-line="162">    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__default_root</span></div>
 
 </span><span data-line="163">
-</span><span data-line="164">    <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;dataset class&#39; available in PyTorch</span>
-</span><span data-line="165">    <span class="n">__datasets</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="164">  <span class="c1"># Map &#39;lower-case names&#39; -&gt; &#39;dataset class&#39; available in PyTorch</span>
+</span><span data-line="165">  <span class="n">__datasets</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span data-line="166">
-</span><span data-line="167">    <span class="nd">@classmethod</span>
-</span><span data-line="168">    <span class="k">def</span><span class="w"> </span><span class="nf">_get_datasets</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span data-line="169"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="170"><span class="sd">        Lazily build the name-to-builder mapping for datasets.</span>
+</span><span data-line="167">  <span class="nd">@classmethod</span>
+</span><span data-line="168">  <span class="k">def</span><span class="w"> </span><span class="nf">_get_datasets</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span data-line="169"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="170"><span class="sd">    Lazily build the name-to-builder mapping for datasets.</span>
 </span><span data-line="171">
-</span><span data-line="172"><span class="sd">        This includes all ``torchvision.datasets`` plus custom datasets</span>
-</span><span data-line="173"><span class="sd">        discovered under ``experiments/datasets/``.</span>
+</span><span data-line="172"><span class="sd">    This includes all ``torchvision.datasets`` plus custom datasets</span>
+</span><span data-line="173"><span class="sd">    discovered under ``experiments/datasets/``.</span>
 </span><span data-line="174">
-</span><span data-line="175"><span class="sd">        Returns</span>
-</span><span data-line="176"><span class="sd">        -------</span>
-</span><span data-line="177"><span class="sd">        dict[str, callable]</span>
-</span><span data-line="178"><span class="sd">            Lower-case dataset names mapped to builder functions.</span>
-</span><span data-line="179"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="180">        <span class="k">global</span> <span class="n">transforms</span>
-</span><span data-line="181">        <span class="c1"># Fast-path already loaded</span>
-</span><span data-line="182">        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="183">            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span>
-</span><span data-line="184">        <span class="c1"># Initialize the dictionary</span>
-</span><span data-line="185">        <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span data-line="186">        <span class="c1"># Populate with TorchVision&#39;s datasets</span>
-</span><span data-line="187">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
-</span><span data-line="188">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
-</span><span data-line="189">                <span class="k">continue</span>
-</span><span data-line="190">            <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="191">            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
-</span><span data-line="192">
-</span><span data-line="193">                <span class="k">def</span><span class="w"> </span><span class="nf">make_builder</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-</span><span data-line="194">                    <span class="k">def</span><span class="w"> </span><span class="nf">builder</span><span class="p">(</span>
-</span><span data-line="195">                        <span class="n">root</span><span class="p">,</span>
-</span><span data-line="196">                        <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="197">                        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="198">                        <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span data-line="199">                        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
-</span><span data-line="200">                        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span data-line="201">                    <span class="p">):</span>
-</span><span data-line="202">                        <span class="n">data</span> <span class="o">=</span> <span class="n">constructor</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="203">                        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span>
-</span><span data-line="204">                        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">:</span>
-</span><span data-line="205">                            <span class="n">transforms</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
-</span><span data-line="206">                        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span data-line="207">                        <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
-</span><span data-line="208">                            <span class="n">data</span><span class="p">,</span>
-</span><span data-line="209">                            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-</span><span data-line="210">                            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
-</span><span data-line="211">                            <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
-</span><span data-line="212">                        <span class="p">)</span>
-</span><span data-line="213">                        <span class="k">return</span> <span class="n">make_sampler</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
-</span><span data-line="214">
-</span><span data-line="215">                    <span class="k">return</span> <span class="n">builder</span>
-</span><span data-line="216">
-</span><span data-line="217">                <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">make_builder</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="218">        <span class="c1"># Dynamically add custom datasets from subdirectory &#39;datasets/&#39;</span>
-</span><span data-line="219">        <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_datasets</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
-</span><span data-line="220">            <span class="k">nonlocal</span> <span class="bp">cls</span>
-</span><span data-line="221">            <span class="n">exports</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="222">            <span class="k">if</span> <span class="n">exports</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="223">                <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="224">                    <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not provide &#39;__all__&#39;; &quot;</span>
-</span><span data-line="225">                    <span class="sa">f</span><span class="s2">&quot;falling back to &#39;__dict__&#39; for name discovery&quot;</span>
-</span><span data-line="226">                <span class="p">)</span>
-</span><span data-line="227">                <span class="n">exports</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="228">                    <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span>
-</span><span data-line="229">                <span class="p">)</span>
-</span><span data-line="230">            <span class="n">exported</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="231">            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">exports</span><span class="p">:</span>
-</span><span data-line="232">                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="233">                    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="234">                        <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> exports non-string name &quot;</span>
-</span><span data-line="235">                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset</span><span class="si">!r}</span><span class="s2">; ignored&quot;</span>
-</span><span data-line="236">                    <span class="p">)</span>
-</span><span data-line="237">                    <span class="k">continue</span>
-</span><span data-line="238">                <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="239">                <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">constructor</span><span class="p">):</span>
-</span><span data-line="240">                    <span class="k">continue</span>
-</span><span data-line="241">                <span class="n">exported</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span data-line="242">                <span class="n">fullname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span data-line="243">                <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">:</span>
-</span><span data-line="244">                    <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="245">                        <span class="sa">f</span><span class="s2">&quot;Unable to make available dataset </span><span class="si">{</span><span class="n">dataset</span><span class="si">!r}</span><span class="s2"> from module &quot;</span>
-</span><span data-line="246">                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, as the name </span><span class="si">{</span><span class="n">fullname</span><span class="si">!r}</span><span class="s2"> already exists&quot;</span>
-</span><span data-line="247">                    <span class="p">)</span>
-</span><span data-line="248">                    <span class="k">continue</span>
-</span><span data-line="249">                <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">[</span><span class="n">fullname</span><span class="p">]</span> <span class="o">=</span> <span class="n">constructor</span>
-</span><span data-line="250">            <span class="k">if</span> <span class="ow">not</span> <span class="n">exported</span><span class="p">:</span>
-</span><span data-line="251">                <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span data-line="252">                    <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not export any valid &quot;</span>
-</span><span data-line="253">                    <span class="sa">f</span><span class="s2">&quot;constructor name through &#39;__all__&#39;&quot;</span>
-</span><span data-line="254">                <span class="p">)</span>
-</span><span data-line="255">
-</span><span data-line="256">        <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;datasets&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="257">            <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span>
-</span><span data-line="258">                <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;datasets&quot;</span><span class="p">,</span>
-</span><span data-line="259">                <span class="p">{</span><span class="s2">&quot;__package__&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.datasets&quot;</span><span class="p">},</span>
-</span><span data-line="260">                <span class="n">post</span><span class="o">=</span><span class="n">add_custom_datasets</span><span class="p">,</span>
-</span><span data-line="261">            <span class="p">)</span>
-</span><span data-line="262">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span>
+</span><span data-line="175"><span class="sd">    Returns</span>
+</span><span data-line="176"><span class="sd">    -------</span>
+</span><span data-line="177"><span class="sd">    dict[str, callable]</span>
+</span><span data-line="178"><span class="sd">        Lower-case dataset names mapped to builder functions.</span>
+</span><span data-line="179"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="180">    <span class="k">global</span> <span class="n">transforms</span>
+</span><span data-line="181">    <span class="c1"># Fast-path already loaded</span>
+</span><span data-line="182">    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="183">      <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span>
+</span><span data-line="184">    <span class="c1"># Initialize the dictionary</span>
+</span><span data-line="185">    <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span data-line="186">    <span class="c1"># Populate with TorchVision&#39;s datasets</span>
+</span><span data-line="187">    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
+</span><span data-line="188">      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+</span><span data-line="189">        <span class="k">continue</span>
+</span><span data-line="190">      <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="191">      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+</span><span data-line="192">        <span class="k">def</span><span class="w"> </span><span class="nf">make_builder</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+</span><span data-line="193">          <span class="k">def</span><span class="w"> </span><span class="nf">builder</span><span class="p">(</span>
+</span><span data-line="194">            <span class="n">root</span><span class="p">,</span>
+</span><span data-line="195">            <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="196">            <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="197">            <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span data-line="198">            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+</span><span data-line="199">            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span data-line="200">          <span class="p">):</span>
+</span><span data-line="201">            <span class="n">data</span> <span class="o">=</span> <span class="n">constructor</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="202">            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span>
+</span><span data-line="203">            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">:</span>
+</span><span data-line="204">              <span class="n">transforms</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+</span><span data-line="205">            <span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span data-line="206">            <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+</span><span data-line="207">              <span class="n">data</span><span class="p">,</span>
+</span><span data-line="208">              <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+</span><span data-line="209">              <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
+</span><span data-line="210">              <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+</span><span data-line="211">            <span class="p">)</span>
+</span><span data-line="212">            <span class="k">return</span> <span class="n">make_sampler</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
+</span><span data-line="213">          <span class="k">return</span> <span class="n">builder</span>
+</span><span data-line="214">        <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">make_builder</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="215">    <span class="c1"># Dynamically add custom datasets from subdirectory &#39;datasets/&#39;</span>
+</span><span data-line="216">    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_datasets</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+</span><span data-line="217">      <span class="k">nonlocal</span> <span class="bp">cls</span>
+</span><span data-line="218">      <span class="n">exports</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__all__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="219">      <span class="k">if</span> <span class="n">exports</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="220">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="221">          <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not provide &#39;__all__&#39;; &quot;</span>
+</span><span data-line="222">          <span class="sa">f</span><span class="s2">&quot;falling back to &#39;__dict__&#39; for name discovery&quot;</span>
+</span><span data-line="223">        <span class="p">)</span>
+</span><span data-line="224">        <span class="n">exports</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="225">          <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;_&quot;</span>
+</span><span data-line="226">        <span class="p">)</span>
+</span><span data-line="227">      <span class="n">exported</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="228">      <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">exports</span><span class="p">:</span>
+</span><span data-line="229">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="230">          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="231">            <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> exports non-string name &quot;</span>
+</span><span data-line="232">            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset</span><span class="si">!r}</span><span class="s2">; ignored&quot;</span>
+</span><span data-line="233">          <span class="p">)</span>
+</span><span data-line="234">          <span class="k">continue</span>
+</span><span data-line="235">        <span class="n">constructor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="236">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">constructor</span><span class="p">):</span>
+</span><span data-line="237">          <span class="k">continue</span>
+</span><span data-line="238">        <span class="n">exported</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span data-line="239">        <span class="n">fullname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span data-line="240">        <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">:</span>
+</span><span data-line="241">          <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="242">            <span class="sa">f</span><span class="s2">&quot;Unable to make available dataset </span><span class="si">{</span><span class="n">dataset</span><span class="si">!r}</span><span class="s2"> from module &quot;</span>
+</span><span data-line="243">            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, as the name </span><span class="si">{</span><span class="n">fullname</span><span class="si">!r}</span><span class="s2"> already exists&quot;</span>
+</span><span data-line="244">          <span class="p">)</span>
+</span><span data-line="245">          <span class="k">continue</span>
+</span><span data-line="246">        <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span><span class="p">[</span><span class="n">fullname</span><span class="p">]</span> <span class="o">=</span> <span class="n">constructor</span>
+</span><span data-line="247">      <span class="k">if</span> <span class="ow">not</span> <span class="n">exported</span><span class="p">:</span>
+</span><span data-line="248">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="249">          <span class="sa">f</span><span class="s2">&quot;Dataset module </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> does not export any valid &quot;</span>
+</span><span data-line="250">          <span class="sa">f</span><span class="s2">&quot;constructor name through &#39;__all__&#39;&quot;</span>
+</span><span data-line="251">        <span class="p">)</span>
+</span><span data-line="252">    <span class="k">with</span> <span class="n">tools</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="s2">&quot;datasets&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="253">      <span class="n">tools</span><span class="o">.</span><span class="n">import_directory</span><span class="p">(</span>
+</span><span data-line="254">        <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;datasets&quot;</span><span class="p">,</span>
+</span><span data-line="255">        <span class="p">{</span><span class="s2">&quot;__package__&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.datasets&quot;</span><span class="p">},</span>
+</span><span data-line="256">        <span class="n">post</span><span class="o">=</span><span class="n">add_custom_datasets</span><span class="p">,</span>
+</span><span data-line="257">      <span class="p">)</span>
+</span><span data-line="258">    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__datasets</span>
+</span><span data-line="259">
+</span><span data-line="260">  <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="261"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="262"><span class="sd">    Initialize the dataset wrapper.</span>
 </span><span data-line="263">
-</span><span data-line="264">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span data-line="265"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="266"><span class="sd">        Initialize the dataset wrapper.</span>
-</span><span data-line="267">
-</span><span data-line="268"><span class="sd">        Parameters</span>
-</span><span data-line="269"><span class="sd">        ----------</span>
-</span><span data-line="270"><span class="sd">        data : str, generator, or object</span>
-</span><span data-line="271"><span class="sd">            Dataset source.</span>
-</span><span data-line="272"><span class="sd">        name : str or None, optional</span>
-</span><span data-line="273"><span class="sd">            Debug name.</span>
-</span><span data-line="274"><span class="sd">        root : str or pathlib.Path or None, optional</span>
-</span><span data-line="275"><span class="sd">            Cache directory for named datasets.</span>
-</span><span data-line="276"><span class="sd">        *args : object</span>
-</span><span data-line="277"><span class="sd">            Forwarded to the dataset constructor.</span>
-</span><span data-line="278"><span class="sd">        **kwargs : object</span>
-</span><span data-line="279"><span class="sd">            Forwarded to the dataset constructor.</span>
-</span><span data-line="280"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="281">        <span class="c1"># Handle different dataset types</span>
-</span><span data-line="282">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="283">            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="284">                <span class="n">name</span> <span class="o">=</span> <span class="n">data</span>
-</span><span data-line="285">            <span class="n">datasets</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_datasets</span><span class="p">()</span>
-</span><span data-line="286">            <span class="n">build</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span data-line="287">            <span class="k">if</span> <span class="n">build</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="288">                <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span>
-</span><span data-line="289">                    <span class="n">datasets</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;dataset name&quot;</span>
-</span><span data-line="290">                <span class="p">)</span>
-</span><span data-line="291">            <span class="n">root</span> <span class="o">=</span> <span class="n">root</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_default_root</span><span class="p">()</span>
-</span><span data-line="292">            <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span data-line="293">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
-</span><span data-line="294">            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="295">                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&lt;generator&gt;&quot;</span>
-</span><span data-line="296">            <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">data</span>
-</span><span data-line="297">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="298">            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="299">                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&lt;single-batch&gt;&quot;</span>
-</span><span data-line="300">
-</span><span data-line="301">            <span class="k">def</span><span class="w"> </span><span class="nf">single_batch</span><span class="p">():</span>
-</span><span data-line="302">                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span data-line="303">                    <span class="k">yield</span> <span class="n">data</span>
-</span><span data-line="304">
-</span><span data-line="305">            <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">single_batch</span><span class="p">()</span>
-</span><span data-line="306">        <span class="c1"># Finalization</span>
-</span><span data-line="307">        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-</span><span data-line="308">
-</span><span data-line="309">    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="310"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="311"><span class="sd">        Return a printable representation.</span>
-</span><span data-line="312">
-</span><span data-line="313"><span class="sd">        Returns</span>
-</span><span data-line="314"><span class="sd">        -------</span>
-</span><span data-line="315"><span class="sd">        str</span>
-</span><span data-line="316"><span class="sd">            Human-readable dataset name.</span>
-</span><span data-line="317"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="318">        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;dataset </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span data-line="319">
+</span><span data-line="264"><span class="sd">    Parameters</span>
+</span><span data-line="265"><span class="sd">    ----------</span>
+</span><span data-line="266"><span class="sd">    data : str, generator, or object</span>
+</span><span data-line="267"><span class="sd">        Dataset source.</span>
+</span><span data-line="268"><span class="sd">    name : str or None, optional</span>
+</span><span data-line="269"><span class="sd">        Debug name.</span>
+</span><span data-line="270"><span class="sd">    root : str or pathlib.Path or None, optional</span>
+</span><span data-line="271"><span class="sd">        Cache directory for named datasets.</span>
+</span><span data-line="272"><span class="sd">    *args : object</span>
+</span><span data-line="273"><span class="sd">        Forwarded to the dataset constructor.</span>
+</span><span data-line="274"><span class="sd">    **kwargs : object</span>
+</span><span data-line="275"><span class="sd">        Forwarded to the dataset constructor.</span>
+</span><span data-line="276"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="277">    <span class="c1"># Handle different dataset types</span>
+</span><span data-line="278">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="279">      <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="280">        <span class="n">name</span> <span class="o">=</span> <span class="n">data</span>
+</span><span data-line="281">      <span class="n">datasets</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_get_datasets</span><span class="p">()</span>
+</span><span data-line="282">      <span class="n">build</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="283">      <span class="k">if</span> <span class="n">build</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="284">        <span class="k">raise</span> <span class="n">tools</span><span class="o">.</span><span class="n">UnavailableException</span><span class="p">(</span>
+</span><span data-line="285">          <span class="n">datasets</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;dataset name&quot;</span>
+</span><span data-line="286">        <span class="p">)</span>
+</span><span data-line="287">      <span class="n">root</span> <span class="o">=</span> <span class="n">root</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_default_root</span><span class="p">()</span>
+</span><span data-line="288">      <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="289">    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+</span><span data-line="290">      <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="291">        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&lt;generator&gt;&quot;</span>
+</span><span data-line="292">      <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">data</span>
+</span><span data-line="293">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="294">      <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="295">        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&lt;single-batch&gt;&quot;</span>
+</span><span data-line="296">      <span class="k">def</span><span class="w"> </span><span class="nf">single_batch</span><span class="p">():</span>
+</span><span data-line="297">        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span data-line="298">          <span class="k">yield</span> <span class="n">data</span>
+</span><span data-line="299">      <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="n">single_batch</span><span class="p">()</span>
+</span><span data-line="300">    <span class="c1"># Finalization</span>
+</span><span data-line="301">    <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span data-line="302">
+</span><span data-line="303">  <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="304"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="305"><span class="sd">    Return a printable representation.</span>
+</span><span data-line="306">
+</span><span data-line="307"><span class="sd">    Returns</span>
+</span><span data-line="308"><span class="sd">    -------</span>
+</span><span data-line="309"><span class="sd">    str</span>
+</span><span data-line="310"><span class="sd">        Human-readable dataset name.</span>
+</span><span data-line="311"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="312">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;dataset </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span data-line="313">
 <div class="viewcode-block" id="Dataset.sample">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.Dataset.sample">[docs]</a>
-</span><span data-line="320">    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="321"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="322"><span class="sd">        Sample the next batch.</span>
-</span><span data-line="323">
-</span><span data-line="324"><span class="sd">        Parameters</span>
-</span><span data-line="325"><span class="sd">        ----------</span>
-</span><span data-line="326"><span class="sd">        config : experiments.Configuration or None, optional</span>
-</span><span data-line="327"><span class="sd">            Target configuration for tensor placement.</span>
-</span><span data-line="328">
-</span><span data-line="329"><span class="sd">        Returns</span>
-</span><span data-line="330"><span class="sd">        -------</span>
-</span><span data-line="331"><span class="sd">        tuple</span>
-</span><span data-line="332"><span class="sd">            Next batch, optionally moved to the target device.</span>
-</span><span data-line="333"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="334">        <span class="n">tns</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter</span><span class="p">)</span>
-</span><span data-line="335">        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="336">            <span class="n">tns</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">tns</span><span class="p">)(</span>
-</span><span data-line="337">                <span class="n">tn</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
-</span><span data-line="338">                    <span class="n">device</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">],</span> <span class="n">non_blocking</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">]</span>
-</span><span data-line="339">                <span class="p">)</span>
-</span><span data-line="340">                <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">tns</span>
-</span><span data-line="341">            <span class="p">)</span>
-</span><span data-line="342">        <span class="k">return</span> <span class="n">tns</span></div>
+</span><span data-line="314">  <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="315"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="316"><span class="sd">    Sample the next batch.</span>
+</span><span data-line="317">
+</span><span data-line="318"><span class="sd">    Parameters</span>
+</span><span data-line="319"><span class="sd">    ----------</span>
+</span><span data-line="320"><span class="sd">    config : experiments.Configuration or None, optional</span>
+</span><span data-line="321"><span class="sd">        Target configuration for tensor placement.</span>
+</span><span data-line="322">
+</span><span data-line="323"><span class="sd">    Returns</span>
+</span><span data-line="324"><span class="sd">    -------</span>
+</span><span data-line="325"><span class="sd">    tuple</span>
+</span><span data-line="326"><span class="sd">        Next batch, optionally moved to the target device.</span>
+</span><span data-line="327"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="328">    <span class="n">tns</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter</span><span class="p">)</span>
+</span><span data-line="329">    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="330">      <span class="n">tns</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">tns</span><span class="p">)(</span>
+</span><span data-line="331">        <span class="n">tn</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+</span><span data-line="332">          <span class="n">device</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">],</span> <span class="n">non_blocking</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">]</span>
+</span><span data-line="333">        <span class="p">)</span>
+</span><span data-line="334">        <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">tns</span>
+</span><span data-line="335">      <span class="p">)</span>
+</span><span data-line="336">    <span class="k">return</span> <span class="n">tns</span></div>
 
-</span><span data-line="343">
+</span><span data-line="337">
 <div class="viewcode-block" id="Dataset.epoch">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.Dataset.epoch">[docs]</a>
-</span><span data-line="344">    <span class="k">def</span><span class="w"> </span><span class="nf">epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span data-line="345"><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="346"><span class="sd">        Return a finite epoch iterator.</span>
-</span><span data-line="347">
-</span><span data-line="348"><span class="sd">        .. note::</span>
-</span><span data-line="349">
-</span><span data-line="350"><span class="sd">           Only works for DataLoader-based datasets.</span>
-</span><span data-line="351">
-</span><span data-line="352"><span class="sd">        Parameters</span>
-</span><span data-line="353"><span class="sd">        ----------</span>
-</span><span data-line="354"><span class="sd">        config : experiments.Configuration or None, optional</span>
-</span><span data-line="355"><span class="sd">            Target configuration for tensor placement.</span>
-</span><span data-line="356">
-</span><span data-line="357"><span class="sd">        Returns</span>
-</span><span data-line="358"><span class="sd">        -------</span>
-</span><span data-line="359"><span class="sd">        generator</span>
-</span><span data-line="360"><span class="sd">            Finite iterator over one epoch.</span>
-</span><span data-line="361"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="362">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
-</span><span data-line="363">            <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span>
-</span><span data-line="364">        <span class="p">),</span> <span class="s2">&quot;Full epoch iteration only possible for PyTorch DataLoader-based datasets&quot;</span>
-</span><span data-line="365">        <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
-</span><span data-line="366">
-</span><span data-line="367">        <span class="k">def</span><span class="w"> </span><span class="nf">generator</span><span class="p">():</span>
-</span><span data-line="368">            <span class="k">nonlocal</span> <span class="n">epoch</span>
-</span><span data-line="369">            <span class="k">try</span><span class="p">:</span>
-</span><span data-line="370">                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span data-line="371">                    <span class="n">tns</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">epoch</span><span class="p">)</span>
-</span><span data-line="372">                    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="373">                        <span class="n">tns</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">tns</span><span class="p">)(</span>
-</span><span data-line="374">                            <span class="n">tn</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
-</span><span data-line="375">                                <span class="n">device</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">],</span>
-</span><span data-line="376">                                <span class="n">non_blocking</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">],</span>
-</span><span data-line="377">                            <span class="p">)</span>
-</span><span data-line="378">                            <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">tns</span>
-</span><span data-line="379">                        <span class="p">)</span>
-</span><span data-line="380">                    <span class="k">yield</span> <span class="n">tns</span>
-</span><span data-line="381">            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
-</span><span data-line="382">                <span class="k">return</span>
-</span><span data-line="383">
-</span><span data-line="384">        <span class="k">return</span> <span class="n">generator</span><span class="p">()</span></div>
+</span><span data-line="338">  <span class="k">def</span><span class="w"> </span><span class="nf">epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span data-line="339"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="340"><span class="sd">    Return a finite epoch iterator.</span>
+</span><span data-line="341">
+</span><span data-line="342"><span class="sd">    .. note::</span>
+</span><span data-line="343">
+</span><span data-line="344"><span class="sd">       Only works for DataLoader-based datasets.</span>
+</span><span data-line="345">
+</span><span data-line="346"><span class="sd">    Parameters</span>
+</span><span data-line="347"><span class="sd">    ----------</span>
+</span><span data-line="348"><span class="sd">    config : experiments.Configuration or None, optional</span>
+</span><span data-line="349"><span class="sd">        Target configuration for tensor placement.</span>
+</span><span data-line="350">
+</span><span data-line="351"><span class="sd">    Returns</span>
+</span><span data-line="352"><span class="sd">    -------</span>
+</span><span data-line="353"><span class="sd">    generator</span>
+</span><span data-line="354"><span class="sd">        Finite iterator over one epoch.</span>
+</span><span data-line="355"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="356">    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+</span><span data-line="357">      <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span>
+</span><span data-line="358">    <span class="p">),</span> <span class="s2">&quot;Full epoch iteration only possible for PyTorch DataLoader-based datasets&quot;</span>
+</span><span data-line="359">    <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+</span><span data-line="360">    <span class="k">def</span><span class="w"> </span><span class="nf">generator</span><span class="p">():</span>
+</span><span data-line="361">      <span class="k">nonlocal</span> <span class="n">epoch</span>
+</span><span data-line="362">      <span class="k">try</span><span class="p">:</span>
+</span><span data-line="363">        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span data-line="364">          <span class="n">tns</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">epoch</span><span class="p">)</span>
+</span><span data-line="365">          <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="366">            <span class="n">tns</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">tns</span><span class="p">)(</span>
+</span><span data-line="367">              <span class="n">tn</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+</span><span data-line="368">                <span class="n">device</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">],</span>
+</span><span data-line="369">                <span class="n">non_blocking</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;non_blocking&quot;</span><span class="p">],</span>
+</span><span data-line="370">              <span class="p">)</span>
+</span><span data-line="371">              <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">tns</span>
+</span><span data-line="372">            <span class="p">)</span>
+</span><span data-line="373">          <span class="k">yield</span> <span class="n">tns</span>
+</span><span data-line="374">      <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+</span><span data-line="375">        <span class="k">return</span>
+</span><span data-line="376">    <span class="k">return</span> <span class="n">generator</span><span class="p">()</span></div>
 </div>
 
-</span><span data-line="385">
-</span><span data-line="386">
-</span><span data-line="387"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="388"><span class="c1"># Dataset helpers</span>
-</span><span data-line="389">
-</span><span data-line="390">
+</span><span data-line="377">
+</span><span data-line="378">
+</span><span data-line="379"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="380"><span class="c1"># Dataset helpers</span>
+</span><span data-line="381">
+</span><span data-line="382">
 <div class="viewcode-block" id="make_sampler">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.make_sampler">[docs]</a>
-</span><span data-line="391"><span class="k">def</span><span class="w"> </span><span class="nf">make_sampler</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
-</span><span data-line="392"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="393"><span class="sd">    Create an infinite sampler from a DataLoader.</span>
-</span><span data-line="394">
-</span><span data-line="395"><span class="sd">    Parameters</span>
-</span><span data-line="396"><span class="sd">    ----------</span>
-</span><span data-line="397"><span class="sd">    loader : torch.utils.data.DataLoader</span>
-</span><span data-line="398"><span class="sd">        Finite data loader.</span>
-</span><span data-line="399">
-</span><span data-line="400"><span class="sd">    Yields</span>
-</span><span data-line="401"><span class="sd">    ------</span>
-</span><span data-line="402"><span class="sd">    tuple</span>
-</span><span data-line="403"><span class="sd">        Batches, transparently restarting the loader when exhausted.</span>
-</span><span data-line="404"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="405">    <span class="n">itr</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="406">    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span data-line="407">        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
-</span><span data-line="408">            <span class="k">if</span> <span class="n">itr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="409">                <span class="k">try</span><span class="p">:</span>
-</span><span data-line="410">                    <span class="k">yield</span> <span class="nb">next</span><span class="p">(</span><span class="n">itr</span><span class="p">)</span>
-</span><span data-line="411">                    <span class="k">break</span>
-</span><span data-line="412">                <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
-</span><span data-line="413">                    <span class="k">pass</span>
-</span><span data-line="414">            <span class="n">itr</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
-</span><span data-line="415">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="416">            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to sample a new batch from dataset&quot;</span><span class="p">)</span></div>
+</span><span data-line="383"><span class="k">def</span><span class="w"> </span><span class="nf">make_sampler</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
+</span><span data-line="384"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="385"><span class="sd">  Create an infinite sampler from a DataLoader.</span>
+</span><span data-line="386">
+</span><span data-line="387"><span class="sd">  Parameters</span>
+</span><span data-line="388"><span class="sd">  ----------</span>
+</span><span data-line="389"><span class="sd">  loader : torch.utils.data.DataLoader</span>
+</span><span data-line="390"><span class="sd">      Finite data loader.</span>
+</span><span data-line="391">
+</span><span data-line="392"><span class="sd">  Yields</span>
+</span><span data-line="393"><span class="sd">  ------</span>
+</span><span data-line="394"><span class="sd">  tuple</span>
+</span><span data-line="395"><span class="sd">      Batches, transparently restarting the loader when exhausted.</span>
+</span><span data-line="396"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="397">  <span class="n">itr</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="398">  <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span data-line="399">    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+</span><span data-line="400">      <span class="k">if</span> <span class="n">itr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="401">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="402">          <span class="k">yield</span> <span class="nb">next</span><span class="p">(</span><span class="n">itr</span><span class="p">)</span>
+</span><span data-line="403">          <span class="k">break</span>
+</span><span data-line="404">        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+</span><span data-line="405">          <span class="k">pass</span>
+</span><span data-line="406">      <span class="n">itr</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
+</span><span data-line="407">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="408">      <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to sample a new batch from dataset&quot;</span><span class="p">)</span></div>
 
-</span><span data-line="417">
-</span><span data-line="418">
+</span><span data-line="409">
+</span><span data-line="410">
 <div class="viewcode-block" id="make_datasets">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.make_datasets">[docs]</a>
-</span><span data-line="419"><span class="k">def</span><span class="w"> </span><span class="nf">make_datasets</span><span class="p">(</span>
-</span><span data-line="420">    <span class="n">dataset</span><span class="p">,</span>
-</span><span data-line="421">    <span class="n">train_batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="422">    <span class="n">test_batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="423">    <span class="n">train_transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="424">    <span class="n">test_transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span data-line="425">    <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span data-line="426">    <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
-</span><span data-line="427"><span class="p">):</span>
-</span><span data-line="428"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="429"><span class="sd">    Build training and testing dataset wrappers.</span>
-</span><span data-line="430">
-</span><span data-line="431"><span class="sd">    Parameters</span>
-</span><span data-line="432"><span class="sd">    ----------</span>
-</span><span data-line="433"><span class="sd">    dataset : str</span>
-</span><span data-line="434"><span class="sd">        Case-sensitive dataset name.</span>
-</span><span data-line="435"><span class="sd">    train_batch : int or None, optional</span>
-</span><span data-line="436"><span class="sd">        Training batch size. ``None`` or ``0`` for full-batch.</span>
-</span><span data-line="437"><span class="sd">    test_batch : int or None, optional</span>
-</span><span data-line="438"><span class="sd">        Testing batch size. ``None`` or ``0`` for full-batch.</span>
-</span><span data-line="439"><span class="sd">    train_transforms : callable or None, optional</span>
-</span><span data-line="440"><span class="sd">        Transform for the training set. ``None`` uses the default.</span>
-</span><span data-line="441"><span class="sd">    test_transforms : callable or None, optional</span>
-</span><span data-line="442"><span class="sd">        Transform for the testing set. ``None`` uses the default.</span>
-</span><span data-line="443"><span class="sd">    num_workers : int or tuple[int, int], optional</span>
-</span><span data-line="444"><span class="sd">        Number of workers for the training and testing loaders. An ``int``</span>
-</span><span data-line="445"><span class="sd">        applies to both; a tuple specifies ``(train_workers, test_workers)``.</span>
-</span><span data-line="446"><span class="sd">    **custom_args : object</span>
-</span><span data-line="447"><span class="sd">        Additional keyword arguments forwarded to the dataset constructor.</span>
-</span><span data-line="448">
-</span><span data-line="449"><span class="sd">    Returns</span>
-</span><span data-line="450"><span class="sd">    -------</span>
-</span><span data-line="451"><span class="sd">    tuple[Dataset, Dataset]</span>
-</span><span data-line="452"><span class="sd">        Training and testing dataset wrappers.</span>
-</span><span data-line="453"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="454">    <span class="n">train_transforms</span> <span class="o">=</span> <span class="n">train_transforms</span> <span class="ow">or</span> <span class="n">get_default_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span data-line="455">    <span class="n">test_transforms</span> <span class="o">=</span> <span class="n">test_transforms</span> <span class="ow">or</span> <span class="n">get_default_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-</span><span data-line="456">    <span class="n">num_workers_errmsg</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="457">        <span class="s2">&quot;Expected either a positive int or a tuple of 2 positive ints &quot;</span>
-</span><span data-line="458">        <span class="s2">&quot;for parameter &#39;num_workers&#39;&quot;</span>
-</span><span data-line="459">    <span class="p">)</span>
-</span><span data-line="460">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-</span><span data-line="461">        <span class="k">assert</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
-</span><span data-line="462">        <span class="n">train_workers</span> <span class="o">=</span> <span class="n">test_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-</span><span data-line="463">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="464">        <span class="k">assert</span> <span class="p">(</span>
-</span><span data-line="465">            <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_workers</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_workers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
-</span><span data-line="466">        <span class="p">),</span> <span class="n">num_workers_errmsg</span>
-</span><span data-line="467">        <span class="n">train_workers</span><span class="p">,</span> <span class="n">test_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-</span><span data-line="468">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">train_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">train_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
-</span><span data-line="469">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">test_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
-</span><span data-line="470">    <span class="n">trainset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
-</span><span data-line="471">        <span class="n">dataset</span><span class="p">,</span>
-</span><span data-line="472">        <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span data-line="473">        <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span data-line="474">        <span class="n">batch_size</span><span class="o">=</span><span class="n">train_batch</span><span class="p">,</span>
-</span><span data-line="475">        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span data-line="476">        <span class="n">num_workers</span><span class="o">=</span><span class="n">train_workers</span><span class="p">,</span>
-</span><span data-line="477">        <span class="n">transform</span><span class="o">=</span><span class="n">train_transforms</span><span class="p">,</span>
-</span><span data-line="478">        <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
-</span><span data-line="479">    <span class="p">)</span>
-</span><span data-line="480">    <span class="n">testset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
-</span><span data-line="481">        <span class="n">dataset</span><span class="p">,</span>
-</span><span data-line="482">        <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="483">        <span class="n">download</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="484">        <span class="n">batch_size</span><span class="o">=</span><span class="n">test_batch</span><span class="p">,</span>
-</span><span data-line="485">        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="486">        <span class="n">num_workers</span><span class="o">=</span><span class="n">test_workers</span><span class="p">,</span>
-</span><span data-line="487">        <span class="n">transform</span><span class="o">=</span><span class="n">test_transforms</span><span class="p">,</span>
-</span><span data-line="488">        <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
-</span><span data-line="489">    <span class="p">)</span>
-</span><span data-line="490">    <span class="k">return</span> <span class="n">trainset</span><span class="p">,</span> <span class="n">testset</span></div>
+</span><span data-line="411"><span class="k">def</span><span class="w"> </span><span class="nf">make_datasets</span><span class="p">(</span>
+</span><span data-line="412">  <span class="n">dataset</span><span class="p">,</span>
+</span><span data-line="413">  <span class="n">train_batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="414">  <span class="n">test_batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="415">  <span class="n">train_transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="416">  <span class="n">test_transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span data-line="417">  <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span data-line="418">  <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
+</span><span data-line="419"><span class="p">):</span>
+</span><span data-line="420"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="421"><span class="sd">  Build training and testing dataset wrappers.</span>
+</span><span data-line="422">
+</span><span data-line="423"><span class="sd">  Parameters</span>
+</span><span data-line="424"><span class="sd">  ----------</span>
+</span><span data-line="425"><span class="sd">  dataset : str</span>
+</span><span data-line="426"><span class="sd">      Case-sensitive dataset name.</span>
+</span><span data-line="427"><span class="sd">  train_batch : int or None, optional</span>
+</span><span data-line="428"><span class="sd">      Training batch size. ``None`` or ``0`` for full-batch.</span>
+</span><span data-line="429"><span class="sd">  test_batch : int or None, optional</span>
+</span><span data-line="430"><span class="sd">      Testing batch size. ``None`` or ``0`` for full-batch.</span>
+</span><span data-line="431"><span class="sd">  train_transforms : callable or None, optional</span>
+</span><span data-line="432"><span class="sd">      Transform for the training set. ``None`` uses the default.</span>
+</span><span data-line="433"><span class="sd">  test_transforms : callable or None, optional</span>
+</span><span data-line="434"><span class="sd">      Transform for the testing set. ``None`` uses the default.</span>
+</span><span data-line="435"><span class="sd">  num_workers : int or tuple[int, int], optional</span>
+</span><span data-line="436"><span class="sd">      Number of workers for the training and testing loaders. An ``int``</span>
+</span><span data-line="437"><span class="sd">      applies to both; a tuple specifies ``(train_workers, test_workers)``.</span>
+</span><span data-line="438"><span class="sd">  **custom_args : object</span>
+</span><span data-line="439"><span class="sd">      Additional keyword arguments forwarded to the dataset constructor.</span>
+</span><span data-line="440">
+</span><span data-line="441"><span class="sd">  Returns</span>
+</span><span data-line="442"><span class="sd">  -------</span>
+</span><span data-line="443"><span class="sd">  tuple[Dataset, Dataset]</span>
+</span><span data-line="444"><span class="sd">      Training and testing dataset wrappers.</span>
+</span><span data-line="445"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="446">  <span class="n">train_transforms</span> <span class="o">=</span> <span class="n">train_transforms</span> <span class="ow">or</span> <span class="n">get_default_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span data-line="447">  <span class="n">test_transforms</span> <span class="o">=</span> <span class="n">test_transforms</span> <span class="ow">or</span> <span class="n">get_default_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span data-line="448">  <span class="n">num_workers_errmsg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="449">    <span class="s2">&quot;Expected either a positive int or a tuple of 2 positive ints &quot;</span>
+</span><span data-line="450">    <span class="s2">&quot;for parameter &#39;num_workers&#39;&quot;</span>
+</span><span data-line="451">  <span class="p">)</span>
+</span><span data-line="452">  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+</span><span data-line="453">    <span class="k">assert</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
+</span><span data-line="454">    <span class="n">train_workers</span> <span class="o">=</span> <span class="n">test_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+</span><span data-line="455">  <span class="k">else</span><span class="p">:</span>
+</span><span data-line="456">    <span class="k">assert</span> <span class="p">(</span>
+</span><span data-line="457">      <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_workers</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_workers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+</span><span data-line="458">    <span class="p">),</span> <span class="n">num_workers_errmsg</span>
+</span><span data-line="459">    <span class="n">train_workers</span><span class="p">,</span> <span class="n">test_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+</span><span data-line="460">    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">train_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">train_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
+</span><span data-line="461">    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">test_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_workers_errmsg</span>
+</span><span data-line="462">  <span class="n">trainset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
+</span><span data-line="463">    <span class="n">dataset</span><span class="p">,</span>
+</span><span data-line="464">    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span data-line="465">    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span data-line="466">    <span class="n">batch_size</span><span class="o">=</span><span class="n">train_batch</span><span class="p">,</span>
+</span><span data-line="467">    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span data-line="468">    <span class="n">num_workers</span><span class="o">=</span><span class="n">train_workers</span><span class="p">,</span>
+</span><span data-line="469">    <span class="n">transform</span><span class="o">=</span><span class="n">train_transforms</span><span class="p">,</span>
+</span><span data-line="470">    <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
+</span><span data-line="471">  <span class="p">)</span>
+</span><span data-line="472">  <span class="n">testset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
+</span><span data-line="473">    <span class="n">dataset</span><span class="p">,</span>
+</span><span data-line="474">    <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="475">    <span class="n">download</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="476">    <span class="n">batch_size</span><span class="o">=</span><span class="n">test_batch</span><span class="p">,</span>
+</span><span data-line="477">    <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="478">    <span class="n">num_workers</span><span class="o">=</span><span class="n">test_workers</span><span class="p">,</span>
+</span><span data-line="479">    <span class="n">transform</span><span class="o">=</span><span class="n">test_transforms</span><span class="p">,</span>
+</span><span data-line="480">    <span class="o">**</span><span class="n">custom_args</span><span class="p">,</span>
+</span><span data-line="481">  <span class="p">)</span>
+</span><span data-line="482">  <span class="k">return</span> <span class="n">trainset</span><span class="p">,</span> <span class="n">testset</span></div>
 
-</span><span data-line="491">
-</span><span data-line="492">
+</span><span data-line="483">
+</span><span data-line="484">
 <div class="viewcode-block" id="batch_dataset">
 <a class="viewcode-back" href="../../experiments/classes/dataset.html#experiments.dataset.batch_dataset">[docs]</a>
-</span><span data-line="493"><span class="k">def</span><span class="w"> </span><span class="nf">batch_dataset</span><span class="p">(</span>
-</span><span data-line="494">    <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.75</span>
-</span><span data-line="495"><span class="p">):</span>
-</span><span data-line="496"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="497"><span class="sd">    Batch a raw tensor dataset into infinite sampler generators.</span>
-</span><span data-line="498">
-</span><span data-line="499"><span class="sd">    Parameters</span>
-</span><span data-line="500"><span class="sd">    ----------</span>
-</span><span data-line="501"><span class="sd">    inputs : torch.Tensor</span>
-</span><span data-line="502"><span class="sd">        Input data tensor.</span>
-</span><span data-line="503"><span class="sd">    labels : torch.Tensor</span>
-</span><span data-line="504"><span class="sd">        Label tensor with the same first-dimension size as ``inputs``.</span>
-</span><span data-line="505"><span class="sd">    train : bool, optional</span>
-</span><span data-line="506"><span class="sd">        Whether to build a training set (adds shuffling) or a test set.</span>
-</span><span data-line="507"><span class="sd">    batch_size : int or None, optional</span>
-</span><span data-line="508"><span class="sd">        Batch size. ``None`` or ``0`` uses the full split size.</span>
-</span><span data-line="509"><span class="sd">    split : float or int, optional</span>
-</span><span data-line="510"><span class="sd">        Fraction of samples for training when ``&lt; 1``, or absolute count</span>
-</span><span data-line="511"><span class="sd">        when ``&gt;= 1``.</span>
-</span><span data-line="512">
-</span><span data-line="513"><span class="sd">    Returns</span>
-</span><span data-line="514"><span class="sd">    -------</span>
-</span><span data-line="515"><span class="sd">    generator</span>
-</span><span data-line="516"><span class="sd">        Infinite sampler generator.</span>
-</span><span data-line="517"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="518">
-</span><span data-line="519">    <span class="k">def</span><span class="w"> </span><span class="nf">train_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
-</span><span data-line="520">        <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span data-line="521">        <span class="n">datalen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-</span><span data-line="522">        <span class="n">shuffle</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">datalen</span><span class="p">))</span>
-</span><span data-line="523">        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
-</span><span data-line="524">        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span data-line="525">            <span class="n">end</span> <span class="o">=</span> <span class="n">cursor</span> <span class="o">+</span> <span class="n">batch</span>
-</span><span data-line="526">            <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">datalen</span><span class="p">:</span>
-</span><span data-line="527">                <span class="n">select</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">[</span><span class="n">cursor</span><span class="p">:]</span>
-</span><span data-line="528">                <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
-</span><span data-line="529">                <span class="n">select</span> <span class="o">+=</span> <span class="n">shuffle</span><span class="p">[:</span> <span class="p">(</span><span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span><span class="p">)]</span>
-</span><span data-line="530">            <span class="k">else</span><span class="p">:</span>
-</span><span data-line="531">                <span class="n">select</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
-</span><span data-line="532">            <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">select</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">select</span><span class="p">]</span>
-</span><span data-line="533">            <span class="n">cursor</span> <span class="o">=</span> <span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span>
-</span><span data-line="534">
-</span><span data-line="535">    <span class="k">def</span><span class="w"> </span><span class="nf">test_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
-</span><span data-line="536">        <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span data-line="537">        <span class="n">datalen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-</span><span data-line="538">        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span data-line="539">            <span class="n">end</span> <span class="o">=</span> <span class="n">cursor</span> <span class="o">+</span> <span class="n">batch</span>
-</span><span data-line="540">            <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">datalen</span><span class="p">:</span>
-</span><span data-line="541">                <span class="n">select</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">datalen</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span>
-</span><span data-line="542">                    <span class="nb">range</span><span class="p">(</span><span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span><span class="p">)</span>
-</span><span data-line="543">                <span class="p">)</span>
-</span><span data-line="544">                <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">select</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">select</span><span class="p">]</span>
-</span><span data-line="545">            <span class="k">else</span><span class="p">:</span>
-</span><span data-line="546">                <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
-</span><span data-line="547">            <span class="n">cursor</span> <span class="o">=</span> <span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span>
-</span><span data-line="548">
-</span><span data-line="549">    <span class="n">dataset_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-</span><span data-line="550">    <span class="k">if</span> <span class="n">dataset_len</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dataset_len</span><span class="p">:</span>
-</span><span data-line="551">        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-</span><span data-line="552">            <span class="sa">f</span><span class="s2">&quot;Invalid or different input/output tensor lengths, got &quot;</span>
-</span><span data-line="553">            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> for inputs, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> for labels&quot;</span>
-</span><span data-line="554">        <span class="p">)</span>
-</span><span data-line="555">    <span class="n">split_pos</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-</span><span data-line="556">        <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">dataset_len</span> <span class="o">*</span> <span class="n">split</span><span class="p">))</span> <span class="k">if</span> <span class="n">split</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">split</span><span class="p">,</span>
-</span><span data-line="557">        <span class="n">dataset_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
-</span><span data-line="558">    <span class="p">)</span>
-</span><span data-line="559">    <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
-</span><span data-line="560">        <span class="n">train_len</span> <span class="o">=</span> <span class="n">split_pos</span>
-</span><span data-line="561">        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span> <span class="ow">or</span> <span class="n">train_len</span><span class="p">,</span> <span class="n">train_len</span><span class="p">)</span>
-</span><span data-line="562">        <span class="k">return</span> <span class="n">train_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">[:</span><span class="n">split_pos</span><span class="p">],</span> <span class="n">labels</span><span class="p">[:</span><span class="n">split_pos</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">)</span>
-</span><span data-line="563">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="564">        <span class="n">test_len</span> <span class="o">=</span> <span class="n">dataset_len</span> <span class="o">-</span> <span class="n">split_pos</span>
-</span><span data-line="565">        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span> <span class="ow">or</span> <span class="n">test_len</span><span class="p">,</span> <span class="n">test_len</span><span class="p">)</span>
-</span><span data-line="566">        <span class="k">return</span> <span class="n">test_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">split_pos</span><span class="p">:],</span> <span class="n">labels</span><span class="p">[</span><span class="n">split_pos</span><span class="p">:],</span> <span class="n">batch_size</span><span class="p">)</span></div>
+</span><span data-line="485"><span class="k">def</span><span class="w"> </span><span class="nf">batch_dataset</span><span class="p">(</span>
+</span><span data-line="486">  <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.75</span>
+</span><span data-line="487"><span class="p">):</span>
+</span><span data-line="488"><span class="w">  </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="489"><span class="sd">  Batch a raw tensor dataset into infinite sampler generators.</span>
+</span><span data-line="490">
+</span><span data-line="491"><span class="sd">  Parameters</span>
+</span><span data-line="492"><span class="sd">  ----------</span>
+</span><span data-line="493"><span class="sd">  inputs : torch.Tensor</span>
+</span><span data-line="494"><span class="sd">      Input data tensor.</span>
+</span><span data-line="495"><span class="sd">  labels : torch.Tensor</span>
+</span><span data-line="496"><span class="sd">      Label tensor with the same first-dimension size as ``inputs``.</span>
+</span><span data-line="497"><span class="sd">  train : bool, optional</span>
+</span><span data-line="498"><span class="sd">      Whether to build a training set (adds shuffling) or a test set.</span>
+</span><span data-line="499"><span class="sd">  batch_size : int or None, optional</span>
+</span><span data-line="500"><span class="sd">      Batch size. ``None`` or ``0`` uses the full split size.</span>
+</span><span data-line="501"><span class="sd">  split : float or int, optional</span>
+</span><span data-line="502"><span class="sd">      Fraction of samples for training when ``&lt; 1``, or absolute count</span>
+</span><span data-line="503"><span class="sd">      when ``&gt;= 1``.</span>
+</span><span data-line="504">
+</span><span data-line="505"><span class="sd">  Returns</span>
+</span><span data-line="506"><span class="sd">  -------</span>
+</span><span data-line="507"><span class="sd">  generator</span>
+</span><span data-line="508"><span class="sd">      Infinite sampler generator.</span>
+</span><span data-line="509"><span class="sd">  &quot;&quot;&quot;</span>
+</span><span data-line="510">  <span class="k">def</span><span class="w"> </span><span class="nf">train_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+</span><span data-line="511">    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="512">    <span class="n">datalen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+</span><span data-line="513">    <span class="n">shuffle</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">datalen</span><span class="p">))</span>
+</span><span data-line="514">    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
+</span><span data-line="515">    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span data-line="516">      <span class="n">end</span> <span class="o">=</span> <span class="n">cursor</span> <span class="o">+</span> <span class="n">batch</span>
+</span><span data-line="517">      <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">datalen</span><span class="p">:</span>
+</span><span data-line="518">        <span class="n">select</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">[</span><span class="n">cursor</span><span class="p">:]</span>
+</span><span data-line="519">        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
+</span><span data-line="520">        <span class="n">select</span> <span class="o">+=</span> <span class="n">shuffle</span><span class="p">[:</span> <span class="p">(</span><span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span><span class="p">)]</span>
+</span><span data-line="521">      <span class="k">else</span><span class="p">:</span>
+</span><span data-line="522">        <span class="n">select</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+</span><span data-line="523">      <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">select</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">select</span><span class="p">]</span>
+</span><span data-line="524">      <span class="n">cursor</span> <span class="o">=</span> <span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span>
+</span><span data-line="525">
+</span><span data-line="526">  <span class="k">def</span><span class="w"> </span><span class="nf">test_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+</span><span data-line="527">    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="528">    <span class="n">datalen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+</span><span data-line="529">    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span data-line="530">      <span class="n">end</span> <span class="o">=</span> <span class="n">cursor</span> <span class="o">+</span> <span class="n">batch</span>
+</span><span data-line="531">      <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">datalen</span><span class="p">:</span>
+</span><span data-line="532">        <span class="n">select</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">datalen</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span>
+</span><span data-line="533">          <span class="nb">range</span><span class="p">(</span><span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span><span class="p">)</span>
+</span><span data-line="534">        <span class="p">)</span>
+</span><span data-line="535">        <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">select</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">select</span><span class="p">]</span>
+</span><span data-line="536">      <span class="k">else</span><span class="p">:</span>
+</span><span data-line="537">        <span class="k">yield</span> <span class="n">inputs</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+</span><span data-line="538">      <span class="n">cursor</span> <span class="o">=</span> <span class="n">end</span> <span class="o">%</span> <span class="n">datalen</span>
+</span><span data-line="539">
+</span><span data-line="540">  <span class="n">dataset_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+</span><span data-line="541">  <span class="k">if</span> <span class="n">dataset_len</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dataset_len</span><span class="p">:</span>
+</span><span data-line="542">    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+</span><span data-line="543">      <span class="sa">f</span><span class="s2">&quot;Invalid or different input/output tensor lengths, got &quot;</span>
+</span><span data-line="544">      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> for inputs, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> for labels&quot;</span>
+</span><span data-line="545">    <span class="p">)</span>
+</span><span data-line="546">  <span class="n">split_pos</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+</span><span data-line="547">    <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">dataset_len</span> <span class="o">*</span> <span class="n">split</span><span class="p">))</span> <span class="k">if</span> <span class="n">split</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">split</span><span class="p">,</span>
+</span><span data-line="548">    <span class="n">dataset_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+</span><span data-line="549">  <span class="p">)</span>
+</span><span data-line="550">  <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+</span><span data-line="551">    <span class="n">train_len</span> <span class="o">=</span> <span class="n">split_pos</span>
+</span><span data-line="552">    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span> <span class="ow">or</span> <span class="n">train_len</span><span class="p">,</span> <span class="n">train_len</span><span class="p">)</span>
+</span><span data-line="553">    <span class="k">return</span> <span class="n">train_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">[:</span><span class="n">split_pos</span><span class="p">],</span> <span class="n">labels</span><span class="p">[:</span><span class="n">split_pos</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">)</span>
+</span><span data-line="554">  <span class="k">else</span><span class="p">:</span>
+</span><span data-line="555">    <span class="n">test_len</span> <span class="o">=</span> <span class="n">dataset_len</span> <span class="o">-</span> <span class="n">split_pos</span>
+</span><span data-line="556">    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span> <span class="ow">or</span> <span class="n">test_len</span><span class="p">,</span> <span class="n">test_len</span><span class="p">)</span>
+</span><span data-line="557">    <span class="k">return</span> <span class="n">test_gen</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">split_pos</span><span class="p">:],</span> <span class="n">labels</span><span class="p">[</span><span class="n">split_pos</span><span class="p">:],</span> <span class="n">batch_size</span><span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">

@@ -110,14 +110,8 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li><a class="reference internal" href="#available-attacks">Available Attacks</a></li>
-<li><a class="reference internal" href="#module-attacks">API Reference</a><ul>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
 <li><a class="reference internal" href="#contract">Contract</a></li>
-<li><a class="reference internal" href="#attacks.attack"><code class="docutils literal notranslate"><span class="pre">attack()</span></code></a></li>
-<li><a class="reference internal" href="#attacks.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
-<li><a class="reference internal" href="#attacks.empire"><code class="docutils literal notranslate"><span class="pre">empire()</span></code></a></li>
-<li><a class="reference internal" href="#attacks.little"><code class="docutils literal notranslate"><span class="pre">little()</span></code></a></li>
-<li><a class="reference internal" href="#attacks.nan"><code class="docutils literal notranslate"><span class="pre">nan()</span></code></a></li>
-<li><a class="reference internal" href="#attacks.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -233,10 +227,11 @@ keyword-only contract and includes parameter validation.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>For aggregation rules that defend against these attacks, see
-<span class="xref std std-doc">aggregators/index</span>.
+<p>For a non-finite baseline attack, see <a class="reference internal" href="classes/nan.html"><span class="doc">NaN</span></a>.
+For aggregation rules that defend against these attacks, see
+<a class="reference internal" href="../aggregators/index.html"><span class="doc">Aggregators</span></a>.
 For the training loop that wires attacks and aggregators together, see
-<span class="xref std std-doc">experiments/index</span>.</p>
+<a class="reference internal" href="../experiments/index.html"><span class="doc">Experiments</span></a>.</p>
 </div>
 </section>
 <section id="available-attacks">
@@ -249,8 +244,8 @@ For the training loop that wires attacks and aggregators together, see
 </ul>
 </div>
 </section>
-<section id="module-attacks">
-<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-attacks" title="Link to this heading">¶</a></h2>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
 <p>Byzantine attack registry used to evaluate aggregation-rule robustness.</p>
 <p>Each attack combines a keyword-only generation function with a validation
 function. Registered attacks are loaded dynamically and exposed as module-level
@@ -279,33 +274,33 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 </ul>
 </section>
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.attack">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.attack" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.bulyan">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.bulyan" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.empire">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">empire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.empire" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">empire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.little">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">little</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.little" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">little</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.nan">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">nan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#attacks.nan" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">nan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_real</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="attacks.register">
-<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/attacks.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.register" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/attacks.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Register a Byzantine attack.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

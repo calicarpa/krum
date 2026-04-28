@@ -15,4 +15,6 @@ API Reference
 -------------
 
 .. autofunction:: aggregators.krum.upper_bound
+   :no-index:
 .. autofunction:: aggregators.krum.influence
+   :no-index:

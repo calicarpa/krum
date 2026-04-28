@@ -110,16 +110,8 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li><a class="reference internal" href="#available-aggregators">Available Aggregators</a></li>
-<li><a class="reference internal" href="#module-aggregators">API Reference</a><ul>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
 <li><a class="reference internal" href="#contract">Contract</a></li>
-<li><a class="reference internal" href="#aggregators.average"><code class="docutils literal notranslate"><span class="pre">average()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.brute"><code class="docutils literal notranslate"><span class="pre">brute()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.krum"><code class="docutils literal notranslate"><span class="pre">krum()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.make_gar"><code class="docutils literal notranslate"><span class="pre">make_gar()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.median"><code class="docutils literal notranslate"><span class="pre">median()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
-<li><a class="reference internal" href="#aggregators.rule"><code class="docutils literal notranslate"><span class="pre">rule()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -231,8 +223,8 @@ and optional theoretical bounds.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>To see how aggregators fit into a full training loop, see the
-<span class="xref std std-doc">experiments/index</span> quick start.
-For Byzantine attacks that test aggregation rules, see <span class="xref std std-doc">attacks/index</span>.</p>
+<a class="reference internal" href="../experiments/index.html"><span class="doc">Experiments</span></a> quick start.
+For Byzantine attacks that test aggregation rules, see <a class="reference internal" href="../attacks/index.html"><span class="doc">Attacks</span></a>.</p>
 </div>
 </section>
 <section id="available-aggregators">
@@ -248,8 +240,8 @@ For Byzantine attacks that test aggregation rules, see <span class="xref std std
 </ul>
 </div>
 </section>
-<section id="module-aggregators">
-<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aggregators" title="Link to this heading">¶</a></h2>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
 <p>Gradient aggregation rules (GARs) for Byzantine-resilient distributed learning.</p>
 <p>Each rule combines a keyword-only aggregation function with a validation
 function and optional metadata used by the training and experiment scripts.</p>
@@ -279,28 +271,28 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 </ul>
 </section>
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.average">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.average" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.brute">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">brute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.brute" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">brute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.bulyan">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.bulyan" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.krum">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">krum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.krum" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">krum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.make_gar">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">make_gar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../_modules/aggregators.html#make_gar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.make_gar" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">make_gar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../_modules/aggregators.html#make_gar"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Wrap an unchecked GAR with validation and metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -324,13 +316,13 @@ returned callable is annotated with <code class="docutils literal notranslate"><
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.median">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.median" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.register">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aggregators.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.register" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unchecked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">influence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aggregators.html#register"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Register a gradient aggregation rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -346,8 +338,8 @@ returned callable is annotated with <code class="docutils literal notranslate"><
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="aggregators.rule">
-<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aggregators.rule" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">aggregators.</span></span><span class="sig-name descname"><span class="pre">rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 </section>

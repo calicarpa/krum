@@ -15,3 +15,4 @@ API Reference
 -------------
 
 .. autofunction:: aggregators.median.upper_bound
+   :no-index:

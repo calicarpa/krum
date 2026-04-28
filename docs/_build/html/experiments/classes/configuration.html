@@ -106,7 +106,13 @@ data-aria-dark="Switch to auto color mode">
     <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
       <i class="i-lucide close"></i>
     </button>
-    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#experiments.configuration.Configuration"><code class="docutils literal notranslate"><span class="pre">Configuration</span></code></a><ul>
+<li><a class="reference internal" href="#experiments.configuration.Configuration.default_device"><code class="docutils literal notranslate">default_device</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
   <main class="sy-main w-full max-sm:max-w-full print:pt-6">
@@ -139,8 +145,66 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
   <article class="yue" role="main">
-          <section id="configuration">
-<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h1>
+          <section id="module-experiments.configuration">
+<span id="configuration"></span><h1>Configuration<a class="headerlink" href="#module-experiments.configuration" title="Link to this heading">¶</a></h1>
+<p>Experiment components for model training, dataset loading, and evaluation.</p>
+<p>This module groups the building blocks of a Krum training loop:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#module-experiments.configuration" title="experiments.configuration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.configuration</span></code></a> — device and dtype configuration.</p></li>
+<li><p><a class="reference internal" href="model.html#module-experiments.model" title="experiments.model"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.model</span></code></a> — model wrapper with parameter flattening.</p></li>
+<li><p><a class="reference internal" href="dataset.html#module-experiments.dataset" title="experiments.dataset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.dataset</span></code></a> — dataset loading and infinite batch sampling.</p></li>
+<li><p><a class="reference internal" href="loss.html#module-experiments.loss" title="experiments.loss"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.loss</span></code></a> — derivable loss composition.</p></li>
+<li><p><a class="reference internal" href="optimizer.html#module-experiments.optimizer" title="experiments.optimizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.optimizer</span></code></a> — optimizer wrapper with LR control.</p></li>
+<li><p><a class="reference internal" href="checkpoint.html#module-experiments.checkpoint" title="experiments.checkpoint"><code class="xref py py-mod docutils literal notranslate"><span class="pre">experiments.checkpoint</span></code></a> — save and restore state dictionaries.</p></li>
+</ul>
+<p>Custom models and datasets can be added under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code> and
+<code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code>; they are discovered automatically at import time.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span data-line="2">    <span class="n">Configuration</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">Loss</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">make_datasets</span><span class="p">,</span>
+</span><span data-line="5"><span class="p">)</span>
+</span><span data-line="6">
+</span><span data-line="7"><span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">)</span>
+</span><span data-line="8"><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s2">&quot;resnet18&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span><span data-line="9"><span class="n">trainset</span><span class="p">,</span> <span class="n">testset</span> <span class="o">=</span> <span class="n">make_datasets</span><span class="p">(</span><span class="s2">&quot;cifar10&quot;</span><span class="p">,</span> <span class="n">train_batch</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="experiments.configuration.Configuration">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.configuration.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/configuration.html#Configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.configuration.Configuration" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></p>
+<p>Immutable tensor configuration holder.</p>
+<p>This class bundles <code class="docutils literal notranslate"><span class="pre">device</span></code>, <code class="docutils literal notranslate"><span class="pre">dtype</span></code>, and memory-transfer options
+into a single immutable mapping. It is used throughout <code class="docutils literal notranslate"><span class="pre">experiments</span></code>
+to ensure every created or moved tensor uses the same configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>torch.device</em><em>, or </em><em>None</em><em>, </em><em>optional</em>) – Target device. <code class="docutils literal notranslate"><span class="pre">None</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code> when available,
+otherwise <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>. Strings such as <code class="docutils literal notranslate"><span class="pre">&quot;cuda:0&quot;</span></code> are resolved
+automatically.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Tensor datatype. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses PyTorch’s current default dtype.</p></li>
+<li><p><strong>noblock</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use non-blocking host-to-device transfers.</p></li>
+<li><p><strong>relink</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to relink instead of copying during parameter assignments.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Configuration</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">]</span>
+</span><span data-line="4"><span class="go">device(type=&#39;cpu&#39;)</span>
+</span></pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="experiments.configuration.Configuration.default_device">
+<span class="sig-name descname"><span class="pre">default_device</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cpu'</span></span><a class="headerlink" href="#experiments.configuration.Configuration.default_device" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>Used by <a class="reference internal" href="model.html"><span class="doc">Model</span></a> and <a class="reference internal" href="dataset.html"><span class="doc">Dataset</span></a> to ensure consistent device
