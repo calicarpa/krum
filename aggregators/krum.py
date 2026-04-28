@@ -35,6 +35,7 @@ Properties
 - Selects a subset: Not all gradients contribute to the final average.
 - Multi-Krum: Averages the best :math:`m` candidates instead of selecting only
   one candidate.
+- Theoretical bound available through :func:`upper_bound`.
 
 Theoretical Bound
 -----------------
@@ -52,9 +53,14 @@ where:
 - :math:`\\sigma` is the standard deviation of honest gradients.
 - :math:`\\|g\\|` is the norm of the honest gradient.
 
+Complexity
+-----------
+- Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and
+  :math:`d` is the gradient dimension.
+- Space: :math:`O(n^2)` for storing pairwise distances.
+
 Parameters
 ----------
-
 m : int, optional
     Number of gradients to select for averaging. Defaults to ``n - f - 2``.
     Must satisfy ``1 <= m <= n - f - 2``.

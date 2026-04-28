@@ -38,14 +38,28 @@ can provide, and when the worker count is high enough to satisfy the stricter
 Properties
 ----------
 
-- Two-stage aggregation combining geometric and coordinate-wise robustness.
+- Two-stage aggregation: geometric selection then coordinate-wise averaging.
 - Requires at least :math:`4f + 3` submitted gradients.
 - Uses only newly allocated output tensors and does not return aliases of input
   gradients.
+- Theoretical bound available through :func:`upper_bound`.
+
+Algorithm
+---------
+
+1. Select candidate gradients with the smallest Multi-Krum scores.
+2. For each coordinate, compute the median over the selected candidates.
+3. Average the values closest to that median.
+
+Complexity
+-----------
+
+- Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and
+  :math:`d` is the gradient dimension.
+- Space: :math:`O(n^2)` for storing pairwise distances.
 
 Parameters
 ----------
-
 m : int, optional
     Number of gradients to consider in each Multi-Krum selection step. Defaults
     to ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.

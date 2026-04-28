@@ -204,6 +204,14 @@ gradient handling, and common operations used throughout Krum.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">AccumulatedTimedContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sync</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Accumulated timed context manager with optional CUDA synchronization.</p>
+<p>This context manager measures elapsed time across multiple entries,
+with optional CUDA synchronization to ensure accurate GPU timing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sync</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize CUDA before and after timing. Defaults to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccumulatedTimedContext</span>
@@ -216,8 +224,14 @@ gradient handling, and common operations used throughout Krum.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.pytorch.AccumulatedTimedContext.current_runtime">
-<span class="sig-name descname"><span class="pre">current_runtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext.current_runtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext.current_runtime" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">current_runtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#AccumulatedTimedContext.current_runtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.AccumulatedTimedContext.current_runtime" title="Link to this definition">¶</a></dt>
+<dd><p>Return the accumulated runtime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>float</strong> – Total accumulated time in seconds.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -226,18 +240,23 @@ gradient handling, and common operations used throughout Krum.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">WeightedMSELoss</span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Weighted MSE loss module.</p>
+<p>This module wraps <a class="reference internal" href="#tools.pytorch.weighted_mse_loss" title="tools.pytorch.weighted_mse_loss"><code class="xref py py-func docutils literal notranslate"><span class="pre">weighted_mse_loss()</span></code></a> as a PyTorch module.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tools.pytorch.WeightedMSELoss.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#WeightedMSELoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.WeightedMSELoss.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Compute weighted MSE loss.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input</strong> (<em>torch.Tensor</em>) – Input tensor.</p></li>
+<li><p><strong>target</strong> (<em>torch.Tensor</em>) – Target tensor.</p></li>
+<li><p><strong>weight</strong> (<em>torch.Tensor</em>) – Weight tensor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Weighted MSE loss value.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -245,13 +264,18 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.compute_avg_dev_max">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">compute_avg_dev_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#compute_avg_dev_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.compute_avg_dev_max" title="Link to this definition">¶</a></dt>
-<dd><p>Compute average, average norm, norm deviation, and max absolute value.
-:param samples: List of tensors</p>
+<dd><p>Compute average, average norm, norm deviation, and max absolute value.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Tuple of</strong> (<em>average tensor, average norm, norm deviation, max abs</em>)</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>samples</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List of tensors to compute statistics on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tuple[torch.Tensor, float, float, float]</strong> – Tuple containing: average tensor, average norm, norm deviation, and
+max absolute value.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The returned tensor is newly created and does not alias any input tensor.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -333,25 +357,41 @@ and attached to the tensor.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.pnm">
-<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">pnm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedWriter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#pnm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.pnm" title="Link to this definition">¶</a></dt>
-<dd><p>Export tensor to PGM/PBM format.
-:param fd: File descriptor
-:param tn: Tensor to export</p>
+<span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">pnm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BufferedWriter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#pnm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.pnm" title="Link to this definition">¶</a></dt>
+<dd><p>Export tensor to PGM/PBM format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fd</strong> (<em>io.BufferedWriter</em>) – File descriptor to write to.</p></li>
+<li><p><strong>tn</strong> (<em>torch.Tensor</em>) – Tensor to export. Supports float32/float64 for grayscale (PGM) or
+boolean/integer for binary (PBM).</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Grayscale format (PGM): For float32/float64 tensors, normalizes to 0-255.</p></li>
+<li><p>Binary format (PBM): For other dtypes, converts to binary values.</p></li>
+</ul>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.regression">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.regression" title="Link to this definition">¶</a></dt>
-<dd><p>Generic optimization for free variables.
-:param func: Function to optimize
-:param vars: List of variables to optimize
-:param data: Data dictionary
-:param loss: Loss function
-:param opt: Optimizer
-:param steps: Number of optimization steps</p>
+<dd><p>Generic optimization for free variables.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Final loss value</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>callable</em>) – Function to optimize. Takes variables and data dictionary as arguments.</p></li>
+<li><p><strong>vars</strong> (<em>list</em>) – List of variables to optimize.</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – Data dictionary, must contain a <code class="docutils literal notranslate"><span class="pre">&quot;target&quot;</span></code> key.</p></li>
+<li><p><strong>loss</strong> (<em>torch.nn.Module</em><em>, </em><em>optional</em>) – Loss function. Defaults to <code class="docutils literal notranslate"><span class="pre">torch.nn.MSELoss</span></code>.</p></li>
+<li><p><strong>opt</strong> (<em>torch.optim.Optimizer</em><em>, </em><em>optional</em>) – Optimizer. Defaults to <code class="docutils literal notranslate"><span class="pre">torch.optim.Adam</span></code>.</p></li>
+<li><p><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of optimization steps. Defaults to 1000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong> – Final loss value after optimization.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -390,15 +430,21 @@ original tensors. This allows updating all tensors simultaneously.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="tools.pytorch.weighted_mse_loss">
 <span class="sig-prename descclassname"><span class="pre">tools.pytorch.</span></span><span class="sig-name descname"><span class="pre">weighted_mse_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/tools/pytorch.html#weighted_mse_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tools.pytorch.weighted_mse_loss" title="Link to this definition">¶</a></dt>
-<dd><p>Weighted MSE loss.
-:param input: Input tensor
-:param target: Target tensor
-:param weight: Weight tensor</p>
+<dd><p>Compute weighted mean squared error loss.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Weighted MSE loss</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input</strong> (<em>torch.Tensor</em>) – Input tensor.</p></li>
+<li><p><strong>target</strong> (<em>torch.Tensor</em>) – Target tensor.</p></li>
+<li><p><strong>weight</strong> (<em>torch.Tensor</em>) – Weight tensor for each element.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Weighted MSE loss value.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The returned tensor is newly created and does not alias any input tensor.</p>
 </dd></dl>
 
 </section>

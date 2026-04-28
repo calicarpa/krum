@@ -105,7 +105,7 @@ data-aria-dark="Switch to auto color mode">
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#use-case">Use Case</a></li>
-<li><a class="reference internal" href="#limitations">Limitations</a></li>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#aggregators.average.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.average.influence"><code class="docutils literal notranslate"><span class="pre">influence()</span></code></a></li>
@@ -153,17 +153,20 @@ resilient methods.</p>
 <p>Baseline for non-adversarial settings or when no Byzantine
 behavior is expected.</p>
 </section>
-<section id="limitations">
-<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">¶</a></h2>
-<p>Vulnerable to any Byzantine attack. A single malicious gradient can completely
-skew the result.</p>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Non-resilient: Vulnerable to any Byzantine attack. A single malicious
+gradient can completely skew the result.</p></li>
+<li><p>No parameters: No configuration required beyond the gradient list.</p></li>
+<li><p>Output: Newly created tensor, does not alias any input.</p></li>
+</ul>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">aggregators</span>
-</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">average</span>
-</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">])]</span>
-</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">average</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">)</span>
-</span><span data-line="6"><span class="go">tensor([2.5000, 3.5000, 4.5000])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">average</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">])]</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">average</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="5"><span class="go">tensor([2.5000, 3.5000, 4.5000])</span>
 </span></pre></div>
 </div>
 </section>

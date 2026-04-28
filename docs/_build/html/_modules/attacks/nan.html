@@ -175,98 +175,99 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="32"><span class="sd">- Generates newly allocated gradients filled with NaN values.</span>
 </span><span data-line="33"><span class="sd">- Reuses the same Byzantine tensor object for all returned gradients.</span>
 </span><span data-line="34"><span class="sd">- Does not alias any honest input gradient.</span>
-</span><span data-line="35">
-</span><span data-line="36"><span class="sd">Example</span>
-</span><span data-line="37"><span class="sd">-------</span>
-</span><span data-line="38">
-</span><span data-line="39"><span class="sd">&gt;&gt;&gt; import torch</span>
-</span><span data-line="40"><span class="sd">&gt;&gt;&gt; from attacks import nan</span>
-</span><span data-line="41"><span class="sd">&gt;&gt;&gt; grad_honests = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]</span>
-</span><span data-line="42"><span class="sd">&gt;&gt;&gt; byzantine_grads = nan(grad_honests=grad_honests, f_real=1)</span>
-</span><span data-line="43"><span class="sd">&gt;&gt;&gt; byzantine_grads[0]</span>
-</span><span data-line="44"><span class="sd">tensor([nan, nan, nan])</span>
-</span><span data-line="45"><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="46">
-</span><span data-line="47"><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-</span><span data-line="48">
-</span><span data-line="49"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span data-line="50">
-</span><span data-line="51"><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
-</span><span data-line="52">
-</span><span data-line="53"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="54"><span class="c1"># Non-finite gradient attack</span>
-</span><span data-line="55">
+</span><span data-line="35"><span class="sd">- No parameters beyond gradient count.</span>
+</span><span data-line="36">
+</span><span data-line="37"><span class="sd">Example</span>
+</span><span data-line="38"><span class="sd">-------</span>
+</span><span data-line="39">
+</span><span data-line="40"><span class="sd">&gt;&gt;&gt; import torch</span>
+</span><span data-line="41"><span class="sd">&gt;&gt;&gt; from attacks import nan</span>
+</span><span data-line="42"><span class="sd">&gt;&gt;&gt; grad_honests = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]</span>
+</span><span data-line="43"><span class="sd">&gt;&gt;&gt; byzantine_grads = nan(grad_honests=grad_honests, f_real=1)</span>
+</span><span data-line="44"><span class="sd">&gt;&gt;&gt; byzantine_grads[0]</span>
+</span><span data-line="45"><span class="sd">tensor([nan, nan, nan])</span>
+</span><span data-line="46"><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="47">
+</span><span data-line="48"><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+</span><span data-line="49">
+</span><span data-line="50"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="51">
+</span><span data-line="52"><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
+</span><span data-line="53">
+</span><span data-line="54"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="55"><span class="c1"># Non-finite gradient attack</span>
 </span><span data-line="56">
+</span><span data-line="57">
 <div class="viewcode-block" id="attack">
 <a class="viewcode-back" href="../../attacks/classes/nan.html#attacks.nan.attack">[docs]</a>
-</span><span data-line="57"><span class="k">def</span><span class="w"> </span><span class="nf">attack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-</span><span data-line="58"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="59"><span class="sd">    Generate NaN-valued Byzantine gradients.</span>
-</span><span data-line="60">
-</span><span data-line="61"><span class="sd">    Parameters</span>
-</span><span data-line="62"><span class="sd">    ----------</span>
-</span><span data-line="63"><span class="sd">    grad_honests : list of torch.Tensor</span>
-</span><span data-line="64"><span class="sd">        Non-empty list of honest gradients. The first gradient is used as the</span>
-</span><span data-line="65"><span class="sd">        shape, dtype, and device template for the generated Byzantine tensor.</span>
-</span><span data-line="66"><span class="sd">    f_real : int</span>
-</span><span data-line="67"><span class="sd">        Number of Byzantine gradients to generate.</span>
-</span><span data-line="68"><span class="sd">    **kwargs : object</span>
-</span><span data-line="69"><span class="sd">        Additional keyword arguments, ignored by this attack.</span>
-</span><span data-line="70">
-</span><span data-line="71"><span class="sd">    Returns</span>
-</span><span data-line="72"><span class="sd">    -------</span>
-</span><span data-line="73"><span class="sd">    list of torch.Tensor</span>
-</span><span data-line="74"><span class="sd">        List containing ``f_real`` references to the same newly allocated</span>
-</span><span data-line="75"><span class="sd">        NaN-valued Byzantine tensor. The returned tensor does not alias any</span>
-</span><span data-line="76"><span class="sd">        honest input gradient.</span>
-</span><span data-line="77"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="78">    <span class="c1"># Fast path</span>
-</span><span data-line="79">    <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="80">        <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
-</span><span data-line="81">    <span class="c1"># Generate the non-finite Byzantine gradient</span>
-</span><span data-line="82">    <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-</span><span data-line="83">    <span class="n">byz_grad</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">nan</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byz_grad</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
-</span><span data-line="84">    <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
-</span><span data-line="85">    <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span></div>
+</span><span data-line="58"><span class="k">def</span><span class="w"> </span><span class="nf">attack</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+</span><span data-line="59"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="60"><span class="sd">    Generate NaN-valued Byzantine gradients.</span>
+</span><span data-line="61">
+</span><span data-line="62"><span class="sd">    Parameters</span>
+</span><span data-line="63"><span class="sd">    ----------</span>
+</span><span data-line="64"><span class="sd">    grad_honests : list of torch.Tensor</span>
+</span><span data-line="65"><span class="sd">        Non-empty list of honest gradients. The first gradient is used as the</span>
+</span><span data-line="66"><span class="sd">        shape, dtype, and device template for the generated Byzantine tensor.</span>
+</span><span data-line="67"><span class="sd">    f_real : int</span>
+</span><span data-line="68"><span class="sd">        Number of Byzantine gradients to generate.</span>
+</span><span data-line="69"><span class="sd">    **kwargs : object</span>
+</span><span data-line="70"><span class="sd">        Additional keyword arguments, ignored by this attack.</span>
+</span><span data-line="71">
+</span><span data-line="72"><span class="sd">    Returns</span>
+</span><span data-line="73"><span class="sd">    -------</span>
+</span><span data-line="74"><span class="sd">    list of torch.Tensor</span>
+</span><span data-line="75"><span class="sd">        List containing ``f_real`` references to the same newly allocated</span>
+</span><span data-line="76"><span class="sd">        NaN-valued Byzantine tensor. The returned tensor does not alias any</span>
+</span><span data-line="77"><span class="sd">        honest input gradient.</span>
+</span><span data-line="78"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="79">    <span class="c1"># Fast path</span>
+</span><span data-line="80">    <span class="k">if</span> <span class="n">f_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="81">        <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
+</span><span data-line="82">    <span class="c1"># Generate the non-finite Byzantine gradient</span>
+</span><span data-line="83">    <span class="n">byz_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span data-line="84">    <span class="n">byz_grad</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">nan</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byz_grad</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+</span><span data-line="85">    <span class="c1"># Return this Byzantine gradient &#39;f_real&#39; times</span>
+</span><span data-line="86">    <span class="k">return</span> <span class="p">[</span><span class="n">byz_grad</span><span class="p">]</span> <span class="o">*</span> <span class="n">f_real</span></div>
 
-</span><span data-line="86">
 </span><span data-line="87">
+</span><span data-line="88">
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../attacks/classes/nan.html#attacks.nan.check">[docs]</a>
-</span><span data-line="88"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="89"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span data-line="90"><span class="sd">    Check parameter validity for the NaN attack.</span>
-</span><span data-line="91">
-</span><span data-line="92"><span class="sd">    Parameters</span>
-</span><span data-line="93"><span class="sd">    ----------</span>
-</span><span data-line="94"><span class="sd">    grad_honests : list of torch.Tensor</span>
-</span><span data-line="95"><span class="sd">        Non-empty list of honest gradients.</span>
-</span><span data-line="96"><span class="sd">    f_real : int</span>
-</span><span data-line="97"><span class="sd">        Number of Byzantine gradients to generate.</span>
-</span><span data-line="98"><span class="sd">    **kwargs : object</span>
-</span><span data-line="99"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
-</span><span data-line="100">
-</span><span data-line="101"><span class="sd">    Returns</span>
-</span><span data-line="102"><span class="sd">    -------</span>
-</span><span data-line="103"><span class="sd">    str or None</span>
-</span><span data-line="104"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
-</span><span data-line="105"><span class="sd">        message.</span>
-</span><span data-line="106"><span class="sd">    &quot;&quot;&quot;</span>
-</span><span data-line="107">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="108">        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
-</span><span data-line="109">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="110">        <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="111">            <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span>
-</span><span data-line="112">            <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
-</span><span data-line="113">        <span class="p">)</span></div>
+</span><span data-line="89"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">f_real</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="90"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="91"><span class="sd">    Check parameter validity for the NaN attack.</span>
+</span><span data-line="92">
+</span><span data-line="93"><span class="sd">    Parameters</span>
+</span><span data-line="94"><span class="sd">    ----------</span>
+</span><span data-line="95"><span class="sd">    grad_honests : list of torch.Tensor</span>
+</span><span data-line="96"><span class="sd">        Non-empty list of honest gradients.</span>
+</span><span data-line="97"><span class="sd">    f_real : int</span>
+</span><span data-line="98"><span class="sd">        Number of Byzantine gradients to generate.</span>
+</span><span data-line="99"><span class="sd">    **kwargs : object</span>
+</span><span data-line="100"><span class="sd">        Additional keyword arguments, ignored by this check.</span>
+</span><span data-line="101">
+</span><span data-line="102"><span class="sd">    Returns</span>
+</span><span data-line="103"><span class="sd">    -------</span>
+</span><span data-line="104"><span class="sd">    str or None</span>
+</span><span data-line="105"><span class="sd">        ``None`` when parameters are valid, otherwise a user-facing error</span>
+</span><span data-line="106"><span class="sd">        message.</span>
+</span><span data-line="107"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="108">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_honests</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="109">        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of honest gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">grad_honests</span><span class="p">,)</span>
+</span><span data-line="110">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_real</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f_real</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="111">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="112">            <span class="s2">&quot;Expected a non-negative number of Byzantine gradients to generate, got </span><span class="si">%r</span><span class="s2">&quot;</span>
+</span><span data-line="113">            <span class="o">%</span> <span class="p">(</span><span class="n">f_real</span><span class="p">,)</span>
+</span><span data-line="114">        <span class="p">)</span></div>
 
-</span><span data-line="114">
 </span><span data-line="115">
-</span><span data-line="116"><span class="c1"># ---------------------------------------------------------------------------- #</span>
-</span><span data-line="117"><span class="c1"># Attack registering</span>
-</span><span data-line="118">
-</span><span data-line="119"><span class="c1"># Register the attack</span>
-</span><span data-line="120"><span class="n">register</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="n">attack</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
+</span><span data-line="116">
+</span><span data-line="117"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="118"><span class="c1"># Attack registering</span>
+</span><span data-line="119">
+</span><span data-line="120"><span class="c1"># Register the attack</span>
+</span><span data-line="121"><span class="n">register</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="n">attack</span><span class="p">,</span> <span class="n">check</span><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

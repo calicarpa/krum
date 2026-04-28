@@ -107,6 +107,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#use-case">Use Case</a></li>
 <li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#theoretical-bound">Theoretical Bound</a></li>
+<li><a class="reference internal" href="#complexity">Complexity</a></li>
 <li><a class="reference internal" href="#aggregators.krum.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.krum.aggregate_native"><code class="docutils literal notranslate"><span class="pre">aggregate_native()</span></code></a></li>
 <li><a class="reference internal" href="#aggregators.krum.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
@@ -166,6 +167,7 @@ be geometrically separated from honest gradients.</p>
 <li><p>Selects a subset: Not all gradients contribute to the final average.</p></li>
 <li><p>Multi-Krum: Averages the best <span class="math notranslate nohighlight">\(m\)</span> candidates instead of selecting only
 one candidate.</p></li>
+<li><p>Theoretical bound available through <a class="reference internal" href="#aggregators.krum.upper_bound" title="aggregators.krum.upper_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">upper_bound()</span></code></a>.</p></li>
 </ul>
 </section>
 <section id="theoretical-bound">
@@ -181,6 +183,14 @@ one candidate.</p></li>
 <li><p><span class="math notranslate nohighlight">\(f\)</span> is the number of Byzantine workers.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\sigma\)</span> is the standard deviation of honest gradients.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\|g\|\)</span> is the norm of the honest gradient.</p></li>
+</ul>
+</section>
+<section id="complexity">
+<h2>Complexity<a class="headerlink" href="#complexity" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Time: <span class="math notranslate nohighlight">\(O(n^2 \cdot d)\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the number of gradients and
+<span class="math notranslate nohighlight">\(d\)</span> is the gradient dimension.</p></li>
+<li><p>Space: <span class="math notranslate nohighlight">\(O(n^2)\)</span> for storing pairwise distances.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">param m<span class="colon">:</span></dt>

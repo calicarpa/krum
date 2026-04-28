@@ -159,6 +159,7 @@ non-finite values.</p>
 <li><p>Generates newly allocated gradients filled with NaN values.</p></li>
 <li><p>Reuses the same Byzantine tensor object for all returned gradients.</p></li>
 <li><p>Does not alias any honest input gradient.</p></li>
+<li><p>No parameters beyond gradient count.</p></li>
 </ul>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>

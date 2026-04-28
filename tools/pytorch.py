@@ -65,6 +65,7 @@ __all__ = ["relink", "flatten", "grad_of", "grads_of", "compute_avg_dev_max",
            "AccumulatedTimedContext", "weighted_mse_loss", "WeightedMSELoss",
            "regression", "pnm"]
 
+import io
 import math
 import time
 import torch
@@ -232,11 +233,23 @@ def grads_of(tensors: list[torch.Tensor]):
 # Statistics
 
 def compute_avg_dev_max(samples: list[torch.Tensor]) -> tuple[torch.Tensor, float, float, float]:
-    """ Compute average, average norm, norm deviation, and max absolute value.
-    Args:
-        samples: List of tensors
-    Returns:
-        Tuple of (average tensor, average norm, norm deviation, max abs)
+    """
+    Compute average, average norm, norm deviation, and max absolute value.
+
+    Parameters
+    ----------
+    samples : list of torch.Tensor
+        List of tensors to compute statistics on.
+
+    Returns
+    -------
+    tuple[torch.Tensor, float, float, float]
+        Tuple containing: average tensor, average norm, norm deviation, and
+        max absolute value.
+
+    Notes
+    -----
+    The returned tensor is newly created and does not alias any input tensor.
     """
     # Stack all samples
     stacked = torch.stack(samples)
@@ -255,11 +268,20 @@ def compute_avg_dev_max(samples: list[torch.Tensor]) -> tuple[torch.Tensor, floa
 # Accumulated timed context
 
 class AccumulatedTimedContext:
-    """ Accumulated timed context manager with optional CUDA synchronization.
+    """
+    Accumulated timed context manager with optional CUDA synchronization.
+
+    This context manager measures elapsed time across multiple entries,
+    with optional CUDA synchronization to ensure accurate GPU timing.
+
+    Parameters
+    ----------
+    sync : bool, optional
+        Whether to synchronize CUDA before and after timing. Defaults to
+        ``False``.
 
     Example
     -------
-
     >>> import torch
     >>> from tools import AccumulatedTimedContext
     >>> atc = AccumulatedTimedContext(sync=True)
@@ -270,61 +292,153 @@ class AccumulatedTimedContext:
     """
 
     def __init__(self, sync: bool = False) -> None:
+        """
+        Initialize the accumulated timed context.
+
+        Parameters
+        ----------
+        sync : bool, optional
+            Whether to synchronize CUDA before and after timing. Defaults to
+            ``False``.
+        """
         self._sync = sync
         self._start = None
         self._elapsed = 0.0
 
     def __enter__(self):
+        """
+        Enter the context and start timing.
+
+        Returns
+        -------
+        AccumulatedTimedContext
+            Self reference for context management.
+        """
         if self._sync and torch.cuda.is_available():
             torch.cuda.synchronize()
         self._start = time.perf_counter()
         return self
 
     def __exit__(self, *args) -> None:
+        """
+        Exit the context, stop timing, and accumulate elapsed time.
+
+        Parameters
+        ----------
+        *args : object
+            Positional arguments forwarded to the context exit.
+        """
         if self._sync and torch.cuda.is_available():
             torch.cuda.synchronize()
         self._elapsed += time.perf_counter() - self._start
 
-    def current_runtime(self):
+    def current_runtime(self) -> float:
+        """
+        Return the accumulated runtime.
+
+        Returns
+        -------
+        float
+            Total accumulated time in seconds.
+        """
         return self._elapsed
 
 # ---------------------------------------------------------------------------- #
 # Weighted MSE loss
 
+
 def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
-    """ Weighted MSE loss.
-    Args:
-        input: Input tensor
-        target: Target tensor
-        weight: Weight tensor
-    Returns:
-        Weighted MSE loss
+    """
+    Compute weighted mean squared error loss.
+
+    Parameters
+    ----------
+    input : torch.Tensor
+        Input tensor.
+    target : torch.Tensor
+        Target tensor.
+    weight : torch.Tensor
+        Weight tensor for each element.
+
+    Returns
+    -------
+    torch.Tensor
+        Weighted MSE loss value.
+
+    Notes
+    -----
+    The returned tensor is newly created and does not alias any input tensor.
     """
     return (weight * (input - target) ** 2).mean()
 
+
 class WeightedMSELoss(torch.nn.Module):
-    """ Weighted MSE loss module. """
+    """
+    Weighted MSE loss module.
+
+    This module wraps :func:`weighted_mse_loss` as a PyTorch module.
+    """
 
     def __init__(self) -> None:
+        """
+        Initialize the weighted MSE loss module.
+        """
         super().__init__()
 
     def forward(self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+        """
+        Compute weighted MSE loss.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Input tensor.
+        target : torch.Tensor
+            Target tensor.
+        weight : torch.Tensor
+            Weight tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Weighted MSE loss value.
+        """
         return weighted_mse_loss(input, target, weight)
 
 # ---------------------------------------------------------------------------- #
 # Regression helper
 
-def regression(func: Callable[[torch.Tensor, dict], torch.Tensor], vars, data, loss=None, opt=None, steps=1000) -> float:
-    """ Generic optimization for free variables.
-    Args:
-        func: Function to optimize
-        vars: List of variables to optimize
-        data: Data dictionary
-        loss: Loss function
-        opt: Optimizer
-        steps: Number of optimization steps
-    Returns:
-        Final loss value
+
+def regression(
+    func: Callable[[torch.Tensor, dict], torch.Tensor],
+    vars,
+    data,
+    loss=None,
+    opt=None,
+    steps=1000,
+) -> float:
+    """
+    Generic optimization for free variables.
+
+    Parameters
+    ----------
+    func : callable
+        Function to optimize. Takes variables and data dictionary as arguments.
+    vars : list
+        List of variables to optimize.
+    data : dict
+        Data dictionary, must contain a ``"target"`` key.
+    loss : torch.nn.Module, optional
+        Loss function. Defaults to ``torch.nn.MSELoss``.
+    opt : torch.optim.Optimizer, optional
+        Optimizer. Defaults to ``torch.optim.Adam``.
+    steps : int, optional
+        Number of optimization steps. Defaults to 1000.
+
+    Returns
+    -------
+    float
+        Final loss value after optimization.
     """
     if loss is None:
         loss = torch.nn.MSELoss()
@@ -338,14 +452,27 @@ def regression(func: Callable[[torch.Tensor, dict], torch.Tensor], vars, data, l
         opt.step()
     return l.item()
 
+
 # ---------------------------------------------------------------------------- #
 # PNM export
 
+
 def pnm(fd: io.BufferedWriter, tn: torch.Tensor) -> None:
-    """ Export tensor to PGM/PBM format.
-    Args:
-        fd: File descriptor
-        tn: Tensor to export
+    """
+    Export tensor to PGM/PBM format.
+
+    Parameters
+    ----------
+    fd : io.BufferedWriter
+        File descriptor to write to.
+    tn : torch.Tensor
+        Tensor to export. Supports float32/float64 for grayscale (PGM) or
+        boolean/integer for binary (PBM).
+
+    Notes
+    -----
+    - Grayscale format (PGM): For float32/float64 tensors, normalizes to 0-255.
+    - Binary format (PBM): For other dtypes, converts to binary values.
     """
     if tn.dtype == torch.float32 or tn.dtype == torch.float64:
         # Grayscale

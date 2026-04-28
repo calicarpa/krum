@@ -32,6 +32,7 @@ Properties
 - Generates newly allocated gradients filled with NaN values.
 - Reuses the same Byzantine tensor object for all returned gradients.
 - Does not alias any honest input gradient.
+- No parameters beyond gradient count.
 
 Example
 -------

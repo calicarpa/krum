@@ -38,6 +38,20 @@ Available attack directions are:
 2. **Empire**: negative average honest gradient.
 3. **Little**: coordinate-wise standard deviation of honest gradients.
 
+Use Case
+--------
+
+Testing aggregation rules against attacks that submit identical malicious
+gradients from multiple Byzantine workers.
+
+Properties
+----------
+
+- Identical gradients: All Byzantine workers submit the same gradient.
+- Direction-based: Attack direction is computed from honest gradients.
+- Factor optimization: Negative factors trigger automatic optimization.
+- Returns newly created tensors, does not alias honest input gradients.
+
 Parameters
 ----------
 factor : float or int, optional
@@ -46,12 +60,6 @@ factor : float or int, optional
     Defaults to ``-16``.
 negative : bool, optional
     Whether to negate the selected factor. Defaults to ``False``.
-
-Notes
------
-The returned list may contain repeated references to the same Byzantine tensor,
-which is allowed by the attack contract for identical-gradient attacks. The
-tensor itself is newly created and does not alias any honest input gradient.
 
 Example
 -------

@@ -24,16 +24,17 @@ Use Case
 Baseline for non-adversarial settings or when no Byzantine
 behavior is expected.
 
-Limitations
------------
+Properties
+----------
 
-Vulnerable to any Byzantine attack. A single malicious gradient can completely
-skew the result.
+- Non-resilient: Vulnerable to any Byzantine attack. A single malicious
+  gradient can completely skew the result.
+- No parameters: No configuration required beyond the gradient list.
+- Output: Newly created tensor, does not alias any input.
 
 Example
 -------
 
->>> import aggregators
 >>> import torch
 >>> from aggregators import average
 >>> gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]

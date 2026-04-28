@@ -104,6 +104,8 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+<li><a class="reference internal" href="#properties">Properties</a></li>
 <li><a class="reference internal" href="#attacks.identical.bulyan"><code class="docutils literal notranslate"><span class="pre">bulyan()</span></code></a></li>
 <li><a class="reference internal" href="#attacks.identical.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
 <li><a class="reference internal" href="#attacks.identical.empire"><code class="docutils literal notranslate"><span class="pre">empire()</span></code></a></li>
@@ -156,6 +158,19 @@ a scaled attack direction.</p>
 <li><p><strong>Empire</strong>: negative average honest gradient.</p></li>
 <li><p><strong>Little</strong>: coordinate-wise standard deviation of honest gradients.</p></li>
 </ol>
+<section id="use-case">
+<h2>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h2>
+<p>Testing aggregation rules against attacks that submit identical malicious
+gradients from multiple Byzantine workers.</p>
+</section>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Identical gradients: All Byzantine workers submit the same gradient.</p></li>
+<li><p>Direction-based: Attack direction is computed from honest gradients.</p></li>
+<li><p>Factor optimization: Negative factors trigger automatic optimization.</p></li>
+<li><p>Returns newly created tensors, does not alias honest input gradients.</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">param factor<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Attack scaling factor. Positive values use the provided factor directly.
@@ -172,10 +187,6 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">-16</sp
 <dd class="field-even"><p>bool, optional</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>The returned list may contain repeated references to the same Byzantine tensor,
-which is allowed by the attack contract for identical-gradient attacks. The
-tensor itself is newly created and does not alias any honest input gradient.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aggregators</span><span class="w"> </span><span class="kn">import</span> <span class="n">average</span>
@@ -193,6 +204,7 @@ tensor itself is newly created and does not alias any honest input gradient.</p>
 </span><span data-line="14"><span class="go">1</span>
 </span></pre></div>
 </div>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="attacks.identical.bulyan">
 <span class="sig-prename descclassname"><span class="pre">attacks.identical.</span></span><span class="sig-name descname"><span class="pre">bulyan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_stck</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_avg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../../_modules/attacks/identical.html#bulyan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#attacks.identical.bulyan" title="Link to this definition">¶</a></dt>
