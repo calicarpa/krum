@@ -14,25 +14,26 @@
 ###
 
 """
-This aggregation rule computes the median of each coordinate independently across
-all submitted gradients. It delegates to ``torch.median`` and does not filter
+Coordinate-wise median aggregation rule.
+
+This rule computes the median of each coordinate independently across all
+submitted gradients. It delegates to ``torch.median`` and does not filter
 non-finite values before aggregation. NaN values may propagate, while Inf values
 participate in the coordinate ordering.
 
-**Use case:** Baseline for coordinate-wise robust aggregation in settings
-where input gradients are expected to be finite.
+Use Case
+--------
+Baseline coordinate-wise robust aggregation when input gradients are expected to
+be finite.
 
 Properties
 ----------
-
-- Coordinate-wise: Each dimension is treated independently.
+- Coordinate-wise: each dimension is treated independently.
 - Non-finite values are not filtered before aggregation.
-- No theoretical guarantee: Unlike other methods, this rule has no proven
-  Byzantine-resilience guarantees for general attacks.
+- Theoretical bound available through :func:`upper_bound`.
 
 Theoretical Bound
 -----------------
-
 The coordinate-wise median provides guarantees when the ratio of non-Byzantine
 standard deviation to gradient norm is below:
 
@@ -40,23 +41,22 @@ standard deviation to gradient norm is below:
 
     \\frac{1}{\\sqrt{n - f}}
 
-where
+where:
 
-- :math:`n` is the total number of workers
+- :math:`n` is the total number of workers.
 - :math:`f` is the number of Byzantine workers.
-
 
 Example
 -------
-
 >>> import torch
 >>> from aggregators import median
 >>> gradients = [
 ...     torch.tensor([1., 100., 3.]),
 ...     torch.tensor([2., 200., 4.]),
-...     torch.tensor([3., 300., 5.])
+...     torch.tensor([3., 300., 5.]),
 ... ]
 >>> result = median(gradients=gradients)
+>>> result
 tensor([2., 200., 4.])
 """
 
@@ -80,7 +80,7 @@ except ImportError:
 
 def aggregate(gradients, **kwargs):
     """
-    Compute the coordinate-wise median of all gradients.
+    Compute the coordinate-wise median of all submitted gradients.
 
     This method delegates to ``torch.median`` and does not filter non-finite
     values before aggregation. NaN values may propagate, while Inf values
@@ -89,34 +89,35 @@ def aggregate(gradients, **kwargs):
     Parameters
     ----------
     gradients : list of torch.Tensor
-        Non-empty list of gradients to aggregate. Each gradient should be
-        a 1-D tensor of the same shape.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+        Non-empty list of gradients to aggregate. Each gradient should be a
+        1-D tensor with the same shape, dtype, and device as the others.
+    **kwargs : object
+        Additional keyword arguments, accepted for compatibility with the GAR
+        interface and ignored by this implementation.
 
     Returns
     -------
     torch.Tensor
-        Coordinate-wise median of all input gradients. Non-finite values are
-        not excluded before computing the median.
+        Coordinate-wise median of all input gradients.
 
     Notes
     -----
-    The output tensor is a new tensor, not aliasing any input tensor.
+    The returned tensor is newly computed and does not alias any input tensor.
     """
     return torch.stack(gradients).median(dim=0)[0]
 
 
 def aggregate_native(gradients, **kwargs):
     """
-    Compute the coordinate-wise median using native (C++/CUDA) acceleration.
+    Compute the coordinate-wise median using native C++/CUDA acceleration.
 
     Parameters
     ----------
     gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, accepted for compatibility with the GAR
+        interface and ignored by this implementation.
 
     Returns
     -------
@@ -128,19 +129,21 @@ def aggregate_native(gradients, **kwargs):
 
 def check(gradients, **kwargs):
     """
-    Check parameter validity for the median rule.
+    Check whether the median rule can be used with the given parameters.
 
     Parameters
     ----------
     gradients : list
         Non-empty list of gradients to aggregate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, accepted for compatibility with the GAR
+        interface and ignored by this check.
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
         return (
@@ -150,22 +153,23 @@ def check(gradients, **kwargs):
 
 def upper_bound(n, f, d):
     """
-    Compute the theoretical upper bound on the ratio non-Byzantine standard
-    deviation / norm to use this rule.
+    Compute the theoretical coordinate-wise median robustness bound.
 
     Parameters
     ----------
     n : int
-        Number of workers (Byzantine + non-Byzantine).
+        Total number of workers, including Byzantine workers.
     f : int
         Expected number of Byzantine workers.
     d : int
-        Dimension of the gradient space.
+        Gradient dimension. Accepted for compatibility with the GAR metadata
+        interface; the current formula does not depend on it.
 
     Returns
     -------
     float
-        Theoretical upper-bound value.
+        Upper bound on the ratio between non-Byzantine standard deviation and
+        gradient norm.
 
     Notes
     -----
@@ -174,9 +178,6 @@ def upper_bound(n, f, d):
     .. math::
 
         \\frac{1}{\\sqrt{n - f}}
-
-    This bound applies under the assumption that Byzantine gradients cannot
-    influence the median more than this ratio.
     """
     return 1 / math.sqrt(n - f)
 

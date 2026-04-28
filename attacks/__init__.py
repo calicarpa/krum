@@ -14,8 +14,11 @@
 ###
 
 """
-This module provides a collection of Byzantine attack strategies for testing
-the robustness of distributed learning algorithms.
+Byzantine attack registry used to evaluate aggregation-rule robustness.
+
+Each attack combines a keyword-only generation function with a validation
+function. Registered attacks are loaded dynamically and exposed as module-level
+callables.
 
 Contract
 --------
@@ -33,7 +36,7 @@ Each attack MUST:
 9. MAY reuse the same Byzantine tensor object when all generated gradients are identical
 
 Each attack MUST provide a ``check`` function that validates parameters and
-returns ``None`` if valid, or an error message if invalid.
+returns ``None`` when valid, or a user-facing error message otherwise.
 
 The module exposes three variants for each attack:
 
@@ -54,16 +57,18 @@ import tools
 
 def register(name, unchecked, check):
     """
-    Simple registration-wrapper helper.
+    Register a Byzantine attack.
 
     Parameters
     ----------
     name : str
-        Attack name.
+        User-visible attack name.
     unchecked : callable
-        Associated function (see module description).
+        Attack implementation without parameter checks. It must return exactly
+        ``f_real`` Byzantine gradients.
     check : callable
-        Parameter validity check function.
+        Validation function associated with ``unchecked``. It must return
+        ``None`` when parameters are valid, or an error message otherwise.
     """
     global attacks
     # Check if name already in use

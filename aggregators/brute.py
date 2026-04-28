@@ -14,21 +14,23 @@
 ###
 
 """
-The Brute aggregation rule finds the optimal subset of :math:`n - f` gradients
-(with smallest diameter) by exhaustively checking all possible combinations.
-The "diameter" of a set is the maximum pairwise distance between any two
-gradients in that set.
+The Brute aggregation rule exhaustively searches all subsets of
+:math:`n - f` gradients and selects the subset with the smallest finite
+diameter. The diameter of a subset is the maximum pairwise distance between
+any two gradients in that subset.
 
 Use Case
 --------
-Theoretical baseline for evaluating other aggregation rules.
-Provides optimal Byzantine resilience but with exponential complexity.
+Theoretical baseline for evaluating other aggregation rules. Brute provides
+strong Byzantine resilience guarantees, but its combinatorial search makes it
+practical only for small worker counts or controlled experiments.
 
 Properties
 ----------
-- Exhaustive search: Checks all possible :math:`\\binom{n}{n-f}` subsets.
-- Optimal: Guarantees the smallest possible diameter among all valid subsets.
-- Not scalable: Only practical for small :math:`n` or research purposes.
+- Exhaustive search: evaluates every :math:`\\binom{n}{n-f}` candidate subset.
+- Optimal selection: returns a smallest-diameter valid subset under the explored
+  objective.
+- Limited scalability: intended for small :math:`n` or research baselines.
 
 Theoretical Bound
 -----------------
@@ -82,12 +84,12 @@ except ImportError:
 
 def _compute_selection(gradients, f, **kwargs):
     """
-    Find the subset with smallest diameter.
+    Select the gradient indices forming the smallest-diameter subset.
 
     Parameters
     ----------
     gradients : list of torch.Tensor
-        Non-empty list of gradients.
+        Non-empty list of candidate gradients.
     f : int
         Number of Byzantine gradients to tolerate.
     **kwargs : dict
@@ -95,8 +97,12 @@ def _compute_selection(gradients, f, **kwargs):
 
     Returns
     -------
-    tuple
-        Indices of the selected gradients.
+    tuple of int
+        Indices of the selected :math:`n - f` gradients.
+
+    Notes
+    -----
+    Candidate subsets containing non-finite pairwise distances are ignored.
     """
     n = len(gradients)
     # Compute all pairwise distances
@@ -147,11 +153,12 @@ def aggregate(gradients, f, **kwargs):
     Returns
     -------
     torch.Tensor
-        Average of the selected subset with smallest diameter.
+        Mean of the selected :math:`n - f` gradients with smallest finite
+        diameter.
 
     Notes
     -----
-    The output tensor is a new tensor, not aliasing any input tensor.
+    The returned tensor is newly computed and does not alias any input tensor.
     """
     sel_iset = _compute_selection(gradients, f, **kwargs)
     return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
@@ -159,7 +166,7 @@ def aggregate(gradients, f, **kwargs):
 
 def aggregate_native(gradients, f, **kwargs):
     """
-    Compute the Brute aggregation using native (C++/CUDA) acceleration.
+    Compute the Brute aggregation using native C++/CUDA acceleration.
 
     Parameters
     ----------
@@ -173,14 +180,14 @@ def aggregate_native(gradients, f, **kwargs):
     Returns
     -------
     torch.Tensor
-        Average of the selected subset.
+        Mean of the subset selected by the native Brute implementation.
     """
     return native.brute.aggregate(gradients, f)
 
 
 def check(gradients, f, **kwargs):
     """
-    Check parameter validity for Brute rule.
+    Check parameter validity for the Brute aggregation rule.
 
     Parameters
     ----------
@@ -193,8 +200,9 @@ def check(gradients, f, **kwargs):
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
         return (
@@ -209,13 +217,12 @@ def check(gradients, f, **kwargs):
 
 def upper_bound(n, f, d):
     """
-    Compute the theoretical upper bound on the ratio non-Byzantine standard
-    deviation / norm to use this rule.
+    Compute the theoretical Brute resilience bound.
 
     Parameters
     ----------
     n : int
-        Number of workers (Byzantine + non-Byzantine).
+        Total number of workers, including Byzantine workers.
     f : int
         Expected number of Byzantine workers.
     d : int
@@ -224,30 +231,31 @@ def upper_bound(n, f, d):
     Returns
     -------
     float
-        Theoretical upper-bound value.
+        Upper bound on the ratio between non-Byzantine standard deviation and
+        gradient norm under which the rule is expected to apply.
     """
     return (n - f) / (math.sqrt(8) * f)
 
 
 def influence(honests, attacks, f, **kwargs):
     """
-    Compute the ratio of accepted Byzantine gradients.
+    Compute the ratio of Byzantine gradients selected by Brute.
 
     Parameters
     ----------
     honests : list of torch.Tensor
         Non-empty list of honest gradients.
     attacks : list of torch.Tensor
-        List of attack (Byzantine) gradients.
+        List of attack, or Byzantine, gradients.
     f : int
         Number of Byzantine gradients to tolerate.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments forwarded to the selection helper.
 
     Returns
     -------
     float
-        Ratio of Byzantine gradients in the final aggregation.
+        Fraction of selected gradients that come from ``attacks``.
     """
     gradients = honests + attacks
     # Compute the selection set

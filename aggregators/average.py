@@ -27,7 +27,8 @@ behavior is expected.
 Limitations
 -----------
 
-Vulnerable to any Byzantine attack. A single malicious gradient can completely skew the result.
+Vulnerable to any Byzantine attack. A single malicious gradient can completely
+skew the result.
 
 Example
 -------
@@ -48,15 +49,15 @@ from . import register
 
 def aggregate(gradients, **kwargs):
     """
-    Compute the arithmetic mean of all gradients.
+    Compute the arithmetic mean of all submitted gradients.
 
     Parameters
     ----------
     gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate. Each gradient should be
         a 1-D tensor representing the flattened model parameters.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this rule.
 
     Returns
     -------
@@ -78,13 +79,14 @@ def check(gradients, **kwargs):
     ----------
     gradients : list
         Non-empty list of gradients to aggregate.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this rule.
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
         return (
@@ -106,8 +108,8 @@ def influence(honests, attacks, **kwargs):
         Non-empty list of honest gradients.
     attacks : list of torch.Tensor
         List of attack (Byzantine) gradients.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+    **kwargs : object
+        Additional keyword arguments, ignored by this rule.
 
     Returns
     -------

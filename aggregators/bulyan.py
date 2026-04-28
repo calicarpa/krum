@@ -14,43 +14,41 @@
 ###
 
 """
-Bulyan is a sophisticated Byzantine-resilient aggregation rule that combines
-Multi-Krum selection with a coordinate-wise trimmed mean. It works in two
-stages:
+Bulyan aggregation rule built on top of Multi-Krum.
 
-1. **Multi-Krum Selection**: Select :math:`n - 2f` gradients using a modified
-   Multi-Krum criterion. Iteratively selects gradients that are closest to the
-   current center.
+Bulyan combines distance-based gradient selection with coordinate-wise
+robust averaging. It first selects a candidate set using a Multi-Krum-like
+criterion, then aggregates each coordinate from the values closest to the
+coordinate-wise median.
 
-2. **Coordinate-wise Trimmed Mean**: For each coordinate, compute the median
-   of the selected gradients, then average the :math:`n - 4f` values closest
-   to that median.
+Algorithm
+---------
+
+1. Select candidate gradients with the smallest Multi-Krum scores.
+2. For each coordinate, compute the median over the selected candidates.
+3. Average the values closest to that median.
 
 Use Case
 --------
 
-Strong Byzantine-resilience with better theoretical guarantees
-than standalone Multi-Krum.
+Use Bulyan when stronger Byzantine resilience is needed than plain Multi-Krum
+can provide, and when the worker count is high enough to satisfy the stricter
+``n >= 4f + 3`` requirement.
 
 Properties
 ----------
 
-- Two-stage: Combines geometric selection with coordinate-wise robustness.
-- Higher complexity: Requires at least :math:`4f + 3` workers.
-- Stronger guarantees: More resilient to sophisticated attacks than Krum.
-
-Theoretical Bound
------------------
-
-Bulyan provides guarantees under the same condition as Multi-Krum, but with
-stronger resilience to attacks that try to mimic honest gradients.
+- Two-stage aggregation combining geometric and coordinate-wise robustness.
+- Requires at least :math:`4f + 3` submitted gradients.
+- Uses only newly allocated output tensors and does not return aliases of input
+  gradients.
 
 Parameters
 ----------
 
 m : int, optional
-    Number of gradients to consider in each Multi-Krum selection step.
-    Default is ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
+    Number of gradients to consider in each Multi-Krum selection step. Defaults
+    to ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
 
 Example
 -------
@@ -90,29 +88,31 @@ except ImportError:
 
 def aggregate(gradients, f, m=None, **kwargs):
     """
-    Compute the Bulyan aggregation.
+    Compute the Bulyan aggregate.
 
     Parameters
     ----------
     gradients : list of torch.Tensor
-        Non-empty list of gradients to aggregate.
+        Non-empty list of flattened gradients to aggregate. All tensors must
+        have the same shape, dtype, and device.
     f : int
         Number of Byzantine gradients to tolerate. Must satisfy
         ``1 <= f <= (n - 3) // 4`` where ``n = len(gradients)``.
     m : int, optional
-        Number of gradients to consider in Multi-Krum selection.
-        Default is ``n - f - 2``.
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. Defaults to ``n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this implementation.
 
     Returns
     -------
     torch.Tensor
-        The Bulyan aggregated gradient.
+        Bulyan-aggregated gradient.
 
     Notes
     -----
-    The output tensor is a new tensor, not aliasing any input tensor.
+    The returned tensor is newly allocated and does not alias any input tensor.
     """
     n = len(gradients)
     d = gradients[0].shape[0]
@@ -172,23 +172,25 @@ def aggregate(gradients, f, m=None, **kwargs):
 
 def aggregate_native(gradients, f, m=None, **kwargs):
     """
-    Compute the Bulyan aggregation using native (C++/CUDA) acceleration.
+    Compute the Bulyan aggregate using native C++/CUDA acceleration.
 
     Parameters
     ----------
     gradients : list of torch.Tensor
-        Non-empty list of gradients to aggregate.
+        Non-empty list of flattened gradients to aggregate.
     f : int
         Number of Byzantine gradients to tolerate.
     m : int, optional
-        Number of gradients to consider.
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. Defaults to ``n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this implementation.
 
     Returns
     -------
     torch.Tensor
-        The Bulyan aggregated gradient.
+        Bulyan-aggregated gradient.
     """
     # Defaults
     if m is None:
@@ -199,7 +201,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
 
 def check(gradients, f, m=None, **kwargs):
     """
-    Check parameter validity for Bulyan rule.
+    Check whether the Bulyan parameters satisfy the GAR contract.
 
     Parameters
     ----------
@@ -208,14 +210,17 @@ def check(gradients, f, m=None, **kwargs):
     f : int
         Number of Byzantine gradients to tolerate.
     m : int, optional
-        Number of gradients to consider.
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. If provided, must satisfy ``1 <= m <= n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this check.
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
         return (
@@ -237,22 +242,23 @@ def check(gradients, f, m=None, **kwargs):
 
 def upper_bound(n, f, d):
     """
-    Compute the theoretical upper bound on the ratio non-Byzantine standard
-    deviation / norm to use this rule.
+    Compute Bulyan's theoretical resilience upper bound.
 
     Parameters
     ----------
     n : int
-        Number of workers (Byzantine + non-Byzantine).
+        Total number of workers, including Byzantine workers.
     f : int
         Expected number of Byzantine workers.
     d : int
-        Dimension of the gradient space.
+        Gradient dimension. Accepted for compatibility with the GAR metadata
+        interface; the current formula does not depend on it.
 
     Returns
     -------
     float
-        Theoretical upper-bound value.
+        Upper bound on the ratio between non-Byzantine standard deviation and
+        gradient norm under the Bulyan assumptions.
     """
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 

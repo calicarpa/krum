@@ -1,50 +1,57 @@
 # coding: utf-8
 ###
- # @file   identical.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Collection of attacks which submit f identical gradients, which consist in
- # adding as much of one attack vector to the average of the honest gradients.
- #
- # These attacks have been introduced in/adapted from the following papers:
- # bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
- #          The Hidden Vulnerability of Distributed Learning in Byzantium.
- #          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
- # empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
- #          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
- #          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
- # little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
- #          A Little Is Enough: Circumventing Defenses For Distributed Learning.
- #          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
+# @file   identical.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Collection of attacks which submit f identical gradients, which consist in
+# adding as much of one attack vector to the average of the honest gradients.
+#
+# These attacks have been introduced in/adapted from the following papers:
+# bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
+#          The Hidden Vulnerability of Distributed Learning in Byzantium.
+#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
+# empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
+#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
+#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
+# little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
+#          A Little Is Enough: Circumventing Defenses For Distributed Learning.
+#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
 ###
 
 """
-This attack generates multiple copies of the same Byzantine gradient. The attack
-vector is computed based on the honest gradients and added to their average
-with a specific factor.
+Identical-gradient Byzantine attacks.
 
-Three attack directions are available:
+These attacks generate ``f_real`` references to the same newly created
+Byzantine gradient. The gradient is built from the average honest gradient plus
+a scaled attack direction.
 
-1. **Bulyan**: Uses a vector of ones (or single coordinate) as attack direction
-2. **Empire**: Uses the negative of the average gradient
-3. **Little**: Uses the standard deviation of gradients as attack direction
+Available attack directions are:
+
+1. **Bulyan**: unit vector, optionally restricted to one coordinate.
+2. **Empire**: negative average honest gradient.
+3. **Little**: coordinate-wise standard deviation of honest gradients.
 
 Parameters
 ----------
-
 factor : float or int, optional
-    Attack scaling factor. Positive values add the attack vector, negative values
-    trigger automatic optimization to find the best factor. Default is -16 (evaluates
-    up to 16 factors to find optimal).
+    Attack scaling factor. Positive values use the provided factor directly.
+    Negative integers trigger a line search over ``-factor`` evaluations.
+    Defaults to ``-16``.
 negative : bool, optional
-    Whether to use negative factor. Default is False.
+    Whether to negate the selected factor. Defaults to ``False``.
+
+Notes
+-----
+The returned list may contain repeated references to the same Byzantine tensor,
+which is allowed by the attack contract for identical-gradient attacks. The
+tensor itself is newly created and does not alias any honest input gradient.
 
 Example
 -------
@@ -52,17 +59,17 @@ Example
 >>> import torch
 >>> from aggregators import average
 >>> from attacks import little
->>> honest_grads = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
+>>> grad_honests = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
 >>> byzantine_grads = little(
-...     grad_honests=honest_grads,
+...     grad_honests=grad_honests,
 ...     f_decl=1,
 ...     f_real=1,
 ...     defense=average,
 ...     model=None,
 ...     factor=1.5,
 ... )
->>> print(byzantine_grads[0])
-tensor([...])  # Modified gradient based on std dev
+>>> len(byzantine_grads)
+1
 """
 
 import math
@@ -79,17 +86,18 @@ from . import register
 
 def make_attack(compute_direction):
     """
-    Create the attack gradient generation closure.
+    Create an identical-gradient attack from a direction function.
 
     Parameters
     ----------
     compute_direction : callable
-        Attack vector computation function.
+        Function computing the attack direction from stacked honest gradients and
+        their average.
 
     Returns
     -------
     callable
-        Attack gradient generation closure.
+        Attack function compatible with the attack registration contract.
     """
 
     def attack(
@@ -103,33 +111,34 @@ def make_attack(compute_direction):
         **kwargs,
     ):
         """
-        Generate the attack gradients.
+        Generate identical Byzantine gradients.
 
         Parameters
         ----------
         grad_honests : list of torch.Tensor
             Non-empty list of honest gradients.
-        f_decl : int
-            Number of declared Byzantine gradients.
         f_real : int
             Number of Byzantine gradients to generate.
+        f_decl : int
+            Number of declared Byzantine gradients passed to ``defense``.
         defense : callable
-            Aggregation rule in use to defeat.
+            Aggregation rule to defeat.
         model : torch.nn.Module
-            Model with valid default dataset and loss set.
+            Model forwarded to ``defense``.
         factor : float or int, optional
-            Attack factor. Positive for fixed, negative for auto-optimization.
+            Attack factor. Positive values are used directly; negative integers
+            trigger automatic factor optimization.
         negative : bool, optional
-            Use negative factor. Default is False.
-        **kwargs : dict
-            Additional keyword arguments.
+            Whether to negate the selected factor. Defaults to ``False``.
+        **kwargs : object
+            Additional keyword arguments forwarded to ``compute_direction``.
 
         Returns
         -------
         list of torch.Tensor
-            Generated Byzantine gradients. For identical attacks, each list entry
-            references the same newly-created Byzantine tensor; it does not alias
-            any honest input gradient.
+            Generated Byzantine gradients. Each entry references the same newly
+            created Byzantine tensor and does not alias any honest input
+            gradient.
         """
         # Fast path
         if f_real == 0:
@@ -172,7 +181,7 @@ def make_attack(compute_direction):
 
 def check(grad_honests, f_real, defense, factor=-16, negative=False, **kwargs):
     """
-    Check parameter validity for this attack template.
+    Check parameter validity for identical-gradient attacks.
 
     Parameters
     ----------
@@ -181,18 +190,19 @@ def check(grad_honests, f_real, defense, factor=-16, negative=False, **kwargs):
     f_real : int
         Number of Byzantine gradients to generate.
     defense : callable
-        Aggregation rule in use to defeat.
+        Aggregation rule to defeat.
     factor : float or int, optional
-        Attack factor. Default is -16.
+        Attack factor. Defaults to ``-16``.
     negative : bool, optional
-        Use negative factor. Default is False.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+        Whether to negate the selected factor. Defaults to ``False``.
+    **kwargs : object
+        Additional keyword arguments, ignored by this check.
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(grad_honests, list) or len(grad_honests) == 0:
         return "Expected a non-empty list of honest gradients, got %r" % (grad_honests,)
@@ -223,23 +233,27 @@ def check(grad_honests, f_real, defense, factor=-16, negative=False, **kwargs):
 
 def bulyan(grad_stck, grad_avg, target_idx=-1, **kwargs):
     """
-    Compute the attack vector adapted from "The Hidden Vulnerability".
+    Compute the Bulyan attack direction.
+
+    This direction is adapted from "The Hidden Vulnerability of Distributed
+    Learning in Byzantium".
 
     Parameters
     ----------
     grad_stck : torch.Tensor
         Stacked honest gradients.
     grad_avg : torch.Tensor
-        Average of honest gradients.
+        Average honest gradient.
     target_idx : int or str, optional
-        Index of the targeted coordinate, "all" for all. Default is -1 (last coordinate).
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+        Targeted coordinate index, or ``"all"`` to target every coordinate.
+        Defaults to ``-1``.
+    **kwargs : object
+        Additional keyword arguments, ignored by this direction.
 
     Returns
     -------
     torch.Tensor
-        Attack vector.
+        Attack direction.
     """
     if target_idx == "all":
         return torch.ones_like(grad_avg)
@@ -254,42 +268,47 @@ def bulyan(grad_stck, grad_avg, target_idx=-1, **kwargs):
 
 def empire(grad_stck, grad_avg, **kwargs):
     """
-    Compute the attack vector adapted from "Fall of Empires".
+    Compute the Empire attack direction.
+
+    This direction is adapted from "Fall of Empires".
 
     Parameters
     ----------
     grad_stck : torch.Tensor
         Stacked honest gradients.
     grad_avg : torch.Tensor
-        Average of honest gradients.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+        Average honest gradient.
+    **kwargs : object
+        Additional keyword arguments, ignored by this direction.
 
     Returns
     -------
     torch.Tensor
-        Attack vector (negative of average).
+        Attack direction, equal to the negative average honest gradient.
     """
     return grad_avg.neg()
 
 
 def little(grad_stck, grad_avg, **kwargs):
     """
-    Compute the attack vector adapted from "A Little is Enough".
+    Compute the Little attack direction.
+
+    This direction is adapted from "A Little Is Enough".
 
     Parameters
     ----------
     grad_stck : torch.Tensor
         Stacked honest gradients.
     grad_avg : torch.Tensor
-        Average of honest gradients.
-    **kwargs : dict
-        Additional keyword arguments (ignored).
+        Average honest gradient.
+    **kwargs : object
+        Additional keyword arguments, ignored by this direction.
 
     Returns
     -------
     torch.Tensor
-        Attack vector (square root of variance).
+        Attack direction, computed as the coordinate-wise standard deviation of
+        honest gradients.
     """
     return grad_stck.var(dim=0).sqrt_()
 

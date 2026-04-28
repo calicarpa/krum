@@ -30,7 +30,7 @@ Each aggregation rule MUST:
 5. NOT return a tensor that aliases any input tensor
 
 Each rule MUST provide a ``check`` function that validates parameters and
-returns ``None`` if valid, or an error message if invalid.
+returns ``None`` when valid, or a user-facing error message otherwise.
 
 The module exposes three variants for each rule:
 
@@ -46,6 +46,7 @@ Additional metadata available on each rule:
 """
 
 import pathlib
+
 import torch
 
 import tools
@@ -53,35 +54,46 @@ import tools
 # ---------------------------------------------------------------------------- #
 # Automated GAR loader
 
+
 def make_gar(unchecked, check, upper_bound=None, influence=None):
     """
-    GAR wrapper helper.
+    Wrap an unchecked GAR with validation and metadata.
 
     Parameters
     ----------
     unchecked : callable
-        Associated function (see module description).
+        Aggregation function implementing the rule without parameter checks.
     check : callable
-        Parameter validity check function.
+        Validation function. It must return ``None`` when parameters are valid,
+        or an error message otherwise.
     upper_bound : callable, optional
-        Compute the theoretical upper bound on the ratio non-Byzantine standard
-        deviation / norm to use this aggregation rule: (n, f, d) -> float.
+        Function computing the theoretical upper bound on the ratio between
+        non-Byzantine standard deviation and gradient norm. The expected
+        signature is ``(n, f, d) -> float``.
     influence : callable, optional
-        Attack acceptance ratio function.
+        Function computing the accepted Byzantine-gradient ratio for a given
+        set of honest and attack gradients.
 
     Returns
     -------
     callable
-        Wrapped GAR.
+        Checked or unchecked GAR selected according to ``__debug__``. The
+        returned callable is annotated with ``check``, ``checked``,
+        ``unchecked``, ``upper_bound``, and ``influence`` attributes.
     """
+
     # Closure wrapping the call with checks
     def checked(**kwargs):
         # Check parameter validity
         message = check(**kwargs)
         if message is not None:
-            raise tools.UserException("Aggregation rule %r cannot be used with the given parameters: %s" % (name, message))
+            raise tools.UserException(
+                "Aggregation rule %r cannot be used with the given parameters: %s"
+                % (name, message)
+            )
         # Aggregation (hard to assert return value, duck-typing is allowed...)
         return unchecked(**kwargs)
+
     # Select which function to call by default
     func = checked if __debug__ else unchecked
     # Bind all the (sub) functions to the selected function
@@ -93,22 +105,23 @@ def make_gar(unchecked, check, upper_bound=None, influence=None):
     # Return the selected function with the associated name
     return func
 
+
 def register(name, unchecked, check, upper_bound=None, influence=None):
     """
-    Simple registration-wrapper helper.
+    Register a gradient aggregation rule.
 
     Parameters
     ----------
     name : str
-        GAR name.
+        User-visible GAR name.
     unchecked : callable
-        Associated function (see module description).
+        Aggregation function implementing the rule without parameter checks.
     check : callable
-        Parameter validity check function.
+        Validation function associated with ``unchecked``.
     upper_bound : callable, optional
-        Compute the theoretical upper bound.
+        Function computing the rule's theoretical upper bound.
     influence : callable, optional
-        Attack acceptance ratio function.
+        Function computing the accepted Byzantine-gradient ratio.
     """
     global gars
     # Check if name already in use
@@ -116,7 +129,10 @@ def register(name, unchecked, check, upper_bound=None, influence=None):
         tools.warning("Unable to register %r GAR: name already in use" % name)
         return
     # Export the selected function with the associated name
-    gars[name] = make_gar(unchecked, check, upper_bound=upper_bound, influence=influence)
+    gars[name] = make_gar(
+        unchecked, check, upper_bound=upper_bound, influence=influence
+    )
+
 
 # Registered rules (mapping name -> aggregation rule)
 gars = dict()

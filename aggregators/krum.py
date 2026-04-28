@@ -14,27 +14,27 @@
 ###
 
 """
-Krum (and its variant Multi-Krum) is a distance-based Byzantine-resilient
-aggregation rule. It works by:
+Krum and Multi-Krum are distance-based Byzantine-resilient aggregation rules.
 
-1. Computing pairwise distances between all gradients
-2. For each gradient, summing the distances to its :math:`n - f - 1` nearest neighbors (where :math:`f` is the number of Byzantine workers)
-3. Selecting the :math:`m` gradients with the smallest total distances
-4. Averaging the selected gradients
+For each candidate gradient, the rule computes a score by summing the distances
+to its :math:`n - f - 1` nearest neighbours. It then selects the :math:`m`
+lowest-scoring gradients and returns their average. Honest gradients are
+expected to cluster together, while Byzantine gradients should receive larger
+scores when they are far from the honest majority.
 
-The intuition is that honest gradients will be close to each other, while
-Byzantine gradients will be far from the honest majority.
+Use Case
+--------
 
-**Use case:** General Byzantine-resilient aggregation when the attack model
-assumes that Byzantine gradients are significantly different from honest ones.
+General Byzantine-resilient aggregation when Byzantine gradients are expected to
+be geometrically separated from honest gradients.
 
 Properties
 ----------
 
-- Distance-based: Relies on geometric properties of gradients.
-- Selects subset: Not all gradients are used in the final average.
-- Theoretical guarantee: Provides bounds under certain assumptions on the
-  Byzantine attack.
+- Distance-based: Relies on pairwise gradient distances.
+- Selects a subset: Not all gradients contribute to the final average.
+- Multi-Krum: Averages the best :math:`m` candidates instead of selecting only
+  one candidate.
 
 Theoretical Bound
 -----------------
@@ -47,16 +47,16 @@ The Multi-Krum rule provides guarantees when:
 
 where:
 
-- :math:`n` is the total number of workers
-- :math:`f` is the number of Byzantine workers
-- :math:`\\sigma` is the standard deviation of honest gradients
-- :math:`\\|g\\|` is the norm of the honest gradient
+- :math:`n` is the total number of workers.
+- :math:`f` is the number of Byzantine workers.
+- :math:`\\sigma` is the standard deviation of honest gradients.
+- :math:`\\|g\\|` is the norm of the honest gradient.
 
 Parameters
 ----------
 
 m : int, optional
-    Number of gradients to select for averaging. Default is ``n - f - 2``.
+    Number of gradients to select for averaging. Defaults to ``n - f - 2``.
     Must satisfy ``1 <= m <= n - f - 2``.
 
 Example
@@ -66,12 +66,13 @@ Example
 >>> from aggregators import krum
 >>> gradients = [
 ...     torch.tensor([1., 2., 3.]),
-...     torch.tensor([1.1, 2.1, 3.1]),  # close to first
-...     torch.tensor([0.9, 1.9, 2.9]),  # close to first
-...     torch.tensor([1.2, 2.2, 3.2]),  # close to first
-...     torch.tensor([100., 200., 300.])  # far (Byzantine)
+...     torch.tensor([1.1, 2.1, 3.1]),
+...     torch.tensor([0.9, 1.9, 2.9]),
+...     torch.tensor([1.2, 2.2, 3.2]),
+...     torch.tensor([100., 200., 300.]),
 ... ]
 >>> result = krum(gradients=gradients, f=1, m=2)
+>>> result
 tensor([1.0500, 2.0500, 3.0500])
 """
 
@@ -95,7 +96,7 @@ except ImportError:
 
 def _compute_scores(gradients, f, m, **kwargs):
     """
-    Compute Multi-Krum scores for all gradients.
+    Compute Multi-Krum scores for all candidate gradients.
 
     Parameters
     ----------
@@ -106,12 +107,13 @@ def _compute_scores(gradients, f, m, **kwargs):
     m : int
         Number of gradients to select.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
-    list of tuple
-        List of (score, gradient) sorted by increasing scores.
+    list of tuple[float, torch.Tensor]
+        Candidate gradients paired with their scores, sorted by increasing
+        score.
     """
     n = len(gradients)
     # Compute all pairwise distances
@@ -140,7 +142,7 @@ def _compute_scores(gradients, f, m, **kwargs):
 
 def aggregate(gradients, f, m=None, **kwargs):
     """
-    Compute the Multi-Krum aggregation.
+    Aggregate gradients with Multi-Krum.
 
     Parameters
     ----------
@@ -150,19 +152,19 @@ def aggregate(gradients, f, m=None, **kwargs):
         Number of Byzantine gradients to tolerate. Must satisfy
         ``1 <= f <= (n - 3) // 2`` where ``n = len(gradients)``.
     m : int, optional
-        Number of gradients to select for averaging. Default is
+        Number of gradients to select for averaging. Defaults to
         ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
     torch.Tensor
-        Average of the selected ``m`` gradients with smallest Krum scores.
+        Average of the selected ``m`` gradients with the smallest Krum scores.
 
     Notes
     -----
-    The output tensor is a new tensor, not aliasing any input tensor.
+    The output tensor is newly created and does not alias any input tensor.
     """
     # Defaults
     if m is None:
@@ -174,7 +176,7 @@ def aggregate(gradients, f, m=None, **kwargs):
 
 def aggregate_native(gradients, f, m=None, **kwargs):
     """
-    Compute the Multi-Krum aggregation using native (C++/CUDA) acceleration.
+    Aggregate gradients with the native Multi-Krum implementation.
 
     Parameters
     ----------
@@ -183,9 +185,9 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     f : int
         Number of Byzantine gradients to tolerate.
     m : int, optional
-        Number of gradients to select.
+        Number of gradients to select. Defaults to ``n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
@@ -201,7 +203,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
 
 def check(gradients, f, m=None, **kwargs):
     """
-    Check parameter validity for Multi-Krum rule.
+    Check whether Multi-Krum can be used with the given parameters.
 
     Parameters
     ----------
@@ -212,12 +214,13 @@ def check(gradients, f, m=None, **kwargs):
     m : int, optional
         Number of gradients to select.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments, ignored by this implementation.
 
     Returns
     -------
-    None or str
-        None if valid, otherwise error message string.
+    str or None
+        ``None`` when the parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
         return (
@@ -239,47 +242,48 @@ def check(gradients, f, m=None, **kwargs):
 
 def upper_bound(n, f, d):
     """
-    Compute the theoretical upper bound on the ratio non-Byzantine standard
-    deviation / norm to use this rule.
+    Compute the theoretical Multi-Krum robustness bound.
 
     Parameters
     ----------
     n : int
-        Number of workers (Byzantine + non-Byzantine).
+        Number of workers, including honest and Byzantine workers.
     f : int
         Expected number of Byzantine workers.
     d : int
-        Dimension of the gradient space.
+        Dimension of the gradient space. This parameter is accepted for the
+        standard GAR metadata contract and is not used by this formula.
 
     Returns
     -------
     float
-        Theoretical upper-bound value.
+        Upper bound on the ratio between non-Byzantine standard deviation and
+        gradient norm.
     """
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 
 
 def influence(honests, attacks, f, m=None, **kwargs):
     """
-    Compute the ratio of accepted Byzantine gradients.
+    Compute the ratio of Byzantine gradients selected by Multi-Krum.
 
     Parameters
     ----------
     honests : list of torch.Tensor
         Non-empty list of honest gradients.
     attacks : list of torch.Tensor
-        List of attack (Byzantine) gradients.
+        List of attack, or Byzantine, gradients.
     f : int
         Number of Byzantine gradients to tolerate.
     m : int, optional
-        Number of gradients to select.
+        Number of gradients to select. Defaults to ``n - f - 2``.
     **kwargs : dict
-        Additional keyword arguments (ignored).
+        Additional keyword arguments forwarded to score computation.
 
     Returns
     -------
     float
-        Ratio of Byzantine gradients in the final aggregation.
+        Ratio of selected gradients that come from ``attacks``.
     """
     gradients = honests + attacks
     # Defaults
