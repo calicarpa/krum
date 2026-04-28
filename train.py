@@ -18,17 +18,14 @@ import tools
 tools.success("Module loading...")
 
 import argparse
-import collections
 import json
 import math
 import os
 import pathlib
-import random
 import signal
 import sys
 import torch
 import torchvision
-import traceback
 
 import aggregators
 import attacks

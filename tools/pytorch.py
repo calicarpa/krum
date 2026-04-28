@@ -75,14 +75,12 @@ __all__ = [
 ]
 
 import io
-import math
 import time
 import torch
 import types
 
 from typing import Callable
 
-import tools
 
 # ---------------------------------------------------------------------------- #
 # "Flatten" and "relink" operations

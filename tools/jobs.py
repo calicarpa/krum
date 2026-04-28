@@ -47,12 +47,9 @@ Example
 
 __all__ = ["dict_to_cmdlist", "Command", "Jobs"]
 
-import shlex
-import subprocess
 import threading
 from pathlib import Path
 
-import tools
 
 # ---------------------------------------------------------------------------- #
 # Helpers

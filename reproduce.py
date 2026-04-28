@@ -21,7 +21,6 @@ import argparse
 import pathlib
 import signal
 import sys
-import traceback
 
 import torch
 

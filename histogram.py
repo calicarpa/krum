@@ -16,17 +16,13 @@
 import tools
 
 import aggregators
-import experiments
 
 import atexit
 import json
-import math
-import matplotlib
 import matplotlib.pyplot as plt
 import pathlib
 import pandas
 import threading
-import torch
 
 # Change common font for the default LaTeX one
 plt.rcParams["font.family"] = "Latin Modern Roman"
@@ -42,7 +38,7 @@ try:
     import gi
 
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk, Gdk, GLib
+    from gi.repository import Gtk, GLib
 
     gtk_lazy_lock = threading.Lock()
     gtk_lazy_main = None
@@ -69,7 +65,7 @@ try:
                 gtk_lazy_main = thread
         # Submit the job to the main loop
         GLib.idle_add(closure)
-except Exception as err:
+except Exception:
 
     def gtk_run(closure):
         """Sink in case GTK cannot be used.
