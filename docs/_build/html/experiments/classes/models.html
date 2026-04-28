@@ -148,15 +148,31 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="module-experiments.models.simples">
 <span id="models"></span><h1>Models<a class="headerlink" href="#module-experiments.models.simples" title="Link to this heading">¶</a></h1>
+<p>Simple neural-network models used for small-scale experiments.</p>
+<p>This module exposes four lightweight constructors — <a class="reference internal" href="#experiments.models.simples.full" title="experiments.models.simples.full"><code class="xref py py-func docutils literal notranslate"><span class="pre">full()</span></code></a>, <a class="reference internal" href="#experiments.models.simples.conv" title="experiments.models.simples.conv"><code class="xref py py-func docutils literal notranslate"><span class="pre">conv()</span></code></a>,
+<a class="reference internal" href="#experiments.models.simples.logit" title="experiments.models.simples.logit"><code class="xref py py-func docutils literal notranslate"><span class="pre">logit()</span></code></a> and <a class="reference internal" href="#experiments.models.simples.linear" title="experiments.models.simples.linear"><code class="xref py py-func docutils literal notranslate"><span class="pre">linear()</span></code></a> — that can be registered automatically by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">experiments.Model</span></code> loader because they are listed in <code class="docutils literal notranslate"><span class="pre">__all__</span></code>.
+Each constructor returns a ready-to-use <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Configuration</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s2">&quot;simples-full&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">))</span>
+</span></pre></div>
+</div>
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.models.simples.conv">
 <span class="sig-prename descclassname"><span class="pre">experiments.models.simples.</span></span><span class="sig-name descname"><span class="pre">conv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/models/simples.html#conv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.models.simples.conv" title="Link to this definition">¶</a></dt>
-<dd><p>Build a new simple, convolutional model.
-:param … Forwarded:
-:type … Forwarded: keyword-</p>
+<dd><p>Build a small convolutional model for MNIST.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Convolutional model</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Conv</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Conv</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>_Conv</strong> – A fresh convolutional model instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -164,12 +180,16 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.models.simples.full">
 <span class="sig-prename descclassname"><span class="pre">experiments.models.simples.</span></span><span class="sig-name descname"><span class="pre">full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/models/simples.html#full"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.models.simples.full" title="Link to this definition">¶</a></dt>
-<dd><p>Build a new simple, fully connected model.
-:param … Forwarded:
-:type … Forwarded: keyword-</p>
+<dd><p>Build a small fully-connected model for MNIST.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Fully connected model</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Full</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Full</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>_Full</strong> – A fresh fully-connected model instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -177,12 +197,16 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.models.simples.linear">
 <span class="sig-prename descclassname"><span class="pre">experiments.models.simples.</span></span><span class="sig-name descname"><span class="pre">linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/models/simples.html#linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.models.simples.linear" title="Link to this definition">¶</a></dt>
-<dd><p>Build a new simple, fully connected model.
-:param … Forwarded:
-:type … Forwarded: keyword-</p>
+<dd><p>Build a simple linear model.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Fully connected model</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Linear</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Linear</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>_Linear</strong> – A fresh linear model instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -190,12 +214,16 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py function">
 <dt class="sig sig-object py" id="experiments.models.simples.logit">
 <span class="sig-prename descclassname"><span class="pre">experiments.models.simples.</span></span><span class="sig-name descname"><span class="pre">logit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/experiments/models/simples.html#logit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.models.simples.logit" title="Link to this definition">¶</a></dt>
-<dd><p>Build a new simple, fully connected model.
-:param … Forwarded:
-:type … Forwarded: keyword-</p>
+<dd><p>Build a logistic-regression model.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Fully connected model</strong></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Logit</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">_Logit</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>_Logit</strong> – A fresh logistic-regression model instance.</p>
 </dd>
 </dl>
 </dd></dl>
