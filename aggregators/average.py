@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   average.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Simple arithmetic mean aggregation rule.
+# @file   average.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Simple arithmetic mean aggregation rule.
 ###
 
 """
@@ -97,7 +97,9 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
         )
 
 
-def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], **kwargs) -> float:
+def influence(
+    honests: list[torch.Tensor], attacks: list[torch.Tensor], **kwargs
+) -> float:
     """
     Compute the ratio of accepted Byzantine gradients.
 

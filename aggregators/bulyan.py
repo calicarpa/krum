@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   bulyan.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Bulyan over Multi-Krum GAR.
+# @file   bulyan.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Bulyan over Multi-Krum GAR.
 ###
 
 """
@@ -177,7 +177,9 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
     return avgmed
 
 
-def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+def aggregate_native(
+    gradients: list[torch.Tensor], f: int, m=None, **kwargs
+) -> torch.Tensor:
     """
     Compute the Bulyan aggregate using native C++/CUDA acceleration.
 

@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   __init__.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Loading of the local modules.
+# @file   __init__.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Loading of the local modules.
 ###
 
 """
@@ -57,7 +57,12 @@ from typing import Callable
 # Automated GAR loader
 
 
-def make_gar(unchecked: Callable, check: Callable, upper_bound: Callable | None = None, influence: Callable | None = None) -> Callable:
+def make_gar(
+    unchecked: Callable,
+    check: Callable,
+    upper_bound: Callable | None = None,
+    influence: Callable | None = None,
+) -> Callable:
     """
     Wrap an unchecked GAR with validation and metadata.
 
@@ -108,7 +113,13 @@ def make_gar(unchecked: Callable, check: Callable, upper_bound: Callable | None 
     return func
 
 
-def register(name: str, unchecked: Callable, check: Callable, upper_bound: Callable | None = None, influence: Callable | None = None) -> None:
+def register(
+    name: str,
+    unchecked: Callable,
+    check: Callable,
+    upper_bound: Callable | None = None,
+    influence: Callable | None = None,
+) -> None:
     """
     Register a gradient aggregation rule.
 

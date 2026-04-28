@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   misc.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Miscellaneous Python helpers.
+# @file   misc.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Miscellaneous Python helpers.
 ###
 
 """

@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   brute.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Brute GAR.
+# @file   brute.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Brute GAR.
 ###
 
 """
@@ -82,7 +82,9 @@ except ImportError:
 # Brute GAR
 
 
-def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple[int, ...]:
+def _compute_selection(
+    gradients: list[torch.Tensor], f: int, **kwargs
+) -> tuple[int, ...]:
     """
     Select the gradient indices forming the smallest-diameter subset.
 
@@ -164,7 +166,9 @@ def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor |
     return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
 
 
-def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
+def aggregate_native(
+    gradients: list[torch.Tensor], f: int, **kwargs
+) -> torch.Tensor | float:
     """
     Compute the Brute aggregation using native C++/CUDA acceleration.
 
@@ -237,7 +241,9 @@ def upper_bound(n: int, f: int, d: int) -> float:
     return (n - f) / (math.sqrt(8) * f)
 
 
-def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
+def influence(
+    honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs
+) -> float:
     """
     Compute the ratio of Byzantine gradients selected by Brute.
 

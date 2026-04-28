@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   krum.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Multi-Krum GAR.
+# @file   krum.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Multi-Krum GAR.
 ###
 
 """
@@ -100,7 +100,9 @@ except ImportError:
 # Multi-Krum GAR
 
 
-def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> list[tuple[float, torch.Tensor]]:
+def _compute_scores(
+    gradients: list[torch.Tensor], f: int, m: int, **kwargs
+) -> list[tuple[float, torch.Tensor]]:
     """
     Compute Multi-Krum scores for all candidate gradients.
 
@@ -146,7 +148,9 @@ def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> 
     return scores
 
 
-def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
+def aggregate(
+    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
+) -> torch.Tensor:
     """
     Aggregate gradients with Multi-Krum.
 
@@ -180,7 +184,9 @@ def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwa
     return sum(grad for _, grad in scores[:m]).div_(m)
 
 
-def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
+def aggregate_native(
+    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
+) -> torch.Tensor:
     """
     Aggregate gradients with the native Multi-Krum implementation.
 
@@ -207,7 +213,9 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None
     return native.krum.aggregate(gradients, f, m)
 
 
-def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:
+def check(
+    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
+) -> str | None:
     """
     Check whether Multi-Krum can be used with the given parameters.
 
@@ -269,7 +277,13 @@ def upper_bound(n: int, f: int, d: int) -> float:
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 
 
-def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> float:
+def influence(
+    honests: list[torch.Tensor],
+    attacks: list[torch.Tensor],
+    f: int,
+    m: int | None = None,
+    **kwargs,
+) -> float:
     """
     Compute the ratio of Byzantine gradients selected by Multi-Krum.
 

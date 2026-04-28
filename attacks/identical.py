@@ -1,28 +1,28 @@
 # coding: utf-8
 ###
- # @file   identical.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Collection of attacks which submit f identical gradients, which consist in
- # adding as much of one attack vector to the average of the honest gradients.
- #
- # These attacks have been introduced in/adapted from the following papers:
- # bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
- #          The Hidden Vulnerability of Distributed Learning in Byzantium.
- #          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
- # empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
- #          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
- #          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
- # little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
- #          A Little Is Enough: Circumventing Defenses For Distributed Learning.
- #          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
+# @file   identical.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Collection of attacks which submit f identical gradients, which consist in
+# adding as much of one attack vector to the average of the honest gradients.
+#
+# These attacks have been introduced in/adapted from the following papers:
+# bulyan · El Mhamdi El Mahdi, Guerraoui Rachid, and Rouault Sébastien.
+#          The Hidden Vulnerability of Distributed Learning in Byzantium.
+#          ICML 2018. URL: http://proceedings.mlr.press/v80/mhamdi18a.html
+# empire · Cong Xie, Oluwasanmi Koyejo, Indranil Gupta.
+#          Fall of Empires: Breaking Byzantine-tolerant SGD by Inner Product Manipulation.
+#          UAI 2019. URL: http://auai.org/uai2019/proceedings/papers/83.pdf
+# little · Moran Baruch, Gilad Baruch, Yoav Goldberg.
+#          A Little Is Enough: Circumventing Defenses For Distributed Learning.
+#          2019 Feb 16. ArXiv. URL: https://arxiv.org/pdf/1902.06156v1
 ###
 
 """
@@ -189,7 +189,14 @@ def make_attack(compute_direction: Callable) -> Callable:
     return attack
 
 
-def check(grad_honests: list[torch.Tensor], f_real: int, defense: Callable, factor: float | int = -16, negative: bool = False, **kwargs) -> str | None:
+def check(
+    grad_honests: list[torch.Tensor],
+    f_real: int,
+    defense: Callable,
+    factor: float | int = -16,
+    negative: bool = False,
+    **kwargs,
+) -> str | None:
     """
     Check parameter validity for identical-gradient attacks.
 
@@ -241,7 +248,12 @@ def check(grad_honests: list[torch.Tensor], f_real: int, defense: Callable, fact
 # Attack vector computations
 
 
-def bulyan(grad_stck: torch.Tensor, grad_avg: torch.Tensor, target_idx: int | str = -1, **kwargs) -> torch.Tensor:
+def bulyan(
+    grad_stck: torch.Tensor,
+    grad_avg: torch.Tensor,
+    target_idx: int | str = -1,
+    **kwargs,
+) -> torch.Tensor:
     """
     Compute the Bulyan attack direction.
 

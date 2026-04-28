@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   nan.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Attack that generates NaN gradient(s), hence the name.
+# @file   nan.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Attack that generates NaN gradient(s), hence the name.
 ###
 
 """
@@ -55,7 +55,9 @@ from . import register
 # Non-finite gradient attack
 
 
-def attack(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> list[torch.Tensor]:
+def attack(
+    grad_honests: list[torch.Tensor], f_real: int, **kwargs
+) -> list[torch.Tensor]:
     """
     Generate NaN-valued Byzantine gradients.
 

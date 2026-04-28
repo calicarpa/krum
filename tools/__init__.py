@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   __init__.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Bunch of useful tools, but each too small to have its own package.
+# @file   __init__.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Bunch of useful tools, but each too small to have its own package.
 ###
 
 """
@@ -292,9 +292,7 @@ def _make_color_print(color: str) -> object:
         Print wrapper closure.
     """
 
-    def color_print(
-        *args, context: str | None = None, **kwargs
-    ) -> object:
+    def color_print(*args, context: str | None = None, **kwargs) -> object:
         """
         Print inside the configured colored context.
 

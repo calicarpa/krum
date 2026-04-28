@@ -1,16 +1,16 @@
 # coding: utf-8
 ###
- # @file   pytorch.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # Helpers relative to PyTorch.
+# @file   pytorch.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2021 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Helpers relative to PyTorch.
 ###
 
 """
@@ -61,9 +61,18 @@ Example
     flat_grads = flatten(grads)
 """
 
-__all__ = ["relink", "flatten", "grad_of", "grads_of", "compute_avg_dev_max",
-           "AccumulatedTimedContext", "weighted_mse_loss", "WeightedMSELoss",
-           "regression", "pnm"]
+__all__ = [
+    "relink",
+    "flatten",
+    "grad_of",
+    "grads_of",
+    "compute_avg_dev_max",
+    "AccumulatedTimedContext",
+    "weighted_mse_loss",
+    "WeightedMSELoss",
+    "regression",
+    "pnm",
+]
 
 import io
 import math
@@ -77,6 +86,7 @@ import tools
 
 # ---------------------------------------------------------------------------- #
 # "Flatten" and "relink" operations
+
 
 def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     """
@@ -124,6 +134,7 @@ def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     common.linked_tensors = tensors
     return common
 
+
 def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
     """
     Flatten tensors into a single contiguous tensor.
@@ -162,8 +173,10 @@ def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
     # Return common tensor
     return relink(tensors, common)
 
+
 # ---------------------------------------------------------------------------- #
 # Gradient access
+
 
 def grad_of(tensor: torch.Tensor) -> torch.Tensor:
     """
@@ -199,6 +212,7 @@ def grad_of(tensor: torch.Tensor) -> torch.Tensor:
     tensor.grad = grad
     return grad
 
+
 def grads_of(tensors: list[torch.Tensor]):
     """
     Generator that gets or creates gradients for multiple tensors.
@@ -229,10 +243,14 @@ def grads_of(tensors: list[torch.Tensor]):
     for tensor in tensors:
         yield grad_of(tensor)
 
+
 # ---------------------------------------------------------------------------- #
 # Statistics
 
-def compute_avg_dev_max(samples: list[torch.Tensor]) -> tuple[torch.Tensor, float, float, float]:
+
+def compute_avg_dev_max(
+    samples: list[torch.Tensor],
+) -> tuple[torch.Tensor, float, float, float]:
     """
     Compute average, average norm, norm deviation, and max absolute value.
 
@@ -264,8 +282,10 @@ def compute_avg_dev_max(samples: list[torch.Tensor]) -> tuple[torch.Tensor, floa
     max_abs = stacked.abs().max().item()
     return avg, avg_norm, dev_norm, max_abs
 
+
 # ---------------------------------------------------------------------------- #
 # Accumulated timed context
+
 
 class AccumulatedTimedContext:
     """
@@ -343,11 +363,14 @@ class AccumulatedTimedContext:
         """
         return self._elapsed
 
+
 # ---------------------------------------------------------------------------- #
 # Weighted MSE loss
 
 
-def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+def weighted_mse_loss(
+    input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor
+) -> torch.Tensor:
     """
     Compute weighted mean squared error loss.
 
@@ -385,7 +408,9 @@ class WeightedMSELoss(torch.nn.Module):
         """
         super().__init__()
 
-    def forward(self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor
+    ) -> torch.Tensor:
         """
         Compute weighted MSE loss.
 
@@ -404,6 +429,7 @@ class WeightedMSELoss(torch.nn.Module):
             Weighted MSE loss value.
         """
         return weighted_mse_loss(input, target, weight)
+
 
 # ---------------------------------------------------------------------------- #
 # Regression helper
