@@ -1,30 +1,31 @@
 # coding: utf-8
 ###
- # @file   median.py
- # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
- #
- # @section LICENSE
- #
- # Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
- # See LICENSE file.
- #
- # @section DESCRIPTION
- #
- # NaN-resilient, coordinate-wise median GAR.
+# @file   median.py
+# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
+#
+# @section LICENSE
+#
+# Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).
+# See LICENSE file.
+#
+# @section DESCRIPTION
+#
+# Coordinate-wise median GAR.
 ###
 
 """
 This aggregation rule computes the median of each coordinate independently across
-all submitted gradients. It is robust against Byzantine gradients containing
-NaN or Inf values (they are simply ignored in the median computation).
+all submitted gradients. It delegates to ``torch.median`` and does not filter
+non-finite values before aggregation. NaN values may propagate, while Inf values
+participate in the coordinate ordering.
 
-**Use case:** Simple defense against attacks that inject NaN/Inf values, or
-as a baseline for coordinate-wise robust aggregation.
+**Use case:** Baseline for coordinate-wise robust aggregation in settings
+where input gradients are expected to be finite.
 
 **Properties:**
 
-- NaN-resilient: Gradients containing NaN values are naturally ignored.
 - Coordinate-wise: Each dimension is treated independently.
+- Non-finite values are not filtered before aggregation.
 - No theoretical guarantee: Unlike other methods, this rule has no proven
 Byzantine-resilience guarantees for general attacks.
 
@@ -38,7 +39,7 @@ standard deviation to gradient norm is below:
 
     \\frac{1}{\\sqrt{n - f}}
 
-where 
+where
 
 - :math:`n` is the total number of workers
 - :math:`f` is the number of Byzantine workers.
@@ -54,15 +55,17 @@ Example
 ...     torch.tensor([2., 200., 4.]),
 ...     torch.tensor([3., 300., 5.])
 ... ]
->>> result = median(gradients)
+>>> result = median(gradients=gradients)
 tensor([2., 200., 4.])
 """
 
-import tools
-from . import register
-
 import math
+
 import torch
+
+import tools
+
+from . import register
 
 # Optional 'native' module
 try:
@@ -71,14 +74,16 @@ except ImportError:
     native = None
 
 # ---------------------------------------------------------------------------- #
-# NaN-resilient, coordinate-wise median GAR
+# Coordinate-wise median GAR
+
 
 def aggregate(gradients, **kwargs):
     """
     Compute the coordinate-wise median of all gradients.
 
-    This method is resilient to NaN and Inf values in the input gradients,
-    as the median operation naturally ignores such values.
+    This method delegates to ``torch.median`` and does not filter non-finite
+    values before aggregation. NaN values may propagate, while Inf values
+    participate in the coordinate ordering.
 
     Parameters
     ----------
@@ -91,14 +96,15 @@ def aggregate(gradients, **kwargs):
     Returns
     -------
     torch.Tensor
-        Coordinate-wise median of all input gradients. NaN and Inf values
-        are naturally excluded from the median computation.
+        Coordinate-wise median of all input gradients. Non-finite values are
+        not excluded before computing the median.
 
     Notes
     -----
     The output tensor is a new tensor, not aliasing any input tensor.
     """
     return torch.stack(gradients).median(dim=0)[0]
+
 
 def aggregate_native(gradients, **kwargs):
     """
@@ -118,6 +124,7 @@ def aggregate_native(gradients, **kwargs):
     """
     return native.median.aggregate(gradients)
 
+
 def check(gradients, **kwargs):
     """
     Check parameter validity for the median rule.
@@ -135,7 +142,10 @@ def check(gradients, **kwargs):
         None if valid, otherwise error message string.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        return (
+            "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        )
+
 
 def upper_bound(n, f, d):
     """
@@ -169,6 +179,7 @@ def upper_bound(n, f, d):
     """
     return 1 / math.sqrt(n - f)
 
+
 # ---------------------------------------------------------------------------- #
 # GAR registering
 
@@ -183,4 +194,7 @@ if native is not None:
     if native_name in dir(native):
         register(method_name, aggregate_native, check, upper_bound)
     else:
-        tools.warning("GAR %r could not be registered since the associated native module %r is unavailable" % (method_name, native_name))
+        tools.warning(
+            "GAR %r could not be registered since the associated native module %r is unavailable"
+            % (method_name, native_name)
+        )

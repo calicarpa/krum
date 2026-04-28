@@ -249,7 +249,8 @@ the robustness of distributed learning algorithms.</p>
 <li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">model</span></code> (model with configured defaults)</p></li>
 <li><p>Accept the reserved parameter <code class="docutils literal notranslate"><span class="pre">defense</span></code> (aggregation rule to defeat)</p></li>
 <li><p>Return exactly <code class="docutils literal notranslate"><span class="pre">f_real</span></code> tensors (list of Byzantine gradients)</p></li>
-<li><p>NOT return tensors that alias any input tensor</p></li>
+<li><p>NOT return tensors that alias any honest input tensor</p></li>
+<li><p>MAY reuse the same Byzantine tensor object when all generated gradients are identical</p></li>
 </ol>
 <p>Each attack MUST provide a <code class="docutils literal notranslate"><span class="pre">check</span></code> function that validates parameters and
 returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if valid, or an error message if invalid.</p>

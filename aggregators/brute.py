@@ -53,19 +53,22 @@ Example
 >>> gradients = [
 ...     torch.tensor([1., 2., 3.]),
 ...     torch.tensor([1.1, 2.1, 3.1]),
-...     torch.tensor([100., 200., 300.]),  # Byzantine
-...     torch.tensor([100., 200., 300.])   # Byzantine
+...     torch.tensor([0.9, 1.9, 2.9]),
+...     torch.tensor([100., 200., 300.]),    # Byzantine
+...     torch.tensor([-100., -200., -300.])  # Byzantine
 ... ]
->>> result = brute(gradients, f=2)
-tensor([1.0500, 2.0500, 3.0500])
+>>> result = brute(gradients=gradients, f=2)
+tensor([1., 2., 3.])
 """
-
-import tools
-from . import register
 
 import itertools
 import math
+
 import torch
+
+import tools
+
+from . import register
 
 # Optional 'native' module
 try:
@@ -75,6 +78,7 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Brute GAR
+
 
 def _compute_selection(gradients, f, **kwargs):
     """
@@ -104,7 +108,7 @@ def _compute_selection(gradients, f, **kwargs):
     sel_diam = None
     for cur_iset in itertools.combinations(range(n), n - f):
         # Compute the current diameter (max of pairwise distances)
-        cur_diam = 0.
+        cur_diam = 0.0
         for x, y in tools.pairwise(cur_iset):
             # Get distance between these two gradients ("magic" formula valid since x < y)
             cur_dist = distances[(2 * n - x - 3) * x // 2 + y - 1]
@@ -120,8 +124,11 @@ def _compute_selection(gradients, f, **kwargs):
                 sel_iset = cur_iset
                 sel_diam = cur_diam
     # Return the selected gradients
-    assert sel_iset is not None, "Too many non-finite gradients: a non-Byzantine gradient must only contain finite coordinates"
+    assert sel_iset is not None, (
+        "Too many non-finite gradients: a non-Byzantine gradient must only contain finite coordinates"
+    )
     return sel_iset
+
 
 def aggregate(gradients, f, **kwargs):
     """
@@ -149,6 +156,7 @@ def aggregate(gradients, f, **kwargs):
     sel_iset = _compute_selection(gradients, f, **kwargs)
     return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
 
+
 def aggregate_native(gradients, f, **kwargs):
     """
     Compute the Brute aggregation using native (C++/CUDA) acceleration.
@@ -169,6 +177,7 @@ def aggregate_native(gradients, f, **kwargs):
     """
     return native.brute.aggregate(gradients, f)
 
+
 def check(gradients, f, **kwargs):
     """
     Check parameter validity for Brute rule.
@@ -188,9 +197,15 @@ def check(gradients, f, **kwargs):
         None if valid, otherwise error message string.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        return (
+            "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        )
     if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 1:
-        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (f, (len(gradients) - 1) // 2)
+        return (
+            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
+            % (f, (len(gradients) - 1) // 2)
+        )
+
 
 def upper_bound(n, f, d):
     """
@@ -212,6 +227,7 @@ def upper_bound(n, f, d):
         Theoretical upper-bound value.
     """
     return (n - f) / (math.sqrt(8) * f)
+
 
 def influence(honests, attacks, f, **kwargs):
     """
@@ -246,6 +262,7 @@ def influence(honests, attacks, f, **kwargs):
                 break
     return count / (len(gradients) - f)
 
+
 # ---------------------------------------------------------------------------- #
 # GAR registering
 
@@ -260,4 +277,7 @@ if native is not None:
     if native_name in dir(native):
         register(method_name, aggregate_native, check, upper_bound)
     else:
-        tools.warning("GAR %r could not be registered since the associated native module %r is unavailable" % (method_name, native_name))
+        tools.warning(
+            "GAR %r could not be registered since the associated native module %r is unavailable"
+            % (method_name, native_name)
+        )

@@ -146,14 +146,15 @@ data-aria-dark="Switch to auto color mode">
           <section id="module-aggregators.median">
 <span id="median"></span><h1>Median<a class="headerlink" href="#module-aggregators.median" title="Link to this heading">¶</a></h1>
 <p>This aggregation rule computes the median of each coordinate independently across
-all submitted gradients. It is robust against Byzantine gradients containing
-NaN or Inf values (they are simply ignored in the median computation).</p>
-<p><strong>Use case:</strong> Simple defense against attacks that inject NaN/Inf values, or
-as a baseline for coordinate-wise robust aggregation.</p>
+all submitted gradients. It delegates to <code class="docutils literal notranslate"><span class="pre">torch.median</span></code> and does not filter
+non-finite values before aggregation. NaN values may propagate, while Inf values
+participate in the coordinate ordering.</p>
+<p><strong>Use case:</strong> Baseline for coordinate-wise robust aggregation in settings
+where input gradients are expected to be finite.</p>
 <p><strong>Properties:</strong></p>
 <ul class="simple">
-<li><p>NaN-resilient: Gradients containing NaN values are naturally ignored.</p></li>
 <li><p>Coordinate-wise: Each dimension is treated independently.</p></li>
+<li><p>Non-finite values are not filtered before aggregation.</p></li>
 <li><p>No theoretical guarantee: Unlike other methods, this rule has no proven</p></li>
 </ul>
 <p>Byzantine-resilience guarantees for general attacks.</p>
@@ -178,7 +179,7 @@ standard deviation to gradient norm is below:</p>
 </span><span data-line="5"><span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">200.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">]),</span>
 </span><span data-line="6"><span class="gp">... </span>    <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">])</span>
 </span><span data-line="7"><span class="gp">... </span><span class="p">]</span>
-</span><span data-line="8"><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="8"><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">)</span>
 </span><span data-line="9"><span class="go">tensor([2., 200., 4.])</span>
 </span></pre></div>
 </div>
@@ -187,8 +188,9 @@ standard deviation to gradient norm is below:</p>
 <dt class="sig sig-object py" id="aggregators.median.aggregate">
 <span class="sig-prename descclassname"><span class="pre">aggregators.median.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/aggregators/median.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aggregators.median.aggregate" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the coordinate-wise median of all gradients.</p>
-<p>This method is resilient to NaN and Inf values in the input gradients,
-as the median operation naturally ignores such values.</p>
+<p>This method delegates to <code class="docutils literal notranslate"><span class="pre">torch.median</span></code> and does not filter non-finite
+values before aggregation. NaN values may propagate, while Inf values
+participate in the coordinate ordering.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -198,8 +200,8 @@ a 1-D tensor of the same shape.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>torch.Tensor</strong> – Coordinate-wise median of all input gradients. NaN and Inf values
-are naturally excluded from the median computation.</p>
+<dd class="field-even"><p><strong>torch.Tensor</strong> – Coordinate-wise median of all input gradients. Non-finite values are
+not excluded before computing the median.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

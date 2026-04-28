@@ -29,7 +29,8 @@ Each attack MUST:
 5. Accept the reserved parameter ``model`` (model with configured defaults)
 6. Accept the reserved parameter ``defense`` (aggregation rule to defeat)
 7. Return exactly ``f_real`` tensors (list of Byzantine gradients)
-8. NOT return tensors that alias any input tensor
+8. NOT return tensors that alias any honest input tensor
+9. MAY reuse the same Byzantine tensor object when all generated gradients are identical
 
 Each attack MUST provide a ``check`` function that validates parameters and
 returns ``None`` if valid, or an error message if invalid.
@@ -42,12 +43,14 @@ The module exposes three variants for each attack:
 """
 
 import pathlib
+
 import torch
 
 import tools
 
 # ---------------------------------------------------------------------------- #
 # Automated attack loader
+
 
 def register(name, unchecked, check):
     """
@@ -67,17 +70,23 @@ def register(name, unchecked, check):
     if name in attacks:
         tools.warning(f"Unable to register {name!r} attack: name already in use")
         return
+
     # Closure wrapping the call with checks
     def checked(f_real, **kwargs):
         # Check parameter validity
         message = check(f_real=f_real, **kwargs)
         if message is not None:
-            raise tools.UserException(f"Attack {name!r} cannot be used with the given parameters: {message}")
+            raise tools.UserException(
+                f"Attack {name!r} cannot be used with the given parameters: {message}"
+            )
         # Attack
         res = unchecked(f_real=f_real, **kwargs)
         # Forward asserted return value
-        assert isinstance(res, list) and len(res) == f_real, f"Expected attack {name!r} to return a list of {f_real} Byzantine gradients, got {res!r}"
+        assert isinstance(res, list) and len(res) == f_real, (
+            f"Expected attack {name!r} to return a list of {f_real} Byzantine gradients, got {res!r}"
+        )
         return res
+
     # Select which function to call by default
     func = checked if __debug__ else unchecked
     # Bind all the (sub) functions to the selected function
@@ -86,6 +95,7 @@ def register(name, unchecked, check):
     setattr(func, "unchecked", unchecked)
     # Export the selected function with the associated name
     attacks[name] = func
+
 
 # Registered attacks (mapping name -> attack)
 attacks = dict()

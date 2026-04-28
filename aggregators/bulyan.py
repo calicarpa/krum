@@ -55,19 +55,23 @@ Example
 >>> gradients = [
 ...     torch.tensor([1., 2., 3.]),
 ...     torch.tensor([1.1, 2.1, 3.1]),
+...     torch.tensor([0.9, 1.9, 2.9]),
 ...     torch.tensor([1.2, 2.2, 3.2]),
-...     torch.tensor([100., 200., 300.]),  # Byzantine
+...     torch.tensor([0.8, 1.8, 2.8]),
+...     torch.tensor([1.05, 2.05, 3.05]),
 ...     torch.tensor([100., 200., 300.]),  # Byzantine
 ... ]
->>> result = bulyan(gradients, f=2)
-tensor([1.1000, 2.1000, 3.1000])
+>>> result = bulyan(gradients=gradients, f=1)
+tensor([1., 2., 3.])
 """
 
-import tools
-from . import register
-
 import math
+
 import torch
+
+import tools
+
+from . import register
 
 # Optional 'native' module
 try:
@@ -77,6 +81,7 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Bulyan GAR class
+
 
 def aggregate(gradients, f, m=None, **kwargs):
     """
@@ -127,7 +132,9 @@ def aggregate(gradients, f, m=None, **kwargs):
         scores[gid] = (sum(dist for dist, _ in dists), gid)
         distances[gid] = dict(dists)
     # Selection loop
-    selected = torch.empty(n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device)
+    selected = torch.empty(
+        n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device
+    )
     for i in range(selected.shape[0]):
         # Update 'm'
         m = min(m, m_max - i)
@@ -141,13 +148,22 @@ def aggregate(gradients, f, m=None, **kwargs):
             if gid == gid_prune:
                 scores[gid] = (score - distance[gid][gid_prune], gid)
     # Coordinate-wise averaged median
-    m        = selected.shape[0] - 2 * f
-    median   = selected.median(dim=0).values
-    closests = selected.clone().sub_(median).abs_().topk(m, dim=0, largest=False, sorted=False).indices
-    closests.mul_(d).add_(torch.arange(0, d, dtype=closests.dtype, device=closests.device))
-    avgmed   = selected.take(closests).mean(dim=0)
+    m = selected.shape[0] - 2 * f
+    median = selected.median(dim=0).values
+    closests = (
+        selected.clone()
+        .sub_(median)
+        .abs_()
+        .topk(m, dim=0, largest=False, sorted=False)
+        .indices
+    )
+    closests.mul_(d).add_(
+        torch.arange(0, d, dtype=closests.dtype, device=closests.device)
+    )
+    avgmed = selected.take(closests).mean(dim=0)
     # Return resulting gradient
     return avgmed
+
 
 def aggregate_native(gradients, f, m=None, **kwargs):
     """
@@ -175,6 +191,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     # Computation
     return native.bulyan.aggregate(gradients, f, m)
 
+
 def check(gradients, f, m=None, **kwargs):
     """
     Check parameter validity for Bulyan rule.
@@ -196,11 +213,22 @@ def check(gradients, f, m=None, **kwargs):
         None if valid, otherwise error message string.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        return (
+            "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        )
     if not isinstance(f, int) or f < 1 or len(gradients) < 4 * f + 3:
-        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (f, (len(gradients) - 3) // 4)
-    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
-        return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (f, len(gradients) - f - 2)
+        return (
+            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
+            % (f, (len(gradients) - 3) // 4)
+        )
+    if m is not None and (
+        not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2
+    ):
+        return (
+            "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d"
+            % (f, len(gradients) - f - 2)
+        )
+
 
 def upper_bound(n, f, d):
     """
@@ -223,6 +251,7 @@ def upper_bound(n, f, d):
     """
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 
+
 # ---------------------------------------------------------------------------- #
 # GAR registering
 
@@ -237,4 +266,7 @@ if native is not None:
     if native_name in dir(native):
         register(method_name, aggregate_native, check, upper_bound=upper_bound)
     else:
-        tools.warning("GAR %r could not be registered since the associated native module %r is unavailable" % (method_name, native_name))
+        tools.warning(
+            "GAR %r could not be registered since the associated native module %r is unavailable"
+            % (method_name, native_name)
+        )

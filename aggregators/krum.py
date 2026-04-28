@@ -66,17 +66,21 @@ Example
 >>> gradients = [
 ...     torch.tensor([1., 2., 3.]),
 ...     torch.tensor([1.1, 2.1, 3.1]),  # close to first
+...     torch.tensor([0.9, 1.9, 2.9]),  # close to first
+...     torch.tensor([1.2, 2.2, 3.2]),  # close to first
 ...     torch.tensor([100., 200., 300.])  # far (Byzantine)
 ... ]
->>> result = krum(gradients, f=1, m=2)
+>>> result = krum(gradients=gradients, f=1, m=2)
 tensor([1.0500, 2.0500, 3.0500])
 """
 
-import tools
-from . import register
-
 import math
+
 import torch
+
+import tools
+
+from . import register
 
 # Optional 'native' module
 try:
@@ -86,6 +90,7 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Multi-Krum GAR
+
 
 def _compute_scores(gradients, f, m, **kwargs):
     """
@@ -131,6 +136,7 @@ def _compute_scores(gradients, f, m, **kwargs):
     scores.sort(key=lambda x: x[0])
     return scores
 
+
 def aggregate(gradients, f, m=None, **kwargs):
     """
     Compute the Multi-Krum aggregation.
@@ -164,6 +170,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     scores = _compute_scores(gradients, f, m, **kwargs)
     return sum(grad for _, grad in scores[:m]).div_(m)
 
+
 def aggregate_native(gradients, f, m=None, **kwargs):
     """
     Compute the Multi-Krum aggregation using native (C++/CUDA) acceleration.
@@ -190,6 +197,7 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     # Computation
     return native.krum.aggregate(gradients, f, m)
 
+
 def check(gradients, f, m=None, **kwargs):
     """
     Check parameter validity for Multi-Krum rule.
@@ -211,11 +219,22 @@ def check(gradients, f, m=None, **kwargs):
         None if valid, otherwise error message string.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        return (
+            "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        )
     if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 3:
-        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (f, (len(gradients) - 3) // 2)
-    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
-        return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (m, len(gradients) - f - 2)
+        return (
+            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
+            % (f, (len(gradients) - 3) // 2)
+        )
+    if m is not None and (
+        not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2
+    ):
+        return (
+            "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d"
+            % (m, len(gradients) - f - 2)
+        )
+
 
 def upper_bound(n, f, d):
     """
@@ -237,6 +256,7 @@ def upper_bound(n, f, d):
         Theoretical upper-bound value.
     """
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
+
 
 def influence(honests, attacks, f, m=None, **kwargs):
     """
@@ -275,6 +295,7 @@ def influence(honests, attacks, f, m=None, **kwargs):
                 break
     return count / m
 
+
 # ---------------------------------------------------------------------------- #
 # GAR registering
 
@@ -282,11 +303,14 @@ def influence(honests, attacks, f, m=None, **kwargs):
 method_name = "krum"
 register(method_name, aggregate, check, upper_bound, influence)
 
-# Register aggregation rule (native version, if available)
+# Register aggregation rule (native version, if available)
 if native is not None:
-  native_name = method_name
-  method_name = "native-" + method_name
-  if native_name in dir(native):
-    register(method_name, aggregate_native, check, upper_bound)
-  else:
-    tools.warning("GAR %r could not be registered since the associated native module %r is unavailable" % (method_name, native_name))
+    native_name = method_name
+    method_name = "native-" + method_name
+    if native_name in dir(native):
+        register(method_name, aggregate_native, check, upper_bound)
+    else:
+        tools.warning(
+            "GAR %r could not be registered since the associated native module %r is unavailable"
+            % (method_name, native_name)
+        )

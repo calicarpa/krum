@@ -1,757 +1,466 @@
-
 <!DOCTYPE html>
-
-
-<html lang="en" data-content_root="../../" >
-
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>aggregators.bulyan &#8212; Krum</title>
-  
-  
-  
-  <script data-cfasync="false">
-    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
-  </script>
-  <!--
-    this give us a css class that will be invisible only if js is disabled
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
-  
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+<html lang="en" data-accent-color="violet" data-content_root="../../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>aggregators.bulyan - Krum, the Library</title><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=9c3e77be" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=9a30d1ff" />
+    <link media="print" rel="stylesheet" type="text/css" href="../../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=3e3c95e7" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-  
-  <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
-
-    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script>let toggleHintShow = 'Click to show';</script>
-    <script>let toggleHintHide = 'Click to hide';</script>
-    <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../_static/togglebutton.js?v=b8b12719"></script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/aggregators/bulyan';</script>
-    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
-  
-    
-    <script src="../../_static/searchtools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script src="../../searchindex.js"></script>
-  
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="aggregators.bulyan"/>
+    <meta name="twitter:card" content="summary"/>
   </head>
-  <body data-default-mode="">
-  
-  
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
-
-  
-  <div id="pst-scroll-pixel-helper"></div>
-  
-  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-  
-  
-  
-  
-  <dialog id="pst-search-dialog">
-    
-<form class="bd-search d-flex align-items-center"
-      action="../../search.html"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         placeholder="Search the docs ..."
-         aria-label="Search the docs ..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
-
-  <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
-</div>
-
-  
-    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-3 navbar-header-items__start">
-    
-      <div class="navbar-item">
-
-  
-    
-  
-
-<a class="navbar-brand logo" href="../../index.html">
-  
-  
-  
-  
-  
-  
-    <p class="title logo__title">Krum</p>
-  
-</a></div>
-    
-  </div>
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    <div class="me-auto navbar-header-items__center">
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../../index.html">
       
-        <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
-    
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../architecture.html">
-    Architecture
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
-    Aggregators
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
-    Attacks
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
-    Experiments
-  </a>
-</li>
-
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../tools.html">
-    Tools
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../native.html">
-    Native Acceleration
-  </a>
-</li>
-
-                </ul>
-            </li>
-            
-  </ul>
-</nav></div>
       
+      <strong>Krum, the Library</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
     </div>
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
         </div>
-      
-      
-        <div class="navbar-item">
-
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
-      
-        <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
-        </li>
-</ul></div>
-      
+      </button>
     </div>
-    
   </div>
-  
-  
-    <div class="navbar-persistent--mobile">
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aggregators/index.html">Aggregators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/average.html">Average</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/median.html">Median</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/krum.html">Krum / Multi-Krum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/bulyan.html">Bulyan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../aggregators/classes/brute.html">Brute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../attacks/index.html">Attacks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/identical.html">Identical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attacks/classes/nan.html">NaN</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiments/index.html">Experiments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/dataset.html">Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/model.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/loss.html">Loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/optimizer.html">Optimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/models.html">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../experiments/classes/datasets.html">Datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools/index.html">Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tools/classes/pytorch.html">PyTorch Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tools/classes/misc.html">Miscellaneous Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tools/classes/jobs.html">Jobs Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../native.html">Native</a></li>
+</ul>
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+        </div>
+      </div>
     </div>
-  
-
-  
-</div>
-
-    </header>
-  
-
-  <div class="bd-container">
-    <div class="bd-container__inner bd-page-width">
-      
-      
-      
-        
-      
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
-        
-
-  
-  <div class="sidebar-header-items sidebar-primary__section">
-    
-    
-      <div class="sidebar-header-items__center">
-        
-          
-          
-            <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
-    
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../overview.html">
-    Overview
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../architecture.html">
-    Architecture
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../aggregators.html">
-    Aggregators
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../attacks.html">
-    Attacks
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../experiments.html">
-    Experiments
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../tools.html">
-    Tools
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../native.html">
-    Native Acceleration
-  </a>
-</li>
-
-  </ul>
-</nav></div>
-          
-        
-      </div>
-    
-    
-    
-      <div class="sidebar-header-items__end">
-        
-          <div class="navbar-item">
-
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
-        
-          <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/calicarpa/krum" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
-        </li>
-</ul></div>
-        
-      </div>
-    
-  </div>
-  
-  
-  <div class="sidebar-primary-items__end sidebar-primary__section">
-      <div class="sidebar-primary-item">
-<div id="ethical-ad-placement"
-      class="flat"
-      data-ea-publisher="readthedocs"
-      data-ea-type="readthedocs-sidebar"
-      data-ea-manual="true">
-</div></div>
-  </div>
-
-
-      </div>
-      
-      <main id="main-content" class="bd-main" role="main">
-        
-        
-          <div class="bd-content">
-            <div class="bd-article-container">
-              
-              <div class="bd-header-article d-print-none">
-<div class="header-article-items header-article__inner">
-  
-    <div class="header-article-items__start">
-      
-        <div class="header-article-item">
-
-<nav aria-label="Breadcrumb" class="d-print-none">
-  <ul class="bd-breadcrumbs">
-    
-    <li class="breadcrumb-item breadcrumb-home">
-      <a href="../../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
-      </a>
-    </li>
-    
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../aggregators.html" class="nav-link">aggregators</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">aggregators.bulyan</span></li>
-  </ul>
-</nav>
-</div>
-      
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
     </div>
-  
-  
-</div>
-</div>
-              
-              
-              
-                
-<div id="searchbox"></div>
-                <article class="bd-article">
-                  
-  <h1>Source code for aggregators.bulyan</h1><div class="highlight"><pre>
-<span></span><span class="c1"># coding: utf-8</span>
-<span class="c1">###</span>
- <span class="c1"># @file   bulyan.py</span>
- <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
- <span class="c1">#</span>
- <span class="c1"># @section LICENSE</span>
- <span class="c1">#</span>
- <span class="c1"># Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).</span>
- <span class="c1"># See LICENSE file.</span>
- <span class="c1">#</span>
- <span class="c1"># @section DESCRIPTION</span>
- <span class="c1">#</span>
- <span class="c1"># Bulyan over Multi-Krum GAR.</span>
-<span class="c1">###</span>
-
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Bulyan is a sophisticated Byzantine-resilient aggregation rule that combines</span>
-<span class="sd">Multi-Krum selection with a coordinate-wise trimmed mean. It works in two</span>
-<span class="sd">stages:</span>
-
-<span class="sd">1. **Multi-Krum Selection**: Select :math:`n - 2f` gradients using a modified</span>
-<span class="sd">   Multi-Krum criterion. Iteratively selects gradients that are closest to the</span>
-<span class="sd">   current center.</span>
-
-<span class="sd">2. **Coordinate-wise Trimmed Mean**: For each coordinate, compute the median</span>
-<span class="sd">   of the selected gradients, then average the :math:`n - 4f` values closest</span>
-<span class="sd">   to that median.</span>
-
-<span class="sd">**Use case:** Strong Byzantine-resilience with better theoretical guarantees</span>
-<span class="sd">than standalone Multi-Krum.</span>
-
-<span class="sd">**Properties:**</span>
-<span class="sd">- Two-stage: Combines geometric selection with coordinate-wise robustness.</span>
-<span class="sd">- Higher complexity: Requires at least :math:`4f + 3` workers.</span>
-<span class="sd">- Stronger guarantees: More resilient to sophisticated attacks than Krum.</span>
-
-<span class="sd">Theoretical Bound</span>
-<span class="sd">-----------------</span>
-
-<span class="sd">Bulyan provides guarantees under the same condition as Multi-Krum, but with</span>
-<span class="sd">stronger resilience to attacks that try to mimic honest gradients.</span>
-
-<span class="sd">Parameters</span>
-<span class="sd">----------</span>
-
-<span class="sd">m : int, optional</span>
-<span class="sd">    Number of gradients to consider in each Multi-Krum selection step.</span>
-<span class="sd">    Default is ``n - f - 2``. Must satisfy ``1 &lt;= m &lt;= n - f - 2``.</span>
-
-<span class="sd">Example</span>
-<span class="sd">-------</span>
-
-<span class="sd">&gt;&gt;&gt; import torch</span>
-<span class="sd">&gt;&gt;&gt; from aggregators import bulyan</span>
-<span class="sd">&gt;&gt;&gt; gradients = [</span>
-<span class="sd">...     torch.tensor([1., 2., 3.]),</span>
-<span class="sd">...     torch.tensor([1.1, 2.1, 3.1]),</span>
-<span class="sd">...     torch.tensor([1.2, 2.2, 3.2]),</span>
-<span class="sd">...     torch.tensor([100., 200., 300.]),  # Byzantine</span>
-<span class="sd">...     torch.tensor([100., 200., 300.]),  # Byzantine</span>
-<span class="sd">... ]</span>
-<span class="sd">&gt;&gt;&gt; result = bulyan(gradients, f=2)</span>
-<span class="sd">tensor([1.1000, 2.1000, 3.1000])</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-
-<span class="c1"># Optional &#39;native&#39; module</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
-
-<span class="c1"># ---------------------------------------------------------------------------- #</span>
-<span class="c1"># Bulyan GAR class</span>
-
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../../index.html"><span itemprop="name">Krum, the Library</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Module code</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../aggregators.html"><span itemprop="name">aggregators</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="3" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">aggregators.bulyan</strong>
+        <meta itemprop="position" content="4" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <article class="yue" role="main">
+          <h1>Source code for aggregators.bulyan</h1><div class="highlight"><pre>
+<span></span><span data-line="1"><span class="c1"># coding: utf-8</span>
+</span><span data-line="2"><span class="c1">###</span>
+</span><span data-line="3"> <span class="c1"># @file   bulyan.py</span>
+</span><span data-line="4"> <span class="c1"># @author Sébastien Rouault &lt;sebastien.rouault@alumni.epfl.ch&gt;</span>
+</span><span data-line="5"> <span class="c1">#</span>
+</span><span data-line="6"> <span class="c1"># @section LICENSE</span>
+</span><span data-line="7"> <span class="c1">#</span>
+</span><span data-line="8"> <span class="c1"># Copyright © 2018-2020 École Polytechnique Fédérale de Lausanne (EPFL).</span>
+</span><span data-line="9"> <span class="c1"># See LICENSE file.</span>
+</span><span data-line="10"> <span class="c1">#</span>
+</span><span data-line="11"> <span class="c1"># @section DESCRIPTION</span>
+</span><span data-line="12"> <span class="c1">#</span>
+</span><span data-line="13"> <span class="c1"># Bulyan over Multi-Krum GAR.</span>
+</span><span data-line="14"><span class="c1">###</span>
+</span><span data-line="15">
+</span><span data-line="16"><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="17"><span class="sd">Bulyan is a sophisticated Byzantine-resilient aggregation rule that combines</span>
+</span><span data-line="18"><span class="sd">Multi-Krum selection with a coordinate-wise trimmed mean. It works in two</span>
+</span><span data-line="19"><span class="sd">stages:</span>
+</span><span data-line="20">
+</span><span data-line="21"><span class="sd">1. **Multi-Krum Selection**: Select :math:`n - 2f` gradients using a modified</span>
+</span><span data-line="22"><span class="sd">   Multi-Krum criterion. Iteratively selects gradients that are closest to the</span>
+</span><span data-line="23"><span class="sd">   current center.</span>
+</span><span data-line="24">
+</span><span data-line="25"><span class="sd">2. **Coordinate-wise Trimmed Mean**: For each coordinate, compute the median</span>
+</span><span data-line="26"><span class="sd">   of the selected gradients, then average the :math:`n - 4f` values closest</span>
+</span><span data-line="27"><span class="sd">   to that median.</span>
+</span><span data-line="28">
+</span><span data-line="29"><span class="sd">**Use case:** Strong Byzantine-resilience with better theoretical guarantees</span>
+</span><span data-line="30"><span class="sd">than standalone Multi-Krum.</span>
+</span><span data-line="31">
+</span><span data-line="32"><span class="sd">**Properties:**</span>
+</span><span data-line="33"><span class="sd">- Two-stage: Combines geometric selection with coordinate-wise robustness.</span>
+</span><span data-line="34"><span class="sd">- Higher complexity: Requires at least :math:`4f + 3` workers.</span>
+</span><span data-line="35"><span class="sd">- Stronger guarantees: More resilient to sophisticated attacks than Krum.</span>
+</span><span data-line="36">
+</span><span data-line="37"><span class="sd">Theoretical Bound</span>
+</span><span data-line="38"><span class="sd">-----------------</span>
+</span><span data-line="39">
+</span><span data-line="40"><span class="sd">Bulyan provides guarantees under the same condition as Multi-Krum, but with</span>
+</span><span data-line="41"><span class="sd">stronger resilience to attacks that try to mimic honest gradients.</span>
+</span><span data-line="42">
+</span><span data-line="43"><span class="sd">Parameters</span>
+</span><span data-line="44"><span class="sd">----------</span>
+</span><span data-line="45">
+</span><span data-line="46"><span class="sd">m : int, optional</span>
+</span><span data-line="47"><span class="sd">    Number of gradients to consider in each Multi-Krum selection step.</span>
+</span><span data-line="48"><span class="sd">    Default is ``n - f - 2``. Must satisfy ``1 &lt;= m &lt;= n - f - 2``.</span>
+</span><span data-line="49">
+</span><span data-line="50"><span class="sd">Example</span>
+</span><span data-line="51"><span class="sd">-------</span>
+</span><span data-line="52">
+</span><span data-line="53"><span class="sd">&gt;&gt;&gt; import torch</span>
+</span><span data-line="54"><span class="sd">&gt;&gt;&gt; from aggregators import bulyan</span>
+</span><span data-line="55"><span class="sd">&gt;&gt;&gt; gradients = [</span>
+</span><span data-line="56"><span class="sd">...     torch.tensor([1., 2., 3.]),</span>
+</span><span data-line="57"><span class="sd">...     torch.tensor([1.1, 2.1, 3.1]),</span>
+</span><span data-line="58"><span class="sd">...     torch.tensor([0.9, 1.9, 2.9]),</span>
+</span><span data-line="59"><span class="sd">...     torch.tensor([1.2, 2.2, 3.2]),</span>
+</span><span data-line="60"><span class="sd">...     torch.tensor([0.8, 1.8, 2.8]),</span>
+</span><span data-line="61"><span class="sd">...     torch.tensor([1.05, 2.05, 3.05]),</span>
+</span><span data-line="62"><span class="sd">...     torch.tensor([100., 200., 300.]),  # Byzantine</span>
+</span><span data-line="63"><span class="sd">... ]</span>
+</span><span data-line="64"><span class="sd">&gt;&gt;&gt; result = bulyan(gradients=gradients, f=1)</span>
+</span><span data-line="65"><span class="sd">tensor([1., 2., 3.])</span>
+</span><span data-line="66"><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="67">
+</span><span data-line="68"><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+</span><span data-line="69">
+</span><span data-line="70"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="71">
+</span><span data-line="72"><span class="kn">import</span><span class="w"> </span><span class="nn">tools</span>
+</span><span data-line="73">
+</span><span data-line="74"><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
+</span><span data-line="75">
+</span><span data-line="76"><span class="c1"># Optional &#39;native&#39; module</span>
+</span><span data-line="77"><span class="k">try</span><span class="p">:</span>
+</span><span data-line="78">    <span class="kn">import</span><span class="w"> </span><span class="nn">native</span>
+</span><span data-line="79"><span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+</span><span data-line="80">    <span class="n">native</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="81">
+</span><span data-line="82"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="83"><span class="c1"># Bulyan GAR class</span>
+</span><span data-line="84">
+</span><span data-line="85">
 <div class="viewcode-block" id="aggregate">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.aggregate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the Bulyan aggregation.</span>
+</span><span data-line="86"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="87"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="88"><span class="sd">    Compute the Bulyan aggregation.</span>
+</span><span data-line="89">
+</span><span data-line="90"><span class="sd">    Parameters</span>
+</span><span data-line="91"><span class="sd">    ----------</span>
+</span><span data-line="92"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="93"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="94"><span class="sd">    f : int</span>
+</span><span data-line="95"><span class="sd">        Number of Byzantine gradients to tolerate. Must satisfy</span>
+</span><span data-line="96"><span class="sd">        ``1 &lt;= f &lt;= (n - 3) // 4`` where ``n = len(gradients)``.</span>
+</span><span data-line="97"><span class="sd">    m : int, optional</span>
+</span><span data-line="98"><span class="sd">        Number of gradients to consider in Multi-Krum selection.</span>
+</span><span data-line="99"><span class="sd">        Default is ``n - f - 2``.</span>
+</span><span data-line="100"><span class="sd">    **kwargs : dict</span>
+</span><span data-line="101"><span class="sd">        Additional keyword arguments (ignored).</span>
+</span><span data-line="102">
+</span><span data-line="103"><span class="sd">    Returns</span>
+</span><span data-line="104"><span class="sd">    -------</span>
+</span><span data-line="105"><span class="sd">    torch.Tensor</span>
+</span><span data-line="106"><span class="sd">        The Bulyan aggregated gradient.</span>
+</span><span data-line="107">
+</span><span data-line="108"><span class="sd">    Notes</span>
+</span><span data-line="109"><span class="sd">    -----</span>
+</span><span data-line="110"><span class="sd">    The output tensor is a new tensor, not aliasing any input tensor.</span>
+</span><span data-line="111"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="112">    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="113">    <span class="n">d</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span data-line="114">    <span class="c1"># Defaults</span>
+</span><span data-line="115">    <span class="n">m_max</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
+</span><span data-line="116">    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="117">        <span class="n">m</span> <span class="o">=</span> <span class="n">m_max</span>
+</span><span data-line="118">    <span class="c1"># Compute all pairwise distances</span>
+</span><span data-line="119">    <span class="n">distances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</span><span data-line="120">    <span class="k">for</span> <span class="n">gid_x</span><span class="p">,</span> <span class="n">gid_y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
+</span><span data-line="121">        <span class="n">dist</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">gid_x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid_y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span data-line="122">        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+</span><span data-line="123">            <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
+</span><span data-line="124">        <span class="n">distances</span><span class="p">[</span><span class="n">gid_x</span><span class="p">][</span><span class="n">gid_y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_y</span><span class="p">)</span>
+</span><span data-line="125">        <span class="n">distances</span><span class="p">[</span><span class="n">gid_y</span><span class="p">][</span><span class="n">gid_x</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_x</span><span class="p">)</span>
+</span><span data-line="126">    <span class="c1"># Compute the scores</span>
+</span><span data-line="127">    <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+</span><span data-line="128">    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span data-line="129">        <span class="n">dists</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+</span><span data-line="130">        <span class="n">dists</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span data-line="131">        <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
+</span><span data-line="132">        <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span> <span class="k">for</span> <span class="n">dist</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
+</span><span data-line="133">        <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
+</span><span data-line="134">    <span class="c1"># Selection loop</span>
+</span><span data-line="135">    <span class="n">selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+</span><span data-line="136">        <span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+</span><span data-line="137">    <span class="p">)</span>
+</span><span data-line="138">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+</span><span data-line="139">        <span class="c1"># Update &#39;m&#39;</span>
+</span><span data-line="140">        <span class="n">m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">m_max</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
+</span><span data-line="141">        <span class="c1"># Compute the average of the selected gradients</span>
+</span><span data-line="142">        <span class="n">scores</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span data-line="143">        <span class="n">selected</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[:</span><span class="n">m</span><span class="p">])</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+</span><span data-line="144">        <span class="c1"># Remove the gradient from the distances and scores</span>
+</span><span data-line="145">        <span class="n">gid_prune</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+</span><span data-line="146">        <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="147">        <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+</span><span data-line="148">            <span class="k">if</span> <span class="n">gid</span> <span class="o">==</span> <span class="n">gid_prune</span><span class="p">:</span>
+</span><span data-line="149">                <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">distance</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="n">gid_prune</span><span class="p">],</span> <span class="n">gid</span><span class="p">)</span>
+</span><span data-line="150">    <span class="c1"># Coordinate-wise averaged median</span>
+</span><span data-line="151">    <span class="n">m</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span>
+</span><span data-line="152">    <span class="n">median</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+</span><span data-line="153">    <span class="n">closests</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="154">        <span class="n">selected</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+</span><span data-line="155">        <span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">median</span><span class="p">)</span>
+</span><span data-line="156">        <span class="o">.</span><span class="n">abs_</span><span class="p">()</span>
+</span><span data-line="157">        <span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="158">        <span class="o">.</span><span class="n">indices</span>
+</span><span data-line="159">    <span class="p">)</span>
+</span><span data-line="160">    <span class="n">closests</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span>
+</span><span data-line="161">        <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+</span><span data-line="162">    <span class="p">)</span>
+</span><span data-line="163">    <span class="n">avgmed</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">closests</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span data-line="164">    <span class="c1"># Return resulting gradient</span>
+</span><span data-line="165">    <span class="k">return</span> <span class="n">avgmed</span></div>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    gradients : list of torch.Tensor</span>
-<span class="sd">        Non-empty list of gradients to aggregate.</span>
-<span class="sd">    f : int</span>
-<span class="sd">        Number of Byzantine gradients to tolerate. Must satisfy</span>
-<span class="sd">        ``1 &lt;= f &lt;= (n - 3) // 4`` where ``n = len(gradients)``.</span>
-<span class="sd">    m : int, optional</span>
-<span class="sd">        Number of gradients to consider in Multi-Krum selection.</span>
-<span class="sd">        Default is ``n - f - 2``.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Additional keyword arguments (ignored).</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    torch.Tensor</span>
-<span class="sd">        The Bulyan aggregated gradient.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    The output tensor is a new tensor, not aliasing any input tensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c1"># Defaults</span>
-    <span class="n">m_max</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
-    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">m_max</span>
-    <span class="c1"># Compute all pairwise distances</span>
-    <span class="n">distances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">gid_x</span><span class="p">,</span> <span class="n">gid_y</span> <span class="ow">in</span> <span class="n">tools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
-        <span class="n">dist</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">gid_x</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid_y</span><span class="p">])</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
-            <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
-        <span class="n">distances</span><span class="p">[</span><span class="n">gid_x</span><span class="p">][</span><span class="n">gid_y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_y</span><span class="p">)</span>
-        <span class="n">distances</span><span class="p">[</span><span class="n">gid_y</span><span class="p">][</span><span class="n">gid_x</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">gid_x</span><span class="p">)</span>
-    <span class="c1"># Compute the scores</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
-    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-        <span class="n">dists</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
-        <span class="n">dists</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
-        <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span> <span class="k">for</span> <span class="n">dist</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
-        <span class="n">distances</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
-    <span class="c1"># Selection loop</span>
-    <span class="n">selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="c1"># Update &#39;m&#39;</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">m_max</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
-        <span class="c1"># Compute the average of the selected gradients</span>
-        <span class="n">scores</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">selected</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gradients</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[:</span><span class="n">m</span><span class="p">])</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-        <span class="c1"># Remove the gradient from the distances and scores</span>
-        <span class="n">gid_prune</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-            <span class="k">if</span> <span class="n">gid</span> <span class="o">==</span> <span class="n">gid_prune</span><span class="p">:</span>
-                <span class="n">scores</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">distance</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="n">gid_prune</span><span class="p">],</span> <span class="n">gid</span><span class="p">)</span>
-    <span class="c1"># Coordinate-wise averaged median</span>
-    <span class="n">m</span>        <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span>
-    <span class="n">median</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">closests</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">median</span><span class="p">)</span><span class="o">.</span><span class="n">abs_</span><span class="p">()</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
-    <span class="n">closests</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">closests</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">avgmed</span>   <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">closests</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c1"># Return resulting gradient</span>
-    <span class="k">return</span> <span class="n">avgmed</span></div>
-
-
+</span><span data-line="166">
+</span><span data-line="167">
 <div class="viewcode-block" id="aggregate_native">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.aggregate_native">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the Bulyan aggregation using native (C++/CUDA) acceleration.</span>
+</span><span data-line="168"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate_native</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="169"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="170"><span class="sd">    Compute the Bulyan aggregation using native (C++/CUDA) acceleration.</span>
+</span><span data-line="171">
+</span><span data-line="172"><span class="sd">    Parameters</span>
+</span><span data-line="173"><span class="sd">    ----------</span>
+</span><span data-line="174"><span class="sd">    gradients : list of torch.Tensor</span>
+</span><span data-line="175"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="176"><span class="sd">    f : int</span>
+</span><span data-line="177"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="178"><span class="sd">    m : int, optional</span>
+</span><span data-line="179"><span class="sd">        Number of gradients to consider.</span>
+</span><span data-line="180"><span class="sd">    **kwargs : dict</span>
+</span><span data-line="181"><span class="sd">        Additional keyword arguments (ignored).</span>
+</span><span data-line="182">
+</span><span data-line="183"><span class="sd">    Returns</span>
+</span><span data-line="184"><span class="sd">    -------</span>
+</span><span data-line="185"><span class="sd">    torch.Tensor</span>
+</span><span data-line="186"><span class="sd">        The Bulyan aggregated gradient.</span>
+</span><span data-line="187"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="188">    <span class="c1"># Defaults</span>
+</span><span data-line="189">    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="190">        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
+</span><span data-line="191">    <span class="c1"># Computation</span>
+</span><span data-line="192">    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">bulyan</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span></div>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    gradients : list of torch.Tensor</span>
-<span class="sd">        Non-empty list of gradients to aggregate.</span>
-<span class="sd">    f : int</span>
-<span class="sd">        Number of Byzantine gradients to tolerate.</span>
-<span class="sd">    m : int, optional</span>
-<span class="sd">        Number of gradients to consider.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Additional keyword arguments (ignored).</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    torch.Tensor</span>
-<span class="sd">        The Bulyan aggregated gradient.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Defaults</span>
-    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
-    <span class="c1"># Computation</span>
-    <span class="k">return</span> <span class="n">native</span><span class="o">.</span><span class="n">bulyan</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span></div>
-
-
+</span><span data-line="193">
+</span><span data-line="194">
 <div class="viewcode-block" id="check">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.check">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Check parameter validity for Bulyan rule.</span>
+</span><span data-line="195"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="196"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="197"><span class="sd">    Check parameter validity for Bulyan rule.</span>
+</span><span data-line="198">
+</span><span data-line="199"><span class="sd">    Parameters</span>
+</span><span data-line="200"><span class="sd">    ----------</span>
+</span><span data-line="201"><span class="sd">    gradients : list</span>
+</span><span data-line="202"><span class="sd">        Non-empty list of gradients to aggregate.</span>
+</span><span data-line="203"><span class="sd">    f : int</span>
+</span><span data-line="204"><span class="sd">        Number of Byzantine gradients to tolerate.</span>
+</span><span data-line="205"><span class="sd">    m : int, optional</span>
+</span><span data-line="206"><span class="sd">        Number of gradients to consider.</span>
+</span><span data-line="207"><span class="sd">    **kwargs : dict</span>
+</span><span data-line="208"><span class="sd">        Additional keyword arguments (ignored).</span>
+</span><span data-line="209">
+</span><span data-line="210"><span class="sd">    Returns</span>
+</span><span data-line="211"><span class="sd">    -------</span>
+</span><span data-line="212"><span class="sd">    None or str</span>
+</span><span data-line="213"><span class="sd">        None if valid, otherwise error message string.</span>
+</span><span data-line="214"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="215">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="216">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="217">            <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
+</span><span data-line="218">        <span class="p">)</span>
+</span><span data-line="219">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
+</span><span data-line="220">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="221">            <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span>
+</span><span data-line="222">            <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+</span><span data-line="223">        <span class="p">)</span>
+</span><span data-line="224">    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+</span><span data-line="225">        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span>
+</span><span data-line="226">    <span class="p">):</span>
+</span><span data-line="227">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="228">            <span class="s2">&quot;Invalid number of selected gradients, got m = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ m ≤ </span><span class="si">%d</span><span class="s2">&quot;</span>
+</span><span data-line="229">            <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="230">        <span class="p">)</span></div>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    gradients : list</span>
-<span class="sd">        Non-empty list of gradients to aggregate.</span>
-<span class="sd">    f : int</span>
-<span class="sd">        Number of Byzantine gradients to tolerate.</span>
-<span class="sd">    m : int, optional</span>
-<span class="sd">        Number of gradients to consider.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Additional keyword arguments (ignored).</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    None or str</span>
-<span class="sd">        None if valid, otherwise error message string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Expected a list of at least one gradient to aggregate, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Invalid number of Byzantine gradients to tolerate, got f = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ f ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;Invalid number of selected gradients, got m = </span><span class="si">%r</span><span class="s2">, expected 1 ≤ m ≤ </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span></div>
-
-
+</span><span data-line="231">
+</span><span data-line="232">
 <div class="viewcode-block" id="upper_bound">
 <a class="viewcode-back" href="../../aggregators/classes/bulyan.html#aggregators.bulyan.upper_bound">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the theoretical upper bound on the ratio non-Byzantine standard</span>
-<span class="sd">    deviation / norm to use this rule.</span>
+</span><span data-line="233"><span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+</span><span data-line="234"><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span data-line="235"><span class="sd">    Compute the theoretical upper bound on the ratio non-Byzantine standard</span>
+</span><span data-line="236"><span class="sd">    deviation / norm to use this rule.</span>
+</span><span data-line="237">
+</span><span data-line="238"><span class="sd">    Parameters</span>
+</span><span data-line="239"><span class="sd">    ----------</span>
+</span><span data-line="240"><span class="sd">    n : int</span>
+</span><span data-line="241"><span class="sd">        Number of workers (Byzantine + non-Byzantine).</span>
+</span><span data-line="242"><span class="sd">    f : int</span>
+</span><span data-line="243"><span class="sd">        Expected number of Byzantine workers.</span>
+</span><span data-line="244"><span class="sd">    d : int</span>
+</span><span data-line="245"><span class="sd">        Dimension of the gradient space.</span>
+</span><span data-line="246">
+</span><span data-line="247"><span class="sd">    Returns</span>
+</span><span data-line="248"><span class="sd">    -------</span>
+</span><span data-line="249"><span class="sd">    float</span>
+</span><span data-line="250"><span class="sd">        Theoretical upper-bound value.</span>
+</span><span data-line="251"><span class="sd">    &quot;&quot;&quot;</span>
+</span><span data-line="252">    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span></div>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    n : int</span>
-<span class="sd">        Number of workers (Byzantine + non-Byzantine).</span>
-<span class="sd">    f : int</span>
-<span class="sd">        Expected number of Byzantine workers.</span>
-<span class="sd">    d : int</span>
-<span class="sd">        Dimension of the gradient space.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    float</span>
-<span class="sd">        Theoretical upper-bound value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span></div>
-
-
-<span class="c1"># ---------------------------------------------------------------------------- #</span>
-<span class="c1"># GAR registering</span>
-
-<span class="c1"># Register aggregation rule (pytorch version)</span>
-<span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;bulyan&quot;</span>
-<span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
-
-<span class="c1"># Register aggregation rule (native version, if available)</span>
-<span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
-    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
-    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
-        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">))</span>
-</pre></div>
-
-                </article>
-              
-              
-              
-              
-              
-                <footer class="prev-next-footer d-print-none">
-                  
-<div class="prev-next-area">
+</span><span data-line="253">
+</span><span data-line="254">
+</span><span data-line="255"><span class="c1"># ---------------------------------------------------------------------------- #</span>
+</span><span data-line="256"><span class="c1"># GAR registering</span>
+</span><span data-line="257">
+</span><span data-line="258"><span class="c1"># Register aggregation rule (pytorch version)</span>
+</span><span data-line="259"><span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;bulyan&quot;</span>
+</span><span data-line="260"><span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+</span><span data-line="261">
+</span><span data-line="262"><span class="c1"># Register aggregation rule (native version, if available)</span>
+</span><span data-line="263"><span class="k">if</span> <span class="n">native</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="264">    <span class="n">native_name</span> <span class="o">=</span> <span class="n">method_name</span>
+</span><span data-line="265">    <span class="n">method_name</span> <span class="o">=</span> <span class="s2">&quot;native-&quot;</span> <span class="o">+</span> <span class="n">method_name</span>
+</span><span data-line="266">    <span class="k">if</span> <span class="n">native_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">native</span><span class="p">):</span>
+</span><span data-line="267">        <span class="n">register</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">aggregate_native</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+</span><span data-line="268">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="269">        <span class="n">tools</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span data-line="270">            <span class="s2">&quot;GAR </span><span class="si">%r</span><span class="s2"> could not be registered since the associated native module </span><span class="si">%r</span><span class="s2"> is unavailable&quot;</span>
+</span><span data-line="271">            <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">native_name</span><span class="p">)</span>
+</span><span data-line="272">        <span class="p">)</span>
+</span></pre></div>
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"></div></div>
+    </div>
+  </main>
 </div>
-                </footer>
-              
-            </div>
-            
-            
-              
-            
-          </div>
-          <footer class="bd-footer-content">
-            
-          </footer>
-        
-      </main>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
     </div>
   </div>
-  
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
-
-  <footer class="bd-footer">
-<div class="bd-footer__inner bd-page-width">
-  
-    <div class="footer-items__start">
-      
-        <div class="footer-item">
-
-  <p class="copyright">
-    
-      © Copyright 2026.
-      <br/>
-    
-  </p>
-</div>
-      
-        <div class="footer-item">
-
-  <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
-  </p>
-</div>
-      
-    </div>
-  
-  
-  
-    <div class="footer-items__end">
-      
-        <div class="footer-item">
-<p class="theme-version">
-  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
-</p></div>
-      
-    </div>
-  
-</div>
-
-  </footer>
-  </body>
+</footer>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+      <script>let toggleHintShow = 'Click to show';</script>
+      <script>let toggleHintHide = 'Click to hide';</script>
+      <script>let toggleOpenOnPrint = 'true';</script>
+      <script src="../../_static/togglebutton.js?v=b8b12719"></script>
+      <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+      <script src="../../_static/shibuya.js?v=cac61aee"></script></body>
 </html>

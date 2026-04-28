@@ -31,7 +31,7 @@ Example
 >>> import torch
 >>> from aggregators import average
 >>> gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
->>> result = average(gradients)
+>>> result = average(gradients=gradients)
 tensor([2.5000, 3.5000, 4.5000])
 """
 
@@ -39,6 +39,7 @@ from . import register
 
 # ---------------------------------------------------------------------------- #
 # Average GAR
+
 
 def aggregate(gradients, **kwargs):
     """
@@ -63,6 +64,7 @@ def aggregate(gradients, **kwargs):
     """
     return sum(gradients) / len(gradients)
 
+
 def check(gradients, **kwargs):
     """
     Check parameter validity for the averaging rule.
@@ -80,7 +82,10 @@ def check(gradients, **kwargs):
         None if valid, otherwise error message string.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        return (
+            "Expected a list of at least one gradient to aggregate, got %r" % gradients
+        )
+
 
 def influence(honests, attacks, **kwargs):
     """
@@ -105,6 +110,7 @@ def influence(honests, attacks, **kwargs):
         Ratio of Byzantine gradients in the aggregation (attackers / total).
     """
     return len(attacks) / (len(honests) + len(attacks))
+
 
 # ---------------------------------------------------------------------------- #
 # GAR registering
