@@ -1,49 +1,77 @@
-Native
-======
+Native Acceleration
+===================
 
-The ``native/`` folder is not just a repository of C++/CUDA sources. It compiles at Python import time.
+The ``native/`` folder contains C++/CUDA sources that are **compiled
+automatically at Python import time**. There is no separate build step;
+importing an aggregator or attack that offers a native variant triggers
+the compilation transparently.
 
 What the Loader Does
 --------------------
 
-- Inspects subdirectories of ``native/``
-- Recognizes ``so_`` and ``py_`` prefixes
-- Collects source files matching allowed extensions
-- Compiles with ``torch.utils.cpp_extension.load``
-- Loads dependencies declared by ``.deps`` files
-- Exposes compiled Python modules in the ``native`` namespace
+When the ``native`` package is first imported, the loader:
 
-Important Environment Variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Inspects every subdirectory of ``native/``.
+2. Recognizes ``so_`` and ``py_`` prefixes on source files.
+3. Collects files whose extensions match the allowed set.
+4. Invokes ``torch.utils.cpp_extension.load`` to compile them.
+5. Reads ``.deps`` files to discover and load extra dependencies.
+6. Exposes the compiled modules in the ``native`` namespace.
 
-- ``NATIVE_OPT``: controls debug/release mode for native build
-- ``NATIVE_STD``: sets the C++ standard version
-- ``NATIVE_QUIET``: suppresses build messages in release mode
+If compilation fails, the framework degrades gracefully: Python fallbacks
+continue to work and a warning is emitted.
+
+
+Environment Variables
+---------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 60
+
+   * - Variable
+     - Effect
+   * - ``NATIVE_OPT``
+     - Controls debug/release mode for the native build.
+   * - ``NATIVE_STD``
+     - Sets the C++ standard version (e.g. ``c++14``).
+   * - ``NATIVE_QUIET``
+     - Suppresses build messages when compiling in release mode.
+
 
 External Dependencies
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
-- ``ninja``
-- CUB in ``native/include/cub``
-- A PyTorch installation compatible with extension compilation
+- ``ninja`` — the build system used by PyTorch extension compilation.
+- CUB in ``native/include/cub`` — CUDA primitives.
+- A PyTorch installation with headers compatible with extension compilation.
+
 
 Why This Matters for Research
-------------------------------
+-----------------------------
 
-The repository was clearly designed to allow rapid Python prototyping, then native acceleration when an idea becomes stable enough to speed up.
+The repository is designed for **rapid prototyping**:
 
-The workflow:
+1. Write a new rule or attack in pure Python under ``aggregators/`` or
+   ``attacks/``.
+2. Validate behaviors, metrics, and edge cases.
+3. Once the algorithm is stable, move the hot path to ``native/``.
+4. Keep exactly the same functional contract — the public API does not change.
 
-1. Prototype in Python in ``aggregators/`` or ``attacks/``
-2. Validate behaviors and metrics
-3. Move the expensive part to ``native/`` if needed
-4. Keep exactly the same functional contract
+This workflow guarantees that researchers never pay the complexity cost of
+native code while an idea is still evolving.
 
-If native is unavailable, Python code generally continues to work with warnings or fallbacks.
 
-Available Native Modules
-------------------------
+Available Native Variants
+-------------------------
 
-When compiled, native variants are exposed as ``native-krum``, ``native-median``, ``native-bulyan``, etc. These serve mainly for hot paths: pairwise distance calculation, subset selection, coordinate-wise median, expensive combinatorics.
+When compilation succeeds, native variants are registered alongside their
+Python counterparts with a ``native-`` prefix:
 
-The high-level API remains the same, allowing exact comparison of the same rule in Python and native versions.
+- ``native-krum`` — accelerated pairwise distance computation and scoring.
+- ``native-median`` — fast coordinate-wise median.
+- ``native-bulyan`` — accelerated Multi-Krum selection and median averaging.
+- ``native-brute`` — combinatorial subset search.
+
+Because the high-level API is identical, you can compare the exact same rule
+in Python and native versions simply by changing the registered name.

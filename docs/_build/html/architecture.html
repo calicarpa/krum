@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="violet" data-content_root="./">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Architecture - Krum, the Library</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Aggregators" href="aggregators/index.html" /><link rel="prev" title="What is Krum, the Library?" href="index.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Architecture - Krum, the Library</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Aggregators" href="aggregators/index.html" /><link rel="prev" title="Krum, the Library" href="index.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="native.html">Native</a></li>
+<li class="toctree-l1"><a class="reference internal" href="native.html">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -114,9 +117,9 @@ data-aria-dark="Switch to auto color mode">
 </li>
 <li><a class="reference internal" href="#important-caveats">Important Caveats</a><ul>
 <li><a class="reference internal" href="#debug-mode-changes-behavior">Debug Mode Changes Behavior</a></li>
-<li><a class="reference internal" href="#native-compilation-may-fail-import">Native Compilation May Fail Import</a></li>
+<li><a class="reference internal" href="#native-compilation-may-fail-silently">Native Compilation May Fail Silently</a></li>
 <li><a class="reference internal" href="#tensors-are-often-flattened-and-relinked">Tensors Are Often Flattened and Relinked</a></li>
-<li><a class="reference internal" href="#cli-additional-arguments-use-key-value-format">CLI Additional Arguments Use <code class="docutils literal notranslate"><span class="pre">key:value</span></code> Format</a></li>
+<li><a class="reference internal" href="#cli-arguments-use-key-value-format">CLI Arguments Use <code class="docutils literal notranslate"><span class="pre">key:value</span></code> Format</a></li>
 <li><a class="reference internal" href="#no-dedicated-test-suite">No Dedicated Test Suite</a></li>
 </ul>
 </li>
@@ -152,7 +155,9 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h1>
-<p>This section provides a detailed map of the repository for researchers extending the codebase.</p>
+<p>This page is a detailed map of the repository for researchers who want to
+extend the codebase. It covers where things live, how to add new components,
+and the caveats you should keep in mind.</p>
 <section id="repository-map">
 <h2>Repository Map<a class="headerlink" href="#repository-map" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper colwidths-given docutils container">
@@ -171,23 +176,23 @@ data-aria-dark="Switch to auto color mode">
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aggregators/</span></code></p></td>
 <td><p>Robust aggregation rules</p></td>
-<td><p>New rules, native variants, influence</p></td>
+<td><p>New rules, native variants, influence functions</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">attacks/</span></code></p></td>
 <td><p>Byzantine attacks</p></td>
-<td><p>New attack directions, scenarios</p></td>
+<td><p>New attack directions, multi-worker scenarios</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">experiments/</span></code></p></td>
-<td><p>Model/dataset/loss/criterion/optimizer</p></td>
+<td><p>Model / dataset / loss / criterion / optimizer</p></td>
 <td><p>New models, datasets, metrics</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">native/</span></code></p></td>
 <td><p>Auto-compiled C++/CUDA extensions</p></td>
-<td><p>Fast implementations of rules</p></td>
+<td><p>Fast implementations of hot paths</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tools/</span></code></p></td>
 <td><p>Cross-cutting utilities</p></td>
-<td><p>Logging, parallelism, parsing</p></td>
+<td><p>Logging, parallelism, parsing, registries</p></td>
 </tr>
 </tbody>
 </table>
@@ -198,38 +203,45 @@ data-aria-dark="Switch to auto color mode">
 <section id="adding-a-new-aggregator">
 <h3>Adding a New Aggregator<a class="headerlink" href="#adding-a-new-aggregator" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>Create a file in <code class="docutils literal notranslate"><span class="pre">aggregators/</span></code></p></li>
-<li><p>Expose an aggregation function and a <code class="docutils literal notranslate"><span class="pre">check</span></code> function</p></li>
-<li><p>Respect the keyword-only contract</p></li>
-<li><p>Never return a tensor that aliases an input tensor</p></li>
-<li><p>Optionally expose theoretical bounds or influence ratios</p></li>
+<li><p>Create a new file in <a class="reference internal" href="aggregators/index.html"><span class="doc">Aggregators</span></a>.</p></li>
+<li><p>Expose an aggregation function and a <code class="docutils literal notranslate"><span class="pre">check</span></code> function.</p></li>
+<li><p>Respect the keyword-only contract (<code class="docutils literal notranslate"><span class="pre">gradients</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">model</span></code>).</p></li>
+<li><p><strong>Never</strong> return a tensor that aliases an input tensor.</p></li>
+<li><p>Optionally expose <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> and/or <code class="docutils literal notranslate"><span class="pre">influence</span></code> metadata.</p></li>
 </ol>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the full contract, see <a class="reference internal" href="index.html#key-concepts"><span class="std std-ref">Key Concepts</span></a> on the front page.</p>
+</div>
 </section>
 <section id="adding-a-new-attack">
 <h3>Adding a New Attack<a class="headerlink" href="#adding-a-new-attack" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>Create a file in <code class="docutils literal notranslate"><span class="pre">attacks/</span></code></p></li>
-<li><p>Respect reserved arguments: <code class="docutils literal notranslate"><span class="pre">grad_honests</span></code>, <code class="docutils literal notranslate"><span class="pre">f_decl</span></code>, <code class="docutils literal notranslate"><span class="pre">f_real</span></code>, <code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">defense</span></code></p></li>
-<li><p>Return exactly <code class="docutils literal notranslate"><span class="pre">f_real</span></code> gradients</p></li>
-<li><p>Maintain separation between verification and actual execution</p></li>
+<li><p>Create a new file in <a class="reference internal" href="attacks/index.html"><span class="doc">Attacks</span></a>.</p></li>
+<li><p>Respect the reserved arguments: <code class="docutils literal notranslate"><span class="pre">grad_honests</span></code>, <code class="docutils literal notranslate"><span class="pre">f_decl</span></code>, <code class="docutils literal notranslate"><span class="pre">f_real</span></code>,
+<code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">defense</span></code>.</p></li>
+<li><p>Return exactly <code class="docutils literal notranslate"><span class="pre">f_real</span></code> gradients.</p></li>
+<li><p>Maintain separation between parameter validation (<code class="docutils literal notranslate"><span class="pre">check</span></code>) and actual
+execution.</p></li>
 </ol>
 </section>
 <section id="adding-a-new-model">
 <h3>Adding a New Model<a class="headerlink" href="#adding-a-new-model" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>Create a module in <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code></p></li>
-<li><p>Export the constructor in <code class="docutils literal notranslate"><span class="pre">__all__</span></code> if possible</p></li>
-<li><p>Return a proper <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> instance</p></li>
-<li><p>Ensure the model can be flattened and updated via <code class="docutils literal notranslate"><span class="pre">Model.set(...)</span></code></p></li>
+<li><p>Create a module under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code>.</p></li>
+<li><p>Export the constructor in <code class="docutils literal notranslate"><span class="pre">__all__</span></code> when possible.</p></li>
+<li><p>Return a proper <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> instance.</p></li>
+<li><p>Ensure the model can be flattened and updated via <code class="docutils literal notranslate"><span class="pre">Model.set(...)</span></code>.</p></li>
 </ol>
 </section>
 <section id="adding-a-new-dataset">
 <h3>Adding a New Dataset<a class="headerlink" href="#adding-a-new-dataset" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>Create a module in <code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code></p></li>
-<li><p>Expose a generator or dataset construction function</p></li>
-<li><p>Plan for caching if the dataset is large or downloadable</p></li>
-<li><p>Ensure <code class="docutils literal notranslate"><span class="pre">make_datasets(...)</span></code> or <code class="docutils literal notranslate"><span class="pre">Dataset(...)</span></code> can use it without invasive changes</p></li>
+<li><p>Create a module under <code class="docutils literal notranslate"><span class="pre">experiments/datasets/</span></code>.</p></li>
+<li><p>Expose a generator or dataset construction function.</p></li>
+<li><p>Plan for caching if the dataset is large or downloadable.</p></li>
+<li><p>Ensure <code class="docutils literal notranslate"><span class="pre">make_datasets(...)</span></code> (or <code class="docutils literal notranslate"><span class="pre">Dataset(...)</span></code>) can consume it without
+invasive changes.</p></li>
 </ol>
 </section>
 </section>
@@ -237,25 +249,50 @@ data-aria-dark="Switch to auto color mode">
 <h2>Important Caveats<a class="headerlink" href="#important-caveats" title="Link to this heading">¶</a></h2>
 <section id="debug-mode-changes-behavior">
 <h3>Debug Mode Changes Behavior<a class="headerlink" href="#debug-mode-changes-behavior" title="Link to this heading">¶</a></h3>
-<p>Attack and aggregator wrappers choose between verified and raw versions based on <code class="docutils literal notranslate"><span class="pre">__debug__</span></code>. The <code class="docutils literal notranslate"><span class="pre">-O</span></code> or <code class="docutils literal notranslate"><span class="pre">-OO</span></code> mode changes the validation surface.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Attack and aggregator wrappers choose between <em>checked</em> (validated) and
+<em>unchecked</em> (raw) versions based on the global <code class="docutils literal notranslate"><span class="pre">__debug__</span></code> flag.
+Running Python with <code class="docutils literal notranslate"><span class="pre">-O</span></code> or <code class="docutils literal notranslate"><span class="pre">-OO</span></code> removes validation and changes the
+error surface. Always test with validation enabled before deploying
+unchecked code.</p>
+</div>
 </section>
-<section id="native-compilation-may-fail-import">
-<h3>Native Compilation May Fail Import<a class="headerlink" href="#native-compilation-may-fail-import" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">native/</span></code> folder compiles on import. If a native module is broken, import may fail or degrade to a warning. Keep correct Python fallbacks.</p>
+<section id="native-compilation-may-fail-silently">
+<h3>Native Compilation May Fail Silently<a class="headerlink" href="#native-compilation-may-fail-silently" title="Link to this heading">¶</a></h3>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">native/</span></code> folder compiles on import. If a native module is broken,
+import may fail or degrade to a warning. Keep correct Python fallbacks so
+that experiments can continue even when native acceleration is unavailable.</p>
+</div>
 </section>
 <section id="tensors-are-often-flattened-and-relinked">
 <h3>Tensors Are Often Flattened and Relinked<a class="headerlink" href="#tensors-are-often-flattened-and-relinked" title="Link to this heading">¶</a></h3>
-<p>The project heavily uses <code class="docutils literal notranslate"><span class="pre">tools.flatten(...)</span></code> and <code class="docutils literal notranslate"><span class="pre">tools.relink(...)</span></code>. When adding objects that manipulate parameters or gradients, be careful with views, copies, and inplace operations.</p>
+<p>The project heavily uses <code class="docutils literal notranslate"><span class="pre">tools.flatten(...)</span></code> and <code class="docutils literal notranslate"><span class="pre">tools.relink(...)</span></code>.
+When writing code that manipulates parameters or gradients, be careful with
+views, copies, and in-place operations. A common mistake is to assume a tensor
+is contiguous when it is actually a view created by <code class="docutils literal notranslate"><span class="pre">relink</span></code>.</p>
 </section>
-<section id="cli-additional-arguments-use-key-value-format">
-<h3>CLI Additional Arguments Use <code class="docutils literal notranslate"><span class="pre">key:value</span></code> Format<a class="headerlink" href="#cli-additional-arguments-use-key-value-format" title="Link to this heading">¶</a></h3>
-<p>Additional arguments <code class="docutils literal notranslate"><span class="pre">--gar-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--attack-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--model-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--dataset-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--loss-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--criterion-args</span></code> are parsed by <code class="docutils literal notranslate"><span class="pre">tools.parse_keyval(...)</span></code>. Document new research options in this format.</p>
+<section id="cli-arguments-use-key-value-format">
+<h3>CLI Arguments Use <code class="docutils literal notranslate"><span class="pre">key:value</span></code> Format<a class="headerlink" href="#cli-arguments-use-key-value-format" title="Link to this heading">¶</a></h3>
+<p>Additional arguments such as <code class="docutils literal notranslate"><span class="pre">--gar-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--attack-args</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--model-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--dataset-args</span></code>, <code class="docutils literal notranslate"><span class="pre">--loss-args</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">--criterion-args</span></code> are parsed by <code class="xref py py-func docutils literal notranslate"><span class="pre">tools.parse_keyval()</span></code>. Document new
+research options in this <code class="docutils literal notranslate"><span class="pre">key:value</span></code> format so users can pass them from the
+command line without ambiguity.</p>
 </section>
 <section id="no-dedicated-test-suite">
 <h3>No Dedicated Test Suite<a class="headerlink" href="#no-dedicated-test-suite" title="Link to this heading">¶</a></h3>
-<p>Practical validation consists of:
-- Running a short training simulation
-- Importing native modules if modified</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>There is no automated test suite. Practical validation consists of:</p>
+<ul class="simple">
+<li><p>Running a short training simulation to verify convergence behavior.</p></li>
+<li><p>Importing native modules after changes to check compilation.</p></li>
+<li><p>Comparing influence ratios against theoretical expectations.</p></li>
+</ul>
+</div>
 </section>
 </section>
 </section>
@@ -296,7 +333,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

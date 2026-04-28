@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="violet" data-content_root="./">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Native - Krum, the Library</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Jobs Utilities" href="tools/classes/jobs.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Native Acceleration - Krum, the Library</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Jobs Utilities" href="tools/classes/jobs.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
@@ -21,7 +21,7 @@
   --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
 }
 </style>
-    <meta property="og:type" content="website"/><meta property="og:title" content="Native"/>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Native Acceleration"/>
     <meta name="twitter:card" content="summary"/>
   </head>
 <body><div class="sy-head">
@@ -37,7 +37,10 @@
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
-</form><div class="sy-head-socials"></div></div>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
     </div>
     <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
 data-aria-auto="Switch to light color mode"
@@ -91,7 +94,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="tools/classes/jobs.html">Jobs Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Native</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Native Acceleration</a></li>
 </ul>
 
         </div>
@@ -104,13 +107,11 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#what-the-loader-does">What the Loader Does</a><ul>
-<li><a class="reference internal" href="#important-environment-variables">Important Environment Variables</a></li>
+<li><a class="reference internal" href="#what-the-loader-does">What the Loader Does</a></li>
+<li><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 <li><a class="reference internal" href="#external-dependencies">External Dependencies</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#why-this-matters-for-research">Why This Matters for Research</a></li>
-<li><a class="reference internal" href="#available-native-modules">Available Native Modules</a></li>
+<li><a class="reference internal" href="#available-native-variants">Available Native Variants</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -128,7 +129,7 @@ data-aria-dark="Switch to auto color mode">
         <span>/</span>
         <meta itemprop="position" content="1" />
       </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <strong itemprop="name">Native</strong>
+        <strong itemprop="name">Native Acceleration</strong>
         <meta itemprop="position" content="2" />
       </li></ol>
     <div class="xl:hidden ml-1">
@@ -141,52 +142,86 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
   <article class="yue" role="main">
-          <section id="native">
-<h1>Native<a class="headerlink" href="#native" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">native/</span></code> folder is not just a repository of C++/CUDA sources. It compiles at Python import time.</p>
+          <section id="native-acceleration">
+<h1>Native Acceleration<a class="headerlink" href="#native-acceleration" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">native/</span></code> folder contains C++/CUDA sources that are <strong>compiled
+automatically at Python import time</strong>. There is no separate build step;
+importing an aggregator or attack that offers a native variant triggers
+the compilation transparently.</p>
 <section id="what-the-loader-does">
 <h2>What the Loader Does<a class="headerlink" href="#what-the-loader-does" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p>Inspects subdirectories of <code class="docutils literal notranslate"><span class="pre">native/</span></code></p></li>
-<li><p>Recognizes <code class="docutils literal notranslate"><span class="pre">so_</span></code> and <code class="docutils literal notranslate"><span class="pre">py_</span></code> prefixes</p></li>
-<li><p>Collects source files matching allowed extensions</p></li>
-<li><p>Compiles with <code class="docutils literal notranslate"><span class="pre">torch.utils.cpp_extension.load</span></code></p></li>
-<li><p>Loads dependencies declared by <code class="docutils literal notranslate"><span class="pre">.deps</span></code> files</p></li>
-<li><p>Exposes compiled Python modules in the <code class="docutils literal notranslate"><span class="pre">native</span></code> namespace</p></li>
-</ul>
-<section id="important-environment-variables">
-<h3>Important Environment Variables<a class="headerlink" href="#important-environment-variables" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">NATIVE_OPT</span></code>: controls debug/release mode for native build</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NATIVE_STD</span></code>: sets the C++ standard version</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NATIVE_QUIET</span></code>: suppresses build messages in release mode</p></li>
-</ul>
+<p>When the <code class="docutils literal notranslate"><span class="pre">native</span></code> package is first imported, the loader:</p>
+<ol class="arabic simple">
+<li><p>Inspects every subdirectory of <code class="docutils literal notranslate"><span class="pre">native/</span></code>.</p></li>
+<li><p>Recognizes <code class="docutils literal notranslate"><span class="pre">so_</span></code> and <code class="docutils literal notranslate"><span class="pre">py_</span></code> prefixes on source files.</p></li>
+<li><p>Collects files whose extensions match the allowed set.</p></li>
+<li><p>Invokes <code class="docutils literal notranslate"><span class="pre">torch.utils.cpp_extension.load</span></code> to compile them.</p></li>
+<li><p>Reads <code class="docutils literal notranslate"><span class="pre">.deps</span></code> files to discover and load extra dependencies.</p></li>
+<li><p>Exposes the compiled modules in the <code class="docutils literal notranslate"><span class="pre">native</span></code> namespace.</p></li>
+</ol>
+<p>If compilation fails, the framework degrades gracefully: Python fallbacks
+continue to work and a warning is emitted.</p>
+</section>
+<section id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_OPT</span></code></p></td>
+<td><p>Controls debug/release mode for the native build.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_STD</span></code></p></td>
+<td><p>Sets the C++ standard version (e.g. <code class="docutils literal notranslate"><span class="pre">c++14</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_QUIET</span></code></p></td>
+<td><p>Suppresses build messages when compiling in release mode.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="external-dependencies">
-<h3>External Dependencies<a class="headerlink" href="#external-dependencies" title="Link to this heading">¶</a></h3>
+<h2>External Dependencies<a class="headerlink" href="#external-dependencies" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ninja</span></code></p></li>
-<li><p>CUB in <code class="docutils literal notranslate"><span class="pre">native/include/cub</span></code></p></li>
-<li><p>A PyTorch installation compatible with extension compilation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ninja</span></code> — the build system used by PyTorch extension compilation.</p></li>
+<li><p>CUB in <code class="docutils literal notranslate"><span class="pre">native/include/cub</span></code> — CUDA primitives.</p></li>
+<li><p>A PyTorch installation with headers compatible with extension compilation.</p></li>
 </ul>
-</section>
 </section>
 <section id="why-this-matters-for-research">
 <h2>Why This Matters for Research<a class="headerlink" href="#why-this-matters-for-research" title="Link to this heading">¶</a></h2>
-<p>The repository was clearly designed to allow rapid Python prototyping, then native acceleration when an idea becomes stable enough to speed up.</p>
-<p>The workflow:</p>
+<p>The repository is designed for <strong>rapid prototyping</strong>:</p>
 <ol class="arabic simple">
-<li><p>Prototype in Python in <code class="docutils literal notranslate"><span class="pre">aggregators/</span></code> or <code class="docutils literal notranslate"><span class="pre">attacks/</span></code></p></li>
-<li><p>Validate behaviors and metrics</p></li>
-<li><p>Move the expensive part to <code class="docutils literal notranslate"><span class="pre">native/</span></code> if needed</p></li>
-<li><p>Keep exactly the same functional contract</p></li>
+<li><p>Write a new rule or attack in pure Python under <code class="docutils literal notranslate"><span class="pre">aggregators/</span></code> or
+<code class="docutils literal notranslate"><span class="pre">attacks/</span></code>.</p></li>
+<li><p>Validate behaviors, metrics, and edge cases.</p></li>
+<li><p>Once the algorithm is stable, move the hot path to <code class="docutils literal notranslate"><span class="pre">native/</span></code>.</p></li>
+<li><p>Keep exactly the same functional contract — the public API does not change.</p></li>
 </ol>
-<p>If native is unavailable, Python code generally continues to work with warnings or fallbacks.</p>
+<p>This workflow guarantees that researchers never pay the complexity cost of
+native code while an idea is still evolving.</p>
 </section>
-<section id="available-native-modules">
-<h2>Available Native Modules<a class="headerlink" href="#available-native-modules" title="Link to this heading">¶</a></h2>
-<p>When compiled, native variants are exposed as <code class="docutils literal notranslate"><span class="pre">native-krum</span></code>, <code class="docutils literal notranslate"><span class="pre">native-median</span></code>, <code class="docutils literal notranslate"><span class="pre">native-bulyan</span></code>, etc. These serve mainly for hot paths: pairwise distance calculation, subset selection, coordinate-wise median, expensive combinatorics.</p>
-<p>The high-level API remains the same, allowing exact comparison of the same rule in Python and native versions.</p>
+<section id="available-native-variants">
+<h2>Available Native Variants<a class="headerlink" href="#available-native-variants" title="Link to this heading">¶</a></h2>
+<p>When compilation succeeds, native variants are registered alongside their
+Python counterparts with a <code class="docutils literal notranslate"><span class="pre">native-</span></code> prefix:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">native-krum</span></code> — accelerated pairwise distance computation and scoring.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">native-median</span></code> — fast coordinate-wise median.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">native-bulyan</span></code> — accelerated Multi-Krum selection and median averaging.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">native-brute</span></code> — combinatorial subset search.</p></li>
+</ul>
+<p>Because the high-level API is identical, you can compare the exact same rule
+in Python and native versions simply by changing the registered name.</p>
 </section>
 </section>
 
@@ -218,7 +253,10 @@ data-aria-dark="Switch to auto color mode">
     <a href="https://shibuya.lepture.com">Shibuya theme</a>.
   </p>
 </div>
-      <div class="sy-foot-socials"></div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
     </div>
   </div>
 </footer>

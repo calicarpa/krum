@@ -1,59 +1,95 @@
-Welcome to Krum's documentation, a research framework for Byzantine-resilient distributed learning. 
+Krum, the Library
+=================
 
-What is Krum, the Library?
-==========================
+A research framework for Byzantine-resilient distributed learning.
 
-Krum, the Library, is a research framework for Byzantine-resilient distributed learning. It provides a modular environment for comparing robust aggregation rules, simulating Byzantine attacks, running experiment campaigns, and analyzing results.
+Krum provides a modular environment for comparing robust aggregation rules,
+simulating Byzantine attacks, running experiment campaigns, and analyzing
+results. The project is intentionally lightweight: clone the repository, add a
+Python file to the right folder, and the new component is immediately
+available by name.
 
-The core idea is simple:
+.. note::
 
-1. Build a model, dataset, loss, criterion, and optimizer
-2. Each training step produces honest gradients
-3. An attack generates Byzantine gradients
-4. An aggregation rule combines all gradients
-5. Results are measured and saved
+   This documentation is organized by module. If you are extending the
+   codebase, start with :doc:`architecture`. If you want to understand the
+   registration system or contracts, read :ref:`key-concepts` below.
 
-The project is intentionally modular. Most components are loaded automatically from their directories, allowing researchers to clone the repository, add a Python file, and immediately make the new component available by name.
+
+The Five-Step Workflow
+----------------------
+
+A typical Krum experiment follows a simple pipeline:
+
+1. **Build** a model, dataset, loss, criterion, and optimizer.
+2. **Train** honestly — each step produces gradients from good workers.
+3. **Attack** — Byzantine workers submit malicious gradients.
+4. **Aggregate** — a robust rule combines honest and Byzantine gradients.
+5. **Measure** — results are logged, saved, and compared.
+
 
 Three Layers
 ------------
 
-- **Research Components**: :doc:`aggregators/index` contains robust aggregation rules, :doc:`attacks/index` contains Byzantine attacks, :doc:`experiments/index` contains wrappers around PyTorch and TorchVision
-- **Infrastructure**: :doc:`tools/index` provides contextual logging, argument conversion, tensor helpers, job management, and general utilities
-- **Native Acceleration**: :doc:`native` automatically compiles C++/CUDA modules when available
+.. list-table::
+   :header-rows: 1
+   :widths: 20 50 30
+
+   * - Layer
+     - Purpose
+     - Entry Point
+   * - **Research Components**
+     - Robust aggregation rules, Byzantine attacks, model/dataset wrappers
+     - :doc:`aggregators/index`, :doc:`attacks/index`, :doc:`experiments/index`
+   * - **Infrastructure**
+     - Contextual logging, argument parsing, tensor helpers, job management
+     - :doc:`tools/index`
+   * - **Native Acceleration**
+     - Auto-compiled C++/CUDA extensions for hot paths
+     - :doc:`native`
+
+
+.. _key-concepts:
 
 Key Concepts
 ------------
 
-**Registration System**
+Registration System
+~~~~~~~~~~~~~~~~~~~
 
-Krum uses a registration pattern for extensibility. Each family (aggregators, attacks, models, datasets) has its own registry:
+Krum uses a lightweight registration pattern. Each family (aggregators,
+attacks, models, datasets) has its own registry:
 
-- Components are discovered by name from CLI arguments
-- Extension without centralization: add a file to the appropriate folder
-- Local validation: each component carries its own ``check()``
-- Python/native fallback: a rule can keep the same public name while switching from Python to native implementation
+- Components are discovered by name from CLI arguments.
+- Extension without centralization: drop a file in the right folder.
+- Local validation: every component carries its own ``check()``.
+- Python / native fallback: a rule can expose the same public name while
+  switching from Python to native under the hood.
 
-**Keyword-Only Contracts**
+Keyword-Only Contracts
+~~~~~~~~~~~~~~~~~~~~~~
 
-All aggregators and attacks use keyword-only arguments:
+All aggregators and attacks accept **keyword-only** arguments.
 
-*Aggregator Contract:*
+**Aggregator Contract**
 
-- ``gradients``: non-empty list of gradients to aggregate
-- ``f``: number of Byzantine gradients to support
-- ``model``: model with configured defaults
+- ``gradients`` — non-empty list of gradients to aggregate.
+- ``f`` — number of Byzantine gradients the rule must tolerate.
+- ``model`` — model instance with configured defaults.
 
-*Attack Contract:*
+**Attack Contract**
 
-- ``grad_honests``: non-empty list of honest gradients
-- ``f_decl``: number of declared Byzantine gradients
-- ``f_real``: number of actual Byzantine gradients to generate
-- ``model``: model used for the attack
-- ``defense``: aggregation rule to defeat
+- ``grad_honests`` — non-empty list of honest gradients.
+- ``f_decl`` — number of declared Byzantine gradients.
+- ``f_real`` — number of actual Byzantine gradients to generate.
+- ``model`` — model used for the attack.
+- ``defense`` — aggregation rule to defeat.
 
-.. note::
-   Returned tensors must never alias input tensors.
+.. important::
+
+   Returned tensors must **never alias** any input tensor. This guarantee is
+   central to the correctness of the framework.
+
 
 Learn more
 ----------
@@ -69,11 +105,15 @@ Learn more
    tools/index
    native
 
+
 License
 -------
 
-Krum is open-sourced and distributed under the MIT License. See `License <https://github.com/calicarpa/krum/blob/main/LICENSE>`_ for details.
-Our code is available on GitHub at `<https://github.com/calicarpa/krum>`_. We welcome contributions and feedback from the community.
+Krum is open-sourced under the MIT License. See the `License file on GitHub
+<https://github.com/calicarpa/krum/blob/main/LICENSE>`__ for details. Source
+code and issue tracker live at `<https://github.com/calicarpa/krum>`__. We
+welcome contributions and feedback from the community.
+
 
 Indices and tables
 ------------------

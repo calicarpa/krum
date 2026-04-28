@@ -58,18 +58,7 @@ html_show_sourcelink = False
 html_use_index = True
 
 html_theme_options = {
-    "header_links_before_dropdown": 5,
-    "navigation_depth": 4,
-    "icon_links": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/calicarpa/krum",
-            "icon": "fab fa-github",
-            "type": "fontawesome",
-        },
-    ],
-    "search_bar_text": "Search docs...",
-    "navbar_persistent": ["search-button-field"],
+    "github_url": "https://github.com/calicarpa/krum",
 }
 
 # html_favicon = "_static/favicon.ico"
