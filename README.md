@@ -8,6 +8,7 @@ Krum est un projet autour de l’agrégation de gradients robuste en apprentissa
 - [todo.md](todo.md) : feuille de route et pistes d’amélioration.
 - [analysis/](analysis) : notes d’analyse sur différentes approches de robustesse.
 - [IMPROVEMENTS_DRAFT.md](IMPROVEMENTS_DRAFT.md) : brouillon d’évolutions possibles.
+- [aggregators.md](aggregators.md) : liste des aggrégateurs, attaques, pré-aggrégateurs, distributions utilisées dans les papiers
 
 ## Papiers listés
 
