@@ -16,5 +16,9 @@
 !*.css
 !*.js
 
+# Github 
+!.github/*
+!*.yml
+
 # IDE stuff
 .idea
