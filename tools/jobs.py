@@ -181,8 +181,16 @@ class Command:
         self._device = device
         self._result_directory = result_directory
 
-    def __call__(self):
-        """Get the full command as list."""
+    def __call__(self) -> list[str]:
+        """
+        Build the full command list with optional runtime arguments.
+
+        Returns
+        -------
+        list of str
+            Base command extended with ``--seed``, ``--device``, and
+            ``--result-directory`` when they were provided at initialization.
+        """
         cmd = list(self._base)
         if self._seed is not None:
             cmd.extend(["--seed", str(self._seed)])
@@ -228,15 +236,36 @@ class Jobs:
         self._lock = threading.Lock()
 
     def submit(self, name: str, command: list[str]) -> None:
-        """Submit a job for execution."""
+        """
+        Submit a job for execution.
+
+        Parameters
+        ----------
+        name : str
+            Job identifier.
+        command : list of str
+            Full command to execute (as returned by ``Command.__call__``).
+        """
         with self._lock:
             self._pending.append((name, command))
 
     def wait(self, exit_is_requested: bool | None = None) -> None:
-        """Wait for all pending jobs to complete."""
+        """
+        Wait for all pending jobs to complete.
+
+        Parameters
+        ----------
+        exit_is_requested : bool or None, optional
+            Optional external flag to request early termination.
+        """
         # Implementation depends on threading
         pass
 
     def close(self) -> None:
-        """Close the jobs manager."""
-        pass
+        """
+        Close the jobs manager and release resources.
+
+        Notes
+        -----
+        No-op in the current stub implementation.
+        """

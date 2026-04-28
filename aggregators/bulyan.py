@@ -45,7 +45,7 @@ Algorithm
 3. Average the values closest to that median.
 
 Complexity
------------
+----------
 
 - Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and
   :math:`d` is the gradient dimension.

@@ -54,7 +54,7 @@ where:
 - :math:`\\|g\\|` is the norm of the honest gradient.
 
 Complexity
------------
+----------
 - Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and
   :math:`d` is the gradient dimension.
 - Space: :math:`O(n^2)` for storing pairwise distances.
@@ -213,7 +213,7 @@ def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs)
 
     Parameters
     ----------
-    gradients : list
+    gradients : list of torch.Tensor
         Non-empty list of gradients to aggregate.
     f : int
         Number of Byzantine gradients to tolerate.

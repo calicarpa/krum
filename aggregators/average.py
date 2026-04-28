@@ -50,7 +50,7 @@ import torch
 # Average GAR
 
 
-def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor | float:
+def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     """
     Compute the arithmetic mean of all submitted gradients.
 
@@ -64,7 +64,7 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor | float:
 
     Returns
     -------
-    torch.Tensor | float
+    torch.Tensor
         The arithmetic mean of all input gradients.
 
     Notes
