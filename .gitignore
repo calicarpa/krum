@@ -3,6 +3,7 @@
 
 # Except directories, placeholders, gitignores, LICENSE, Markdown files and Python sources
 !*/
+!krum/*
 !.placeholder
 !.gitignore
 !LICENSE
@@ -10,6 +11,8 @@
 !*.py
 !*.toml
 !.python-version
+!uv.lock
+!.pre-commit-config.yaml
 
 # Github 
 !.github/*
