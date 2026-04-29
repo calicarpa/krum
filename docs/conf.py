@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_favicon",
     "sphinx_togglebutton",
+    "sphinx_contributors"
 ]
 
 
@@ -47,7 +48,7 @@ autosummary_generate = True
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "shibuya"  # "pydata_sphinx_theme"
+html_theme = "shibuya"
 html_title = "Krum, the Library"
 html_static_path = ["_static"]
 html_css_files = [
@@ -57,8 +58,122 @@ html_css_files = [
 html_show_sourcelink = False
 html_use_index = True
 
+# Custom theme options
 html_theme_options = {
+    "page_layout": "default",
     "github_url": "https://github.com/calicarpa/krum",
+    "discussion_url": "https://github.com/calicarpa/krum/discussions",
+    "accent_color": "blue",
+    "announcement": "Welcome to the new Krum documentation! Start with the <a href='/tutorials/index.html'>Tutorials</a> or dive into the <a href='/how-to/index.html'>How-to guides</a>.",
+    "globaltoc_expand_depth": 2,
+    "toctree_collapse": False,
+    "toctree_includehidden": True,
+    "nav_links_align": "center",
+    "nav_links": [
+        {
+            "title": "Tutorials",
+            "url": "tutorials/index",
+        },
+        {
+            "title": "How-to guides",
+            "url": "how-to/index",
+            "children": [
+                {
+                    "title": "How to add an aggregator",
+                    "url": "how-to/add-aggregator",
+                },
+                {
+                    "title": "How to add an attack",
+                    "url": "how-to/add-attack",
+                },
+                {
+                    "title": "How to add a model",
+                    "url": "how-to/add-model",
+                },
+                {
+                    "title": "How to add a dataset",
+                    "url": "how-to/add-dataset",
+                },
+                {
+                    "title": "How to add a custom model",
+                    "url": "how-to/add-custom-model",
+                },
+                {
+                    "title": "How to add a custom dataset",
+                    "url": "how-to/add-custom-dataset",
+                }
+            ],
+        },
+        {
+            "title": "Explanation",
+            "children": [
+                {
+                    "title": "Key concepts",
+                    "url": "explanation/key-concepts",
+                    "summary": "Understand the key concepts",
+                },
+                {
+                    "title": "Debug mode",
+                    "url": "explanation/debug-mode",
+                    "summary": "Understand debug mode",
+                },
+                {
+                    "title": "Native compilation",
+                    "url": "explanation/native-compilation",
+                    "summary": "Understand native compilation",
+                },
+                {
+                    "title": "Tensor lifecycle",
+                    "url": "explanation/tensor-lifecycle",
+                    "summary": "Understand tensor lifecycle",
+                },
+                {
+                    "title": "CLI format",
+                    "url": "explanation/cli-format",
+                    "summary": "Understand CLI format",
+                },
+            ],
+        },
+        {
+            "title": "Reference",
+            "children": [
+                {
+                    "title": "Architecture",
+                    "url": "reference/architecture",
+                    "summary": "Understanding the architecture of Krum",
+                },
+                {
+                    "title": "Aggregators",
+                    "url": "reference/aggregators/index",
+                    "summary": "What are aggregators",
+                },
+                {
+                    "title": "Attacks",
+                    "url": "reference/attacks/index",
+                    "summary": "What are attacks",
+                },
+                {
+                    "title": "Experiments",
+                    "url": "reference/experiments/index",
+                    "summary": "What define an experiment",
+                },
+                {
+                    "title": "Tools",
+                    "url": "reference/tools/index",
+                    "summary": "Which tools are available",
+                },
+                {
+                    "title": "Native",
+                    "url": "reference/native",
+                    "summary": "What is native",
+                },
+            ],
+        },
+        {
+            "title": "Contributors",
+            "url": "contributors",
+        },
+    ],
 }
 
 # html_favicon = "_static/favicon.ico"

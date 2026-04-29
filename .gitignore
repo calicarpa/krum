@@ -15,6 +15,7 @@
 !*.html
 !*.css
 !*.js
+!*.svg
 
 # Github 
 !.github/*

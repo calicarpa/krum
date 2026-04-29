@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="blue" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Byzantine resilience in distributed learning - Krum, the Library</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Why debug mode changes behavior" href="debug-mode.html" /><link rel="prev" title="Key Concepts" href="key-concepts.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_contributors.css?v=fe9086e2" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3e3c95e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Byzantine resilience in distributed learning"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="announcement">
+    <div class="announcement-inner">
+      <p>Welcome to the new Krum documentation! Start with the <a href='/tutorials/index.html'>Tutorials</a> or dive into the <a href='/how-to/index.html'>How-to guides</a>.</p>
+      <button class="announcement-close" aria-label="Close announcement">
+        <i class="i-lucide close"></i>
+      </button>
+    </div>
+  </div><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>Krum, the Library</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links" data-align=center><ul><li class="link"><a href="../tutorials/index.html">Tutorials</a></li>
+      <li class="link"><a class="js-menu" href="../how-to/index.html" id="nav-trigger-2" aria-controls="nav-children-2">
+            <span>How-to guides</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul id="nav-children-2" aria-labelledby="nav-trigger-2"><li><a href="../how-to/add-aggregator.html">How to add an aggregator</a></li><li><a href="../how-to/add-attack.html">How to add an attack</a></li><li><a href="../how-to/add-model.html">How to add a model</a></li><li><a href="../how-to/add-dataset.html">How to add a dataset</a></li><li><a href="../how-to/add-custom-model.html">How to add a custom model</a></li><li><a href="../how-to/add-custom-dataset.html">How to add a custom dataset</a></li></ul>
+      </li>
+      <li class="link"><button class="js-menu" type="button" id="nav-trigger-3" aria-controls="nav-children-3">
+            <span>Explanation</span>
+            <i class="i-lucide chevron-down"></i>
+          </button>
+        <ul id="nav-children-3" aria-labelledby="nav-trigger-3"><li><a href="key-concepts.html">
+                <span>Key concepts</span>
+                <small>Understand the key concepts</small>
+              </a></li><li><a href="debug-mode.html">
+                <span>Debug mode</span>
+                <small>Understand debug mode</small>
+              </a></li><li><a href="native-compilation.html">
+                <span>Native compilation</span>
+                <small>Understand native compilation</small>
+              </a></li><li><a href="tensor-lifecycle.html">
+                <span>Tensor lifecycle</span>
+                <small>Understand tensor lifecycle</small>
+              </a></li><li><a href="cli-format.html">
+                <span>CLI format</span>
+                <small>Understand CLI format</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><button class="js-menu" type="button" id="nav-trigger-4" aria-controls="nav-children-4">
+            <span>Reference</span>
+            <i class="i-lucide chevron-down"></i>
+          </button>
+        <ul id="nav-children-4" aria-labelledby="nav-trigger-4"><li><a href="../reference/architecture.html">
+                <span>Architecture</span>
+                <small>Understanding the architecture of Krum</small>
+              </a></li><li><a href="../reference/aggregators/index.html">
+                <span>Aggregators</span>
+                <small>What are aggregators</small>
+              </a></li><li><a href="../reference/attacks/index.html">
+                <span>Attacks</span>
+                <small>What are attacks</small>
+              </a></li><li><a href="../reference/experiments/index.html">
+                <span>Experiments</span>
+                <small>What define an experiment</small>
+              </a></li><li><a href="../reference/tools/index.html">
+                <span>Tools</span>
+                <small>Which tools are available</small>
+              </a></li><li><a href="../reference/native.html">
+                <span>Native</span>
+                <small>What is native</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../contributors.html">Contributors</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6"><div class="sidebar-links">
+  <ul>
+    <li><a class="icon-link" href="https://github.com/calicarpa/krum/discussions">
+  <span class="icon">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path fill="var(--accent-9)" fill-rule="evenodd" clip-rule="evenodd" d="M11 5a6 6 0 0 0-4.687 9.746c.215.27.315.62.231.954l-.514 2.058a1 1 0 0 0 1.485 1.1l2.848-1.71c.174-.104.374-.15.576-.148H13a6 6 0 0 0 0-12h-2Z"/>
+      <circle fill="white" cx="12" cy="11" r="1"/>
+      <circle fill="white" cx="9" cy="11" r="1"/>
+      <circle fill="white" cx="15" cy="11" r="1"/>
+    </svg>
+  </span>
+  <span class="text">Discussion</span>
+</a></li>
+  </ul>
+</div>
+        <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../index.html">Krum, the Library</a></li>
+</ul>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../tutorials/getting-started.html">Getting started</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../tutorials/benchmarking-aggregators.html">Benchmarking aggregators against Byzantine attacks</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../how-to/index.html">How-to guides</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-aggregator.html">How to add a new aggregator</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-attack.html">How to add a new attack</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-model.html">How to add a new model</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-dataset.html">How to add a new dataset</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-custom-model.html">How to add a custom model</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/add-custom-dataset.html">How to add a custom dataset</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/enable-native.html">How to enable native acceleration</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../how-to/run-experiment-campaign.html">How to run an experiment campaign</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="key-concepts.html">Key Concepts</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Byzantine resilience in distributed learning</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="debug-mode.html">Why debug mode changes behavior</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="native-compilation.html">Native compilation</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="tensor-lifecycle.html">Tensor lifecycle</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="cli-format.html">CLI argument format</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/architecture.html">Repository Architecture</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/aggregators/index.html">Aggregators</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/aggregators/classes/average.html">Average</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/aggregators/classes/median.html">Median</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/aggregators/classes/krum.html">Krum / Multi-Krum</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/aggregators/classes/bulyan.html">Bulyan</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/aggregators/classes/brute.html">Brute</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/attacks/index.html">Attacks</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/attacks/classes/identical.html">Identical</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/attacks/classes/nan.html">NaN</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/experiments/index.html">Experiments</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/configuration.html">Configuration</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/dataset.html">Dataset</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/model.html">Model</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/loss.html">Loss</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/optimizer.html">Optimizer</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/models.html">Models</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/experiments/classes/datasets.html">Datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/tools/index.html">Tools</a><ul>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/tools/classes/pytorch.html">PyTorch Utilities</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/tools/classes/misc.html">Miscellaneous Utilities</a></li>
+<li class="toctree-l2 _expand"><a class="reference internal" href="../reference/tools/classes/jobs.html">Jobs Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/native.html">Native Acceleration</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Project</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../contributors.html">Contributors</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#the-byzantine-generals-problem">The Byzantine generals problem</a></li>
+<li><a class="reference internal" href="#why-simple-averaging-fails">Why simple averaging fails</a></li>
+<li><a class="reference internal" href="#robust-aggregation-the-high-level-idea">Robust aggregation: the high-level idea</a></li>
+<li><a class="reference internal" href="#attacks-and-threat-models">Attacks and threat models</a></li>
+<li><a class="reference internal" href="#where-krum-fits-in">Where Krum fits in</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Krum, the Library</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Byzantine resilience in distributed learning</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <article class="yue" role="main">
+          <section id="byzantine-resilience-in-distributed-learning">
+<h1>Byzantine resilience in distributed learning<a class="headerlink" href="#byzantine-resilience-in-distributed-learning" title="Link to this heading">¶</a></h1>
+<p>In a standard machine-learning pipeline, one machine trains one model on one
+dataset. Distributed learning breaks this assumption: many machines — called
+<strong>workers</strong> — train the same model collaboratively. Each worker holds a local
+copy of the model, runs a few training steps on its own data, and sends its
+gradients to a central <strong>server</strong> that aggregates them and broadcasts the
+updated model back.</p>
+<p>This setup is powerful. It scales to datasets that do not fit on a single
+node, and it preserves privacy because raw data never leaves the worker.
+But it also introduces a new vulnerability: <strong>what if some workers lie?</strong></p>
+<section id="the-byzantine-generals-problem">
+<h2>The Byzantine generals problem<a class="headerlink" href="#the-byzantine-generals-problem" title="Link to this heading">¶</a></h2>
+<p>The name comes from a classic distributed-systems thought experiment. Imagine
+several generals surrounding a city. They must agree on a common plan of
+action — attack or retreat — by exchanging messages. Some generals may be
+traitors who send conflicting or misleading information. The loyal generals
+need a protocol that lets them reach agreement <em>despite</em> the traitors.</p>
+<p>In distributed learning, the generals are the workers, the messages are
+gradients, and the “plan” is the updated model. A <strong>Byzantine worker</strong>
+deliberately sends a malicious gradient. Its goal is to corrupt the global
+model so that the final classifier is useless, biased, or leaks information.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Byzantine failures are strictly more severe than simple crashes. A crashed
+worker stops responding; a Byzantine worker actively participates and
+sends carefully crafted bad data.</p>
+</div>
+</section>
+<section id="why-simple-averaging-fails">
+<h2>Why simple averaging fails<a class="headerlink" href="#why-simple-averaging-fails" title="Link to this heading">¶</a></h2>
+<p>The most natural aggregation rule is to <strong>average</strong> all received gradients.
+It is fast, memory-efficient, and optimal when every worker is honest.</p>
+<p>But averaging gives every worker equal weight. If even a single Byzantine
+worker sends a huge gradient in the wrong direction, the average is pulled
+arbitrarily far from the honest consensus. In practice, a few malicious
+workers can reduce test accuracy from 90 % to random-guess levels in a
+handful of steps.</p>
+<figure class="align-center" id="id1">
+<img alt="Effect of a single Byzantine worker on gradient averaging" src="../_images/byzantine_attack.svg" />
+<figcaption>
+<p><span class="caption-text">A single large outlier gradient (red arrow) distorts the average away
+from the honest cluster (blue arrows).</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="robust-aggregation-the-high-level-idea">
+<h2>Robust aggregation: the high-level idea<a class="headerlink" href="#robust-aggregation-the-high-level-idea" title="Link to this heading">¶</a></h2>
+<p>A <strong>robust aggregation rule</strong> (or <em>gradient aggregation rule</em>, GAR) replaces
+the simple average with a statistic that is insensitive to a minority of
+outliers. The rule receives <span class="math notranslate nohighlight">\(n\)</span> gradients, knows that at most <span class="math notranslate nohighlight">\(f\)</span>
+of them may be Byzantine, and must produce a single trustworthy update.</p>
+<p>Different rules make different trade-offs:</p>
+<ul class="simple">
+<li><p><strong>Robustness</strong> — how many Byzantine workers can the rule tolerate?</p></li>
+<li><p><strong>Complexity</strong> — how long does aggregation take as <span class="math notranslate nohighlight">\(n\)</span> or the model
+dimension <span class="math notranslate nohighlight">\(d\)</span> grows?</p></li>
+<li><p><strong>Bias</strong> — does the rule systematically shrink or distort honest gradients?</p></li>
+</ul>
+<div class="table-wrapper colwidths-given docutils container" id="id2">
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">A rough comparison of well-known rules</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Rule</p></th>
+<th class="head"><p>Core idea</p></th>
+<th class="head"><p>Robustness</p></th>
+<th class="head"><p>Cost</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Median</p></td>
+<td><p>Coordinate-wise median</p></td>
+<td><p>1 malicious worker</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(n d)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Krum</p></td>
+<td><p>Select the gradient closest to its <span class="math notranslate nohighlight">\(n-f-2\)</span> nearest neighbours</p></td>
+<td><p><span class="math notranslate nohighlight">\(f &lt; \frac{n-2}{2}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(n^2 d)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Bulyan</p></td>
+<td><p>Krum pre-selection + coordinate-wise median</p></td>
+<td><p>Stronger than Krum alone</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathcal{O}(n^2 d)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Brute</p></td>
+<td><p>Search every subset of <span class="math notranslate nohighlight">\(n-f\)</span> gradients for the best average</p></td>
+<td><p>Optimal (up to <span class="math notranslate nohighlight">\(f\)</span>)</p></td>
+<td><p>Exponential in <span class="math notranslate nohighlight">\(n\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>None of these rules is universally best. The right choice depends on the
+expected threat model, the budget for computation, and whether a small bias
+is acceptable.</p>
+</section>
+<section id="attacks-and-threat-models">
+<h2>Attacks and threat models<a class="headerlink" href="#attacks-and-threat-models" title="Link to this heading">¶</a></h2>
+<p>A Byzantine <strong>attack</strong> is a strategy for crafting malicious gradients. Attacks
+vary in how much information the adversary needs:</p>
+<ul class="simple">
+<li><p><strong>Omniscient</strong> — the attacker sees all honest gradients before crafting its
+own. This is the strongest model and yields the most damaging attacks.</p></li>
+<li><p><strong>Partial knowledge</strong> — the attacker only sees a subset or a noisy estimate
+of the honest gradients.</p></li>
+<li><p><strong>Blind</strong> — the attacker knows nothing about the honest gradients and uses a
+fixed strategy (e.g., sending constant vectors or <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values).</p></li>
+</ul>
+<p>Even a blind attack can break simple averaging. More sophisticated attacks
+aim to fool robust rules by making malicious gradients <em>look</em> honest — for
+example, by staying close to the honest cluster while pushing the aggregate
+in a harmful direction.</p>
+</section>
+<section id="where-krum-fits-in">
+<h2>Where Krum fits in<a class="headerlink" href="#where-krum-fits-in" title="Link to this heading">¶</a></h2>
+<p>Krum is a <strong>research framework</strong>, not a production system. Its goal is to let
+you compare robust aggregation rules and attack strategies under controlled
+conditions, so you can decide which combination works best for your setting.</p>
+<p>Rather than hiding the complexity behind a high-level API, Krum exposes every
+step of the pipeline: model construction, gradient computation, attack
+injection, aggregation, and measurement. This transparency is essential for
+research, because it lets you modify any layer without fighting the
+framework.</p>
+<p>If you are new to the field, the <a class="reference internal" href="../tutorials/getting-started.html"><span class="doc">Getting started</span></a> tutorial walks you
+through a concrete experiment where a Byzantine attack crashes a baseline
+aggregator while a robust rule keeps accuracy stable.</p>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="key-concepts.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Key Concepts</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="debug-mode.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Why debug mode changes behavior</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/calicarpa/krum" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script>let toggleHintShow = 'Click to show';</script>
+      <script>let toggleHintHide = 'Click to hide';</script>
+      <script>let toggleOpenOnPrint = 'true';</script>
+      <script src="../_static/togglebutton.js?v=b8b12719"></script>
+      <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script>
+      <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"argmin": "\\mathop{\\mathrm{arg\\,min}}"}}})</script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script></body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-accent-color="violet" data-content_root="./">
+<html lang="en" data-accent-color="blue" data-content_root="./">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Index - Krum, the Library</title><link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" /><script>
@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx_contributors.css?v=fe9086e2" />
     <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3e3c95e7" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
@@ -22,7 +23,14 @@
 }
 </style>
     </head>
-<body><div class="sy-head">
+<body><div class="announcement">
+    <div class="announcement-inner">
+      <p>Welcome to the new Krum documentation! Start with the <a href='/tutorials/index.html'>Tutorials</a> or dive into the <a href='/how-to/index.html'>How-to guides</a>.</p>
+      <button class="announcement-close" aria-label="Close announcement">
+        <i class="i-lucide close"></i>
+      </button>
+    </div>
+  </div><div class="sy-head">
   <div class="sy-head-blur"></div>
   <div class="sy-head-inner sy-container mx-auto">
     <a class="sy-head-brand" href="index.html">
@@ -31,7 +39,58 @@
       <strong>Krum, the Library</strong>
     </a>
     <div class="sy-head-nav" id="head-nav">
-      <nav class="sy-head-links"></nav>
+      <nav class="sy-head-links" data-align=center><ul><li class="link"><a href="tutorials/index.html">Tutorials</a></li>
+      <li class="link"><a class="js-menu" href="how-to/index.html" id="nav-trigger-2" aria-controls="nav-children-2">
+            <span>How-to guides</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul id="nav-children-2" aria-labelledby="nav-trigger-2"><li><a href="how-to/add-aggregator.html">How to add an aggregator</a></li><li><a href="how-to/add-attack.html">How to add an attack</a></li><li><a href="how-to/add-model.html">How to add a model</a></li><li><a href="how-to/add-dataset.html">How to add a dataset</a></li><li><a href="how-to/add-custom-model.html">How to add a custom model</a></li><li><a href="how-to/add-custom-dataset.html">How to add a custom dataset</a></li></ul>
+      </li>
+      <li class="link"><button class="js-menu" type="button" id="nav-trigger-3" aria-controls="nav-children-3">
+            <span>Explanation</span>
+            <i class="i-lucide chevron-down"></i>
+          </button>
+        <ul id="nav-children-3" aria-labelledby="nav-trigger-3"><li><a href="explanation/key-concepts.html">
+                <span>Key concepts</span>
+                <small>Understand the key concepts</small>
+              </a></li><li><a href="explanation/debug-mode.html">
+                <span>Debug mode</span>
+                <small>Understand debug mode</small>
+              </a></li><li><a href="explanation/native-compilation.html">
+                <span>Native compilation</span>
+                <small>Understand native compilation</small>
+              </a></li><li><a href="explanation/tensor-lifecycle.html">
+                <span>Tensor lifecycle</span>
+                <small>Understand tensor lifecycle</small>
+              </a></li><li><a href="explanation/cli-format.html">
+                <span>CLI format</span>
+                <small>Understand CLI format</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><button class="js-menu" type="button" id="nav-trigger-4" aria-controls="nav-children-4">
+            <span>Reference</span>
+            <i class="i-lucide chevron-down"></i>
+          </button>
+        <ul id="nav-children-4" aria-labelledby="nav-trigger-4"><li><a href="reference/architecture.html">
+                <span>Architecture</span>
+                <small>Understanding the architecture of Krum</small>
+              </a></li><li><a href="reference/aggregators/index.html">
+                <span>Aggregators</span>
+                <small>What are aggregators</small>
+              </a></li><li><a href="reference/attacks/index.html">
+                <span>Attacks</span>
+                <small>What are attacks</small>
+              </a></li><li><a href="reference/experiments/index.html">
+                <span>Experiments</span>
+                <small>What define an experiment</small>
+              </a></li><li><a href="reference/tools/index.html">
+                <span>Tools</span>
+                <small>Which tools are available</small>
+              </a></li><li><a href="reference/native.html">
+                <span>Native</span>
+                <small>What is native</small>
+              </a></li></ul>
+      </li><li class="link"><a href="contributors.html">Contributors</a></li></ul></nav>
       <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
   <input type="text" name="q" placeholder="Search" />
   <kbd>/</kbd>
@@ -85,35 +144,35 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext">AccumulatedTimedContext (class in tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext">AccumulatedTimedContext (class in tools.pytorch)</a>
 </li>
-      <li><a href="aggregators/classes/average.html#aggregators.average.aggregate">aggregate() (in module aggregators.average)</a>
+      <li><a href="reference/aggregators/classes/average.html#aggregators.average.aggregate">aggregate() (in module aggregators.average)</a>
 
       <ul>
-        <li><a href="aggregators/classes/brute.html#aggregators.brute.aggregate">(in module aggregators.brute)</a>
+        <li><a href="reference/aggregators/classes/brute.html#aggregators.brute.aggregate">(in module aggregators.brute)</a>
 </li>
-        <li><a href="aggregators/classes/bulyan.html#aggregators.bulyan.aggregate">(in module aggregators.bulyan)</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#aggregators.bulyan.aggregate">(in module aggregators.bulyan)</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#aggregators.krum.aggregate">(in module aggregators.krum)</a>
+        <li><a href="reference/aggregators/classes/krum.html#aggregators.krum.aggregate">(in module aggregators.krum)</a>
 </li>
-        <li><a href="aggregators/classes/median.html#aggregators.median.aggregate">(in module aggregators.median)</a>
+        <li><a href="reference/aggregators/classes/median.html#aggregators.median.aggregate">(in module aggregators.median)</a>
 </li>
       </ul></li>
-      <li><a href="aggregators/classes/brute.html#aggregators.brute.aggregate_native">aggregate_native() (in module aggregators.brute)</a>
+      <li><a href="reference/aggregators/classes/brute.html#aggregators.brute.aggregate_native">aggregate_native() (in module aggregators.brute)</a>
 
       <ul>
-        <li><a href="aggregators/classes/bulyan.html#aggregators.bulyan.aggregate_native">(in module aggregators.bulyan)</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#aggregators.bulyan.aggregate_native">(in module aggregators.bulyan)</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#aggregators.krum.aggregate_native">(in module aggregators.krum)</a>
+        <li><a href="reference/aggregators/classes/krum.html#aggregators.krum.aggregate_native">(in module aggregators.krum)</a>
 </li>
-        <li><a href="aggregators/classes/median.html#aggregators.median.aggregate_native">(in module aggregators.median)</a>
+        <li><a href="reference/aggregators/classes/median.html#aggregators.median.aggregate_native">(in module aggregators.median)</a>
 </li>
       </ul></li>
       <li>
     aggregators.average
 
       <ul>
-        <li><a href="aggregators/classes/average.html#module-aggregators.average">module</a>
+        <li><a href="reference/aggregators/classes/average.html#module-aggregators.average">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -122,44 +181,44 @@ data-aria-dark="Switch to auto color mode">
     aggregators.brute
 
       <ul>
-        <li><a href="aggregators/classes/brute.html#module-aggregators.brute">module</a>
+        <li><a href="reference/aggregators/classes/brute.html#module-aggregators.brute">module</a>
 </li>
       </ul></li>
       <li>
     aggregators.bulyan
 
       <ul>
-        <li><a href="aggregators/classes/bulyan.html#module-aggregators.bulyan">module</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#module-aggregators.bulyan">module</a>
 </li>
       </ul></li>
       <li>
     aggregators.krum
 
       <ul>
-        <li><a href="aggregators/classes/krum.html#module-aggregators.krum">module</a>
+        <li><a href="reference/aggregators/classes/krum.html#module-aggregators.krum">module</a>
 </li>
       </ul></li>
       <li>
     aggregators.median
 
       <ul>
-        <li><a href="aggregators/classes/median.html#module-aggregators.median">module</a>
+        <li><a href="reference/aggregators/classes/median.html#module-aggregators.median">module</a>
 </li>
       </ul></li>
-      <li><a href="attacks/classes/nan.html#attacks.nan.attack">attack() (in module attacks.nan)</a>
+      <li><a href="reference/attacks/classes/nan.html#attacks.nan.attack">attack() (in module attacks.nan)</a>
 </li>
       <li>
     attacks.identical
 
       <ul>
-        <li><a href="attacks/classes/identical.html#module-attacks.identical">module</a>
+        <li><a href="reference/attacks/classes/identical.html#module-attacks.identical">module</a>
 </li>
       </ul></li>
       <li>
     attacks.nan
 
       <ul>
-        <li><a href="attacks/classes/nan.html#module-attacks.nan">module</a>
+        <li><a href="reference/attacks/classes/nan.html#module-attacks.nan">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -168,13 +227,13 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.backprop">backprop() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.backprop">backprop() (experiments.model.Model method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.batch_dataset">batch_dataset() (in module experiments.dataset)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.batch_dataset">batch_dataset() (in module experiments.dataset)</a>
 </li>
-      <li><a href="attacks/classes/identical.html#attacks.identical.bulyan">bulyan() (in module attacks.identical)</a>
+      <li><a href="reference/attacks/classes/identical.html#attacks.identical.bulyan">bulyan() (in module attacks.identical)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -182,43 +241,43 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="aggregators/classes/average.html#aggregators.average.check">check() (in module aggregators.average)</a>
+      <li><a href="reference/aggregators/classes/average.html#aggregators.average.check">check() (in module aggregators.average)</a>
 
       <ul>
-        <li><a href="aggregators/classes/brute.html#aggregators.brute.check">(in module aggregators.brute)</a>
+        <li><a href="reference/aggregators/classes/brute.html#aggregators.brute.check">(in module aggregators.brute)</a>
 </li>
-        <li><a href="aggregators/classes/bulyan.html#aggregators.bulyan.check">(in module aggregators.bulyan)</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#aggregators.bulyan.check">(in module aggregators.bulyan)</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#aggregators.krum.check">(in module aggregators.krum)</a>
+        <li><a href="reference/aggregators/classes/krum.html#aggregators.krum.check">(in module aggregators.krum)</a>
 </li>
-        <li><a href="aggregators/classes/median.html#aggregators.median.check">(in module aggregators.median)</a>
+        <li><a href="reference/aggregators/classes/median.html#aggregators.median.check">(in module aggregators.median)</a>
 </li>
-        <li><a href="attacks/classes/identical.html#attacks.identical.check">(in module attacks.identical)</a>
+        <li><a href="reference/attacks/classes/identical.html#attacks.identical.check">(in module attacks.identical)</a>
 </li>
-        <li><a href="attacks/classes/nan.html#attacks.nan.check">(in module attacks.nan)</a>
+        <li><a href="reference/attacks/classes/nan.html#attacks.nan.check">(in module attacks.nan)</a>
 </li>
       </ul></li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint">Checkpoint (class in experiments.checkpoint)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint">Checkpoint (class in experiments.checkpoint)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.ClassRegister">ClassRegister (class in tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.ClassRegister">ClassRegister (class in tools.misc)</a>
 </li>
-      <li><a href="tools/classes/jobs.html#tools.jobs.Jobs.close">close() (tools.jobs.Jobs method)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.Jobs.close">close() (tools.jobs.Jobs method)</a>
 </li>
-      <li><a href="tools/classes/jobs.html#tools.jobs.Command">Command (class in tools.jobs)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.Command">Command (class in tools.jobs)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.compute_avg_dev_max">compute_avg_dev_max() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.compute_avg_dev_max">compute_avg_dev_max() (in module tools.pytorch)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.config">config (experiments.model.Model property)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.config">config (experiments.model.Model property)</a>
 </li>
-      <li><a href="experiments/classes/configuration.html#experiments.configuration.Configuration">Configuration (class in experiments.configuration)</a>
+      <li><a href="reference/experiments/classes/configuration.html#experiments.configuration.Configuration">Configuration (class in experiments.configuration)</a>
 </li>
-      <li><a href="experiments/classes/models.html#experiments.models.simples.conv">conv() (in module experiments.models.simples)</a>
+      <li><a href="reference/experiments/classes/models.html#experiments.models.simples.conv">conv() (in module experiments.models.simples)</a>
 </li>
-      <li><a href="experiments/classes/loss.html#experiments.loss.Criterion">Criterion (class in experiments.loss)</a>
+      <li><a href="reference/experiments/classes/loss.html#experiments.loss.Criterion">Criterion (class in experiments.loss)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext.current_runtime">current_runtime() (tools.pytorch.AccumulatedTimedContext method)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.AccumulatedTimedContext.current_runtime">current_runtime() (tools.pytorch.AccumulatedTimedContext method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -226,19 +285,19 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.Dataset">Dataset (class in experiments.dataset)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.Dataset">Dataset (class in experiments.dataset)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.default">default() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.default">default() (experiments.model.Model method)</a>
 </li>
-      <li><a href="experiments/classes/configuration.html#experiments.configuration.Configuration.default_device">default_device (experiments.configuration.Configuration attribute)</a>
+      <li><a href="reference/experiments/classes/configuration.html#experiments.configuration.Configuration.default_device">default_device (experiments.configuration.Configuration attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.deltatime_format">deltatime_format() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.deltatime_format">deltatime_format() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.deltatime_point">deltatime_point() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.deltatime_point">deltatime_point() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/jobs.html#tools.jobs.dict_to_cmdlist">dict_to_cmdlist() (in module tools.jobs)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.dict_to_cmdlist">dict_to_cmdlist() (in module tools.jobs)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -246,31 +305,31 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="attacks/classes/identical.html#attacks.identical.empire">empire() (in module attacks.identical)</a>
+      <li><a href="reference/attacks/classes/identical.html#attacks.identical.empire">empire() (in module attacks.identical)</a>
 </li>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.Dataset.epoch">epoch() (experiments.dataset.Dataset method)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.Dataset.epoch">epoch() (experiments.dataset.Dataset method)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.eval">eval() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.eval">eval() (experiments.model.Model method)</a>
 </li>
       <li>
     experiments.checkpoint
 
       <ul>
-        <li><a href="experiments/classes/checkpoint.html#module-experiments.checkpoint">module</a>
+        <li><a href="reference/experiments/classes/checkpoint.html#module-experiments.checkpoint">module</a>
 </li>
       </ul></li>
       <li>
     experiments.configuration
 
       <ul>
-        <li><a href="experiments/classes/configuration.html#module-experiments.configuration">module</a>
+        <li><a href="reference/experiments/classes/configuration.html#module-experiments.configuration">module</a>
 </li>
       </ul></li>
       <li>
     experiments.dataset
 
       <ul>
-        <li><a href="experiments/classes/dataset.html#module-experiments.dataset">module</a>
+        <li><a href="reference/experiments/classes/dataset.html#module-experiments.dataset">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -279,35 +338,35 @@ data-aria-dark="Switch to auto color mode">
     experiments.datasets.svm
 
       <ul>
-        <li><a href="experiments/classes/datasets.html#module-experiments.datasets.svm">module</a>
+        <li><a href="reference/experiments/classes/datasets.html#module-experiments.datasets.svm">module</a>
 </li>
       </ul></li>
       <li>
     experiments.loss
 
       <ul>
-        <li><a href="experiments/classes/loss.html#module-experiments.loss">module</a>
+        <li><a href="reference/experiments/classes/loss.html#module-experiments.loss">module</a>
 </li>
       </ul></li>
       <li>
     experiments.model
 
       <ul>
-        <li><a href="experiments/classes/model.html#module-experiments.model">module</a>
+        <li><a href="reference/experiments/classes/model.html#module-experiments.model">module</a>
 </li>
       </ul></li>
       <li>
     experiments.models.simples
 
       <ul>
-        <li><a href="experiments/classes/models.html#module-experiments.models.simples">module</a>
+        <li><a href="reference/experiments/classes/models.html#module-experiments.models.simples">module</a>
 </li>
       </ul></li>
       <li>
     experiments.optimizer
 
       <ul>
-        <li><a href="experiments/classes/optimizer.html#module-experiments.optimizer">module</a>
+        <li><a href="reference/experiments/classes/optimizer.html#module-experiments.optimizer">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -316,19 +375,19 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.fatal_unavailable">fatal_unavailable() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.fatal_unavailable">fatal_unavailable() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.flatten">flatten() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.flatten">flatten() (in module tools.pytorch)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss.forward">forward() (tools.pytorch.WeightedMSELoss method)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss.forward">forward() (tools.pytorch.WeightedMSELoss method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/models.html#experiments.models.simples.full">full() (in module experiments.models.simples)</a>
+      <li><a href="reference/experiments/classes/models.html#experiments.models.simples.full">full() (in module experiments.models.simples)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.fullqual">fullqual() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.fullqual">fullqual() (in module tools.misc)</a>
 </li>
-      <li><a href="attacks/classes/identical.html#attacks.identical.func">func() (in module attacks.identical)</a>
+      <li><a href="reference/attacks/classes/identical.html#attacks.identical.func">func() (in module attacks.identical)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -336,21 +395,21 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.get">get() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.get">get() (experiments.model.Model method)</a>
 </li>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.Dataset.get_default_root">get_default_root() (experiments.dataset.Dataset class method)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.Dataset.get_default_root">get_default_root() (experiments.dataset.Dataset class method)</a>
 </li>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.get_default_transform">get_default_transform() (in module experiments.dataset)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.get_default_transform">get_default_transform() (in module experiments.dataset)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.get_gradient">get_gradient() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.get_gradient">get_gradient() (experiments.model.Model method)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.get_loaded_dependencies">get_loaded_dependencies() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.get_loaded_dependencies">get_loaded_dependencies() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.grad_of">grad_of() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.grad_of">grad_of() (in module tools.pytorch)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.grads_of">grads_of() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.grads_of">grads_of() (in module tools.pytorch)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -358,21 +417,21 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="aggregators/classes/average.html#aggregators.average.influence">influence() (in module aggregators.average)</a>
+      <li><a href="reference/aggregators/classes/average.html#aggregators.average.influence">influence() (in module aggregators.average)</a>
 
       <ul>
-        <li><a href="aggregators/classes/brute.html#aggregators.brute.influence">(in module aggregators.brute)</a>
+        <li><a href="reference/aggregators/classes/brute.html#aggregators.brute.influence">(in module aggregators.brute)</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#aggregators.krum.influence">(in module aggregators.krum)</a>
+        <li><a href="reference/aggregators/classes/krum.html#aggregators.krum.influence">(in module aggregators.krum)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.ClassRegister.instantiate">instantiate() (tools.misc.ClassRegister method)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.ClassRegister.instantiate">instantiate() (tools.misc.ClassRegister method)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.interactive">interactive() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.interactive">interactive() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.ClassRegister.itemize">itemize() (tools.misc.ClassRegister method)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.ClassRegister.itemize">itemize() (tools.misc.ClassRegister method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -380,7 +439,7 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="J">J</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/jobs.html#tools.jobs.Jobs">Jobs (class in tools.jobs)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.Jobs">Jobs (class in tools.jobs)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -388,25 +447,25 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.line_maximize">line_maximize() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.line_maximize">line_maximize() (in module tools.misc)</a>
 </li>
-      <li><a href="experiments/classes/models.html#experiments.models.simples.linear">linear() (in module experiments.models.simples)</a>
+      <li><a href="reference/experiments/classes/models.html#experiments.models.simples.linear">linear() (in module experiments.models.simples)</a>
 </li>
-      <li><a href="attacks/classes/identical.html#attacks.identical.little">little() (in module attacks.identical)</a>
+      <li><a href="reference/attacks/classes/identical.html#attacks.identical.little">little() (in module attacks.identical)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.load">load() (experiments.checkpoint.Checkpoint method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.load">load() (experiments.checkpoint.Checkpoint method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Storage.load_state_dict">load_state_dict() (experiments.checkpoint.Storage method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Storage.load_state_dict">load_state_dict() (experiments.checkpoint.Storage method)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.localtime">localtime() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.localtime">localtime() (in module tools.misc)</a>
 </li>
-      <li><a href="experiments/classes/models.html#experiments.models.simples.logit">logit() (in module experiments.models.simples)</a>
+      <li><a href="reference/experiments/classes/models.html#experiments.models.simples.logit">logit() (in module experiments.models.simples)</a>
 </li>
-      <li><a href="experiments/classes/loss.html#experiments.loss.Loss">Loss (class in experiments.loss)</a>
+      <li><a href="reference/experiments/classes/loss.html#experiments.loss.Loss">Loss (class in experiments.loss)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.loss">loss() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.loss">loss() (experiments.model.Model method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -414,55 +473,55 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="attacks/classes/identical.html#attacks.identical.make_attack">make_attack() (in module attacks.identical)</a>
+      <li><a href="reference/attacks/classes/identical.html#attacks.identical.make_attack">make_attack() (in module attacks.identical)</a>
 </li>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.make_datasets">make_datasets() (in module experiments.dataset)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.make_datasets">make_datasets() (in module experiments.dataset)</a>
 </li>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.make_sampler">make_sampler() (in module experiments.dataset)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.make_sampler">make_sampler() (in module experiments.dataset)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.MethodCallReplicator">MethodCallReplicator (class in tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.MethodCallReplicator">MethodCallReplicator (class in tools.misc)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model">Model (class in experiments.model)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model">Model (class in experiments.model)</a>
 </li>
       <li>
     module
 
       <ul>
-        <li><a href="aggregators/classes/average.html#module-aggregators.average">aggregators.average</a>
+        <li><a href="reference/aggregators/classes/average.html#module-aggregators.average">aggregators.average</a>
 </li>
-        <li><a href="aggregators/classes/brute.html#module-aggregators.brute">aggregators.brute</a>
+        <li><a href="reference/aggregators/classes/brute.html#module-aggregators.brute">aggregators.brute</a>
 </li>
-        <li><a href="aggregators/classes/bulyan.html#module-aggregators.bulyan">aggregators.bulyan</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#module-aggregators.bulyan">aggregators.bulyan</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#module-aggregators.krum">aggregators.krum</a>
+        <li><a href="reference/aggregators/classes/krum.html#module-aggregators.krum">aggregators.krum</a>
 </li>
-        <li><a href="aggregators/classes/median.html#module-aggregators.median">aggregators.median</a>
+        <li><a href="reference/aggregators/classes/median.html#module-aggregators.median">aggregators.median</a>
 </li>
-        <li><a href="attacks/classes/identical.html#module-attacks.identical">attacks.identical</a>
+        <li><a href="reference/attacks/classes/identical.html#module-attacks.identical">attacks.identical</a>
 </li>
-        <li><a href="attacks/classes/nan.html#module-attacks.nan">attacks.nan</a>
+        <li><a href="reference/attacks/classes/nan.html#module-attacks.nan">attacks.nan</a>
 </li>
-        <li><a href="experiments/classes/checkpoint.html#module-experiments.checkpoint">experiments.checkpoint</a>
+        <li><a href="reference/experiments/classes/checkpoint.html#module-experiments.checkpoint">experiments.checkpoint</a>
 </li>
-        <li><a href="experiments/classes/configuration.html#module-experiments.configuration">experiments.configuration</a>
+        <li><a href="reference/experiments/classes/configuration.html#module-experiments.configuration">experiments.configuration</a>
 </li>
-        <li><a href="experiments/classes/dataset.html#module-experiments.dataset">experiments.dataset</a>
+        <li><a href="reference/experiments/classes/dataset.html#module-experiments.dataset">experiments.dataset</a>
 </li>
-        <li><a href="experiments/classes/datasets.html#module-experiments.datasets.svm">experiments.datasets.svm</a>
+        <li><a href="reference/experiments/classes/datasets.html#module-experiments.datasets.svm">experiments.datasets.svm</a>
 </li>
-        <li><a href="experiments/classes/loss.html#module-experiments.loss">experiments.loss</a>
+        <li><a href="reference/experiments/classes/loss.html#module-experiments.loss">experiments.loss</a>
 </li>
-        <li><a href="experiments/classes/model.html#module-experiments.model">experiments.model</a>
+        <li><a href="reference/experiments/classes/model.html#module-experiments.model">experiments.model</a>
 </li>
-        <li><a href="experiments/classes/models.html#module-experiments.models.simples">experiments.models.simples</a>
+        <li><a href="reference/experiments/classes/models.html#module-experiments.models.simples">experiments.models.simples</a>
 </li>
-        <li><a href="experiments/classes/optimizer.html#module-experiments.optimizer">experiments.optimizer</a>
+        <li><a href="reference/experiments/classes/optimizer.html#module-experiments.optimizer">experiments.optimizer</a>
 </li>
-        <li><a href="tools/classes/jobs.html#module-tools.jobs">tools.jobs</a>
+        <li><a href="reference/tools/classes/jobs.html#module-tools.jobs">tools.jobs</a>
 </li>
-        <li><a href="tools/classes/misc.html#module-tools.misc">tools.misc</a>
+        <li><a href="reference/tools/classes/misc.html#module-tools.misc">tools.misc</a>
 </li>
-        <li><a href="tools/classes/pytorch.html#module-tools.pytorch">tools.pytorch</a>
+        <li><a href="reference/tools/classes/pytorch.html#module-tools.pytorch">tools.pytorch</a>
 </li>
       </ul></li>
   </ul></td>
@@ -471,11 +530,11 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.onetime">onetime() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.onetime">onetime() (in module tools.misc)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/optimizer.html#experiments.optimizer.Optimizer">Optimizer (class in experiments.optimizer)</a>
+      <li><a href="reference/experiments/classes/optimizer.html#experiments.optimizer.Optimizer">Optimizer (class in experiments.optimizer)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -483,15 +542,15 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.pairwise">pairwise() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.pairwise">pairwise() (in module tools.misc)</a>
 </li>
-      <li><a href="tools/classes/misc.html#tools.misc.parse_keyval">parse_keyval() (in module tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.parse_keyval">parse_keyval() (in module tools.misc)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/datasets.html#experiments.datasets.svm.phishing">phishing() (in module experiments.datasets.svm)</a>
+      <li><a href="reference/experiments/classes/datasets.html#experiments.datasets.svm.phishing">phishing() (in module experiments.datasets.svm)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.pnm">pnm() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.pnm">pnm() (in module tools.pytorch)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -499,17 +558,17 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.ClassRegister.register">register() (tools.misc.ClassRegister method)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.ClassRegister.register">register() (tools.misc.ClassRegister method)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.regression">regression() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.regression">regression() (in module tools.pytorch)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.relink">relink() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.relink">relink() (in module tools.pytorch)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.restore">restore() (experiments.checkpoint.Checkpoint method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.restore">restore() (experiments.checkpoint.Checkpoint method)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.run">run() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.run">run() (experiments.model.Model method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -517,25 +576,25 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/dataset.html#experiments.dataset.Dataset.sample">sample() (experiments.dataset.Dataset method)</a>
+      <li><a href="reference/experiments/classes/dataset.html#experiments.dataset.Dataset.sample">sample() (experiments.dataset.Dataset method)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.save">save() (experiments.checkpoint.Checkpoint method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.save">save() (experiments.checkpoint.Checkpoint method)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.set">set() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.set">set() (experiments.model.Model method)</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.set_gradient">set_gradient() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.set_gradient">set_gradient() (experiments.model.Model method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="experiments/classes/optimizer.html#experiments.optimizer.Optimizer.set_lr">set_lr() (experiments.optimizer.Optimizer method)</a>
+      <li><a href="reference/experiments/classes/optimizer.html#experiments.optimizer.Optimizer.set_lr">set_lr() (experiments.optimizer.Optimizer method)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.snapshot">snapshot() (experiments.checkpoint.Checkpoint method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Checkpoint.snapshot">snapshot() (experiments.checkpoint.Checkpoint method)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Storage.state_dict">state_dict() (experiments.checkpoint.Storage method)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Storage.state_dict">state_dict() (experiments.checkpoint.Storage method)</a>
 </li>
-      <li><a href="experiments/classes/checkpoint.html#experiments.checkpoint.Storage">Storage (class in experiments.checkpoint)</a>
+      <li><a href="reference/experiments/classes/checkpoint.html#experiments.checkpoint.Storage">Storage (class in experiments.checkpoint)</a>
 </li>
-      <li><a href="tools/classes/jobs.html#tools.jobs.Jobs.submit">submit() (tools.jobs.Jobs method)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.Jobs.submit">submit() (tools.jobs.Jobs method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -543,13 +602,13 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.TimedContext">TimedContext (class in tools.misc)</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.TimedContext">TimedContext (class in tools.misc)</a>
 </li>
       <li>
     tools.jobs
 
       <ul>
-        <li><a href="tools/classes/jobs.html#module-tools.jobs">module</a>
+        <li><a href="reference/tools/classes/jobs.html#module-tools.jobs">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -558,14 +617,14 @@ data-aria-dark="Switch to auto color mode">
     tools.misc
 
       <ul>
-        <li><a href="tools/classes/misc.html#module-tools.misc">module</a>
+        <li><a href="reference/tools/classes/misc.html#module-tools.misc">module</a>
 </li>
       </ul></li>
       <li>
     tools.pytorch
 
       <ul>
-        <li><a href="tools/classes/pytorch.html#module-tools.pytorch">module</a>
+        <li><a href="reference/tools/classes/pytorch.html#module-tools.pytorch">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -574,18 +633,18 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/misc.html#tools.misc.UnavailableException">UnavailableException</a>
+      <li><a href="reference/tools/classes/misc.html#tools.misc.UnavailableException">UnavailableException</a>
 </li>
-      <li><a href="experiments/classes/model.html#experiments.model.Model.update">update() (experiments.model.Model method)</a>
+      <li><a href="reference/experiments/classes/model.html#experiments.model.Model.update">update() (experiments.model.Model method)</a>
 </li>
-      <li><a href="aggregators/classes/brute.html#aggregators.brute.upper_bound">upper_bound() (in module aggregators.brute)</a>
+      <li><a href="reference/aggregators/classes/brute.html#aggregators.brute.upper_bound">upper_bound() (in module aggregators.brute)</a>
 
       <ul>
-        <li><a href="aggregators/classes/bulyan.html#aggregators.bulyan.upper_bound">(in module aggregators.bulyan)</a>
+        <li><a href="reference/aggregators/classes/bulyan.html#aggregators.bulyan.upper_bound">(in module aggregators.bulyan)</a>
 </li>
-        <li><a href="aggregators/classes/krum.html#aggregators.krum.upper_bound">(in module aggregators.krum)</a>
+        <li><a href="reference/aggregators/classes/krum.html#aggregators.krum.upper_bound">(in module aggregators.krum)</a>
 </li>
-        <li><a href="aggregators/classes/median.html#aggregators.median.upper_bound">(in module aggregators.median)</a>
+        <li><a href="reference/aggregators/classes/median.html#aggregators.median.upper_bound">(in module aggregators.median)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -594,13 +653,13 @@ data-aria-dark="Switch to auto color mode">
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/jobs.html#tools.jobs.Jobs.wait">wait() (tools.jobs.Jobs method)</a>
+      <li><a href="reference/tools/classes/jobs.html#tools.jobs.Jobs.wait">wait() (tools.jobs.Jobs method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.weighted_mse_loss">weighted_mse_loss() (in module tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.weighted_mse_loss">weighted_mse_loss() (in module tools.pytorch)</a>
 </li>
-      <li><a href="tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss">WeightedMSELoss (class in tools.pytorch)</a>
+      <li><a href="reference/tools/classes/pytorch.html#tools.pytorch.WeightedMSELoss">WeightedMSELoss (class in tools.pytorch)</a>
 </li>
   </ul></td>
 </tr></table>

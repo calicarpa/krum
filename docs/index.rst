@@ -9,11 +9,23 @@ results. The project is intentionally lightweight: clone the repository, add a
 Python file to the right folder, and the new component is immediately
 available by name.
 
-.. note::
+Documentation
+-------------
 
-   This documentation is organized by module. If you are extending the
-   codebase, start with :doc:`architecture`. If you want to understand the
-   registration system or contracts, read :ref:`key-concepts` below.
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Type
+     - Purpose
+   * - :doc:`Tutorials </tutorials/index>`
+     - Step-by-step lessons for beginners.
+   * - :doc:`How-to guides </how-to/index>`
+     - Task-oriented recipes for common operations.
+   * - :doc:`Reference </reference/aggregators/index>`
+     - Technical descriptions of modules, classes, and functions.
+   * - :doc:`Explanation </explanation/key-concepts>`
+     - Background, design rationale, and conceptual discussion.
 
 
 The Five-Step Workflow
@@ -40,70 +52,60 @@ Three Layers
      - Entry Point
    * - **Research Components**
      - Robust aggregation rules, Byzantine attacks, model/dataset wrappers
-     - :doc:`aggregators/index`, :doc:`attacks/index`, :doc:`experiments/index`
+     - :doc:`reference/aggregators/index`, :doc:`reference/attacks/index`, :doc:`reference/experiments/index`
    * - **Infrastructure**
      - Contextual logging, argument parsing, tensor helpers, job management
-     - :doc:`tools/index`
+     - :doc:`reference/tools/index`
    * - **Native Acceleration**
      - Auto-compiled C++/CUDA extensions for hot paths
-     - :doc:`native`
-
-
-.. _key-concepts:
-
-Key Concepts
-------------
-
-Registration System
-~~~~~~~~~~~~~~~~~~~
-
-Krum uses a lightweight registration pattern. Each family (aggregators,
-attacks, models, datasets) has its own registry:
-
-- Components are discovered by name from CLI arguments.
-- Extension without centralization: drop a file in the right folder.
-- Local validation: every component carries its own ``check()``.
-- Python / native fallback: a rule can expose the same public name while
-  switching from Python to native under the hood.
-
-Keyword-Only Contracts
-~~~~~~~~~~~~~~~~~~~~~~
-
-All aggregators and attacks accept **keyword-only** arguments.
-
-**Aggregator Contract**
-
-- ``gradients`` — non-empty list of gradients to aggregate.
-- ``f`` — number of Byzantine gradients the rule must tolerate.
-- ``model`` — model instance with configured defaults.
-
-**Attack Contract**
-
-- ``grad_honests`` — non-empty list of honest gradients.
-- ``f_decl`` — number of declared Byzantine gradients.
-- ``f_real`` — number of actual Byzantine gradients to generate.
-- ``model`` — model used for the attack.
-- ``defense`` — aggregation rule to defeat.
-
-.. important::
-
-   Returned tensors must **never alias** any input tensor. This guarantee is
-   central to the correctness of the framework.
+     - :doc:`reference/native`
 
 
 Learn more
 ----------
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Modules
+   :caption: Home
 
-   architecture
-   aggregators/index
-   attacks/index
-   experiments/index
-   tools/index
-   native
+   self
+
+.. toctree::
+   :maxdepth: 2
+
+   tutorials/index
+
+.. toctree::
+   :maxdepth: 2
+
+   how-to/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Explanation
+
+   explanation/key-concepts
+   explanation/byzantine-resilience
+   explanation/debug-mode
+   explanation/native-compilation
+   explanation/tensor-lifecycle
+   explanation/cli-format
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   reference/architecture
+   reference/aggregators/index
+   reference/attacks/index
+   reference/experiments/index
+   reference/tools/index
+   reference/native
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Project
+
+   contributors
 
 
 License
