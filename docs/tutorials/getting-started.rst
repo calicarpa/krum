@@ -12,7 +12,7 @@ Byzantine-resilient rule keeps accuracy stable under attack.
 
 .. note::
 
-   This tutorial assumes you have Python 3.8+ and PyTorch installed. If you
+   This tutorial assumes you have Python 3.10+ and PyTorch installed. If you
    plan to use CUDA, ensure your PyTorch build matches your CUDA version.
 
 
