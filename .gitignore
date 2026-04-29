@@ -8,6 +8,8 @@
 !LICENSE
 !*.md
 !*.py
+!*.toml
+.python-version
 
 # Except documentation files
 !docs/*
