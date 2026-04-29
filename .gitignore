@@ -9,7 +9,7 @@
 !*.md
 !*.py
 !*.toml
-.python-version
+!.python-version
 
 # Except documentation files
 !docs/*
