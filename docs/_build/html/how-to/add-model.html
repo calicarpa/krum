@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><ul>
@@ -215,7 +216,14 @@ data-aria-dark="Switch to auto color mode">
     <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
       <i class="i-lucide close"></i>
     </button>
-    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#step-1-create-the-module">Step 1 &#8212; Create the module</a></li>
+<li><a class="reference internal" href="#step-2-define-the-nn-module">Step 2 &#8212; Define the <code class="docutils literal notranslate">Module</span></code></a></li>
+<li><a class="reference internal" href="#step-3-expose-a-constructor-in-all">Step 3 &#8212; Expose a constructor in <code class="docutils literal notranslate"><span class="pre">__all__</span></code></a></li>
+<li><a class="reference internal" href="#step-4-use-it">Step 4 &#8212; Use it</a></li>
+<li><a class="reference internal" href="#naming-convention">Naming convention</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
   <main class="sy-main w-full max-sm:max-w-full print:pt-6">
@@ -250,12 +258,97 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="how-to-add-a-new-model">
 <h1>How to add a new model<a class="headerlink" href="#how-to-add-a-new-model" title="Link to this heading">¶</a></h1>
-<ol class="arabic simple">
-<li><p>Create a module under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code>.</p></li>
-<li><p>Export the constructor in <code class="docutils literal notranslate"><span class="pre">__all__</span></code> when possible.</p></li>
-<li><p>Return a proper <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> instance.</p></li>
-<li><p>Ensure the model can be flattened and updated via <code class="docutils literal notranslate"><span class="pre">Model.set(...)</span></code>.</p></li>
-</ol>
+<p>This guide walks you through adding a new model architecture to the
+experiments module.</p>
+<section id="step-1-create-the-module">
+<h2>Step 1 — Create the module<a class="headerlink" href="#step-1-create-the-module" title="Link to this heading">¶</a></h2>
+<p>Create a new Python file in <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code>. The file is
+auto-discovered at import time — no <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> edit is needed.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">experiments/models/
+</span><span data-line="2">├── simples.py
+</span><span data-line="3">└── my_model.py      ← your new file
+</span></pre></div>
+</div>
+</section>
+<section id="step-2-define-the-nn-module">
+<h2>Step 2 — Define the <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code><a class="headerlink" href="#step-2-define-the-nn-module" title="Link to this heading">¶</a></h2>
+<p>Define a private class that extends <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>. The model must be
+flatten-able — all parameters must be reachable via <code class="docutils literal notranslate"><span class="pre">model.parameters()</span></code>
+so that <code class="xref py py-class docutils literal notranslate"><span class="pre">experiments.Model</span></code> can serialize and restore gradients.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># experiments/models/my_model.py</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="4">
+</span><span data-line="5">
+</span><span data-line="6"><span class="k">class</span><span class="w"> </span><span class="nc">_ResNet</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span data-line="7">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+</span><span data-line="8">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="9">        <span class="bp">self</span><span class="o">.</span><span class="n">_conv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="10">        <span class="bp">self</span><span class="o">.</span><span class="n">_fc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">32</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+</span><span data-line="11">
+</span><span data-line="12">    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span data-line="13">        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conv</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</span><span data-line="14">        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="15">        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fc</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-3-expose-a-constructor-in-all">
+<h2>Step 3 — Expose a constructor in <code class="docutils literal notranslate"><span class="pre">__all__</span></code><a class="headerlink" href="#step-3-expose-a-constructor-in-all" title="Link to this heading">¶</a></h2>
+<p>Define a plain function that instantiates the module and list it in
+<code class="docutils literal notranslate"><span class="pre">__all__</span></code>. The loader uses <code class="docutils literal notranslate"><span class="pre">__all__</span></code> to discover constructors.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">resnet</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="2">    <span class="k">return</span> <span class="n">_ResNet</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span data-line="3">
+</span><span data-line="4">
+</span><span data-line="5"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;resnet&quot;</span><span class="p">]</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-4-use-it">
+<h2>Step 4 — Use it<a class="headerlink" href="#step-4-use-it" title="Link to this heading">¶</a></h2>
+<p>The model is registered under the compound name
+<code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;-&lt;constructor&gt;</span></code>. For a file named <code class="docutils literal notranslate"><span class="pre">my_model.py</span></code> exposing
+<code class="docutils literal notranslate"><span class="pre">resnet</span></code>, the identifier is <code class="docutils literal notranslate"><span class="pre">my_model-resnet</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Configuration</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+</span><span data-line="4"><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s2">&quot;my_model-resnet&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">python<span class="w"> </span>-m<span class="w"> </span>experiments<span class="w"> </span>--model<span class="w"> </span>my_model-resnet<span class="w"> </span>...
+</span></pre></div>
+</div>
+</section>
+<section id="naming-convention">
+<h2>Naming convention<a class="headerlink" href="#naming-convention" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">__all__</span></code></p></th>
+<th class="head"><p>Registered name</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simples.py</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;full&quot;,</span> <span class="pre">&quot;conv&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simples-full</span></code>, <code class="docutils literal notranslate"><span class="pre">simples-conv</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">my_model.py</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;resnet&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">my_model-resnet</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For symlink-based registration of external models, see
+<a class="reference internal" href="add-custom-model.html"><span class="doc">How to add a custom model</span></a>. For the <code class="xref py py-class docutils literal notranslate"><span class="pre">experiments.Model</span></code> class, see
+<a class="reference internal" href="../reference/experiments/classes/model.html"><span class="doc">Model</span></a>.</p>
+</div>
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">

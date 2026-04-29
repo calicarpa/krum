@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../../../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><ul>
@@ -280,7 +281,7 @@ dictionaries, and <a class="reference internal" href="#experiments.checkpoint.St
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.checkpoint.Checkpoint">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.checkpoint.</span></span><span class="sig-name descname"><span class="pre">Checkpoint</span></span><a class="reference internal" href="../../../_modules/experiments/checkpoint.html#Checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Checkpoint" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Collection of state dictionaries with saving/loading helpers.</p>
 <p>This class can snapshot any object implementing the <code class="docutils literal notranslate"><span class="pre">state_dict</span></code> /
 <code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code> protocol (e.g. <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>,
@@ -300,8 +301,8 @@ dictionaries, and <a class="reference internal" href="#experiments.checkpoint.St
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filepath</strong> (<em>str</em><em> or </em><em>pathlib.Path</em>) – Path to the saved checkpoint.</p></li>
-<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite any existing snapshots.</p></li>
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>pathlib.Path</em></a>) – Path to the saved checkpoint.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to overwrite any existing snapshots.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -320,8 +321,8 @@ dictionaries, and <a class="reference internal" href="#experiments.checkpoint.St
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>instance</strong> (<em>object</em>) – Instance to restore. Must support <code class="docutils literal notranslate"><span class="pre">load_state_dict()</span></code>.</p></li>
-<li><p><strong>nothrow</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, silently skip when no snapshot is available.</p></li>
+<li><p><strong>instance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Instance to restore. Must support <code class="docutils literal notranslate"><span class="pre">load_state_dict()</span></code>.</p></li>
+<li><p><strong>nothrow</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, silently skip when no snapshot is available.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -340,8 +341,8 @@ dictionaries, and <a class="reference internal" href="#experiments.checkpoint.St
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filepath</strong> (<em>str</em><em> or </em><em>pathlib.Path</em>) – Destination path.</p></li>
-<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite an existing file.</p></li>
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>pathlib.Path</em></a>) – Destination path.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to overwrite an existing file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -360,11 +361,11 @@ dictionaries, and <a class="reference internal" href="#experiments.checkpoint.St
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>instance</strong> (<em>object</em>) – Instance to snapshot. Must support <code class="docutils literal notranslate"><span class="pre">state_dict()</span></code>.</p></li>
-<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite an existing snapshot for the same class.</p></li>
-<li><p><strong>deepcopy</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to deep-copy the state dictionary instead of
+<li><p><strong>instance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Instance to snapshot. Must support <code class="docutils literal notranslate"><span class="pre">state_dict()</span></code>.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to overwrite an existing snapshot for the same class.</p></li>
+<li><p><strong>deepcopy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to deep-copy the state dictionary instead of
 shallow-copying.</p></li>
-<li><p><strong>nowarnref</strong> (<em>bool</em><em>, </em><em>optional</em>) – Suppress the debug warning when restoring a reference is the
+<li><p><strong>nowarnref</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Suppress the debug warning when restoring a reference is the
 intended behavior.</p></li>
 </ul>
 </dd>
@@ -382,7 +383,7 @@ intended behavior.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.checkpoint.Storage">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.checkpoint.</span></span><span class="sig-name descname"><span class="pre">Storage</span></span><a class="reference internal" href="../../../_modules/experiments/checkpoint.html#Storage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.checkpoint.Storage" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
 <p>Plain dictionary that implements the <code class="docutils literal notranslate"><span class="pre">state_dict</span></code> protocol.</p>
 <p>This allows arbitrary key/value data to be snapshotted and restored
 alongside models and optimizers using <a class="reference internal" href="#experiments.checkpoint.Checkpoint" title="experiments.checkpoint.Checkpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code></a>.</p>
@@ -392,7 +393,7 @@ alongside models and optimizers using <a class="reference internal" href="#exper
 <dd><p>Replace contents with the given state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>state</strong> (<em>dict</em>) – New dictionary contents.</p>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – New dictionary contents.</p>
 </dd>
 </dl>
 </dd></dl>

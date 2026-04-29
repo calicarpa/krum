@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../../../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><ul>
@@ -275,7 +276,7 @@ splitting and raw-tensor batching.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.dataset.Dataset">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/experiments/dataset.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.dataset.Dataset" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Unified dataset wrapper producing infinite batches.</p>
 <p>This class can wrap:</p>
 <ul class="simple">
@@ -286,17 +287,17 @@ splitting and raw-tensor batching.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>str</em><em>, </em><em>generator</em><em>, or </em><em>object</em>) – Dataset name, infinite generator, or single batch.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – User-defined name for debugging.</p></li>
-<li><p><strong>root</strong> (<em>str</em><em> or </em><em>pathlib.Path</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Cache root directory. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
-<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
-<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
+<li><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>generator</em><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Dataset name, infinite generator, or single batch.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – User-defined name for debugging.</p></li>
+<li><p><strong>root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>pathlib.Path</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Cache root directory. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
+<li><p><strong>*args</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the dataset constructor when <code class="docutils literal notranslate"><span class="pre">data</span></code> is a string.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>tools.UnavailableException</strong> – If <code class="docutils literal notranslate"><span class="pre">data</span></code> is an unknown dataset name.</p></li>
-<li><p><strong>TypeError</strong> – If constructor arguments are invalid.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><strong>TypeError</strong></a> – If constructor arguments are invalid.</p></li>
 </ul>
 </dd>
 </dl>
@@ -353,11 +354,11 @@ directory if the default does not exist.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>inputs</strong> (<em>torch.Tensor</em>) – Input data tensor.</p></li>
-<li><p><strong>labels</strong> (<em>torch.Tensor</em>) – Label tensor with the same first-dimension size as <code class="docutils literal notranslate"><span class="pre">inputs</span></code>.</p></li>
-<li><p><strong>train</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to build a training set (adds shuffling) or a test set.</p></li>
-<li><p><strong>batch_size</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the full split size.</p></li>
-<li><p><strong>split</strong> (<em>float</em><em> or </em><em>int</em><em>, </em><em>optional</em>) – Fraction of samples for training when <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">1</span></code>, or absolute count
+<li><p><strong>inputs</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – Input data tensor.</p></li>
+<li><p><strong>labels</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – Label tensor with the same first-dimension size as <code class="docutils literal notranslate"><span class="pre">inputs</span></code>.</p></li>
+<li><p><strong>train</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to build a training set (adds shuffling) or a test set.</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> uses the full split size.</p></li>
+<li><p><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Fraction of samples for training when <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">1</span></code>, or absolute count
 when <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">1</span></code>.</p></li>
 </ul>
 </dd>
@@ -374,8 +375,8 @@ when <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> (<em>str</em><em> or </em><em>None</em>) – Case-sensitive dataset name. <code class="docutils literal notranslate"><span class="pre">None</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>train</strong> (<em>bool</em>) – Whether to return the training transform. Ignored when
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>None</em>) – Case-sensitive dataset name. <code class="docutils literal notranslate"><span class="pre">None</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>train</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to return the training transform. Ignored when
 <code class="docutils literal notranslate"><span class="pre">dataset</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
 </dd>
@@ -392,14 +393,14 @@ when <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> (<em>str</em>) – Case-sensitive dataset name.</p></li>
-<li><p><strong>train_batch</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Training batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
-<li><p><strong>test_batch</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Testing batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Case-sensitive dataset name.</p></li>
+<li><p><strong>train_batch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Training batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
+<li><p><strong>test_batch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Testing batch size. <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">0</span></code> for full-batch.</p></li>
 <li><p><strong>train_transforms</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Transform for the training set. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
 <li><p><strong>test_transforms</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Transform for the testing set. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default.</p></li>
-<li><p><strong>num_workers</strong> (<em>int</em><em> or </em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>optional</em>) – Number of workers for the training and testing loaders. An <code class="docutils literal notranslate"><span class="pre">int</span></code>
+<li><p><strong>num_workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – Number of workers for the training and testing loaders. An <code class="docutils literal notranslate"><span class="pre">int</span></code>
 applies to both; a tuple specifies <code class="docutils literal notranslate"><span class="pre">(train_workers,</span> <span class="pre">test_workers)</span></code>.</p></li>
-<li><p><strong>**custom_args</strong> (<em>object</em>) – Additional keyword arguments forwarded to the dataset constructor.</p></li>
+<li><p><strong>**custom_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Additional keyword arguments forwarded to the dataset constructor.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -414,7 +415,7 @@ applies to both; a tuple specifies <code class="docutils literal notranslate"><s
 <dd><p>Create an infinite sampler from a DataLoader.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>loader</strong> (<em>torch.utils.data.DataLoader</em>) – Finite data loader.</p>
+<dd class="field-odd"><p><strong>loader</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="(in PyTorch v2.11)"><em>torch.utils.data.DataLoader</em></a>) – Finite data loader.</p>
 </dd>
 <dt class="field-even">Yields<span class="colon">:</span></dt>
 <dd class="field-even"><p><em>tuple</em> – Batches, transparently restarting the loader when exhausted.</p>

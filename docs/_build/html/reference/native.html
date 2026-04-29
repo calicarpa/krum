@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><ul>
@@ -216,10 +217,10 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#loader-behaviour">Loader behaviour</a></li>
-<li><a class="reference internal" href="#environment-variables">Environment variables</a></li>
-<li><a class="reference internal" href="#external-dependencies">External dependencies</a></li>
-<li><a class="reference internal" href="#available-native-variants">Available native variants</a></li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#available-native-variants">Available Native Variants</a></li>
+<li><a class="reference internal" href="#internal-dependencies">Internal Dependencies</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -252,64 +253,52 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="native-acceleration">
 <h1>Native Acceleration<a class="headerlink" href="#native-acceleration" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">native/</span></code> folder contains C++/CUDA sources that are compiled
-automatically at Python import time. There is no separate build step;
-importing an aggregator or attack that offers a native variant triggers
-the compilation transparently.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">native</span></code> package provides automated building and loading of C++/CUDA
+native PyTorch extensions. There is no separate build step; importing an
+aggregator or attack that offers a native variant triggers compilation
+transparently.</p>
 <p>For the design rationale behind import-time compilation — why the project
-trades a separate build system for zero-friction prototyping — see
+trades a separate build system for zero-friction prototyping — see the explanation of
 <a class="reference internal" href="../explanation/native-compilation.html"><span class="doc">Native compilation</span></a>.</p>
-<section id="loader-behaviour">
-<h2>Loader behaviour<a class="headerlink" href="#loader-behaviour" title="Link to this heading">¶</a></h2>
-<p>When the <code class="docutils literal notranslate"><span class="pre">native</span></code> package is first imported, the loader:</p>
-<ol class="arabic simple">
-<li><p>Inspects every subdirectory of <code class="docutils literal notranslate"><span class="pre">native/</span></code>.</p></li>
-<li><p>Recognises <code class="docutils literal notranslate"><span class="pre">so_</span></code> and <code class="docutils literal notranslate"><span class="pre">py_</span></code> prefixes on source files.</p></li>
-<li><p>Collects files whose extensions match the allowed set.</p></li>
-<li><p>Invokes <code class="docutils literal notranslate"><span class="pre">torch.utils.cpp_extension.load</span></code> to compile them.</p></li>
-<li><p>Reads <code class="docutils literal notranslate"><span class="pre">.deps</span></code> files to discover and load extra dependencies.</p></li>
-<li><p>Exposes the compiled modules in the <code class="docutils literal notranslate"><span class="pre">native</span></code> namespace.</p></li>
-</ol>
-<p>If compilation fails, the framework degrades gracefully: Python fallbacks
-continue to work and a warning is emitted.</p>
-</section>
-<section id="environment-variables">
-<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
-<div class="table-wrapper colwidths-given docutils container">
-<table class="docutils align-default">
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-given docutils container" id="id1">
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Native Components</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 75.0%" />
+<col style="width: 20.0%" />
+<col style="width: 60.0%" />
+<col style="width: 20.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Variable</p></th>
-<th class="head"><p>Effect</p></th>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Environment Control</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_OPT</span></code></p></td>
-<td><p>Controls debug/release mode for the native build.</p></td>
+<tr class="row-even"><td><p>Module loader</p></td>
+<td><p>Scans subdirectories, compiles sources, injects <code class="docutils literal notranslate"><span class="pre">py_</span></code> modules</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_OPT</span></code>, <code class="docutils literal notranslate"><span class="pre">NATIVE_STD</span></code>, <code class="docutils literal notranslate"><span class="pre">NATIVE_QUIET</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_STD</span></code></p></td>
-<td><p>Sets the C++ standard version (e.g. <code class="docutils literal notranslate"><span class="pre">c++14</span></code>).</p></td>
+<tr class="row-odd"><td><p>Dependency resolver</p></td>
+<td><p>Reads <code class="docutils literal notranslate"><span class="pre">.deps</span></code> files and builds dependencies recursively</p></td>
+<td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NATIVE_QUIET</span></code></p></td>
-<td><p>Suppresses build messages when compiling in release mode.</p></td>
+<tr class="row-even"><td><p>CUDA support</p></td>
+<td><p>Detects <code class="docutils literal notranslate"><span class="pre">.cu</span></code> files and compiles with NVCC when available</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>Thread pool</p></td>
+<td><p>Shared C++ threadpool dependency (<code class="docutils literal notranslate"><span class="pre">so_threadpool</span></code>) for parallel ops</p></td>
+<td><p>—</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="external-dependencies">
-<h2>External dependencies<a class="headerlink" href="#external-dependencies" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ninja</span></code> — the build system used by PyTorch extension compilation.</p></li>
-<li><p>CUB in <code class="docutils literal notranslate"><span class="pre">native/include/cub</span></code> — CUDA primitives.</p></li>
-<li><p>A PyTorch installation with headers compatible with extension compilation.</p></li>
-</ul>
-</section>
 <section id="available-native-variants">
-<h2>Available native variants<a class="headerlink" href="#available-native-variants" title="Link to this heading">¶</a></h2>
+<h2>Available Native Variants<a class="headerlink" href="#available-native-variants" title="Link to this heading">¶</a></h2>
 <p>When compilation succeeds, native variants are registered alongside their
 Python counterparts with a <code class="docutils literal notranslate"><span class="pre">native-</span></code> prefix:</p>
 <div class="table-wrapper colwidths-given docutils container">
@@ -341,6 +330,28 @@ Python counterparts with a <code class="docutils literal notranslate"><span clas
 </div>
 <p>Because the high-level API is identical, you can compare the exact same rule
 in Python and native versions simply by changing the registered name.</p>
+</section>
+<section id="internal-dependencies">
+<h2>Internal Dependencies<a class="headerlink" href="#internal-dependencies" title="Link to this heading">¶</a></h2>
+<p>Some modules under <code class="docutils literal notranslate"><span class="pre">native/</span></code> are shared libraries (<code class="docutils literal notranslate"><span class="pre">so_</span></code> prefix) that
+provide infrastructure for other native variants rather than exposing a
+public API:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">so_threadpool</span></code> — C++ thread pool used by <code class="docutils literal notranslate"><span class="pre">native-bulyan</span></code> for
+parallel distance computations.</p></li>
+</ul>
+<p>These libraries are built automatically when required by a dependent module.</p>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<p>Automated building and loading of C++/CUDA native PyTorch extensions.</p>
+<p>Subdirectories prefixed with <code class="docutils literal notranslate"><span class="pre">so_</span></code> produce shared libraries; those prefixed
+with <code class="docutils literal notranslate"><span class="pre">py_</span></code> produce Python-loadable extensions that are injected into this
+namespace (prefix stripped).  Dependencies are declared in a <code class="docutils literal notranslate"><span class="pre">.deps</span></code> file
+(one module name per line) and built recursively before the parent module.</p>
+<p>Environment variables <code class="docutils literal notranslate"><span class="pre">NATIVE_OPT</span></code>, <code class="docutils literal notranslate"><span class="pre">NATIVE_STD</span></code>, and <code class="docutils literal notranslate"><span class="pre">NATIVE_QUIET</span></code>
+control debug/release mode, the C++ standard, and trace verbosity
+respectively.</p>
 </section>
 </section>
 

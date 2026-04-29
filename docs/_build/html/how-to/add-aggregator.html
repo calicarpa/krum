@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><ul>
@@ -215,7 +216,15 @@ data-aria-dark="Switch to auto color mode">
     <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
       <i class="i-lucide close"></i>
     </button>
-    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#step-1-create-the-module">Step 1 &#8212; Create the module</a></li>
+<li><a class="reference internal" href="#step-2-implement-the-aggregation-function">Step 2 &#8212; Implement the aggregation function</a></li>
+<li><a class="reference internal" href="#step-3-write-the-check-function">Step 3 &#8212; Write the <code class="docutils literal notranslate"><span class="pre">check</span></code> function</a></li>
+<li><a class="reference internal" href="#step-4-register-the-rule">Step 4 &#8212; Register the rule</a></li>
+<li><a class="reference internal" href="#step-5-use-it">Step 5 &#8212; Use it</a></li>
+<li><a class="reference internal" href="#contract-summary">Contract summary</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
   <main class="sy-main w-full max-sm:max-w-full print:pt-6">
@@ -250,17 +259,126 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="how-to-add-a-new-aggregator">
 <h1>How to add a new aggregator<a class="headerlink" href="#how-to-add-a-new-aggregator" title="Link to this heading">¶</a></h1>
-<ol class="arabic simple">
-<li><p>Create a new file in <a class="reference internal" href="../reference/aggregators/index.html"><span class="doc">Aggregators</span></a>.</p></li>
-<li><p>Expose an aggregation function and a <code class="docutils literal notranslate"><span class="pre">check</span></code> function.</p></li>
-<li><p>Respect the keyword-only contract (<code class="docutils literal notranslate"><span class="pre">gradients</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">model</span></code>).</p></li>
-<li><p><strong>Never</strong> return a tensor that aliases an input tensor.</p></li>
-<li><p>Optionally expose <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> and/or <code class="docutils literal notranslate"><span class="pre">influence</span></code> metadata.</p></li>
-</ol>
+<p>This guide walks you through creating and registering a new
+Byzantine-resilient gradient aggregation rule (GAR).</p>
+<section id="step-1-create-the-module">
+<h2>Step 1 — Create the module<a class="headerlink" href="#step-1-create-the-module" title="Link to this heading">¶</a></h2>
+<p>Create a new Python file in <code class="docutils literal notranslate"><span class="pre">aggregators/</span></code>. The file is auto-discovered at
+import time — no <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> edit is needed.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">aggregators/
+</span><span data-line="2">├── krum.py
+</span><span data-line="3">├── median.py
+</span><span data-line="4">└── my_aggregator.py      ← your new file
+</span></pre></div>
+</div>
+</section>
+<section id="step-2-implement-the-aggregation-function">
+<h2>Step 2 — Implement the aggregation function<a class="headerlink" href="#step-2-implement-the-aggregation-function" title="Link to this heading">¶</a></h2>
+<p>The aggregation function receives a list of gradient tensors and must return a
+<strong>single</strong> tensor of the same shape. It must <strong>never</strong> return a tensor that
+aliases an input.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># aggregators/my_aggregator.py</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span data-line="4"><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
+</span><span data-line="5">
+</span><span data-line="6">
+</span><span data-line="7"><span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="8"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Trimmed-mean aggregation: drop the *f* largest and smallest,</span>
+</span><span data-line="9"><span class="sd">    then average the remaining gradients.&quot;&quot;&quot;</span>
+</span><span data-line="10">    <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="11">    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
+</span><span data-line="12">    <span class="c1"># Sort by L2 norm, drop the *f* extremes on each side</span>
+</span><span data-line="13">    <span class="n">norms</span> <span class="o">=</span> <span class="n">stacked</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span data-line="14">    <span class="n">keep</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[</span><span class="n">f</span> <span class="p">:</span> <span class="n">n</span> <span class="o">-</span> <span class="n">f</span><span class="p">]</span>
+</span><span data-line="15">    <span class="k">return</span> <span class="n">stacked</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-3-write-the-check-function">
+<h2>Step 3 — Write the <code class="docutils literal notranslate"><span class="pre">check</span></code> function<a class="headerlink" href="#step-3-write-the-check-function" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">check</span></code> function validates parameters <strong>before</strong> the aggregation runs.
+Return <code class="docutils literal notranslate"><span class="pre">None</span></code> when everything is valid, or a human-readable error string
+otherwise.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span data-line="2">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="3">        <span class="k">return</span> <span class="s2">&quot;Expected a non-empty list of gradients, got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gradients</span>
+</span><span data-line="4">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="5">        <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="6">            <span class="s2">&quot;Invalid f = </span><span class="si">%r</span><span class="s2">; need 1 &lt;= f &lt;= </span><span class="si">%d</span><span class="s2">&quot;</span>
+</span><span data-line="7">            <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+</span><span data-line="8">        <span class="p">)</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-4-register-the-rule">
+<h2>Step 4 — Register the rule<a class="headerlink" href="#step-4-register-the-rule" title="Link to this heading">¶</a></h2>
+<p>Call <code class="xref py py-func docutils literal notranslate"><span class="pre">aggregators.register()</span></code> at module level. The function accepts:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> — unique identifier used on the CLI (e.g. <code class="docutils literal notranslate"><span class="pre">--gar</span> <span class="pre">my_agg</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unchecked</span></code> — the aggregation function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check</span></code> — the validation function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> <em>(optional)</em> — theoretical robustness bound</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">influence</span></code> <em>(optional)</em> — attack acceptance ratio</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">upper_bound</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+</span><span data-line="2"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the theoretical upper bound on stddev/norm ratio.&quot;&quot;&quot;</span>
+</span><span data-line="3">    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span>
+</span><span data-line="4">
+</span><span data-line="5">
+</span><span data-line="6"><span class="n">register</span><span class="p">(</span><span class="s2">&quot;my_agg&quot;</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-5-use-it">
+<h2>Step 5 — Use it<a class="headerlink" href="#step-5-use-it" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">python<span class="w"> </span>-m<span class="w"> </span>experiments<span class="w"> </span>--gar<span class="w"> </span>my_agg<span class="w"> </span>--gar-args<span class="w"> </span>f:2<span class="w"> </span>...
+</span></pre></div>
+</div>
+</section>
+<section id="contract-summary">
+<h2>Contract summary<a class="headerlink" href="#contract-summary" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gradients</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[Tensor]</span></code></p></td>
+<td><p>Non-empty list of honest + Byzantine gradients</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">f</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p>Number of Byzantine gradients to tolerate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">model</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nn.Module</span></code></p></td>
+<td><p>Model with configured defaults (reserved)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td></td>
+<td><p>Forward-compatibility; always accept it</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The rule exposes three variants after registration:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">my_agg</span></code> — checked in debug mode, unchecked in release</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_agg.checked</span></code> — always validates parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_agg.unchecked</span></code> — skips validation (faster in production)</p></li>
+</ul>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>For the full contract, see <a class="reference internal" href="../explanation/key-concepts.html"><span class="doc">Key Concepts</span></a>.</p>
+<p>For the full contract and anti-aliasing guarantee, see
+<a class="reference internal" href="../explanation/key-concepts.html"><span class="doc">Key Concepts</span></a>.
+For existing rules, see <a class="reference internal" href="../reference/aggregators/index.html"><span class="doc">Aggregators</span></a>.</p>
 </div>
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">

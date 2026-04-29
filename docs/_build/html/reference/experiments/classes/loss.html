@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../../../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><ul>
@@ -271,7 +272,7 @@ sigmoid accuracy).</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.loss.Criterion">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.loss.</span></span><span class="sig-name descname"><span class="pre">Criterion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/experiments/loss.html#Criterion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.loss.Criterion" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Non-derivable evaluation metric wrapper.</p>
 <p>Available criteria:</p>
 <ul class="simple">
@@ -282,9 +283,9 @@ sigmoid accuracy).</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Criterion name or constructor function.</p></li>
-<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the criterion constructor.</p></li>
-<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the criterion constructor.</p></li>
+<li><p><strong>name_build</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>callable</em>) – Criterion name or constructor function.</p></li>
+<li><p><strong>*args</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the criterion constructor.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the criterion constructor.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -296,7 +297,7 @@ sigmoid accuracy).</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.loss.Loss">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.loss.</span></span><span class="sig-name descname"><span class="pre">Loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/experiments/loss.html#Loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.loss.Loss" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Derivable loss function wrapper with composition support.</p>
 <p>Losses can be added (<code class="docutils literal notranslate"><span class="pre">loss1</span> <span class="pre">+</span> <span class="pre">loss2</span></code>) and scaled (<code class="docutils literal notranslate"><span class="pre">0.5</span> <span class="pre">*</span> <span class="pre">loss</span></code>).
 All standard PyTorch losses are available by lower-case name.
@@ -305,10 +306,10 @@ regularization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Loss name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;crossentropy&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code>) or a callable
+<li><p><strong>name_build</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>callable</em>) – Loss name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;crossentropy&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code>) or a callable
 with signature <code class="docutils literal notranslate"><span class="pre">(output,</span> <span class="pre">target,</span> <span class="pre">params)</span> <span class="pre">-&gt;</span> <span class="pre">tensor</span></code>.</p></li>
-<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
-<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
+<li><p><strong>*args</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the loss constructor when <code class="docutils literal notranslate"><span class="pre">name_build</span></code> is a string.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>

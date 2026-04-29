@@ -137,6 +137,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="2"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Home</span></p>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../index.html">Krum, the Library</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../../../install.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><ul>
@@ -283,7 +284,7 @@ extraction, and data-parallelism automatically.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="experiments.model.Model">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">experiments.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_build</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Configuration(device=device(type='cpu'),</span> <span class="pre">dtype=torch.float32,</span> <span class="pre">noblock=False,</span> <span class="pre">relink=False)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_multi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_multi_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_mono</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_mono_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/experiments/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#experiments.model.Model" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Unified model wrapper with parameter and gradient management.</p>
 <p>Models are resolved by lower-case name from <code class="docutils literal notranslate"><span class="pre">torchvision.models</span></code> and
 from custom modules under <code class="docutils literal notranslate"><span class="pre">experiments/models/</span></code>. Parameters are
@@ -294,15 +295,15 @@ when the model is placed on a non-indexed CUDA device.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name_build</strong> (<em>str</em><em> or </em><em>callable</em>) – Model name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;resnet18&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torchvision-resnet18&quot;</span></code>) or a
+<li><p><strong>name_build</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>callable</em>) – Model name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;resnet18&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torchvision-resnet18&quot;</span></code>) or a
 constructor function.</p></li>
 <li><p><strong>config</strong> (<em>experiments.Configuration</em><em>, </em><em>optional</em>) – Target device and dtype configuration.</p></li>
-<li><p><strong>init_multi</strong> (<em>str</em><em> or </em><em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Weight initializer for tensors of dimension <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">2</span></code>.</p></li>
-<li><p><strong>init_multi_args</strong> (<em>dict</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments for <code class="docutils literal notranslate"><span class="pre">init_multi</span></code> when it is a string.</p></li>
-<li><p><strong>init_mono</strong> (<em>str</em><em> or </em><em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Weight initializer for tensors of dimension <code class="docutils literal notranslate"><span class="pre">==</span> <span class="pre">1</span></code>.</p></li>
-<li><p><strong>init_mono_args</strong> (<em>dict</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments for <code class="docutils literal notranslate"><span class="pre">init_mono</span></code> when it is a string.</p></li>
-<li><p><strong>*args</strong> (<em>object</em>) – Forwarded to the model constructor.</p></li>
-<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to the model constructor.</p></li>
+<li><p><strong>init_multi</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Weight initializer for tensors of dimension <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>init_multi_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments for <code class="docutils literal notranslate"><span class="pre">init_multi</span></code> when it is a string.</p></li>
+<li><p><strong>init_mono</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Weight initializer for tensors of dimension <code class="docutils literal notranslate"><span class="pre">==</span> <span class="pre">1</span></code>.</p></li>
+<li><p><strong>init_mono_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Keyword arguments for <code class="docutils literal notranslate"><span class="pre">init_mono</span></code> when it is a string.</p></li>
+<li><p><strong>*args</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the model constructor.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to the model constructor.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -321,8 +322,8 @@ constructor function.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dataset</strong> (<em>experiments.Dataset</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Dataset to sample from. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default trainset.</p></li>
 <li><p><strong>loss</strong> (<em>experiments.Loss</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Loss function. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default loss.</p></li>
-<li><p><strong>outloss</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to also return the loss value.</p></li>
-<li><p><strong>**kwargs</strong> (<em>object</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">loss.backward()</span></code>.</p></li>
+<li><p><strong>outloss</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to also return the loss value.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">loss.backward()</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -349,10 +350,10 @@ constructor function.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – Default key (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;trainset&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;loss&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;optimizer&quot;</span></code>).</p></li>
-<li><p><strong>new</strong> (<em>object</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – New value to set. Ignored unless <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code> or
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Default key (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;trainset&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;loss&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;optimizer&quot;</span></code>).</p></li>
+<li><p><strong>new</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – New value to set. Ignored unless <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code> or
 <code class="docutils literal notranslate"><span class="pre">erase</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
-<li><p><strong>erase</strong> (<em>bool</em><em>, </em><em>optional</em>) – Force the value to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>erase</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Force the value to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -414,7 +415,7 @@ modify it in place.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dataset</strong> (<em>experiments.Dataset</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Dataset to sample from. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default trainset.</p></li>
 <li><p><strong>loss</strong> (<em>experiments.Loss</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Loss function. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default loss.</p></li>
-<li><p><strong>training</strong> (<em>bool</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether this is a training run. <code class="docutils literal notranslate"><span class="pre">None</span></code> guesses from
+<li><p><strong>training</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether this is a training run. <code class="docutils literal notranslate"><span class="pre">None</span></code> guesses from
 <code class="docutils literal notranslate"><span class="pre">torch.is_grad_enabled()</span></code>.</p></li>
 </ul>
 </dd>
@@ -431,8 +432,8 @@ modify it in place.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>torch.Tensor</em>) – Input tensor.</p></li>
-<li><p><strong>training</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use training mode (enables dropout, batch-norm
+<li><p><strong>data</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – Input tensor.</p></li>
+<li><p><strong>training</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to use training mode (enables dropout, batch-norm
 updates, etc.). Defaults to evaluation mode.</p></li>
 </ul>
 </dd>
@@ -449,8 +450,8 @@ updates, etc.). Defaults to evaluation mode.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<em>torch.Tensor</em>) – New flat parameter vector.</p></li>
-<li><p><strong>relink</strong> (<em>bool</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink instead of copying. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
+<li><p><strong>params</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – New flat parameter vector.</p></li>
+<li><p><strong>relink</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink instead of copying. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
 configuration default.</p></li>
 </ul>
 </dd>
@@ -464,8 +465,8 @@ configuration default.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradient</strong> (<em>torch.Tensor</em>) – New flat gradient.</p></li>
-<li><p><strong>relink</strong> (<em>bool</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink instead of copying. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
+<li><p><strong>gradient</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – New flat gradient.</p></li>
+<li><p><strong>relink</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink instead of copying. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
 configuration default.</p></li>
 </ul>
 </dd>
@@ -479,9 +480,9 @@ configuration default.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gradient</strong> (<em>torch.Tensor</em>) – Flat gradient to apply.</p></li>
+<li><p><strong>gradient</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.11)"><em>torch.Tensor</em></a>) – Flat gradient to apply.</p></li>
 <li><p><strong>optimizer</strong> (<em>experiments.Optimizer</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optimizer wrapper. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the default optimizer.</p></li>
-<li><p><strong>relink</strong> (<em>bool</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink the gradient. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the configuration
+<li><p><strong>relink</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Whether to relink the gradient. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the configuration
 default.</p></li>
 </ul>
 </dd>
