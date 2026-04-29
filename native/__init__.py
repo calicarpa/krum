@@ -13,12 +13,44 @@
 # Native (i.e. C++/CUDA) implementations automated building and loading.
 ###
 
+"""
+Automated building and loading of C++/CUDA native PyTorch extensions.
+
+Subdirectories prefixed with ``so_`` produce shared libraries; those prefixed
+with ``py_`` produce Python-loadable extensions that are injected into this
+namespace (prefix stripped).  Dependencies are declared in a ``.deps`` file
+(one module name per line) and built recursively before the parent module.
+
+Environment variables ``NATIVE_OPT``, ``NATIVE_STD``, and ``NATIVE_QUIET``
+control debug/release mode, the C++ standard, and trace verbosity
+respectively.
+"""
+
 # ---------------------------------------------------------------------------- #
 # Initialization procedure
 
+from pathlib import Path
 
 def _build_and_load():
-    """Incrementally rebuild all libraries and bind all local modules in the global."""
+    """Scan, compile, and load all native modules into the global namespace.
+
+    Each subdirectory whose name starts with ``so_`` or ``py_`` is treated as a
+    native module.  Sources are compiled via
+    :func:`torch.utils.cpp_extension.load`; ``py_`` modules are injected into
+    globals with the prefix stripped.  Dependencies listed in ``.deps`` files
+    are built recursively before the parent module.
+
+    Raises
+    ------
+    SystemExit
+        If ``NATIVE_OPT`` is set to an unrecognized value.
+
+    Warns
+    -----
+    UserWarning
+        If the ``include`` directory does not exist, or when a module fails
+        to build or load.
+    """
     glob = globals()
     # Standard imports
     import os
@@ -111,13 +143,30 @@ def _build_and_load():
     fail_modules = []
 
     # Local procedures
-    def build_and_load_one(path, deps=[]):
-        """Check if the given directory is a module to build and load, and if yes recursively build and load its dependencies before it.
-        Args:
-          path Given directory path
-          deps Dependent module paths
-        Returns:
-          True on success, False on failure, None if not a module
+    def build_and_load_one(path: Path, deps: list[Path] = []):
+        """Build and load a single native module, recursively handling its dependencies first.
+
+        Parameters
+        ----------
+        path : pathlib.Path
+            Path to the module directory to build.
+        deps : list of pathlib.Path, optional
+            Stack of ancestor modules currently being processed, used for
+            cycle detection.
+
+        Returns
+        -------
+        bool or None
+            ``True`` if the module was built and loaded successfully (or was
+            already built), ``False`` if building or loading failed, ``None``
+            if the directory does not represent a valid module.
+
+        Warns
+        -----
+        UserWarning
+            Emitted when a module is skipped due to an invalid name, a missing
+            directory, a dependency cycle, a failed dependency, or a build/load
+            error.
         """
         nonlocal done_modules
         nonlocal fail_modules
