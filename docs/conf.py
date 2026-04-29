@@ -21,7 +21,7 @@ author = "Peva BLANCHARD, Arthur DANJOU, El-Mahdi EL-MHAMDI, Sébastien ROUAULT,
 
 extensions = [
     "sphinx.ext.todo",
-    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.mathjax",
@@ -32,6 +32,55 @@ extensions = [
     "sphinx_togglebutton",
     "sphinx_contributors"
 ]
+
+def linkcode_resolve(domain, info):
+    """Return a URL to the source code on GitHub for the given object."""
+    if domain != "py":
+        return None
+
+    import importlib
+    import inspect
+
+    module_name = info["module"]
+    fullname = info["fullname"]
+
+    try:
+        mod = importlib.import_module(module_name)
+    except ImportError:
+        return None
+
+    obj = mod
+    for part in fullname.split("."):
+        try:
+            obj = getattr(obj, part)
+        except AttributeError:
+            return None
+
+    try:
+        source_file = inspect.getsourcefile(obj)
+    except TypeError:
+        return None
+
+    if source_file is None:
+        return None
+
+    try:
+        source_lines = inspect.getsourcelines(obj)
+        lineno = source_lines[1]
+    except (TypeError, OSError):
+        lineno = None
+
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    try:
+        rel_path = os.path.relpath(source_file, repo_root)
+    except ValueError:
+        return None
+
+    url = f"https://github.com/calicarpa/krum/blob/main/{rel_path}"
+    if lineno is not None:
+        url += f"#L{lineno}"
+    return url
+
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -60,7 +109,10 @@ html_css_files = [
     "custom.css",
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
 ]
-html_show_sourcelink = False
+html_js_files = [
+    "external-links.js",
+]
+html_show_sourcelink = True
 html_use_index = True
 
 # Custom theme options
