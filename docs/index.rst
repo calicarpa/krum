@@ -68,6 +68,7 @@ Learn more
    :caption: Home
 
    self
+   install
 
 .. toctree::
    :maxdepth: 2
