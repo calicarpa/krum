@@ -14,34 +14,22 @@
 ###
 
 """
-Experiment components for model training, dataset loading, and evaluation.
+Tensor configuration wrapper.
 
-This module groups the building blocks of a Krum training loop:
-
-- :mod:`experiments.configuration` — device and dtype configuration.
-- :mod:`experiments.model` — model wrapper with parameter flattening.
-- :mod:`experiments.dataset` — dataset loading and infinite batch sampling.
-- :mod:`experiments.loss` — derivable loss composition.
-- :mod:`experiments.optimizer` — optimizer wrapper with LR control.
-- :mod:`experiments.checkpoint` — save and restore state dictionaries.
-
-Custom models and datasets can be added under ``experiments/models/`` and
-``experiments/datasets/``; they are discovered automatically at import time.
+This module provides the :class:`Configuration` class, an immutable mapping
+that bundles ``device``, ``dtype``, and memory-transfer options. It is used
+throughout ``experiments`` to ensure every created or moved tensor uses the
+same configuration.
 
 Example
 -------
 
 .. code-block:: python
 
-    from experiments import (
-        Configuration, Model, Dataset,
-        Loss, Criterion, Optimizer,
-        make_datasets,
-    )
+    from experiments.configuration import Configuration
 
-    config = Configuration(device="cuda:0")
-    model = Model("resnet18", config, num_classes=10)
-    trainset, testset = make_datasets("cifar10", train_batch=128)
+    config = Configuration(device="cuda:0", dtype=torch.float32)
+    config["device"]  # device(type='cuda', index=0)
 """
 
 __all__ = ["Configuration"]
