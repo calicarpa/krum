@@ -1,0 +1,12 @@
+Contributors
+============
+
+The following people have contributed to Krum:
+
+.. container:: rounded-image
+    .. contributors:: calicarpa/krum
+        :avatars:
+
+We are open to all contributions. Whether it is a bug fix, a new feature, or an improvement to the documentation, feel free to open a pull request or start a discussion on GitHub.
+
+Thank you to everyone who has helped improve this project.

@@ -8,6 +8,20 @@
 !LICENSE
 !*.md
 !*.py
+!*.toml
+!.python-version
+
+# Except documentation files
+docs/_build
+!*.rst
+!*.html
+!*.css
+!*.js
+!*.svg
+
+# Github 
+!.github/*
+!*.yml
 
 # IDE stuff
 .idea
