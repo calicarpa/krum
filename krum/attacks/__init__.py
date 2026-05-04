@@ -50,7 +50,8 @@ from typing import Any, cast
 import torch
 
 from .. import tools
-from .base import Attack, AttackSpec, FunctionAttack
+from .base import Attack, AttackSpec
+from .registry import AttackRegistry
 
 # ---------------------------------------------------------------------------- #
 # Automated attack loader
@@ -75,13 +76,8 @@ def register(name: str | AttackSpec, unchecked: Callable, check: Callable) -> No
     None
         The attack is registered as a module-level callable.
     """
-    global attack_aliases, attack_objects, attack_specs, attacks
     spec = name if isinstance(name, AttackSpec) else AttackSpec(name=name)
     name = spec.name
-    # Check if name already in use
-    if name in attacks or name in attack_aliases:
-        tools.warning(f"Unable to register {name!r} attack: name already in use")
-        return
 
     # Closure wrapping the call with checks
     def checked(f_real, **kwargs):
@@ -105,39 +101,32 @@ def register(name: str | AttackSpec, unchecked: Callable, check: Callable) -> No
     func.unchecked = unchecked
     func.spec = spec
     # Export the selected function with the associated name
-    attacks[name] = func
-    attack_specs[name] = spec
-    attack_objects[name] = FunctionAttack(spec, func.unchecked, func.check)
-    for alias in spec.aliases:
-        if alias in attacks or alias in attack_aliases:
-            tools.warning(f"Unable to register {alias!r} alias for {name!r} attack: name already in use")
-            continue
-        attack_aliases[alias] = name
-        attacks[alias] = func
+    registry.register(spec, func, func.check)
 
 
 def register_class(cls: type[Attack]) -> type[Attack]:
     """Register an ``Attack`` subclass and return it unchanged."""
     instance = cls()
     register(instance.spec, instance.generate, instance.check)
-    attack_objects[instance.spec.name] = instance
+    registry.objects[instance.spec.name] = instance
     return cls
 
 
 def get(name: str) -> Callable:
     """Return a registered attack by canonical name or alias."""
-    return attacks[name]
+    return registry.get(name)
 
 
-# Registered attacks (mapping name -> attack)
-attacks = {}
-attack_aliases = {}
-attack_specs = {}
-attack_objects = {}
+# Registered attacks. The module-level dictionaries are compatibility aliases.
+registry = AttackRegistry()
+attacks = registry.callables
+attack_aliases = registry.aliases
+attack_specs = registry.specs
+attack_objects = registry.objects
 
 # Load native and all local modules
 with tools.Context("attacks", None):
-    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base"])
+    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base", "registry"])
 
 # Bind/overwrite the attack names with the associated attacks in globals()
 for name, attack in attacks.items():

@@ -51,7 +51,8 @@ from typing import Any, cast
 import torch
 
 from .. import tools
-from .base import Aggregator, AggregatorSpec, FunctionAggregator
+from .base import Aggregator, AggregatorSpec
+from .registry import AggregatorRegistry
 
 # ---------------------------------------------------------------------------- #
 # Automated GAR loader
@@ -139,52 +140,38 @@ def register(
     influence : callable, optional
         Function computing the accepted Byzantine-gradient ratio.
     """
-    global gar_aliases, gar_objects, gar_specs, gars
     spec = (
         name
         if isinstance(name, AggregatorSpec)
         else AggregatorSpec(name=name, upper_bound=upper_bound, influence=influence)
     )
-    name = spec.name
-    # Check if name already in use
-    if name in gars or name in gar_aliases:
-        tools.warning(f"Unable to register {name!r} GAR: name already in use")
-        return
-    # Export the selected function with the associated name
     rule = make_gar(unchecked, check, upper_bound=upper_bound, influence=influence, spec=spec)
-    gars[name] = rule
-    gar_specs[name] = spec
-    gar_objects[name] = FunctionAggregator(spec, rule.unchecked, rule.check)
-    for alias in spec.aliases:
-        if alias in gars or alias in gar_aliases:
-            tools.warning(f"Unable to register {alias!r} alias for {name!r} GAR: name already in use")
-            continue
-        gar_aliases[alias] = name
-        gars[alias] = rule
+    registry.register(spec, rule, rule.check)
 
 
 def register_class(cls: type[Aggregator]) -> type[Aggregator]:
     """Register an ``Aggregator`` subclass and return it unchanged."""
     instance = cls()
-    register(instance.spec, instance.aggregate, instance.check)
-    gar_objects[instance.spec.name] = instance
+    rule = make_gar(instance.aggregate, instance.check, spec=instance.spec)
+    registry.register_object(instance, rule)
     return cls
 
 
 def get(name: str) -> Callable:
     """Return a registered GAR by canonical name or alias."""
-    return gars[name]
+    return registry.get(name)
 
 
-# Registered rules (mapping name -> aggregation rule)
-gars = {}
-gar_aliases = {}
-gar_specs = {}
-gar_objects = {}
+# Registered rules. The module-level dictionaries are compatibility aliases.
+registry = AggregatorRegistry()
+gars = registry.callables
+gar_aliases = registry.aliases
+gar_specs = registry.specs
+gar_objects = registry.objects
 
 # Load all local modules
 with tools.Context("aggregators", None):
-    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base"])
+    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base", "registry"])
 
 # Bind/overwrite the GAR name with the associated rules in globals()
 for name, rule in gars.items():
