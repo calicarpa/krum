@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "9-feature-pip-installable"]
+    branches: [main]
   pull_request:
     branches: [main]
 
