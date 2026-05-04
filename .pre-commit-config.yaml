@@ -3,5 +3,5 @@ repos:
     rev: v0.15.12
     hooks:
       - id: ruff
-        args: [--fix krum/]
+        args: [krum/ --fix]
       - id: ruff-format
