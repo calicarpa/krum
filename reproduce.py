@@ -43,6 +43,7 @@ tools.success("Command-line processing...")
 
 def process_commandline():
     """Parse the command-line and perform checks.
+
     Returns:
       Parsed configuration
     """
@@ -208,6 +209,7 @@ gar_to_legend = {"brute": "MDA"}
 
 def compute_avg_err(name, *cols, avgs="", errs="-err"):
     """Compute the average and standard deviation of the selected columns over the given experiment.
+
     Args:
       name Given experiment name
       ...  Selected column names (through 'histogram.select')

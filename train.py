@@ -47,6 +47,7 @@ tools.success("Command-line processing...")
 
 def process_commandline():
     """Parse the command-line and perform checks.
+
     Returns:
       Parsed configuration
     """
@@ -291,6 +292,7 @@ tools.success("Experiment setup...")
 
 def result_make(name, *fields):
     """Make and bind a new result file with a name, initialize with a header line.
+
     Args:
       name      Name of the result file
       fields... Name of each field, in order
@@ -316,6 +318,7 @@ def result_make(name, *fields):
 
 def result_get(name):
     """Get a valid descriptor to the bound result file, or 'None' if the given name is not bound.
+
     Args:
       name Given name
     Returns:
@@ -332,6 +335,7 @@ def result_get(name):
 
 def result_store(fd, *entries):
     """Store a line in a valid result file.
+
     Args:
       fd         Descriptor of the valid result file
       entries... Object(s) to convert to string and write in order in a new line
@@ -478,6 +482,7 @@ tools.success("Training...")
 
 def compute_avg_dev(values):
     """Compute the arithmetic mean and standard deviation of a list of values.
+
     Args:
       values Iterable of values
     Returns:
