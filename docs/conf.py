@@ -18,7 +18,7 @@ for _mod in ("aggregators", "attacks", "experiments", "native", "tools"):
 
 project = "Krum, the Library"
 copyright = "2026"
-author = "Peva BLANCHARD, Arthur DANJOU, El-Mahdi EL-MHAMDI, Sébastien ROUAULT, Mohammed Ammar SAID"
+author = "Arthur DANJOU, Mohammed Ammar SAID, El-Mahdi EL-MHAMDI, Sébastien ROUAULT, Peva BLANCHARD"
 
 
 # -- General configuration ---------------------------------------------------
@@ -125,76 +125,12 @@ html_theme_options = {
     "github_url": "https://github.com/calicarpa/krum",
     "discussion_url": "https://github.com/calicarpa/krum/discussions",
     "accent_color": "blue",
-    "announcement": "Welcome to the new Krum documentation! Start with the <a href='/tutorials/index.html'>Tutorials</a> or dive into the <a href='/how-to/index.html'>How-to guides</a>.",
+    "announcement": "Welcome to the new Krum documentation!",
     "globaltoc_expand_depth": 2,
     "toctree_collapse": False,
     "toctree_includehidden": True,
     "nav_links_align": "center",
     "nav_links": [
-        {
-            "title": "Tutorials",
-            "url": "tutorials/index",
-        },
-        {
-            "title": "How-to guides",
-            "url": "how-to/index",
-            "children": [
-                {
-                    "title": "How to add an aggregator",
-                    "url": "how-to/add-aggregator",
-                },
-                {
-                    "title": "How to add an attack",
-                    "url": "how-to/add-attack",
-                },
-                {
-                    "title": "How to add a model",
-                    "url": "how-to/add-model",
-                },
-                {
-                    "title": "How to add a dataset",
-                    "url": "how-to/add-dataset",
-                },
-                {
-                    "title": "How to add a custom model",
-                    "url": "how-to/add-custom-model",
-                },
-                {
-                    "title": "How to add a custom dataset",
-                    "url": "how-to/add-custom-dataset",
-                },
-            ],
-        },
-        {
-            "title": "Explanation",
-            "children": [
-                {
-                    "title": "Key concepts",
-                    "url": "explanation/key-concepts",
-                    "summary": "Understand the key concepts",
-                },
-                {
-                    "title": "Debug mode",
-                    "url": "explanation/debug-mode",
-                    "summary": "Understand debug mode",
-                },
-                {
-                    "title": "Native compilation",
-                    "url": "explanation/native-compilation",
-                    "summary": "Understand native compilation",
-                },
-                {
-                    "title": "Tensor lifecycle",
-                    "url": "explanation/tensor-lifecycle",
-                    "summary": "Understand tensor lifecycle",
-                },
-                {
-                    "title": "CLI format",
-                    "url": "explanation/cli-format",
-                    "summary": "Understand CLI format",
-                },
-            ],
-        },
         {
             "title": "Reference",
             "children": [
