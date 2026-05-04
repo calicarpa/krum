@@ -217,73 +217,71 @@ with tools.Context("cmdline", "info"):
             res += f"{os.linesep}{level_spc}· {label}{' ' * (label_len - len(label))}{cmd_make_tree(node, level + 1)}"
         return res
 
-    cmdline_config = "Configuration" + cmd_make_tree(
+    cmdline_config = "Configuration" + cmd_make_tree((
+        ("Reproducibility", "not enforced" if args.seed < 0 else f"enforced (seed {args.seed})"),
+        ("#workers", args.nb_workers),
+        ("#declared Byz.", args.nb_decl_byz),
+        ("#actually Byz.", args.nb_real_byz),
+        ("Model", (("Name", args.model), ("Arguments", args.model_args))),
         (
-            ("Reproducibility", "not enforced" if args.seed < 0 else f"enforced (seed {args.seed})"),
-            ("#workers", args.nb_workers),
-            ("#declared Byz.", args.nb_decl_byz),
-            ("#actually Byz.", args.nb_real_byz),
-            ("Model", (("Name", args.model), ("Arguments", args.model_args))),
+            "Dataset",
             (
-                "Dataset",
+                ("Name", args.dataset),
+                ("Arguments", args.dataset_args),
                 (
-                    ("Name", args.dataset),
-                    ("Arguments", args.dataset_args),
+                    "Batch size",
                     (
-                        "Batch size",
-                        (
-                            ("Training", args.batch_size or "max"),
-                            ("Testing", f"{args.batch_size_test or 'max'} x {args.test_repeat}"),
-                        ),
+                        ("Training", args.batch_size or "max"),
+                        ("Testing", f"{args.batch_size_test or 'max'} x {args.test_repeat}"),
                     ),
-                    ("Transforms", "none" if args.no_transform else "default"),
                 ),
+                ("Transforms", "none" if args.no_transform else "default"),
             ),
+        ),
+        (
+            "Loss",
             (
-                "Loss",
+                ("Name", args.loss),
+                ("Arguments", args.loss_args),
                 (
-                    ("Name", args.loss),
-                    ("Arguments", args.loss_args),
+                    "Regularization",
                     (
-                        "Regularization",
-                        (
-                            ("l1", "none" if args.l1_regularize is None else args.l1_regularize),
-                            ("l2", "none" if args.l2_regularize is None else args.l2_regularize),
-                        ),
+                        ("l1", "none" if args.l1_regularize is None else args.l1_regularize),
+                        ("l2", "none" if args.l2_regularize is None else args.l2_regularize),
                     ),
                 ),
             ),
-            ("Criterion", (("Name", args.criterion), ("Arguments", args.criterion_args))),
+        ),
+        ("Criterion", (("Name", args.criterion), ("Arguments", args.criterion_args))),
+        (
+            "Optimizer",
             (
-                "Optimizer",
+                ("Name", "sgd"),
                 (
-                    ("Name", "sgd"),
+                    "Learning rate",
                     (
-                        "Learning rate",
-                        (
-                            ("Initial", args.learning_rate),
-                            ("Half-decay", args.learning_rate_decay if args.learning_rate_decay > 0 else "none"),
-                            ("Update delta", args.learning_rate_decay_delta if args.learning_rate_decay > 0 else "n/a"),
-                        ),
+                        ("Initial", args.learning_rate),
+                        ("Half-decay", args.learning_rate_decay if args.learning_rate_decay > 0 else "none"),
+                        ("Update delta", args.learning_rate_decay_delta if args.learning_rate_decay > 0 else "n/a"),
                     ),
-                    ("Momentum", args.momentum),
-                    ("Dampening", args.dampening),
-                    ("Weight decay", args.weight_decay),
                 ),
+                ("Momentum", args.momentum),
+                ("Dampening", args.dampening),
+                ("Weight decay", args.weight_decay),
             ),
-            ("Attack", (("Name", args.attack), ("Arguments", args.attack_args))),
-            ("Aggregation", (("Name", args.gar), ("Arguments", args.gar_args))),
+        ),
+        ("Attack", (("Name", args.attack), ("Arguments", args.attack_args))),
+        ("Aggregation", (("Name", args.gar), ("Arguments", args.gar_args))),
+        (
+            "Differential privacy",
             (
-                "Differential privacy",
-                (
-                    ("Enabled?", "yes" if args.privacy else "no"),
-                    ("ε constant", args.privacy_epsilon if args.privacy else "n/a"),
-                    ("δ constant", args.privacy_delta if args.privacy else "n/a"),
-                    ("l2-sensitivity", args.privacy_sensitivity if args.privacy else "n/a"),
-                ),
+                ("Enabled?", "yes" if args.privacy else "no"),
+                ("ε constant", args.privacy_epsilon if args.privacy else "n/a"),
+                ("δ constant", args.privacy_delta if args.privacy else "n/a"),
+                ("l2-sensitivity", args.privacy_sensitivity if args.privacy else "n/a"),
             ),
-        )
-    )
+        ),
+    ))
     print(cmdline_config)
 
 # ---------------------------------------------------------------------------- #

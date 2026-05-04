@@ -98,9 +98,7 @@ except ImportError:
 # Multi-Krum GAR
 
 
-def _compute_scores(
-    gradients: list[torch.Tensor], f: int, m: int, **kwargs
-) -> list[tuple[float, torch.Tensor]]:
+def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> list[tuple[float, torch.Tensor]]:
     """
     Compute Multi-Krum scores for all candidate gradients.
 
@@ -146,9 +144,7 @@ def _compute_scores(
     return scores
 
 
-def aggregate(
-    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
-) -> torch.Tensor:
+def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
     """
     Aggregate gradients with Multi-Krum.
 
@@ -182,9 +178,7 @@ def aggregate(
     return sum(grad for _, grad in scores[:m]).div_(m)
 
 
-def aggregate_native(
-    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
-) -> torch.Tensor:
+def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
     """
     Aggregate gradients with the native Multi-Krum implementation.
 
@@ -211,9 +205,7 @@ def aggregate_native(
     return native.krum.aggregate(gradients, f, m)
 
 
-def check(
-    gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs
-) -> str | None:
+def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:
     """
     Check whether Multi-Krum can be used with the given parameters.
 
@@ -235,21 +227,14 @@ def check(
         message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return (
-            f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-        )
+        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
     if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 3:
-        return (
-            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
-            % (f, (len(gradients) - 3) // 2)
+        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
+            f,
+            (len(gradients) - 3) // 2,
         )
-    if m is not None and (
-        not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2
-    ):
-        return (
-            "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d"
-            % (m, len(gradients) - f - 2)
-        )
+    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
+        return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (m, len(gradients) - f - 2)
     return None
 
 

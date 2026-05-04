@@ -148,9 +148,7 @@ class Optimizer:
             return getattr(self._optim, args[0])
         if len(args) == 2:
             return getattr(self._optim, args[0], args[1])
-        raise RuntimeError(
-            "'Optimizer.__getattr__' called with the wrong number of parameters"
-        )
+        raise RuntimeError("'Optimizer.__getattr__' called with the wrong number of parameters")
 
     def __str__(self):
         """

@@ -30,8 +30,9 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_favicon",
     "sphinx_togglebutton",
-    "sphinx_contributors"
+    "sphinx_contributors",
 ]
+
 
 def linkcode_resolve(domain, info):
     """Return a URL to the source code on GitHub for the given object."""
@@ -90,9 +91,7 @@ intersphinx_mapping = {
 
 
 # Use MathJax to render math in HTML
-mathjax_path = (
-    "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-)
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
@@ -158,7 +157,7 @@ html_theme_options = {
                 {
                     "title": "How to add a custom dataset",
                     "url": "how-to/add-custom-dataset",
-                }
+                },
             ],
         },
         {

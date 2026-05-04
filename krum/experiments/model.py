@@ -121,17 +121,13 @@ class Model:
             exports = getattr(module, "__all__", None)
             if exports is None:
                 tools.warning(
-                    f"Model module {name!r} does not provide '__all__'; "
-                    f"falling back to '__dict__' for name discovery"
+                    f"Model module {name!r} does not provide '__all__'; falling back to '__dict__' for name discovery"
                 )
                 exports = (n for n in dir(module) if len(n) > 0 and n[0] != "_")
             exported = False
             for model in exports:
                 if not isinstance(model, str):
-                    tools.warning(
-                        f"Model module {name!r} exports non-string name "
-                        f"{model!r}; ignored"
-                    )
+                    tools.warning(f"Model module {name!r} exports non-string name {model!r}; ignored")
                     continue
                 constructor = getattr(module, model, None)
                 if not callable(constructor):
@@ -146,10 +142,7 @@ class Model:
                     continue
                 cls.__models[fullname] = constructor
             if not exported:
-                tools.warning(
-                    f"Model module {name!r} does not export any valid "
-                    f"constructor name through '__all__'"
-                )
+                tools.warning(f"Model module {name!r} does not export any valid constructor name through '__all__'")
 
         with tools.Context("models", None):
             tools.import_directory(
@@ -465,9 +458,7 @@ class Model:
             tools.relink(tools.grads_of(self._model.parameters()), gradient)
             self._gradient = gradient
         else:
-            self.get_gradient().copy_(
-                gradient, non_blocking=self._config["non_blocking"]
-            )
+            self.get_gradient().copy_(gradient, non_blocking=self._config["non_blocking"])
 
     def loss(self, dataset=None, loss=None, training=None):
         """
@@ -570,8 +561,6 @@ class Model:
         torch.Tensor
             Mean criterion value over the sampled batch.
         """
-        dataset, criterion = self._resolve_defaults(
-            testset=dataset, criterion=criterion
-        )
+        dataset, criterion = self._resolve_defaults(testset=dataset, criterion=criterion)
         inputs, targets = dataset.sample(self._config)
         return criterion(self.run(inputs), targets)

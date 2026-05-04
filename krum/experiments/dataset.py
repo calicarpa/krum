@@ -59,9 +59,7 @@ transforms_mnist = [
 transforms_cifar = [
     torchvision.transforms.RandomHorizontalFlip(),
     torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize(
-        (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-    ),
+    torchvision.transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ]
 
 # Per-dataset image transformations
@@ -224,17 +222,13 @@ class Dataset:
             exports = getattr(module, "__all__", None)
             if exports is None:
                 tools.warning(
-                    f"Dataset module {name!r} does not provide '__all__'; "
-                    f"falling back to '__dict__' for name discovery"
+                    f"Dataset module {name!r} does not provide '__all__'; falling back to '__dict__' for name discovery"
                 )
                 exports = (n for n in dir(module) if len(n) > 0 and n[0] != "_")
             exported = False
             for dataset in exports:
                 if not isinstance(dataset, str):
-                    tools.warning(
-                        f"Dataset module {name!r} exports non-string name "
-                        f"{dataset!r}; ignored"
-                    )
+                    tools.warning(f"Dataset module {name!r} exports non-string name {dataset!r}; ignored")
                     continue
                 constructor = getattr(module, dataset, None)
                 if not callable(constructor):
@@ -249,10 +243,7 @@ class Dataset:
                     continue
                 cls.__datasets[fullname] = constructor
             if not exported:
-                tools.warning(
-                    f"Dataset module {name!r} does not export any valid "
-                    f"constructor name through '__all__'"
-                )
+                tools.warning(f"Dataset module {name!r} does not export any valid constructor name through '__all__'")
 
         with tools.Context("datasets", None):
             tools.import_directory(
@@ -332,10 +323,7 @@ class Dataset:
         """
         tns = next(self._iter)
         if config is not None:
-            tns = type(tns)(
-                tn.to(device=config["device"], non_blocking=config["non_blocking"])
-                for tn in tns
-            )
+            tns = type(tns)(tn.to(device=config["device"], non_blocking=config["non_blocking"]) for tn in tns)
         return tns
 
     def epoch(self, config=None):
@@ -450,17 +438,12 @@ def make_datasets(
     """
     train_transforms = train_transforms or get_default_transform(dataset, True)
     test_transforms = test_transforms or get_default_transform(dataset, False)
-    num_workers_errmsg = (
-        "Expected either a positive int or a tuple of 2 positive ints "
-        "for parameter 'num_workers'"
-    )
+    num_workers_errmsg = "Expected either a positive int or a tuple of 2 positive ints for parameter 'num_workers'"
     if isinstance(num_workers, int):
         assert num_workers > 0, num_workers_errmsg
         train_workers = test_workers = num_workers
     else:
-        assert isinstance(num_workers, tuple) and len(num_workers) == 2, (
-            num_workers_errmsg
-        )
+        assert isinstance(num_workers, tuple) and len(num_workers) == 2, num_workers_errmsg
         train_workers, test_workers = num_workers
         assert isinstance(train_workers, int) and train_workers > 0, num_workers_errmsg
         assert isinstance(test_workers, int) and test_workers > 0, num_workers_errmsg

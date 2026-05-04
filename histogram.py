@@ -63,6 +63,7 @@ try:
                 gtk_lazy_main = thread
         # Submit the job to the main loop
         GLib.idle_add(closure)
+
 except Exception:
 
     def gtk_run(closure):
@@ -196,17 +197,13 @@ class Session:
             path_results = pathlib.Path(path_results)
         # Ensure directory exist
         if not path_results.exists():
-            raise tools.UserException(
-                f"Result directory {str(path_results)!r} cannot be accessed or does not exist"
-            )
+            raise tools.UserException(f"Result directory {str(path_results)!r} cannot be accessed or does not exist")
         # Load configuration string
         path_config = path_results / "config"
         try:
             data_config = path_config.read_text().strip()
         except Exception as err:
-            tools.warning(
-                f"Result directory {str(path_results)!r}: unable to read configuration ({err})"
-            )
+            tools.warning(f"Result directory {str(path_results)!r}: unable to read configuration ({err})")
             data_config = None
         # Load configuration json
         path_json = path_results / "config.json"
@@ -214,21 +211,15 @@ class Session:
             with path_json.open("r") as fd:
                 data_json = json.load(fd)
         except Exception as err:
-            tools.warning(
-                f"Result directory {str(path_results)!r}: unable to read JSON configuration ({err})"
-            )
+            tools.warning(f"Result directory {str(path_results)!r}: unable to read JSON configuration ({err})")
             data_json = None
         # Load training data
         path_study = path_results / "study"
         try:
-            data_study = pd.read_csv(
-                path_study, sep="\t", index_col=0, na_values="     nan"
-            )
+            data_study = pd.read_csv(path_study, sep="\t", index_col=0, na_values="     nan")
             data_study.index.name = "Step number"
         except Exception as err:
-            tools.warning(
-                f"Result directory {str(path_results)!r}: unable to read training data ({err})"
-            )
+            tools.warning(f"Result directory {str(path_results)!r}: unable to read training data ({err})")
             data_study = None
         # Load evaluation data
         path_eval = path_results / "eval"
@@ -236,9 +227,7 @@ class Session:
             data_eval = pd.read_csv(path_eval, sep="\t", index_col=0)
             data_eval.index.name = "Step number"
         except Exception as err:
-            tools.warning(
-                f"Result directory {str(path_results)!r}: unable to read evaluation data ({err})"
-            )
+            tools.warning(f"Result directory {str(path_results)!r}: unable to read evaluation data ({err})")
             data_eval = None
         # Merge data frames
         data = None
@@ -279,9 +268,7 @@ class Session:
         # Display the (selected sub)set
         display(
             self.get(*only_columns),
-            title=(
-                "Session data{} for {!r}".format(" (subset)" if len(only_columns) > 0 else "", self.name)
-            ),
+            title=("Session data{} for {!r}".format(" (subset)" if len(only_columns) > 0 else "", self.name)),
         )
         # Return self to enable chaining
         return self
@@ -292,9 +279,7 @@ class Session:
           Whether the session's GAR has a known ratio
         """
         if self.json is None or "gar" not in self.json:
-            tools.warning(
-                "No valid JSON-formatted configuration, cannot tell whether the associated GAR has a ratio"
-            )
+            tools.warning("No valid JSON-formatted configuration, cannot tell whether the associated GAR has a ratio")
             return False
         g = self.json["gar"]
         rule = aggregators.gars.get(g, None)
@@ -325,9 +310,7 @@ class Session:
             return self
         # Compute epoch number
         if self.json is None or "dataset" not in self.json:
-            tools.warning(
-                "No valid JSON-formatted configuration, cannot compute the epoch number"
-            )
+            tools.warning("No valid JSON-formatted configuration, cannot compute the epoch number")
             return self
         dataset_name = self.json["dataset"]
         training_size = {
@@ -337,9 +320,7 @@ class Session:
             "cifar100": 50000,
         }.get(dataset_name)
         if training_size is None:
-            tools.warning(
-                f"Unknown dataset {dataset_name!r}, cannot compute the epoch number"
-            )
+            tools.warning(f"Unknown dataset {dataset_name!r}, cannot compute the epoch number")
             return self
         self.data[column_name] = self.data["Training point count"] / training_size
         # Return self to enable chaining
@@ -356,17 +337,13 @@ class Session:
             return self
         # Compute epoch number
         if self.json is None or "learning_rate" not in self.json:
-            tools.warning(
-                "No valid JSON-formatted configuration, cannot compute the learning rate"
-            )
+            tools.warning("No valid JSON-formatted configuration, cannot compute the learning rate")
             return self
         lr = self.json["learning_rate"]
         lr_decay = self.json.get("learning_rate_decay", 0)
         lr_delta = self.json.get("learning_rate_decay_delta", 1)
         if lr_decay > 0:
-            self.data[column_name] = lr / (
-                (self.data.index // lr_delta * lr_delta) / lr_decay + 1
-            )
+            self.data[column_name] = lr / ((self.data.index // lr_delta * lr_delta) / lr_decay + 1)
         else:
             self.data[column_name] = lr
         # Return self to enable chaining
@@ -452,24 +429,18 @@ class LinePlot:
         """
         # Assert not already finalized
         if self._fin:
-            raise RuntimeError(
-                "Plot is already finalized and cannot include another line"
-            )
+            raise RuntimeError("Plot is already finalized and cannot include another line")
         # Recover the dataframe if a session was given
         if isinstance(data, Session):
             data = data.data
         elif not isinstance(data, pd.DataFrame):
-            raise RuntimeError(
-                f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
-            )
+            raise RuntimeError(f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}")
         # Get the x-axis values
         if self._idx is None:
             x = data.index.to_numpy()
         else:
             if self._idx not in data:
-                raise RuntimeError(
-                    f"No column named {self._idx!r} to use as index in the given session/dataframe"
-                )
+                raise RuntimeError(f"No column named {self._idx!r} to use as index in the given session/dataframe")
             x = data[self._idx].to_numpy()
         # Select semantic: empty list = select all
         if len(cols) == 0:
@@ -491,20 +462,14 @@ class LinePlot:
                 if axis is None:
                     axis = self._get_ax(col)
                 # Pick a new line style and color
-                linestyle, color = self._get_line_style(
-                    self._cnt if ccnt is None else ccnt
-                )
+                linestyle, color = self._get_line_style(self._cnt if ccnt is None else ccnt)
                 # Plot the data (line or error line)
                 davg = subd[scol].to_numpy()
                 errn = None if errs is None else (scol + errs)
                 if errn is not None and errn in data:
                     derr = data[errn].to_numpy()
-                    axis.fill_between(
-                        x, davg - derr, davg + derr, facecolor=color, alpha=0.2
-                    )
-                axis.plot(
-                    x, davg, label=scol, linestyle=linestyle, color=color, alpha=lalp
-                )
+                    axis.fill_between(x, davg - derr, davg + derr, facecolor=color, alpha=0.2)
+                axis.plot(x, davg, label=scol, linestyle=linestyle, color=color, alpha=lalp)
                 # Increase the counter only on success
                 self._cnt += 1
             # Reset axis for next iteration
@@ -526,24 +491,18 @@ class LinePlot:
         """
         # Assert not already finalized
         if self._fin:
-            raise RuntimeError(
-                "Plot is already finalized and cannot include another line"
-            )
+            raise RuntimeError("Plot is already finalized and cannot include another line")
         # Recover the dataframe if a session was given
         if isinstance(data, Session):
             data = data.data
         elif not isinstance(data, pd.DataFrame):
-            raise RuntimeError(
-                f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
-            )
+            raise RuntimeError(f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}")
         # Get the x-axis values
         if self._idx is None:
             x = data.index.to_numpy()
         else:
             if self._idx not in data:
-                raise RuntimeError(
-                    f"No column named {self._idx!r} to use as index in the given session/dataframe"
-                )
+                raise RuntimeError(f"No column named {self._idx!r} to use as index in the given session/dataframe")
             x = data[self._idx].to_numpy()
         # Pick a new line style and color
         linestyle, color = self._get_line_style(self._cnt if ccnt is None else ccnt)
@@ -614,14 +573,8 @@ class LinePlot:
                     return res
 
         (self._ax if self._tax is None else self._tax).legend(
-            generator_sum(
-                ax.get_legend_handles_labels()[0] for ax in self._axs.values()
-            ),
-            generator_sum(
-                ax.get_legend_handles_labels()[1] for ax in self._axs.values()
-            )
-            if legend is None
-            else legend,
+            generator_sum(ax.get_legend_handles_labels()[0] for ax in self._axs.values()),
+            generator_sum(ax.get_legend_handles_labels()[1] for ax in self._axs.values()) if legend is None else legend,
             loc="best",
         )
         # Plot the grid and labels
@@ -631,15 +584,11 @@ class LinePlot:
         self._ax.set_title(title)
         if zlabel is not None:
             if self._tax is None:
-                tools.warning(
-                    f"No secondary y-axis found, but its label {zlabel!r} was provided"
-                )
+                tools.warning(f"No secondary y-axis found, but its label {zlabel!r} was provided")
             else:
                 self._tax.set_ylabel(zlabel)
         elif self._tax is not None:
-            tools.warning(
-                f"No label provided for the secondary y-axis; using label {ylabel!r} from the primary"
-            )
+            tools.warning(f"No label provided for the secondary y-axis; using label {ylabel!r} from the primary")
             self._tax.set_ylabel(ylabel)
         self._ax.set_xlim(left=xmin, right=xmax)
         self._ax.set_ylim(bottom=ymin, top=ymax)
@@ -727,9 +676,7 @@ class HistPlot:
         # Return self for chaining
         return self
 
-    def finalize(
-        self, title, xlabel, ylabel, xmin=None, xmax=None, ymin=None, ymax=None
-    ):
+    def finalize(self, title, xlabel, ylabel, xmin=None, xmax=None, ymin=None, ymax=None):
         """Finalize the plot, can be done only once and would prevent further inclusion.
         Args:
           title  Plot title

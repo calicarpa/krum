@@ -80,9 +80,7 @@ except ImportError:
 # Brute GAR
 
 
-def _compute_selection(
-    gradients: list[torch.Tensor], f: int, **kwargs
-) -> tuple[int, ...]:
+def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple[int, ...]:
     """
     Select the gradient indices forming the smallest-diameter subset.
 
@@ -163,9 +161,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor |
     return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
 
 
-def aggregate_native(
-    gradients: list[torch.Tensor], f: int, **kwargs
-) -> torch.Tensor | float:
+def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
     """
     Compute the Brute aggregation using native C++/CUDA acceleration.
 
@@ -206,13 +202,11 @@ def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
         message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return (
-            f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-        )
+        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
     if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 1:
-        return (
-            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
-            % (f, (len(gradients) - 1) // 2)
+        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
+            f,
+            (len(gradients) - 1) // 2,
         )
     return None
 
@@ -239,9 +233,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
     return (n - f) / (math.sqrt(8) * f)
 
 
-def influence(
-    honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs
-) -> float:
+def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
     """
     Compute the ratio of Byzantine gradients selected by Brute.
 

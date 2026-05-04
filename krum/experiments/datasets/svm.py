@@ -43,9 +43,7 @@ from .. import dataset, tools
 # Configuration
 
 #: Default URL for the raw phishing dataset (LIBSVM format).
-default_url_phishing = (
-    "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/phishing"
-)
+default_url_phishing = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/phishing"
 
 #: Default directory where pre-processed datasets are cached.
 default_root = dataset.Dataset.get_default_root()
@@ -120,9 +118,7 @@ def get_phishing(root, url):
         raise RuntimeError(f"Unable to get dataset (at {url}): {err}")
     tools.info(" done.")
     if response.status_code != 200:
-        raise RuntimeError(
-            f"Unable to fetch raw dataset (at {url}): GET status code {response.status_code}"
-        )
+        raise RuntimeError(f"Unable to fetch raw dataset (at {url}): GET status code {response.status_code}")
 
     # Pre-process dataset
     tools.info("Pre-processing dataset...", end="", flush=True)
@@ -141,9 +137,7 @@ def get_phishing(root, url):
                 line[int(offset) - 1] = float(value)
             except Exception as err:
                 tools.warning(" fail.")
-                raise RuntimeError(
-                    f"Unable to parse dataset (line {index + 1}, position {pos + 1}): {err}"
-                )
+                raise RuntimeError(f"Unable to parse dataset (line {index + 1}, position {pos + 1}): {err}")
     labels.unsqueeze_(1)
     tools.info(" done.")
 
@@ -200,6 +194,4 @@ def phishing(train=True, batch_size=None, root=None, download=False, *args, **kw
             root or default_root,
             None if download is None else default_url_phishing,
         )
-        return dataset.batch_dataset(
-            inputs, labels, train, batch_size, split=8400
-        )
+        return dataset.batch_dataset(inputs, labels, train, batch_size, split=8400)

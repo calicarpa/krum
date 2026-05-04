@@ -90,9 +90,7 @@ from . import Context, UserException, fatal, trace, warning
 # Unavailable user exception class
 
 
-def make_unavailable_exception_text(
-    data: list[str], name: str, what: str = "entry"
-) -> str:
+def make_unavailable_exception_text(data: list[str], name: str, what: str = "entry") -> str:
     """
     Build the message used by :class:`UnavailableException`.
 
@@ -182,9 +180,7 @@ class MethodCallReplicator:
             Instances on which to replicate method calls, in call order.
         """
         # Assertions
-        assert len(args) > 0, (
-            "Expected at least one instance on which to forward method calls"
-        )
+        assert len(args) > 0, "Expected at least one instance on which to forward method calls"
         # Finalization
         self.__instances = args
 
@@ -275,11 +271,7 @@ class ClassRegister:
             "Name "
             + repr(name)
             + " already in use while registering "
-            + repr(
-                getattr(
-                    cls, "__name__", "<unknown " + self.__denoms[0] + " class name>"
-                )
-            )
+            + repr(getattr(cls, "__name__", "<unknown " + self.__denoms[0] + " class name>"))
         )
         # Registering
         self.__register[name] = cls
@@ -313,13 +305,7 @@ class ClassRegister:
             if len(self.__register) == 0:
                 cause += "no registered " + self.__denoms[0]
             else:
-                cause += (
-                    "available "
-                    + self.__denoms[1]
-                    + ": '"
-                    + ("', '").join(self.__register.keys())
-                    + "'"
-                )
+                cause += "available " + self.__denoms[1] + ": '" + ("', '").join(self.__register.keys()) + "'"
             raise UserException(cause)
         # Instantiation
         return self.__register[name](*args, **kwargs)
@@ -362,9 +348,7 @@ def parse_keyval_auto_convert(val: str) -> object:
     return val
 
 
-def parse_keyval(
-    list_keyval: list[str], defaults: dict[str, object] | None = None
-) -> dict[str, object]:
+def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = None) -> dict[str, object]:
     """
     Parse ``<key>:<value>`` strings into a typed dictionary.
 
@@ -409,21 +393,10 @@ def parse_keyval(
     for entry in list_keyval:
         pos = entry.find(sep)
         if pos < 0:
-            raise UserException(
-                "Expected list of "
-                + repr("<key>:<value>")
-                + ", got "
-                + repr(entry)
-                + " as one entry"
-            )
+            raise UserException("Expected list of " + repr("<key>:<value>") + ", got " + repr(entry) + " as one entry")
         key = entry[:pos]
         if key in parsed:
-            raise UserException(
-                "Key "
-                + repr(key)
-                + " had already been specified with value "
-                + repr(parsed[key])
-            )
+            raise UserException("Key " + repr(key) + " had already been specified with value " + repr(parsed[key]))
         val = entry[pos + len(sep) :]
         # Guess/assert type constructibility
         if key in defaults:
@@ -685,9 +658,7 @@ def interactive(
             # Input new line
             try:
                 line = input()
-                print(
-                    "\033[A"
-                )  # Trick to "advertise" new line on stdout after new line on stdin
+                print("\033[A")  # Trick to "advertise" new line on stdout after new line on stdin
             except BaseException as err:
                 if any(isinstance(err, cls) for cls in (EOFError, KeyboardInterrupt)):
                     print()  # Since no new line was printed by pressing ENTER
@@ -706,9 +677,7 @@ def interactive(
                     command = line
                     try:
                         exec(command, glbs, lcls)
-                    except (
-                        SyntaxError
-                    ):  # Heuristic that we are dealing with a multi-line statement
+                    except SyntaxError:  # Heuristic that we are dealing with a multi-line statement
                         continue
                 elif len(line) > 0:
                     command += os.linesep + line
@@ -744,10 +713,7 @@ def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
         platform.
     """
     # Get the site-packages directories, and make "flavor"-detection closure
-    path_sites = tuple(
-        pathlib.Path(path)
-        for path in site.getsitepackages() + [site.getusersitepackages()]
-    )
+    path_sites = tuple(pathlib.Path(path) for path in site.getsitepackages() + [site.getusersitepackages()])
 
     def flavor_of(path):
         path = pathlib.Path(path)

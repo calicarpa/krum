@@ -220,18 +220,11 @@ def check(
     if not isinstance(grad_honests, list) or len(grad_honests) == 0:
         return f"Expected a non-empty list of honest gradients, got {grad_honests!r}"
     if not isinstance(f_real, int) or f_real < 0:
-        return (
-            f"Expected a non-negative number of Byzantine gradients to generate, got {f_real!r}"
-        )
+        return f"Expected a non-negative number of Byzantine gradients to generate, got {f_real!r}"
     if not callable(defense):
         return f"Expected a callable for the aggregation rule, got {defense!r}"
-    if not (
-        (isinstance(factor, float) and factor > 0)
-        or (isinstance(factor, int) and factor != 0)
-    ):
-        return (
-            f"Expected a positive number or a negative integer for the attack factor, got {factor!r}"
-        )
+    if not ((isinstance(factor, float) and factor > 0) or (isinstance(factor, int) and factor != 0)):
+        return f"Expected a positive number or a negative integer for the attack factor, got {factor!r}"
     if not isinstance(negative, bool):
         return f"Expected a boolean for optional parameter 'negative', got {negative!r}"
     return None
@@ -272,9 +265,7 @@ def bulyan(
     """
     if target_idx == "all":
         return torch.ones_like(grad_avg)
-    assert isinstance(target_idx, int), (
-        f"Expected an integer or \"all\" for 'target_idx', got {target_idx!r}"
-    )
+    assert isinstance(target_idx, int), f"Expected an integer or \"all\" for 'target_idx', got {target_idx!r}"
     grad_att = torch.zeros_like(grad_avg)
     grad_att[target_idx] = 1
     return grad_att

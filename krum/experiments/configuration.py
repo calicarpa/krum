@@ -173,7 +173,5 @@ class Configuration(Mapping):
             Python-code string that evaluates to this configuration.
         """
         display = {"non_blocking": "noblock"}
-        argrepr = (", ").join(
-            f"{display.get(key, key)}={val!r}" for key, val in self._args.items()
-        )
+        argrepr = (", ").join(f"{display.get(key, key)}={val!r}" for key, val in self._args.items())
         return f"Configuration({argrepr}, relink={self.relink})"

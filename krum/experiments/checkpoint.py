@@ -103,8 +103,7 @@ class Checkpoint:
         for prop in ("state_dict", "load_state_dict"):
             if not callable(getattr(res, prop, None)):
                 raise tools.UserException(
-                    f"Given instance {instance!r} is not checkpoint-able "
-                    f"(missing callable member {prop!r})"
+                    f"Given instance {instance!r} is not checkpoint-able (missing callable member {prop!r})"
                 )
         # Return the instance and the associated storage key
         return res, tools.fullqual(inst_cls)
@@ -147,9 +146,7 @@ class Checkpoint:
         instance, key = type(self)._prepare(instance)
         # Snapshot the state dictionary
         if not overwrite and key in self._store:
-            raise tools.UserException(
-                f"A snapshot for {key!r} is already stored in the checkpoint"
-            )
+            raise tools.UserException(f"A snapshot for {key!r} is already stored in the checkpoint")
         if deepcopy:
             self._store[key] = copy.deepcopy(instance.state_dict())
         else:
@@ -193,9 +190,7 @@ class Checkpoint:
                     f"may not be the one expected"
                 )
         elif not nothrow:
-            raise tools.UserException(
-                f"No snapshot for {key!r} is available in the checkpoint"
-            )
+            raise tools.UserException(f"No snapshot for {key!r} is available in the checkpoint")
         # Enable chaining
         return self
 

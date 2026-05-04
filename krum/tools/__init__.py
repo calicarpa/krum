@@ -162,9 +162,7 @@ class Context:
         if colorname is None:
             colorcode = None
         else:
-            assert colorname in type(self).__colors, "Unknown color name " + repr(
-                colorname
-            )
+            assert colorname in type(self).__colors, "Unknown color name " + repr(colorname)
             colorcode = type(self).__colors[colorname]
         # Finalization
         self.__pair = (cntxtname, colorcode)
@@ -424,18 +422,11 @@ def import_exported_symbols(name: str, module, scope: dict) -> None:
                 continue
             if symname in _imported:
                 with Context(None, "warning"):
-                    print(
-                        "Symbol "
-                        + repr(symname)
-                        + " already exported by "
-                        + repr(_imported[symname])
-                    )
+                    print("Symbol " + repr(symname) + " already exported by " + repr(_imported[symname]))
                 continue
             if symname in scope:
                 with Context(None, "warning"):
-                    print(
-                        "Symbol " + repr(symname) + " already exported by '__init__.py'"
-                    )
+                    print("Symbol " + repr(symname) + " already exported by '__init__.py'")
                 continue
             # Import in module scope
             scope[symname] = getattr(module, symname)
@@ -479,12 +470,7 @@ def import_directory(
                         post(name, getattr(base, name), scope)
                 except Exception as err:
                     with Context(None, "warning"):
-                        print(
-                            "Loading failed for module "
-                            + repr(path.name)
-                            + ": "
-                            + str(err)
-                        )
+                        print("Loading failed for module " + repr(path.name) + ": " + str(err))
                         with Context("traceback", "trace"):
                             traceback.print_exc()
 

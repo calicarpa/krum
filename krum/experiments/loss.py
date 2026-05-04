@@ -404,19 +404,11 @@ class Criterion:
             torch.Tensor
                 1-D tensor ``[num_correct, batch_size]``.
             """
-            res = (
-                (output.topk(self.k, dim=1)[1] == target.view(-1).unsqueeze(1))
-                .any(dim=1)
-                .sum()
-            )
-            return torch.cat(
-                (
-                    res.unsqueeze(0),
-                    torch.tensor(
-                        target.shape[0], dtype=res.dtype, device=res.device
-                    ).unsqueeze(0),
-                )
-            )
+            res = (output.topk(self.k, dim=1)[1] == target.view(-1).unsqueeze(1)).any(dim=1).sum()
+            return torch.cat((
+                res.unsqueeze(0),
+                torch.tensor(target.shape[0], dtype=res.dtype, device=res.device).unsqueeze(0),
+            ))
 
     class _SigmoidCriterion:
         """

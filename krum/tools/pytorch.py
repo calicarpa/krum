@@ -367,9 +367,7 @@ class AccumulatedTimedContext:
 # Weighted MSE loss
 
 
-def weighted_mse_loss(
-    input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor
-) -> torch.Tensor:
+def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
     """
     Compute weighted mean squared error loss.
 
@@ -407,9 +405,7 @@ class WeightedMSELoss(torch.nn.Module):
         """
         super().__init__()
 
-    def forward(
-        self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
         """
         Compute weighted MSE loss.
 

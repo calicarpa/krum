@@ -93,9 +93,7 @@ def make_gar(
         # Check parameter validity
         message = check(**kwargs)
         if message is not None:
-            raise tools.UserException(
-                f"Aggregation rule {name!r} cannot be used with the given parameters: {message}"
-            )
+            raise tools.UserException(f"Aggregation rule {name!r} cannot be used with the given parameters: {message}")
         # Aggregation (hard to assert return value, duck-typing is allowed...)
         return unchecked(**kwargs)
 
@@ -140,9 +138,7 @@ def register(
         tools.warning(f"Unable to register {name!r} GAR: name already in use")
         return
     # Export the selected function with the associated name
-    gars[name] = make_gar(
-        unchecked, check, upper_bound=upper_bound, influence=influence
-    )
+    gars[name] = make_gar(unchecked, check, upper_bound=upper_bound, influence=influence)
 
 
 # Registered rules (mapping name -> aggregation rule)

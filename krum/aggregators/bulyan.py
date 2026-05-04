@@ -142,9 +142,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
         scores[gid] = (sum(dist for dist, _ in dists), gid)
         distances[gid] = dict(dists)
     # Selection loop
-    selected = torch.empty(
-        n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device
-    )
+    selected = torch.empty(n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device)
     for i in range(selected.shape[0]):
         # Update 'm'
         m = min(m, m_max - i)
@@ -160,23 +158,13 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
     # Coordinate-wise averaged median
     m = selected.shape[0] - 2 * f
     median = selected.median(dim=0).values
-    closests = (
-        selected.clone()
-        .sub_(median)
-        .abs_()
-        .topk(m, dim=0, largest=False, sorted=False)
-        .indices
-    )
-    closests.mul_(d).add_(
-        torch.arange(0, d, dtype=closests.dtype, device=closests.device)
-    )
+    closests = selected.clone().sub_(median).abs_().topk(m, dim=0, largest=False, sorted=False).indices
+    closests.mul_(d).add_(torch.arange(0, d, dtype=closests.dtype, device=closests.device))
     return selected.take(closests).mean(dim=0)
     # Return resulting gradient
 
 
-def aggregate_native(
-    gradients: list[torch.Tensor], f: int, m=None, **kwargs
-) -> torch.Tensor:
+def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
     """
     Compute the Bulyan aggregate using native C++/CUDA acceleration.
 
@@ -229,21 +217,14 @@ def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None
         message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return (
-            f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-        )
+        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
     if not isinstance(f, int) or f < 1 or len(gradients) < 4 * f + 3:
-        return (
-            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
-            % (f, (len(gradients) - 3) // 4)
+        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
+            f,
+            (len(gradients) - 3) // 4,
         )
-    if m is not None and (
-        not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2
-    ):
-        return (
-            "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d"
-            % (f, len(gradients) - f - 2)
-        )
+    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
+        return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (f, len(gradients) - f - 2)
     return None
 
 

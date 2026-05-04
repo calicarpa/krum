@@ -144,9 +144,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
         message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return (
-            f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-        )
+        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
     return None
 
 

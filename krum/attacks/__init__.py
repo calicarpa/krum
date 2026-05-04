@@ -86,9 +86,7 @@ def register(name: str, unchecked: Callable, check: Callable) -> None:
         # Check parameter validity
         message = check(f_real=f_real, **kwargs)
         if message is not None:
-            raise tools.UserException(
-                f"Attack {name!r} cannot be used with the given parameters: {message}"
-            )
+            raise tools.UserException(f"Attack {name!r} cannot be used with the given parameters: {message}")
         # Attack
         res = unchecked(f_real=f_real, **kwargs)
         # Forward asserted return value
