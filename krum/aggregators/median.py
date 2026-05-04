@@ -63,7 +63,7 @@ import math
 import torch
 
 from .. import tools
-from . import register
+from . import Aggregator, AggregatorSpec, register_class
 
 # Optional 'native' module
 try:
@@ -73,6 +73,75 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Coordinate-wise median GAR
+
+
+def _upper_bound(n: int, f: int, d: int) -> float:
+    return 1 / math.sqrt(n - f)
+
+
+@register_class
+class Median(Aggregator):
+    """Coordinate-wise median aggregation rule."""
+
+    spec = AggregatorSpec(
+        name="median",
+        aliases=("Median",),
+        description="Coordinate-wise median of all submitted gradients.",
+        upper_bound=_upper_bound,
+    )
+
+    def aggregate(self, gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
+        """Compute the coordinate-wise median of all submitted gradients.
+
+        This method delegates to ``torch.median`` and does not filter non-finite
+        values before aggregation. NaN values may propagate, while Inf values
+        participate in the coordinate ordering.
+
+        Parameters
+        ----------
+        gradients : list of torch.Tensor
+            Non-empty list of gradients to aggregate. Each gradient should be a
+            1-D tensor with the same shape, dtype, and device as the others.
+        **kwargs : object
+            Additional keyword arguments, accepted for compatibility with the GAR
+            interface and ignored by this implementation.
+
+        Returns:
+        -------
+        torch.Tensor
+            Coordinate-wise median of all input gradients.
+
+        Notes:
+        -----
+        The returned tensor is newly computed and does not alias any input tensor.
+        """
+        return torch.stack(gradients).median(dim=0)[0]
+
+    def check(self, gradients: list[torch.Tensor], **kwargs) -> str | None:
+        """Check whether the median rule can be used with the given parameters.
+
+        Parameters
+        ----------
+        gradients : list of torch.Tensor
+            Non-empty list of gradients to aggregate.
+        **kwargs : object
+            Additional keyword arguments, accepted for compatibility with the GAR
+            interface and ignored by this check.
+
+        Returns:
+        -------
+        str or None
+            ``None`` when parameters are valid, otherwise a user-facing error
+            message.
+        """
+        if not isinstance(gradients, list) or len(gradients) < 1:
+            return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
+        return None
+
+    @staticmethod
+    def upper_bound(n: int, f: int, d: int) -> float:
+        """Compute the theoretical coordinate-wise median robustness bound."""
+        return _upper_bound(n, f, d)
 
 
 def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
@@ -100,7 +169,7 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     -----
     The returned tensor is newly computed and does not alias any input tensor.
     """
-    return torch.stack(gradients).median(dim=0)[0]
+    return Median().aggregate(gradients=gradients, **kwargs)
 
 
 def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
@@ -139,9 +208,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
         ``None`` when parameters are valid, otherwise a user-facing error
         message.
     """
-    if not isinstance(gradients, list) or len(gradients) < 1:
-        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-    return None
+    return Median().check(gradients=gradients, **kwargs)
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
@@ -171,22 +238,30 @@ def upper_bound(n: int, f: int, d: int) -> float:
 
         \\frac{1}{\\sqrt{n - f}}
     """
-    return 1 / math.sqrt(n - f)
+    return Median.upper_bound(n, f, d)
 
-
-# ---------------------------------------------------------------------------- #
-# GAR registering
-
-# Register aggregation rule (pytorch version)
-method_name = "median"
-register(method_name, aggregate, check, upper_bound)
 
 # Register aggregation rule (native version, if available)
 if native is not None:
-    native_name = method_name
-    method_name = "native-" + method_name
+    native_name = "median"
+    method_name = "native-median"
     if native_name in dir(native):
-        register(method_name, aggregate_native, check, upper_bound)
+
+        @register_class
+        class NativeMedian(Median):
+            """Native coordinate-wise median aggregation rule."""
+
+            spec = AggregatorSpec(
+                name=method_name,
+                description="Native coordinate-wise median of all submitted gradients.",
+                supports_native=True,
+                upper_bound=_upper_bound,
+            )
+
+            def aggregate(self, gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
+                """Compute the coordinate-wise median using native acceleration."""
+                return aggregate_native(gradients=gradients, **kwargs)
+
     else:
         tools.warning(
             f"GAR {method_name!r} could not be registered since the associated native module {native_name!r} is unavailable"

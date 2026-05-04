@@ -69,7 +69,7 @@ import math
 import torch
 
 from .. import tools
-from . import register
+from . import Aggregator, AggregatorSpec, register_class
 
 # Optional 'native' module
 try:
@@ -79,6 +79,23 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Brute GAR
+
+
+def _upper_bound(n: int, f: int, d: int) -> float:
+    return (n - f) / (math.sqrt(8) * f)
+
+
+def _influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
+    gradients = honests + attacks
+    sel_iset = _compute_selection(gradients, f, **kwargs)
+    count = 0
+    for i in sel_iset:
+        gradient = gradients[i]
+        for attack in attacks:
+            if gradient is attack:
+                count += 1
+                break
+    return count / (len(gradients) - f)
 
 
 def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple[int, ...]:
@@ -133,6 +150,45 @@ def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple
     return sel_iset
 
 
+@register_class
+class Brute(Aggregator):
+    """Minimum Diameter Averaging by exhaustive subset search."""
+
+    spec = AggregatorSpec(
+        name="brute",
+        aliases=("MDA", "mda"),
+        description="Minimum Diameter Averaging by exhaustive subset search.",
+        upper_bound=_upper_bound,
+        influence=_influence,
+    )
+
+    def aggregate(self, gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
+        """Compute the Brute aggregation."""
+        sel_iset = _compute_selection(gradients, f, **kwargs)
+        return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
+
+    def check(self, gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
+        """Check parameter validity for the Brute aggregation rule."""
+        if not isinstance(gradients, list) or len(gradients) < 1:
+            return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
+        if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 1:
+            return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
+                f,
+                (len(gradients) - 1) // 2,
+            )
+        return None
+
+    @staticmethod
+    def upper_bound(n: int, f: int, d: int) -> float:
+        """Compute the theoretical Brute resilience bound."""
+        return _upper_bound(n, f, d)
+
+    @staticmethod
+    def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
+        """Compute the ratio of Byzantine gradients selected by Brute."""
+        return _influence(honests=honests, attacks=attacks, f=f, **kwargs)
+
+
 def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
     """Compute the Brute aggregation (mean of smallest-diameter subset).
 
@@ -156,8 +212,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor |
     -----
     The returned tensor is newly computed and does not alias any input tensor.
     """
-    sel_iset = _compute_selection(gradients, f, **kwargs)
-    return sum(gradients[i] for i in sel_iset).div_(len(gradients) - f)
+    return Brute().aggregate(gradients=gradients, f=f, **kwargs)
 
 
 def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
@@ -198,14 +253,7 @@ def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
         ``None`` when parameters are valid, otherwise a user-facing error
         message.
     """
-    if not isinstance(gradients, list) or len(gradients) < 1:
-        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-    if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 1:
-        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
-            f,
-            (len(gradients) - 1) // 2,
-        )
-    return None
+    return Brute().check(gradients=gradients, f=f, **kwargs)
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
@@ -226,7 +274,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Upper bound on the ratio between non-Byzantine standard deviation and
         gradient norm under which the rule is expected to apply.
     """
-    return (n - f) / (math.sqrt(8) * f)
+    return Brute.upper_bound(n, f, d)
 
 
 def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
@@ -248,33 +296,30 @@ def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, 
     float
         Fraction of selected gradients that come from ``attacks``.
     """
-    gradients = honests + attacks
-    # Compute the selection set
-    sel_iset = _compute_selection(gradients, f, **kwargs)
-    # Compute the influence ratio
-    count = 0
-    for i in sel_iset:
-        gradient = gradients[i]
-        for attack in attacks:
-            if gradient is attack:
-                count += 1
-                break
-    return count / (len(gradients) - f)
+    return Brute.influence(honests=honests, attacks=attacks, f=f, **kwargs)
 
-
-# ---------------------------------------------------------------------------- #
-# GAR registering
-
-# Register aggregation rule (pytorch version)
-method_name = "brute"
-register(method_name, aggregate, check, upper_bound=upper_bound, influence=influence)
 
 # Register aggregation rule (native version, if available)
 if native is not None:
-    native_name = method_name
-    method_name = "native-" + method_name
+    native_name = "brute"
+    method_name = "native-brute"
     if native_name in dir(native):
-        register(method_name, aggregate_native, check, upper_bound)
+
+        @register_class
+        class NativeBrute(Brute):
+            """Native Minimum Diameter Averaging by exhaustive subset search."""
+
+            spec = AggregatorSpec(
+                name=method_name,
+                description="Native Minimum Diameter Averaging by exhaustive subset search.",
+                supports_native=True,
+                upper_bound=_upper_bound,
+            )
+
+            def aggregate(self, gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
+                """Compute the Brute aggregation using native acceleration."""
+                return aggregate_native(gradients=gradients, f=f, **kwargs)
+
     else:
         tools.warning(
             f"GAR {method_name!r} could not be registered since the associated native module {native_name!r} is unavailable"

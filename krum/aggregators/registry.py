@@ -12,6 +12,7 @@ class AggregatorRegistry:
     """Store GAR callables, aliases, metadata, and object adapters."""
 
     def __init__(self) -> None:
+        """Create an empty GAR registry."""
         self.callables: dict[str, Callable] = {}
         self.aliases: dict[str, str] = {}
         self.specs: dict[str, AggregatorSpec] = {}

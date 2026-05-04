@@ -89,7 +89,6 @@ def make_gar(
         returned callable is annotated with ``check``, ``checked``,
         ``unchecked``, ``upper_bound``, and ``influence`` attributes.
     """
-
     name = "<unnamed>"
     if spec is not None:
         name = spec.name

@@ -49,6 +49,7 @@ class FunctionAggregator(Aggregator):
         aggregate: Callable[..., torch.Tensor],
         check: Callable[..., str | None],
     ) -> None:
+        """Create an adapter around function-based GAR pieces."""
         self.spec = spec
         self._aggregate = aggregate
         self._check = check

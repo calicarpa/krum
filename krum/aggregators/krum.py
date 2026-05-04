@@ -84,7 +84,7 @@ import math
 import torch
 
 from .. import tools
-from . import register
+from . import Aggregator, AggregatorSpec, register_class
 
 # Optional 'native' module
 try:
@@ -94,6 +94,30 @@ except ImportError:
 
 # ---------------------------------------------------------------------------- #
 # Multi-Krum GAR
+
+
+def _upper_bound(n: int, f: int, d: int) -> float:
+    return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
+
+
+def _influence(
+    honests: list[torch.Tensor],
+    attacks: list[torch.Tensor],
+    f: int,
+    m: int | None = None,
+    **kwargs,
+) -> float:
+    gradients = honests + attacks
+    if m is None:
+        m = len(gradients) - f - 2
+    scores = _compute_scores(gradients, f, m, **kwargs)
+    count = 0
+    for _, gradient in scores[:m]:
+        for attack in attacks:
+            if gradient is attack:
+                count += 1
+                break
+    return count / m
 
 
 def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> list[tuple[float, torch.Tensor]]:
@@ -141,6 +165,58 @@ def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> 
     return scores
 
 
+@register_class
+class Krum(Aggregator):
+    """Krum/Multi-Krum distance-based aggregation rule."""
+
+    spec = AggregatorSpec(
+        name="krum",
+        aliases=("Krum", "multikrum", "MultiKrum", "Multi-Krum", "multi-krum"),
+        description="Krum/Multi-Krum distance-based aggregation rule.",
+        upper_bound=_upper_bound,
+        influence=_influence,
+    )
+
+    def aggregate(self, gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
+        """Aggregate gradients with Multi-Krum."""
+        if m is None:
+            m = len(gradients) - f - 2
+        scores = _compute_scores(gradients, f, m, **kwargs)
+        return sum(grad for _, grad in scores[:m]).div_(m)
+
+    def check(self, gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:
+        """Check whether Multi-Krum can be used with the given parameters."""
+        if not isinstance(gradients, list) or len(gradients) < 1:
+            return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
+        if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 3:
+            return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
+                f,
+                (len(gradients) - 3) // 2,
+            )
+        if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
+            return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (
+                m,
+                len(gradients) - f - 2,
+            )
+        return None
+
+    @staticmethod
+    def upper_bound(n: int, f: int, d: int) -> float:
+        """Compute the theoretical Multi-Krum robustness bound."""
+        return _upper_bound(n, f, d)
+
+    @staticmethod
+    def influence(
+        honests: list[torch.Tensor],
+        attacks: list[torch.Tensor],
+        f: int,
+        m: int | None = None,
+        **kwargs,
+    ) -> float:
+        """Compute the ratio of Byzantine gradients selected by Multi-Krum."""
+        return _influence(honests=honests, attacks=attacks, f=f, m=m, **kwargs)
+
+
 def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
     """Aggregate gradients with Multi-Krum.
 
@@ -166,12 +242,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwa
     -----
     The output tensor is newly created and does not alias any input tensor.
     """
-    # Defaults
-    if m is None:
-        m = len(gradients) - f - 2
-    # Compute aggregated gradient
-    scores = _compute_scores(gradients, f, m, **kwargs)
-    return sum(grad for _, grad in scores[:m]).div_(m)
+    return Krum().aggregate(gradients=gradients, f=f, m=m, **kwargs)
 
 
 def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
@@ -220,16 +291,7 @@ def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs)
         ``None`` when the parameters are valid, otherwise a user-facing error
         message.
     """
-    if not isinstance(gradients, list) or len(gradients) < 1:
-        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
-    if not isinstance(f, int) or f < 1 or len(gradients) < 2 * f + 3:
-        return "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d" % (
-            f,
-            (len(gradients) - 3) // 2,
-        )
-    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
-        return "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d" % (m, len(gradients) - f - 2)
-    return None
+    return Krum().check(gradients=gradients, f=f, m=m, **kwargs)
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
@@ -251,7 +313,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Upper bound on the ratio between non-Byzantine standard deviation and
         gradient norm.
     """
-    return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
+    return Krum.upper_bound(n, f, d)
 
 
 def influence(
@@ -281,35 +343,30 @@ def influence(
     float
         Ratio of selected gradients that come from ``attacks``.
     """
-    gradients = honests + attacks
-    # Defaults
-    if m is None:
-        m = len(gradients) - f - 2
-    # Compute the sorted scores
-    scores = _compute_scores(gradients, f, m, **kwargs)
-    # Compute the influence ratio
-    count = 0
-    for _, gradient in scores[:m]:
-        for attack in attacks:
-            if gradient is attack:
-                count += 1
-                break
-    return count / m
+    return Krum.influence(honests=honests, attacks=attacks, f=f, m=m, **kwargs)
 
-
-# ---------------------------------------------------------------------------- #
-# GAR registering
-
-# Register aggregation rule (pytorch version)
-method_name = "krum"
-register(method_name, aggregate, check, upper_bound, influence)
 
 # Register aggregation rule (native version, if available)
 if native is not None:
-    native_name = method_name
-    method_name = "native-" + method_name
+    native_name = "krum"
+    method_name = "native-krum"
     if native_name in dir(native):
-        register(method_name, aggregate_native, check, upper_bound)
+
+        @register_class
+        class NativeKrum(Krum):
+            """Native Krum/Multi-Krum distance-based aggregation rule."""
+
+            spec = AggregatorSpec(
+                name=method_name,
+                description="Native Krum/Multi-Krum distance-based aggregation rule.",
+                supports_native=True,
+                upper_bound=_upper_bound,
+            )
+
+            def aggregate(self, gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
+                """Aggregate gradients with the native Multi-Krum implementation."""
+                return aggregate_native(gradients=gradients, f=f, m=m, **kwargs)
+
     else:
         tools.warning(
             f"GAR {method_name!r} could not be registered since the associated native module {native_name!r} is unavailable"

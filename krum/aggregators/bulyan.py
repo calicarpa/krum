@@ -78,7 +78,7 @@ from typing import Any
 import torch
 
 from .. import tools
-from . import register
+from . import Aggregator, AggregatorSpec, register_class
 
 # Optional 'native' module
 try:
@@ -90,7 +90,11 @@ except ImportError:
 # Bulyan GAR class
 
 
-def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+def _upper_bound(n: int, f: int, d: int) -> float:
+    return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
+
+
+def _aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
     """Compute the Bulyan aggregate.
 
     Parameters
@@ -243,22 +247,64 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Upper bound on the ratio between non-Byzantine standard deviation and
         gradient norm under the Bulyan assumptions.
     """
-    return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
+    return Bulyan.upper_bound(n, f, d)
 
 
 # ---------------------------------------------------------------------------- #
-# GAR registering
+# GAR classes
 
-# Register aggregation rule (pytorch version)
-method_name = "bulyan"
-register(method_name, aggregate, check, upper_bound=upper_bound)
+
+@register_class
+class Bulyan(Aggregator):
+    """Bulyan aggregation rule built on top of Multi-Krum."""
+
+    spec = AggregatorSpec(
+        name="bulyan",
+        aliases=("Bulyan",),
+        description="Bulyan aggregation rule built on top of Multi-Krum.",
+        upper_bound=_upper_bound,
+    )
+
+    def aggregate(self, gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+        """Compute the Bulyan aggregate."""
+        return _aggregate(gradients=gradients, f=f, m=m, **kwargs)
+
+    def check(self, gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None:
+        """Check whether the Bulyan parameters satisfy the GAR contract."""
+        return check(gradients=gradients, f=f, m=m, **kwargs)
+
+    @staticmethod
+    def upper_bound(n: int, f: int, d: int) -> float:
+        """Compute Bulyan's theoretical resilience upper bound."""
+        return _upper_bound(n, f, d)
+
+
+def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+    """Compute the Bulyan aggregate."""
+    return Bulyan().aggregate(gradients=gradients, f=f, m=m, **kwargs)
+
 
 # Register aggregation rule (native version, if available)
 if native is not None:
-    native_name = method_name
-    method_name = "native-" + method_name
+    native_name = "bulyan"
+    method_name = "native-bulyan"
     if native_name in dir(native):
-        register(method_name, aggregate_native, check, upper_bound=upper_bound)
+
+        @register_class
+        class NativeBulyan(Bulyan):
+            """Native Bulyan aggregation rule built on top of Multi-Krum."""
+
+            spec = AggregatorSpec(
+                name=method_name,
+                description="Native Bulyan aggregation rule built on top of Multi-Krum.",
+                supports_native=True,
+                upper_bound=_upper_bound,
+            )
+
+            def aggregate(self, gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+                """Compute the Bulyan aggregate using native acceleration."""
+                return aggregate_native(gradients=gradients, f=f, m=m, **kwargs)
+
     else:
         tools.warning(
             f"GAR {method_name!r} could not be registered since the associated native module {native_name!r} is unavailable"
