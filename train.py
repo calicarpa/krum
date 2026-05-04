@@ -632,15 +632,15 @@ with tools.Context("training", "info"):
                 cosin_honatt = (
                     math.nan
                     if attack_grad_avg is None
-                    else torch.dot(honest_grad_avg, attack_grad_avg).div_(honest_norm_avg).div_(attack_norm_avg).item()
+                    else torch.dot(honest_grad_avg, attack_grad_avg).div_(honest_norm_avg).div_(attack_norm_avg).item()  # type: ignore[arg-type]
                 )
                 cosin_hondef = (
-                    torch.dot(honest_grad_avg, defense_grad).div_(honest_norm_avg).div_(defense_norm_avg).item()
+                    torch.dot(honest_grad_avg, defense_grad).div_(honest_norm_avg).div_(defense_norm_avg).item()  # type: ignore[arg-type]
                 )
                 cosin_attdef = (
                     math.nan
                     if attack_grad_avg is None
-                    else torch.dot(attack_grad_avg, defense_grad).div_(attack_norm_avg).div_(defense_norm_avg).item()
+                    else torch.dot(attack_grad_avg, defense_grad).div_(attack_norm_avg).div_(defense_norm_avg).item()  # type: ignore[arg-type]
                 )
                 # Store the result (float-to-string format chosen so not to lose precision)
                 float_format = {torch.float16: "%.4e", torch.float32: "%.8e", torch.float64: "%.16e"}.get(

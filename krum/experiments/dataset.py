@@ -39,6 +39,7 @@ import pathlib
 import random
 import tempfile
 import types
+from typing import Any
 
 import torch
 import torchvision
@@ -162,7 +163,10 @@ class Dataset:
         return cls.__default_root
 
     # Map 'lower-case names' -> 'dataset class' available in PyTorch
-    __datasets = None
+    __datasets: dict[str, Any] | None = None
+
+    # Optional PyTorch DataLoader (set externally for epoch-based iteration)
+    _loader: torch.utils.data.DataLoader | None = None
 
     @classmethod
     def _get_datasets(cls):
@@ -235,6 +239,7 @@ class Dataset:
                     continue
                 exported = True
                 fullname = f"{name}-{dataset}"
+                assert cls.__datasets is not None
                 if fullname in cls.__datasets:
                     tools.warning(
                         f"Unable to make available dataset {dataset!r} from module "

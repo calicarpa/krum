@@ -52,6 +52,38 @@ import sys
 import threading
 import traceback
 from pathlib import Path
+from typing import Any, Callable, TextIO
+
+from .jobs import Command, Jobs, dict_to_cmdlist
+from .misc import (
+    ClassRegister,
+    MethodCallReplicator,
+    TimedContext,
+    UnavailableException,
+    deltatime_format,
+    deltatime_point,
+    fatal_unavailable,
+    fullqual,
+    get_loaded_dependencies,
+    interactive,
+    line_maximize,
+    localtime,
+    onetime,
+    pairwise,
+    parse_keyval,
+)
+from .pytorch import (
+    AccumulatedTimedContext,
+    WeightedMSELoss,
+    compute_avg_dev_max,
+    flatten,
+    grad_of,
+    grads_of,
+    pnm,
+    regression,
+    relink,
+    weighted_mse_loss,
+)
 
 # ---------------------------------------------------------------------------- #
 # User exception base class, print string representation and exit(1) on uncaught
@@ -201,7 +233,7 @@ class ContextIOWrapper:
     Context-aware text I/O wrapper.
     """
 
-    def __init__(self, output: object, nocolor: bool | None = None) -> None:
+    def __init__(self, output: TextIO, nocolor: bool | None = None) -> None:
         """
         Wrap a text output stream.
 
@@ -273,7 +305,7 @@ class ContextIOWrapper:
         return self.__output.write(text + clrend)
 
 
-def _make_color_print(color: str) -> object:
+def _make_color_print(color: str) -> Callable[..., object]:
     """
     Build a ``print`` wrapper that runs inside a colored context.
 
@@ -312,9 +344,12 @@ def _make_color_print(color: str) -> object:
     return color_print
 
 
-# Shortcut for colored print
-for color in ["trace", "info", "success", "warning", "error"]:
-    globals()[color] = _make_color_print(color)
+# Explicit colored print shortcuts (required for static type checkers)
+trace = _make_color_print("trace")
+info = _make_color_print("info")
+success = _make_color_print("success")
+warning = _make_color_print("warning")
+error = _make_color_print("error")
 
 
 def fatal(*args, with_traceback: bool = False, **kwargs) -> None:
@@ -346,7 +381,7 @@ sys.stderr = ContextIOWrapper(sys.stderr)
 # Uncaught exception context wrapping
 
 
-def uncaught_wrap(hook: object) -> object:
+def uncaught_wrap(hook: Callable[..., Any]) -> Callable[..., Any]:
     """
     Wrap an uncaught exception hook with contextual logging.
 
@@ -436,8 +471,8 @@ def import_exported_symbols(name: str, module, scope: dict) -> None:
 def import_directory(
     dirpath: Path,
     scope: dict,
-    post: object = import_exported_symbols,
-    ignore: list[str] = None,
+    post: Callable[..., Any] | None = import_exported_symbols,
+    ignore: list[str] | None = None,
 ) -> None:
     """
     Import every Python module from a directory into a target scope.
@@ -475,5 +510,51 @@ def import_directory(
                             traceback.print_exc()
 
 
-with Context("tools", None):
-    import_directory(Path(__file__).parent, globals())
+# Public API of the tools package
+__all__ = [
+    # Logging & context
+    "Context",
+    "ContextIOWrapper",
+    "UserException",
+    "trace",
+    "info",
+    "success",
+    "warning",
+    "error",
+    "fatal",
+    "uncaught_wrap",
+    # Module loading
+    "import_exported_symbols",
+    "import_directory",
+    # misc
+    "ClassRegister",
+    "MethodCallReplicator",
+    "TimedContext",
+    "UnavailableException",
+    "deltatime_format",
+    "deltatime_point",
+    "fatal_unavailable",
+    "fullqual",
+    "get_loaded_dependencies",
+    "interactive",
+    "line_maximize",
+    "localtime",
+    "onetime",
+    "pairwise",
+    "parse_keyval",
+    # pytorch
+    "AccumulatedTimedContext",
+    "WeightedMSELoss",
+    "compute_avg_dev_max",
+    "flatten",
+    "grad_of",
+    "grads_of",
+    "pnm",
+    "regression",
+    "relink",
+    "weighted_mse_loss",
+    # jobs
+    "Command",
+    "Jobs",
+    "dict_to_cmdlist",
+]

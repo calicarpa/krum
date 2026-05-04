@@ -33,10 +33,10 @@ plt.rcParams["figure.autolayout"] = True
 # Common GTK main loop
 
 try:
-    import gi
+    import gi  # type: ignore[import-not-found]
 
     gi.require_version("Gtk", "3.0")
-    from gi.repository import GLib, Gtk
+    from gi.repository import GLib, Gtk  # type: ignore[import-not-found]
 
     gtk_lazy_lock = threading.Lock()
     gtk_lazy_main = None
@@ -322,7 +322,7 @@ class Session:
         if training_size is None:
             tools.warning(f"Unknown dataset {dataset_name!r}, cannot compute the epoch number")
             return self
-        self.data[column_name] = self.data["Training point count"] / training_size
+        self.data[column_name] = self.data["Training point count"] / training_size  # type: ignore[index]
         # Return self to enable chaining
         return self
 
@@ -333,7 +333,7 @@ class Session:
         """
         column_name = "Learning rate"
         # Check if already there
-        if column_name in self.data.columns:
+        if column_name in self.data.columns:  # type: ignore[union-attr]
             return self
         # Compute epoch number
         if self.json is None or "learning_rate" not in self.json:
@@ -343,9 +343,9 @@ class Session:
         lr_decay = self.json.get("learning_rate_decay", 0)
         lr_delta = self.json.get("learning_rate_decay_delta", 1)
         if lr_decay > 0:
-            self.data[column_name] = lr / ((self.data.index // lr_delta * lr_delta) / lr_decay + 1)
+            self.data[column_name] = lr / ((self.data.index // lr_delta * lr_delta) / lr_decay + 1)  # type: ignore[index]
         else:
-            self.data[column_name] = lr
+            self.data[column_name] = lr  # type: ignore[index]
         # Return self to enable chaining
         return self
 

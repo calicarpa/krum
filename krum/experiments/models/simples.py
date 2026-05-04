@@ -155,7 +155,7 @@ class _Logit(torch.nn.Module):
     classification or as a simple baseline.
     """
 
-    def __init__(self, din, dout=1):
+    def __init__(self, din: int, dout: int = 1):
         """Initialise the linear layer.
 
         Parameters
@@ -166,8 +166,8 @@ class _Logit(torch.nn.Module):
             Number of output features. Defaults to ``1``.
         """
         super().__init__()
-        self._din = din
-        self._dout = dout
+        self._din = din  # type: ignore[attr-defined]
+        self._dout = dout  # type: ignore[attr-defined]
         self._linear = torch.nn.Linear(din, dout)
 
     def forward(self, x):
@@ -215,7 +215,7 @@ class _Linear(torch.nn.Module):
     Equivalent to a fully-connected layer with identity activation.
     """
 
-    def __init__(self, din, dout=1):
+    def __init__(self, din: int, dout: int = 1):
         """Initialise the linear layer.
 
         Parameters
@@ -226,8 +226,8 @@ class _Linear(torch.nn.Module):
             Number of output features. Defaults to ``1``.
         """
         super().__init__()
-        self._din = din
-        self._dout = dout
+        self._din = din  # type: ignore[attr-defined]
+        self._dout = dout  # type: ignore[attr-defined]
         self._linear = torch.nn.Linear(din, dout)
 
     def forward(self, x):

@@ -46,6 +46,7 @@ The module exposes three variants for each attack:
 
 import pathlib
 from collections.abc import Callable
+from typing import Any, cast
 
 import torch
 
@@ -96,7 +97,7 @@ def register(name: str, unchecked: Callable, check: Callable) -> None:
         return res
 
     # Select which function to call by default
-    func = checked if __debug__ else unchecked
+    func = cast(Any, checked if __debug__ else unchecked)
     # Bind all the (sub) functions to the selected function
     func.check = check
     func.checked = checked

@@ -76,7 +76,7 @@ __all__ = [
 import io
 import time
 import types
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 import torch
 
@@ -84,7 +84,7 @@ import torch
 # "Flatten" and "relink" operations
 
 
-def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
+def relink(tensors: Iterable[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     """
     Relink tensors to share a common contiguous memory storage.
 
@@ -127,11 +127,11 @@ def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
         tensor.data = common[pos:npos].view(*tensor.shape)
         pos = npos
     # Finalize and return
-    common.linked_tensors = tensors
+    common.linked_tensors = tensors  # type: ignore[attr-defined]
     return common
 
 
-def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
+def flatten(tensors: Iterable[torch.Tensor]) -> torch.Tensor:
     """
     Flatten tensors into a single contiguous tensor.
 
@@ -209,7 +209,7 @@ def grad_of(tensor: torch.Tensor) -> torch.Tensor:
     return grad
 
 
-def grads_of(tensors: list[torch.Tensor]):
+def grads_of(tensors: Iterable[torch.Tensor]):
     """
     Generator that gets or creates gradients for multiple tensors.
 
@@ -310,19 +310,24 @@ class AccumulatedTimedContext:
     >>> print(atc.current_runtime())
     """
 
-    def __init__(self, sync: bool = False) -> None:
+    def __init__(self, sync: bool | float = False) -> None:
         """
         Initialize the accumulated timed context.
 
         Parameters
         ----------
-        sync : bool, optional
-            Whether to synchronize CUDA before and after timing. Defaults to
-            ``False``.
+        sync : bool or float, optional
+            Whether to synchronize CUDA before and after timing, or a float
+            representing an already accumulated runtime. Defaults to ``False``.
         """
-        self._sync = sync
-        self._start = None
-        self._elapsed = 0.0
+        if isinstance(sync, float):
+            self._sync = False
+            self._start = None
+            self._elapsed = sync
+        else:
+            self._sync = sync
+            self._start = None
+            self._elapsed = 0.0
 
     def __enter__(self):
         """
@@ -349,6 +354,7 @@ class AccumulatedTimedContext:
         """
         if self._sync and torch.cuda.is_available():
             torch.cuda.synchronize()
+        assert self._start is not None
         self._elapsed += time.perf_counter() - self._start
 
     def current_runtime(self) -> float:
@@ -502,12 +508,12 @@ def pnm(fd: io.BufferedWriter, tn: torch.Tensor) -> None:
         if M - m < 1e-8:
             M = m + 1
         t = ((tn - m) / (M - m) * 255).byte().cpu()
-        fd.write(f"P5\n{tn.shape[1]}\n{tn.shape[0]}\n255\n")
+        fd.write(f"P5\n{tn.shape[1]}\n{tn.shape[0]}\n255\n".encode())
         fd.write(t.numpy().tobytes())
     else:
         # Binary
         t = (tn > 0).byte().cpu()
-        fd.write(f"P4\n{tn.shape[1]}\n{tn.shape[0]}\n")
+        fd.write(f"P4\n{tn.shape[1]}\n{tn.shape[0]}\n".encode())
         # Pad to byte boundary
         w = (tn.shape[1] + 7) // 8
         pad = w * 8 - tn.shape[1]

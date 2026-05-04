@@ -68,9 +68,9 @@ from . import register
 
 # Optional 'native' module
 try:
-    import native
+    from krum import native
 except ImportError:
-    native = None
+    native = None  # type: ignore[assignment]
 
 # ---------------------------------------------------------------------------- #
 # Coordinate-wise median GAR
@@ -122,7 +122,7 @@ def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     torch.Tensor
         Coordinate-wise median of all input gradients.
     """
-    return native.median.aggregate(gradients)
+    return native.median.aggregate(gradients)  # type: ignore[attr-defined]
 
 
 def check(gradients: list[torch.Tensor], **kwargs) -> str | None:

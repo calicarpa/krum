@@ -48,8 +48,25 @@ import pathlib
 
 from krum import tools
 
-# ---------------------------------------------------------------------------- #
-# Load all local modules
+from .checkpoint import Checkpoint, Storage
+from .configuration import Configuration
+from .dataset import Dataset, batch_dataset, get_default_transform, make_datasets, make_sampler
+from .loss import Criterion, Loss
+from .model import Model
+from .optimizer import Optimizer
 
-with tools.Context("experiments", None):
-    tools.import_directory(pathlib.Path(__file__).parent, globals())
+# Public API
+__all__ = [
+    "Checkpoint",
+    "Configuration",
+    "Criterion",
+    "Dataset",
+    "Loss",
+    "Model",
+    "Optimizer",
+    "Storage",
+    "batch_dataset",
+    "get_default_transform",
+    "make_datasets",
+    "make_sampler",
+]

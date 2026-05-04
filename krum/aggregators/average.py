@@ -70,7 +70,7 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     -----
     The output tensor is a new tensor, not aliasing any input tensor.
     """
-    return sum(gradients) / len(gradients)
+    return torch.stack(gradients).mean(dim=0)
 
 
 def check(gradients: list[torch.Tensor], **kwargs) -> str | None:

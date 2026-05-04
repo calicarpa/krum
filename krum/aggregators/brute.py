@@ -72,9 +72,9 @@ from . import register
 
 # Optional 'native' module
 try:
-    import native
+    from krum import native
 except ImportError:
-    native = None
+    native = None  # type: ignore[assignment]
 
 # ---------------------------------------------------------------------------- #
 # Brute GAR
@@ -179,7 +179,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.T
     torch.Tensor | float
         Mean of the subset selected by the native Brute implementation.
     """
-    return native.brute.aggregate(gradients, f)
+    return native.brute.aggregate(gradients, f)  # type: ignore[attr-defined]
 
 
 def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:

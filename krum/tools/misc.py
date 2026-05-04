@@ -83,6 +83,8 @@ import sys
 import threading
 import time
 import traceback
+from collections.abc import Callable
+from typing import Any
 
 from . import Context, UserException, fatal, trace, warning
 
@@ -253,7 +255,7 @@ class ClassRegister:
 
     def itemize(self) -> list[str]:
         """Return the registered class names."""
-        return self.__register.keys()
+        return list(self.__register.keys())
 
     def register(self, name: str, cls: type) -> None:
         """
@@ -470,7 +472,7 @@ def fullqual(obj: object) -> str:
 # Basic "full-qualification" string builder for a given instance/class
 
 
-def onetime(name: str | None = None) -> tuple[callable, callable]:
+def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., Any]]:
     """
     Create or retrieve a thread-safe one-shot flag.
 
@@ -695,6 +697,12 @@ def interactive(
 # List non-standard, currently loaded module names and metadata.
 
 
+# Module flavor constants
+IS_STANDARD = 0
+IS_SITE = 1
+IS_LOCAL = 2
+
+
 def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
     """
     List currently loaded non-built-in root modules.
@@ -720,16 +728,16 @@ def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
         for path_site in path_sites:
             try:
                 path.relative_to(path_site)
-                return get_loaded_dependencies.IS_SITE
+                return IS_SITE
             except ValueError:
                 pass
         for path_site in path_sites:
             try:
                 path.relative_to(path_site.parent)
-                return get_loaded_dependencies.IS_STANDARD
+                return IS_STANDARD
             except ValueError:
                 pass
-        return get_loaded_dependencies.IS_LOCAL
+        return IS_LOCAL
 
     # Iterate over the loaded modules
     res = []
@@ -751,17 +759,12 @@ def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
     return res
 
 
-# Register constants
-get_loaded_dependencies.IS_STANDARD = 0
-get_loaded_dependencies.IS_SITE = 1
-get_loaded_dependencies.IS_LOCAL = 2
-
 # ---------------------------------------------------------------------------- #
 # Find the x maximizing a function y = f(x), with (x, y) ∊ ℝ⁺x ℝ
 
 
 def line_maximize(
-    scape: callable,
+    scape: Callable[..., Any],
     evals: int = 16,
     start: float = 0.0,
     delta: float = 1.0,

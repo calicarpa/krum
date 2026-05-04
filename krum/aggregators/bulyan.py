@@ -75,6 +75,7 @@ tensor([1., 2., 3.])
 """
 
 import math
+from typing import Any
 
 import torch
 
@@ -83,9 +84,9 @@ from . import register
 
 # Optional 'native' module
 try:
-    import native
+    from krum import native
 except ImportError:
-    native = None
+    native = None  # type: ignore[assignment]
 
 # ---------------------------------------------------------------------------- #
 # Bulyan GAR class
@@ -126,7 +127,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
     if m is None:
         m = m_max
     # Compute all pairwise distances
-    distances = [[(math.inf, None)] * n for _ in range(n)]
+    distances: list[Any] = [[(math.inf, None)] * n for _ in range(n)]
     for gid_x, gid_y in tools.pairwise(tuple(range(n))):
         dist = gradients[gid_x].sub(gradients[gid_y]).norm().item()
         if not math.isfinite(dist):
@@ -134,7 +135,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
         distances[gid_x][gid_y] = (dist, gid_y)
         distances[gid_y][gid_x] = (dist, gid_x)
     # Compute the scores
-    scores = [None] * n
+    scores: list[Any] = [None] * n
     for gid in range(n):
         dists = distances[gid]
         dists.sort(key=lambda x: x[0])
@@ -148,11 +149,11 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
         m = min(m, m_max - i)
         # Compute the average of the selected gradients
         scores.sort(key=lambda x: x[0])
-        selected[i] = sum(gradients[gid] for _, gid in scores[:m]).div_(m)
+        selected[i] = sum(gradients[gid] for _, gid in scores[:m]).div_(m)  # type: ignore[arg-type]
         # Remove the gradient from the distances and scores
-        gid_prune = scores[0][1]
+        gid_prune = scores[0][1]  # type: ignore[index]
         scores[0] = (math.inf, None)
-        for score, gid in scores[1:]:
+        for score, gid in scores[1:]:  # type: ignore[assignment]
             if gid == gid_prune:
                 scores[gid] = (score - distances[gid][gid_prune], gid)
     # Coordinate-wise averaged median
@@ -190,7 +191,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) ->
     if m is None:
         m = len(gradients) - f - 2
     # Computation
-    return native.bulyan.aggregate(gradients, f, m)
+    return native.bulyan.aggregate(gradients, f, m)  # type: ignore[attr-defined]
 
 
 def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None:

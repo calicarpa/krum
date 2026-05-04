@@ -90,9 +90,9 @@ from . import register
 
 # Optional 'native' module
 try:
-    import native
+    from krum import native
 except ImportError:
-    native = None
+    native = None  # type: ignore[assignment]
 
 # ---------------------------------------------------------------------------- #
 # Multi-Krum GAR
@@ -202,7 +202,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None
     if m is None:
         m = len(gradients) - f - 2
     # Computation
-    return native.krum.aggregate(gradients, f, m)
+    return native.krum.aggregate(gradients, f, m)  # type: ignore[attr-defined]
 
 
 def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:

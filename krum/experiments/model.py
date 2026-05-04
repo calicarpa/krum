@@ -35,6 +35,7 @@ __all__ = ["Model"]
 
 import pathlib
 import types
+from typing import Any
 
 import torch
 import torchvision
@@ -87,10 +88,10 @@ class Model:
     """
 
     # Map 'lower-case names' -> 'model constructor'
-    __models = None
+    __models: dict[str, Any] | None = None
 
     # Map 'lower-case names' -> 'tensor initializer'
-    __inits = None
+    __inits: dict[str, Any] | None = None
 
     @classmethod
     def _get_models(cls):
@@ -134,6 +135,7 @@ class Model:
                     continue
                 exported = True
                 fullname = f"{name}-{model}"
+                assert cls.__models is not None
                 if fullname in cls.__models:
                     tools.warning(
                         f"Unable to make available model {model!r} from module "
