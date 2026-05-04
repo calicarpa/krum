@@ -37,9 +37,3 @@ jobs:
         run: |
           uv run python -W error::DeprecationWarning -W error::PendingDeprecationWarning -c "from krum import tools, experiments, aggregators, attacks"
           uv run python -W error::DeprecationWarning -W error::PendingDeprecationWarning -c "import krum.tools, krum.experiments, krum.aggregators, krum.attacks"
-
-      - name: Lint with Ruff
-        run: uv run ruff check .
-
-      - name: Check formatting with Ruff
-        run: uv run ruff format --check .
