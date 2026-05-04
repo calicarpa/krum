@@ -54,37 +54,6 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable, TextIO
 
-from .jobs import Command, Jobs, dict_to_cmdlist
-from .misc import (
-    ClassRegister,
-    MethodCallReplicator,
-    TimedContext,
-    UnavailableException,
-    deltatime_format,
-    deltatime_point,
-    fatal_unavailable,
-    fullqual,
-    get_loaded_dependencies,
-    interactive,
-    line_maximize,
-    localtime,
-    onetime,
-    pairwise,
-    parse_keyval,
-)
-from .pytorch import (
-    AccumulatedTimedContext,
-    WeightedMSELoss,
-    compute_avg_dev_max,
-    flatten,
-    grad_of,
-    grads_of,
-    pnm,
-    regression,
-    relink,
-    weighted_mse_loss,
-)
-
 # ---------------------------------------------------------------------------- #
 # User exception base class, print string representation and exit(1) on uncaught
 
@@ -510,7 +479,37 @@ def import_directory(
                             traceback.print_exc()
 
 
-# Public API of the tools package
+from .jobs import Command, Jobs, dict_to_cmdlist
+from .misc import (
+    ClassRegister,
+    MethodCallReplicator,
+    TimedContext,
+    UnavailableException,
+    deltatime_format,
+    deltatime_point,
+    fatal_unavailable,
+    fullqual,
+    get_loaded_dependencies,
+    interactive,
+    line_maximize,
+    localtime,
+    onetime,
+    pairwise,
+    parse_keyval,
+)
+from .pytorch import (
+    AccumulatedTimedContext,
+    WeightedMSELoss,
+    compute_avg_dev_max,
+    flatten,
+    grad_of,
+    grads_of,
+    pnm,
+    regression,
+    relink,
+    weighted_mse_loss,
+)
+
 __all__ = [
     # Logging & context
     "Context",
