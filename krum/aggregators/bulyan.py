@@ -154,7 +154,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
         scores[0] = (math.inf, None)
         for score, gid in scores[1:]:
             if gid == gid_prune:
-                scores[gid] = (score - distance[gid][gid_prune], gid)
+                scores[gid] = (score - distances[gid][gid_prune], gid)
     # Coordinate-wise averaged median
     m = selected.shape[0] - 2 * f
     median = selected.median(dim=0).values

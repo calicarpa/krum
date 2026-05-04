@@ -64,14 +64,15 @@ try:
         # Submit the job to the main loop
         GLib.idle_add(closure)
 
-except Exception:
+except Exception as _err:
+    _gtk_err_msg = str(_err)
 
     def gtk_run(closure):
         """Sink in case GTK cannot be used.
         Args:
           closure Ignored parameter
         """
-        tools.warning(f"GTK 3.0 is unavailable: {err}")
+        tools.warning(f"GTK 3.0 is unavailable: {_gtk_err_msg}")
 
 # ---------------------------------------------------------------------------- #
 # Data frame columns selection helper
@@ -85,7 +86,6 @@ def select(data, *only_columns):
     Returns:
       (Sub-)dataframe, by reference
     """
-    global Session
     # Unwrap data frame from session
     if isinstance(data, Session):
         data = data.data

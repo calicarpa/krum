@@ -112,10 +112,10 @@ def get_phishing(root, url):
             response = requests.get(url, verify=False)
         except Exception as err:
             tools.warning(" fail.")
-            raise RuntimeError(f"Unable to get dataset (at {url}): {err}")
+            raise RuntimeError(f"Unable to get dataset (at {url}): {err}") from err
     except Exception as err:
         tools.warning(" fail.")
-        raise RuntimeError(f"Unable to get dataset (at {url}): {err}")
+        raise RuntimeError(f"Unable to get dataset (at {url}): {err}") from err
     tools.info(" done.")
     if response.status_code != 200:
         raise RuntimeError(f"Unable to fetch raw dataset (at {url}): GET status code {response.status_code}")
@@ -137,7 +137,7 @@ def get_phishing(root, url):
                 line[int(offset) - 1] = float(value)
             except Exception as err:
                 tools.warning(" fail.")
-                raise RuntimeError(f"Unable to parse dataset (line {index + 1}, position {pos + 1}): {err}")
+                raise RuntimeError(f"Unable to parse dataset (line {index + 1}, position {pos + 1}): {err}") from err
     labels.unsqueeze_(1)
     tools.info(" done.")
 

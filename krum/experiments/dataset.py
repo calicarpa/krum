@@ -279,7 +279,7 @@ class Dataset:
             if build is None:
                 raise tools.UnavailableException(datasets, name, what="dataset name")
             root = root or type(self).get_default_root()
-            self._iter = build(root=root, *args, **kwargs)
+            self._iter = build(*args, root=root, **kwargs)
         elif isinstance(data, types.GeneratorType):
             if name is None:
                 name = "<generator>"

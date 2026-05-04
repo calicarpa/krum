@@ -169,7 +169,7 @@ class Jobs:
             # Run the picked experiment
             self._run(self._res_dir, name, seed, device, command)
 
-    def __init__(self, res_dir, devices=["cpu"], devmult=1, seeds=tuple(range(1, 6))):
+    def __init__(self, res_dir, devices=None, devmult=1, seeds=None):
         """Initialize the instance, launch the worker pool.
         Args:
           res_dir Path to the directory containing the result sub-directories
@@ -178,6 +178,10 @@ class Jobs:
           seeds   List/tuple of seeds to repeat the experiments with
         """
         # Initialize instance
+        if devices is None:
+            devices = ["cpu"]
+        if seeds is None:
+            seeds = tuple(range(1, 6))
         self._res_dir = res_dir
         self._jobs = []  # List of tuples (name, seed, command), or None to signal termination
         self._workers = []  # Worker pool, one per target device

@@ -412,7 +412,7 @@ def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = No
                     + repr(key)
                     + " expected a value of type "
                     + repr(getattr(type(defaults[key]), "__name__", "<unknown>"))
-                )
+                ) from None
         else:
             val = parse_keyval_auto_convert(val)
         # Bind (converted) value to associated key
