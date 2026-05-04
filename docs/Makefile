@@ -1,21 +1,24 @@
 # Makefile for Krum documentation
 
-.PHONY: help html clean servedocs live watch
+.PHONY: help html build clean serve watch
 
 help:
 	@echo "Available targets:"
 	@echo "  html       - Build HTML documentation"
+	@echo "  build      - Build HTML documentation (alias for html)"
 	@echo "  clean      - Remove generated files"
-	@echo "  servedocs  - Build and serve static documentation"
+	@echo "  serve      - Build and serve static documentation"
 	@echo "  watch      - Watch for changes and serve (auto-rebuild)"
 
 html:
 	uv run sphinx-build -b html . _build/html
 
+build: html
+
 clean:
 	rm -rf _build
 
-servedocs:
+serve:
 	uv run sphinx-build -b html . _build/html && uv run python -m http.server 8000 -d _build/html
 
 watch:

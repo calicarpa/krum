@@ -1,4 +1,3 @@
-# coding: utf-8
 ###
 # @file   reproduce.py
 # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
@@ -13,7 +12,7 @@
 # Reproduce the (missing) experiments and plots.
 ###
 
-import tools
+from krum import tools
 
 tools.success("Module loading...")
 
@@ -24,7 +23,7 @@ import sys
 
 import torch
 
-import experiments
+from krum import experiments
 
 # ---------------------------------------------------------------------------- #
 # Miscellaneous initializations
@@ -44,6 +43,7 @@ tools.success("Command-line processing...")
 
 def process_commandline():
     """Parse the command-line and perform checks.
+
     Returns:
       Parsed configuration
     """
@@ -104,11 +104,11 @@ with tools.Context("cmdline", "info"):
     # Preprocess/resolve the devices to use
     if args.devices == "auto":
         if torch.cuda.is_available():
-            args.devices = list(f"cuda:{i}" for i in range(torch.cuda.device_count()))
+            args.devices = [f"cuda:{i}" for i in range(torch.cuda.device_count())]
         else:
             args.devices = ["cpu"]
     else:
-        args.devices = list(name.strip() for name in args.devices.split(","))
+        args.devices = [name.strip() for name in args.devices.split(",")]
 
 # ---------------------------------------------------------------------------- #
 # Serial preloading of the dataset
@@ -160,13 +160,7 @@ if not args.only_plot:
         for md, mda in (("simples-logit", "din:68"),):
             for gar, attacks in (
                 ("average", (("nan", None),)),
-                (
-                    "brute",
-                    (
-                        ("little", ("factor:1.5", "negative:True")),
-                        ("empire", "factor:1.1"),
-                    ),
-                ),
+                ("brute", (("little", ("factor:1.5", "negative:True")), ("empire", "factor:1.1"))),
             ):
                 for attack, attargs in attacks:
                     for epsilon in (None, 0.1, 0.2, 0.5):
@@ -195,16 +189,17 @@ jobs.close()
 
 # Check if exit requested before going to plotting the results
 if exit_is_requested():
-    exit(0)
+    sys.exit(0)
 
 # ---------------------------------------------------------------------------- #
 # Produce graphs
 
 # Import additional modules
 try:
+    import numpy as np
+    import pandas as pd
+
     import histogram
-    import numpy
-    import pandas
 except ImportError as err:
     tools.fatal(f"Unable to plot results: {err}")
 
@@ -214,6 +209,7 @@ gar_to_legend = {"brute": "MDA"}
 
 def compute_avg_err(name, *cols, avgs="", errs="-err"):
     """Compute the average and standard deviation of the selected columns over the given experiment.
+
     Args:
       name Given experiment name
       ...  Selected column names (through 'histogram.select')
@@ -223,25 +219,20 @@ def compute_avg_err(name, *cols, avgs="", errs="-err"):
       Data frames, each for the computed columns
     """
     # Load all the runs for the given experiment name, and keep only a subset
-    datas = tuple(
-        histogram.select(
-            histogram.Session(args.data_directory / f"{name}-{seed}"), *cols
-        )
-        for seed in seeds
-    )
+    datas = tuple(histogram.select(histogram.Session(args.data_directory / f"{name}-{seed}"), *cols) for seed in seeds)
 
     # Make the aggregated data frames
     def make_df(col):
         nonlocal datas
         # For every selected columns
         subds = tuple(histogram.select(data, col).dropna() for data in datas)
-        res = pandas.DataFrame(index=subds[0].index)
+        res = pd.DataFrame(index=subds[0].index)
         for col in subds[0]:
             # Generate compound column names
             avgn = col + avgs
             errn = col + errs
             # Compute compound columns
-            numds = numpy.stack(tuple(subd[col].to_numpy() for subd in subds))
+            numds = np.stack(tuple(subd[col].to_numpy() for subd in subds))
             res[avgn] = numds.mean(axis=0)
             res[errn] = numds.std(axis=0)
         # Return the built data frame
@@ -253,47 +244,31 @@ def compute_avg_err(name, *cols, avgs="", errs="-err"):
 
 with tools.Context("plot", "info"):
     # Plot all the experiments
-    for ds, dsa in (("svm-phishing", None),):
-        for md, mda in (("simples-logit", "din:68"),):
+    for ds, _dsa in (("svm-phishing", None),):
+        for md, _mda in (("simples-logit", "din:68"),):
             for epsilon in (None, 0.1, 0.2, 0.5):
                 for batch_size in (10, 25, 50, 100, 250, 500):
-                    legend = list()
-                    results = list()
+                    legend = []
+                    results = []
                     # Pre-process results for all available combinations of GAR and attack
                     for gar, attacks in (
                         ("average", (("nan", None),)),
-                        (
-                            "brute",
-                            (
-                                ("little", ("factor:1.5", "negative:True")),
-                                ("empire", "factor:1.1"),
-                            ),
-                        ),
+                        ("brute", (("little", ("factor:1.5", "negative:True")), ("empire", "factor:1.1"))),
                     ):
                         for attack, _ in attacks:
                             name = f"{ds}-{md}-{gar}-{attack}-e_{'inf' if epsilon is None else epsilon}-b_{batch_size}"
                             key = f"{gar_to_legend.get(gar, gar.capitalize())} ({'no attack' if gar == 'average' else attack})"
                             legend.append(key)
-                            results.append(
-                                compute_avg_err(name, "Accuracy", "Average loss")
-                            )
+                            results.append(compute_avg_err(name, "Accuracy", "Average loss"))
                     # Plot top-1 cross-accuracy
                     plot = histogram.LinePlot()
                     for crossacc, _ in results:
                         plot.include(crossacc, "Accuracy", errs="-err", lalp=0.8)
                     plot.finalize(
-                        None,
-                        "Step number",
-                        "Cross-accuracy",
-                        xmin=0,
-                        xmax=1000,
-                        ymin=0,
-                        ymax=1,
-                        legend=legend,
+                        None, "Step number", "Cross-accuracy", xmin=0, xmax=1000, ymin=0, ymax=1, legend=legend
                     )
                     plot.save(
-                        args.plot_directory
-                        / f"{ds}-{md}-e_{'inf' if epsilon is None else epsilon}-b_{batch_size}.png",
+                        args.plot_directory / f"{ds}-{md}-e_{'inf' if epsilon is None else epsilon}-b_{batch_size}.png",
                         xsize=3,
                         ysize=1.5,
                     )
@@ -302,14 +277,7 @@ with tools.Context("plot", "info"):
                     for _, avgloss in results:
                         plot.include(avgloss, "Average loss", errs="-err", lalp=0.8)
                     plot.finalize(
-                        None,
-                        "Step number",
-                        "Average loss",
-                        xmin=0,
-                        xmax=1000,
-                        ymin=0,
-                        ymax=0.6,
-                        legend=legend,
+                        None, "Step number", "Average loss", xmin=0, xmax=1000, ymin=0, ymax=0.6, legend=legend
                     )
                     plot.save(
                         args.plot_directory

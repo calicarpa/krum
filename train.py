@@ -1,4 +1,3 @@
-# coding: utf-8
 ###
 # @file   train.py
 # @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
@@ -13,7 +12,7 @@
 # Simulate a training session under attack.
 ###
 
-import tools
+from krum import tools
 
 tools.success("Module loading...")
 
@@ -24,12 +23,11 @@ import os
 import pathlib
 import signal
 import sys
+
 import torch
 import torchvision
 
-import aggregators
-import attacks
-import experiments
+from krum import aggregators, attacks, experiments
 
 # ---------------------------------------------------------------------------- #
 # Miscellaneous initializations
@@ -49,67 +47,32 @@ tools.success("Command-line processing...")
 
 def process_commandline():
     """Parse the command-line and perform checks.
+
     Returns:
       Parsed configuration
     """
     # Description
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "--seed",
-        type=int,
-        default=-1,
-        help="Fixed seed to use for reproducibility purpose, negative for random seed",
+        "--seed", type=int, default=-1, help="Fixed seed to use for reproducibility purpose, negative for random seed"
     )
     parser.add_argument(
-        "--device",
-        type=str,
-        default="auto",
-        help='Device on which to run the experiment, "auto" by default',
+        "--device", type=str, default="auto", help='Device on which to run the experiment, "auto" by default'
     )
     parser.add_argument(
-        "--device-gar",
-        type=str,
-        default="same",
-        help='Device on which to run the GAR, "same" for no change of device',
+        "--device-gar", type=str, default="same", help='Device on which to run the GAR, "same" for no change of device'
     )
     parser.add_argument(
-        "--nb-steps",
-        type=int,
-        default=300,
-        help="Number of training steps to do, non-positive for no limit",
+        "--nb-steps", type=int, default=300, help="Number of training steps to do, non-positive for no limit"
     )
+    parser.add_argument("--nb-workers", type=int, default=11, help="Total number of worker machines")
+    parser.add_argument("--nb-decl-byz", type=int, default=4, help="Number of Byzantine worker(s) to support")
+    parser.add_argument("--nb-real-byz", type=int, default=0, help="Number of actual Byzantine worker(s)")
+    parser.add_argument("--gar", type=str, default="average", help="(Byzantine-resilient) aggregation rule to use")
     parser.add_argument(
-        "--nb-workers", type=int, default=11, help="Total number of worker machines"
+        "--gar-args", nargs="*", help="Additional GAR-dependent arguments to pass to the aggregation rule"
     )
-    parser.add_argument(
-        "--nb-decl-byz",
-        type=int,
-        default=4,
-        help="Number of Byzantine worker(s) to support",
-    )
-    parser.add_argument(
-        "--nb-real-byz",
-        type=int,
-        default=0,
-        help="Number of actual Byzantine worker(s)",
-    )
-    parser.add_argument(
-        "--gar",
-        type=str,
-        default="average",
-        help="(Byzantine-resilient) aggregation rule to use",
-    )
-    parser.add_argument(
-        "--gar-args",
-        nargs="*",
-        help="Additional GAR-dependent arguments to pass to the aggregation rule",
-    )
-    parser.add_argument(
-        "--privacy",
-        action="store_true",
-        default=False,
-        help="Gaussian privacy noise ε constant",
-    )
+    parser.add_argument("--privacy", action="store_true", default=False, help="Gaussian privacy noise ε constant")
     parser.add_argument(
         "--privacy-epsilon",
         type=float,
@@ -129,51 +92,21 @@ def process_commandline():
         help="Maximum L2-norm, above which clipping occurs, for the estimated gradients",
     )
     parser.add_argument("--attack", type=str, default="nan", help="Attack to use")
-    parser.add_argument(
-        "--attack-args",
-        nargs="*",
-        help="Additional attack-dependent arguments to pass to the attack",
-    )
-    parser.add_argument(
-        "--model", type=str, default="simples-conv", help="Model to train"
-    )
-    parser.add_argument(
-        "--model-args",
-        nargs="*",
-        help="Additional model-dependent arguments to pass to the model",
-    )
+    parser.add_argument("--attack-args", nargs="*", help="Additional attack-dependent arguments to pass to the attack")
+    parser.add_argument("--model", type=str, default="simples-conv", help="Model to train")
+    parser.add_argument("--model-args", nargs="*", help="Additional model-dependent arguments to pass to the model")
     parser.add_argument("--loss", type=str, default="nll", help="Loss to use")
+    parser.add_argument("--loss-args", nargs="*", help="Additional loss-dependent arguments to pass to the loss")
+    parser.add_argument("--criterion", type=str, default="top-k", help="Criterion to use")
     parser.add_argument(
-        "--loss-args",
-        nargs="*",
-        help="Additional loss-dependent arguments to pass to the loss",
-    )
-    parser.add_argument(
-        "--criterion", type=str, default="top-k", help="Criterion to use"
-    )
-    parser.add_argument(
-        "--criterion-args",
-        nargs="*",
-        help="Additional criterion-dependent arguments to pass to the criterion",
+        "--criterion-args", nargs="*", help="Additional criterion-dependent arguments to pass to the criterion"
     )
     parser.add_argument("--dataset", type=str, default="mnist", help="Dataset to use")
     parser.add_argument(
-        "--dataset-args",
-        nargs="*",
-        help="Additional dataset-dependent arguments to pass to the dataset",
+        "--dataset-args", nargs="*", help="Additional dataset-dependent arguments to pass to the dataset"
     )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=25,
-        help="Batch-size to use for training, 0 for maximum",
-    )
-    parser.add_argument(
-        "--batch-size-test",
-        type=int,
-        default=100,
-        help="Batch-size to use for testing, 0 for maximum",
-    )
+    parser.add_argument("--batch-size", type=int, default=25, help="Batch-size to use for training, 0 for maximum")
+    parser.add_argument("--batch-size-test", type=int, default=100, help="Batch-size to use for testing, 0 for maximum")
     parser.add_argument(
         "--test-repeat",
         type=int,
@@ -186,12 +119,7 @@ def process_commandline():
         default=False,
         help="Whether to disable any dataset tranformation (e.g. random flips)",
     )
-    parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=0.01,
-        help="Learning rate to use for training",
-    )
+    parser.add_argument("--learning-rate", type=float, default=0.01, help="Learning rate to use for training")
     parser.add_argument(
         "--learning-rate-decay",
         type=int,
@@ -204,26 +132,14 @@ def process_commandline():
         default=5000,
         help="How many steps between two learning rate updates, must be a positive integer",
     )
+    parser.add_argument("--momentum", type=float, default=0.9, help="Momentum to use for training")
+    parser.add_argument("--dampening", type=float, default=0.0, help="Dampening to use for training")
+    parser.add_argument("--weight-decay", type=float, default=0, help="Weight decay to use for training")
     parser.add_argument(
-        "--momentum", type=float, default=0.9, help="Momentum to use for training"
+        "--l1-regularize", type=float, default=None, help="Add L1 regularization of the given factor to the loss"
     )
     parser.add_argument(
-        "--dampening", type=float, default=0.0, help="Dampening to use for training"
-    )
-    parser.add_argument(
-        "--weight-decay", type=float, default=0, help="Weight decay to use for training"
-    )
-    parser.add_argument(
-        "--l1-regularize",
-        type=float,
-        default=None,
-        help="Add L1 regularization of the given factor to the loss",
-    )
-    parser.add_argument(
-        "--l2-regularize",
-        type=float,
-        default=None,
-        help="Add L2 regularization of the given factor to the loss",
+        "--l2-regularize", type=float, default=None, help="Add L2 regularization of the given factor to the loss"
     )
     parser.add_argument(
         "--result-directory",
@@ -253,7 +169,7 @@ with tools.Context("cmdline", "info"):
     for name in ("gar", "attack", "model", "dataset", "loss", "criterion"):
         name = f"{name}_args"
         keyval = getattr(args, name)
-        setattr(args, name, dict() if keyval is None else tools.parse_keyval(keyval))
+        setattr(args, name, {} if keyval is None else tools.parse_keyval(keyval))
     # Count the number of real honest workers
     args.nb_honests = args.nb_workers - args.nb_real_byz
     if args.nb_honests < 0:
@@ -266,46 +182,27 @@ with tools.Context("cmdline", "info"):
     if args.dampening < 0.0:
         tools.fatal(f"Invalid arguments: negative dampening factor {args.dampening}")
     if args.weight_decay < 0.0:
-        tools.fatal(
-            f"Invalid arguments: negative weight decay factor {args.weight_decay}"
-        )
+        tools.fatal(f"Invalid arguments: negative weight decay factor {args.weight_decay}")
     # Check the learning rate and associated options
     if args.learning_rate <= 0:
-        tools.fatal(
-            f"Invalid arguments: non-positive learning rate {args.learning_rate}"
-        )
+        tools.fatal(f"Invalid arguments: non-positive learning rate {args.learning_rate}")
     if args.learning_rate_decay < 0:
-        tools.fatal(
-            f"Invalid arguments: negative learning rate decay {args.learning_rate_decay}"
-        )
+        tools.fatal(f"Invalid arguments: negative learning rate decay {args.learning_rate_decay}")
     if args.learning_rate_decay_delta <= 0:
-        tools.fatal(
-            f"Invalid arguments: non-positive learning rate decay delta {args.learning_rate_decay_delta}"
-        )
+        tools.fatal(f"Invalid arguments: non-positive learning rate decay delta {args.learning_rate_decay_delta}")
     # Check the privacy-related metrics
     if args.gradient_clip <= 0.0:
-        tools.fatal(
-            f"Invalid arguments: non-positive gradient clip constant {args.gradient_clip}"
-        )
+        tools.fatal(f"Invalid arguments: non-positive gradient clip constant {args.gradient_clip}")
     if args.privacy:
         if args.privacy_epsilon <= 0.0 or args.privacy_epsilon >= 1.0:
-            tools.fatal(
-                f"Invalid arguments: off-bounds (]0, 1[) ε constant {args.privacy_epsilon}"
-            )
+            tools.fatal(f"Invalid arguments: off-bounds (]0, 1[) ε constant {args.privacy_epsilon}")
         if args.privacy_delta <= 0.0 or args.privacy_delta >= 1.0:
-            tools.fatal(
-                f"Invalid arguments: off-bounds (]0, 1[) δ constant {args.privacy_delta}"
-            )
+            tools.fatal(f"Invalid arguments: off-bounds (]0, 1[) δ constant {args.privacy_delta}")
         args.privacy_sensitivity = 2 * args.gradient_clip / args.batch_size
 
     # Print configuration
     def cmd_make_tree(subtree, level=0):
-        if (
-            isinstance(subtree, tuple)
-            and len(subtree) > 0
-            and isinstance(subtree[0], tuple)
-            and len(subtree[0]) == 2
-        ):
+        if isinstance(subtree, tuple) and len(subtree) > 0 and isinstance(subtree[0], tuple) and len(subtree[0]) == 2:
             label_len = max(len(label) for label, _ in subtree)
             iterator = subtree
         elif isinstance(subtree, dict):
@@ -321,105 +218,71 @@ with tools.Context("cmdline", "info"):
             res += f"{os.linesep}{level_spc}· {label}{' ' * (label_len - len(label))}{cmd_make_tree(node, level + 1)}"
         return res
 
-    cmdline_config = "Configuration" + cmd_make_tree(
+    cmdline_config = "Configuration" + cmd_make_tree((
+        ("Reproducibility", "not enforced" if args.seed < 0 else f"enforced (seed {args.seed})"),
+        ("#workers", args.nb_workers),
+        ("#declared Byz.", args.nb_decl_byz),
+        ("#actually Byz.", args.nb_real_byz),
+        ("Model", (("Name", args.model), ("Arguments", args.model_args))),
         (
+            "Dataset",
             (
-                "Reproducibility",
-                "not enforced" if args.seed < 0 else f"enforced (seed {args.seed})",
-            ),
-            ("#workers", args.nb_workers),
-            ("#declared Byz.", args.nb_decl_byz),
-            ("#actually Byz.", args.nb_real_byz),
-            ("Model", (("Name", args.model), ("Arguments", args.model_args))),
-            (
-                "Dataset",
+                ("Name", args.dataset),
+                ("Arguments", args.dataset_args),
                 (
-                    ("Name", args.dataset),
-                    ("Arguments", args.dataset_args),
+                    "Batch size",
                     (
-                        "Batch size",
-                        (
-                            ("Training", args.batch_size or "max"),
-                            (
-                                "Testing",
-                                f"{args.batch_size_test or 'max'} × {args.test_repeat}",
-                            ),
-                        ),
+                        ("Training", args.batch_size or "max"),
+                        ("Testing", f"{args.batch_size_test or 'max'} x {args.test_repeat}"),
                     ),
-                    ("Transforms", "none" if args.no_transform else "default"),
                 ),
+                ("Transforms", "none" if args.no_transform else "default"),
             ),
+        ),
+        (
+            "Loss",
             (
-                "Loss",
+                ("Name", args.loss),
+                ("Arguments", args.loss_args),
                 (
-                    ("Name", args.loss),
-                    ("Arguments", args.loss_args),
+                    "Regularization",
                     (
-                        "Regularization",
-                        (
-                            (
-                                "l1",
-                                "none"
-                                if args.l1_regularize is None
-                                else args.l1_regularize,
-                            ),
-                            (
-                                "l2",
-                                "none"
-                                if args.l2_regularize is None
-                                else args.l2_regularize,
-                            ),
-                        ),
+                        ("l1", "none" if args.l1_regularize is None else args.l1_regularize),
+                        ("l2", "none" if args.l2_regularize is None else args.l2_regularize),
                     ),
                 ),
             ),
+        ),
+        ("Criterion", (("Name", args.criterion), ("Arguments", args.criterion_args))),
+        (
+            "Optimizer",
             (
-                "Criterion",
-                (("Name", args.criterion), ("Arguments", args.criterion_args)),
-            ),
-            (
-                "Optimizer",
+                ("Name", "sgd"),
                 (
-                    ("Name", "sgd"),
+                    "Learning rate",
                     (
-                        "Learning rate",
-                        (
-                            ("Initial", args.learning_rate),
-                            (
-                                "Half-decay",
-                                args.learning_rate_decay
-                                if args.learning_rate_decay > 0
-                                else "none",
-                            ),
-                            (
-                                "Update delta",
-                                args.learning_rate_decay_delta
-                                if args.learning_rate_decay > 0
-                                else "n/a",
-                            ),
-                        ),
-                    ),
-                    ("Momentum", args.momentum),
-                    ("Dampening", args.dampening),
-                    ("Weight decay", args.weight_decay),
-                ),
-            ),
-            ("Attack", (("Name", args.attack), ("Arguments", args.attack_args))),
-            ("Aggregation", (("Name", args.gar), ("Arguments", args.gar_args))),
-            (
-                "Differential privacy",
-                (
-                    ("Enabled?", "yes" if args.privacy else "no"),
-                    ("ε constant", args.privacy_epsilon if args.privacy else "n/a"),
-                    ("δ constant", args.privacy_delta if args.privacy else "n/a"),
-                    (
-                        "l2-sensitivity",
-                        args.privacy_sensitivity if args.privacy else "n/a",
+                        ("Initial", args.learning_rate),
+                        ("Half-decay", args.learning_rate_decay if args.learning_rate_decay > 0 else "none"),
+                        ("Update delta", args.learning_rate_decay_delta if args.learning_rate_decay > 0 else "n/a"),
                     ),
                 ),
+                ("Momentum", args.momentum),
+                ("Dampening", args.dampening),
+                ("Weight decay", args.weight_decay),
             ),
-        )
-    )
+        ),
+        ("Attack", (("Name", args.attack), ("Arguments", args.attack_args))),
+        ("Aggregation", (("Name", args.gar), ("Arguments", args.gar_args))),
+        (
+            "Differential privacy",
+            (
+                ("Enabled?", "yes" if args.privacy else "no"),
+                ("ε constant", args.privacy_epsilon if args.privacy else "n/a"),
+                ("δ constant", args.privacy_delta if args.privacy else "n/a"),
+                ("l2-sensitivity", args.privacy_sensitivity if args.privacy else "n/a"),
+            ),
+        ),
+    ))
     print(cmdline_config)
 
 # ---------------------------------------------------------------------------- #
@@ -429,6 +292,7 @@ tools.success("Experiment setup...")
 
 def result_make(name, *fields):
     """Make and bind a new result file with a name, initialize with a header line.
+
     Args:
       name      Name of the result file
       fields... Name of each field, in order
@@ -454,6 +318,7 @@ def result_make(name, *fields):
 
 def result_get(name):
     """Get a valid descriptor to the bound result file, or 'None' if the given name is not bound.
+
     Args:
       name Given name
     Returns:
@@ -465,11 +330,12 @@ def result_get(name):
         return None
     # Return the bound descriptor, if any
     global result_fds
-    return result_fds.get(name, None)
+    return result_fds.get(name)
 
 
 def result_store(fd, *entries):
     """Store a line in a valid result file.
+
     Args:
       fd         Descriptor of the valid result file
       entries... Object(s) to convert to string and write in order in a new line
@@ -483,16 +349,14 @@ with tools.Context("setup", "info"):
     reproducible = args.seed >= 0
     if reproducible:
         torch.manual_seed(args.seed)
-        import numpy
+        import numpy as np
 
-        numpy.random.seed(args.seed)
+        np.random.seed(args.seed)
     torch.backends.cudnn.deterministic = reproducible
     torch.backends.cudnn.benchmark = not reproducible
     # Configurations
     config = experiments.Configuration(
-        dtype=torch.float32,
-        device=(None if args.device.lower() == "auto" else args.device),
-        noblock=True,
+        dtype=torch.float32, device=(None if args.device.lower() == "auto" else args.device), noblock=True
     )
     if args.device_gar.lower() == "same":
         config_gar = config
@@ -550,9 +414,7 @@ with tools.Context("setup", "info"):
     if args.privacy:
         param = model.get()
         privacy_factor = (
-            args.privacy_sensitivity
-            * math.sqrt(2 * math.log(1.25 / args.privacy_delta))
-            / args.privacy_epsilon
+            args.privacy_sensitivity * math.sqrt(2 * math.log(1.25 / args.privacy_delta)) / args.privacy_epsilon
         )
         grad_noise = torch.distributions.normal.Normal(
             torch.zeros_like(param), torch.ones_like(param).mul_(privacy_factor)
@@ -564,11 +426,9 @@ with tools.Context("setup", "info"):
             resdir.mkdir(mode=0o755, parents=True, exist_ok=True)
             args.result_directory = resdir
         except Exception as err:
-            tools.warning(
-                f"Unable to create the result directory {str(resdir)!r} ({err}); no result will be stored"
-            )
+            tools.warning(f"Unable to create the result directory {str(resdir)!r} ({err}); no result will be stored")
         else:
-            result_fds = dict()
+            result_fds = {}
             try:
                 # Make evaluation file
                 if args.evaluation_delta > 0:
@@ -593,24 +453,21 @@ with tools.Context("setup", "info"):
                     "Attack-defense cosine",
                 )
                 # Store the configuration info and JSON representation
-                (args.result_directory / "config").write_text(
-                    cmdline_config + os.linesep
-                )
+                (args.result_directory / "config").write_text(cmdline_config + os.linesep)
                 with (args.result_directory / "config.json").open("w") as fd:
 
                     def convert_to_supported_json_type(x):
                         if type(x) in {str, int, float, bool, type(None), dict, list}:
                             return x
-                        elif type(x) is set:
+                        if type(x) is set:
                             return list(x)
-                        else:
-                            return str(x)
+                        return str(x)
 
-                    datargs = dict(
-                        (name, convert_to_supported_json_type(getattr(args, name)))
+                    datargs = {
+                        name: convert_to_supported_json_type(getattr(args, name))
                         for name in dir(args)
                         if len(name) > 0 and name[0] != "_"
-                    )
+                    }
                     del convert_to_supported_json_type
                     json.dump(datargs, fd, ensure_ascii=False, indent="\t")
             except Exception as err:
@@ -625,6 +482,7 @@ tools.success("Training...")
 
 def compute_avg_dev(values):
     """Compute the arithmetic mean and standard deviation of a list of values.
+
     Args:
       values Iterable of values
     Returns:
@@ -661,12 +519,8 @@ with tools.Context("training", "info"):
         while not exit_is_requested():
             # ------------------------------------------------------------------------ #
             # Evaluate if any milestone is reached
-            milestone_evaluation = (
-                args.evaluation_delta > 0 and steps % args.evaluation_delta == 0
-            )
-            milestone_user_input = (
-                args.user_input_delta > 0 and steps % args.user_input_delta == 0
-            )
+            milestone_evaluation = args.evaluation_delta > 0 and steps % args.evaluation_delta == 0
+            milestone_user_input = args.user_input_delta > 0 and steps % args.user_input_delta == 0
             milestone_any = milestone_evaluation or milestone_user_input
             # Training notification (end)
             if milestone_any and was_training:
@@ -674,7 +528,7 @@ with tools.Context("training", "info"):
                 was_training = False
             # Evaluation milestone reached
             if milestone_evaluation:
-                print("Accuracy (step %d)..." % steps, end="", flush=True)
+                print(f"Accuracy (step {steps})...", end="", flush=True)
                 with atc_evaluate:
                     res = model.eval()
                     for _ in range(args.test_repeat - 1):
@@ -701,11 +555,11 @@ with tools.Context("training", "info"):
                 was_training = True
             # ------------------------------------------------------------------------ #
             # Compute (honest) losses (if it makes sense), gradients and voting data
-            grad_honests = list()
-            loss_honests = list()
+            grad_honests = []
+            loss_honests = []
             # For each honest worker
             with atc_gradient:
-                for i in range(args.nb_honests):
+                for _i in range(args.nb_honests):
                     grad, loss = model.backprop(outloss=True)
                     grad = grad.clone().detach_()
                     # Loss append
@@ -722,18 +576,15 @@ with tools.Context("training", "info"):
                 # Compute average loss ('len(loss_honests) > 0' is guaranteed)
                 loss_avg = sum(loss_honests) / len(loss_honests)
                 # Compute the sampled and honest gradients norm average, norm deviation and max absolute coordinate
-                honest_grad_avg, honest_norm_avg, honest_norm_dev, honest_norm_max = (
-                    tools.compute_avg_dev_max(grad_honests)
+                honest_grad_avg, honest_norm_avg, honest_norm_dev, honest_norm_max = tools.compute_avg_dev_max(
+                    grad_honests
                 )
             # Move the honest gradients to the GAR device
             if config_gar is not config:
-                grad_honests_gar = list(
-                    grad.to(
-                        device=config_gar["device"],
-                        non_blocking=config_gar["non_blocking"],
-                    )
+                grad_honests_gar = [
+                    grad.to(device=config_gar["device"], non_blocking=config_gar["non_blocking"])
                     for grad in grad_honests
-                )
+                ]
             else:
                 grad_honests_gar = grad_honests
             # ------------------------------------------------------------------------ #
@@ -756,28 +607,18 @@ with tools.Context("training", "info"):
             # Aggregate and update the model
             with atc_aggregate:
                 grad_defense = defense.checked(
-                    gradients=(grad_honests_gar + grad_attacks),
-                    f=args.nb_decl_byz,
-                    model=model,
-                    **args.gar_args,
+                    gradients=(grad_honests_gar + grad_attacks), f=args.nb_decl_byz, model=model, **args.gar_args
                 )
             # Move the defense gradient back to the main device
             if config_gar is not config:
                 for grad in grad_attacks:
-                    grad.data = grad.to(
-                        device=config["device"], non_blocking=config["non_blocking"]
-                    )
-                grad_defense = grad_defense.to(
-                    device=config["device"], non_blocking=config["non_blocking"]
-                )
+                    grad.data = grad.to(device=config["device"], non_blocking=config["non_blocking"])
+                grad_defense = grad_defense.to(device=config["device"], non_blocking=config["non_blocking"])
             # Compute l2-distance from origin (if needed for study)
             if fd_study is not None:
                 l2_origin = model.get().sub(params_origin).norm().item()
             # Model update (possibly updating the learning rate)
-            if (
-                args.learning_rate_decay > 0
-                and steps % args.learning_rate_decay_delta == 0
-            ):
+            if args.learning_rate_decay > 0 and steps % args.learning_rate_decay_delta == 0:
                 current_lr = args.learning_rate / (steps / args.learning_rate_decay + 1)
                 optimizer.set_lr(current_lr)
             model.update(grad_defense)
@@ -785,8 +626,8 @@ with tools.Context("training", "info"):
             # Store study (if requested)
             if fd_study is not None:
                 # Compute the sampled and honest gradients norm average, norm deviation and max absolute coordinate
-                attack_grad_avg, attack_norm_avg, attack_norm_dev, attack_norm_max = (
-                    tools.compute_avg_dev_max(grad_attacks)
+                attack_grad_avg, attack_norm_avg, attack_norm_dev, attack_norm_max = tools.compute_avg_dev_max(
+                    grad_attacks
                 )
                 # Compute the defense norm average and max absolute coordinate
                 defense_grad = grad_defense  # (Mere renaming for consistency)
@@ -796,31 +637,20 @@ with tools.Context("training", "info"):
                 cosin_honatt = (
                     math.nan
                     if attack_grad_avg is None
-                    else torch.dot(honest_grad_avg, attack_grad_avg)
-                    .div_(honest_norm_avg)
-                    .div_(attack_norm_avg)
-                    .item()
+                    else torch.dot(honest_grad_avg, attack_grad_avg).div_(honest_norm_avg).div_(attack_norm_avg).item()  # type: ignore[arg-type]
                 )
                 cosin_hondef = (
-                    torch.dot(honest_grad_avg, defense_grad)
-                    .div_(honest_norm_avg)
-                    .div_(defense_norm_avg)
-                    .item()
+                    torch.dot(honest_grad_avg, defense_grad).div_(honest_norm_avg).div_(defense_norm_avg).item()  # type: ignore[arg-type]
                 )
                 cosin_attdef = (
                     math.nan
                     if attack_grad_avg is None
-                    else torch.dot(attack_grad_avg, defense_grad)
-                    .div_(attack_norm_avg)
-                    .div_(defense_norm_avg)
-                    .item()
+                    else torch.dot(attack_grad_avg, defense_grad).div_(attack_norm_avg).div_(defense_norm_avg).item()  # type: ignore[arg-type]
                 )
                 # Store the result (float-to-string format chosen so not to lose precision)
-                float_format = {
-                    torch.float16: "%.4e",
-                    torch.float32: "%.8e",
-                    torch.float64: "%.16e",
-                }.get(config["dtype"], "%s")
+                float_format = {torch.float16: "%.4e", torch.float32: "%.8e", torch.float64: "%.16e"}.get(
+                    config["dtype"], "%s"
+                )
                 result_store(
                     fd_study,
                     steps,
@@ -851,7 +681,7 @@ with tools.Context("training", "info"):
 
 # Print and store timing counters
 with tools.Context("perf", "info"):
-    perfs = dict()
+    perfs = {}
     perf_params = (
         (atc_gradient, "grad", "Gradient computation (per worker)", args.nb_honests),
         (atc_noise, "noise", "Noise addition (per worker)", args.nb_honests),

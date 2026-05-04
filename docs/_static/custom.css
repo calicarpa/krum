@@ -17,3 +17,8 @@
 .bd-toc .page-toc + .sidebar-secondary-item {
     display: none;
 }
+
+/* Contributions Avatar */
+.sphinx-contributors img {
+    border-radius: 50%;
+}
