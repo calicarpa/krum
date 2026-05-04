@@ -48,8 +48,9 @@ Additional metadata available on each rule:
 import pathlib
 from collections.abc import Callable
 
-from .. import tools
 import torch
+
+from .. import tools
 
 # ---------------------------------------------------------------------------- #
 # Automated GAR loader

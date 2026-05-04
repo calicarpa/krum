@@ -61,9 +61,9 @@ tensor([2., 200., 4.])
 
 import math
 
-from .. import tools
 import torch
 
+from .. import tools
 from . import register
 
 # Optional 'native' module

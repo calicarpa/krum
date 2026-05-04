@@ -18,7 +18,6 @@ import pathlib
 import threading
 
 import matplotlib.pyplot as plt
-
 import pandas as pd
 
 from krum import aggregators, tools
@@ -64,7 +63,7 @@ try:
                 gtk_lazy_main = thread
         # Submit the job to the main loop
         GLib.idle_add(closure)
-except Exception as err:
+except Exception:
 
     def gtk_run(closure):
         """Sink in case GTK cannot be used.

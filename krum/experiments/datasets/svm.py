@@ -35,8 +35,9 @@ experiments.batch_dataset : helper used internally to create the infinite
 __all__ = ["phishing"]
 
 import requests
-from .. import dataset, tools
 import torch
+
+from .. import dataset, tools
 
 # ---------------------------------------------------------------------------- #
 # Configuration
@@ -107,6 +108,13 @@ def get_phishing(root, url):
     tools.info("Downloading dataset...", end="", flush=True)
     try:
         response = requests.get(url)
+    except requests.exceptions.SSLError:
+        tools.warning(" SSL verification failed, retrying without verification...", end="", flush=True)
+        try:
+            response = requests.get(url, verify=False)
+        except Exception as err:
+            tools.warning(" fail.")
+            raise RuntimeError(f"Unable to get dataset (at {url}): {err}")
     except Exception as err:
         tools.warning(" fail.")
         raise RuntimeError(f"Unable to get dataset (at {url}): {err}")

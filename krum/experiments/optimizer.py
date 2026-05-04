@@ -30,8 +30,9 @@ Example
 
 __all__ = ["Optimizer"]
 
-from .. import tools
 import torch
+
+from .. import tools
 
 # ---------------------------------------------------------------------------- #
 # Optimizer wrapper class

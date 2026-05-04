@@ -35,8 +35,9 @@ __all__ = ["Configuration"]
 
 from collections.abc import Mapping
 
-from .. import tools
 import torch
+
+from .. import tools
 
 # ---------------------------------------------------------------------------- #
 # Trivial tensor configuration holder (dtype, device, ...) class

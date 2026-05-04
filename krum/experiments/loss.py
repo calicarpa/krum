@@ -32,8 +32,9 @@ Example
 
 __all__ = ["Criterion", "Loss"]
 
-from .. import tools
 import torch
+
+from .. import tools
 
 # ---------------------------------------------------------------------------- #
 # Loss wrapper class

@@ -82,9 +82,9 @@ Example
 import math
 from collections.abc import Callable
 
-from .. import tools
 import torch
 
+from .. import tools
 from . import register
 
 # ---------------------------------------------------------------------------- #

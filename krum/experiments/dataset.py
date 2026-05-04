@@ -40,9 +40,10 @@ import random
 import tempfile
 import types
 
-from .. import tools
 import torch
 import torchvision
+
+from .. import tools
 
 # ---------------------------------------------------------------------------- #
 # Default image transformations

@@ -84,7 +84,7 @@ import threading
 import time
 import traceback
 
-from . import UserException, Context, trace, warning, fatal
+from . import Context, UserException, fatal, trace, warning
 
 # ---------------------------------------------------------------------------- #
 # Unavailable user exception class

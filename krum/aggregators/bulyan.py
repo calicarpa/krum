@@ -76,9 +76,9 @@ tensor([1., 2., 3.])
 
 import math
 
-from .. import tools
 import torch
 
+from .. import tools
 from . import register
 
 # Optional 'native' module

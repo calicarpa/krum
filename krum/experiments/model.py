@@ -36,10 +36,10 @@ __all__ = ["Model"]
 import pathlib
 import types
 
-from .. import tools
 import torch
 import torchvision
 
+from .. import tools
 from .configuration import Configuration
 
 # ---------------------------------------------------------------------------- #
@@ -188,7 +188,7 @@ class Model:
     def __init__(
         self,
         name_build,
-        config=Configuration(),
+        config=None,
         init_multi=None,
         init_multi_args=None,
         init_mono=None,
@@ -218,6 +218,8 @@ class Model:
         **kwargs : object
             Forwarded to the model constructor.
         """
+        if config is None:
+            config = Configuration()
 
         def make_init(name, args):
             inits = type(self)._get_inits()

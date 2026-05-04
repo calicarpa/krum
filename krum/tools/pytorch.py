@@ -246,7 +246,7 @@ def grads_of(tensors: list[torch.Tensor]):
 
 def compute_avg_dev_max(
     samples: list[torch.Tensor],
-) -> tuple[torch.Tensor, float, float, float]:
+) -> tuple[torch.Tensor | None, float, float, float]:
     """
     Compute average, average norm, norm deviation, and max absolute value.
 
@@ -265,6 +265,9 @@ def compute_avg_dev_max(
     -----
     The returned tensor is newly created and does not alias any input tensor.
     """
+    # Handle empty list gracefully
+    if len(samples) == 0:
+        return None, float("nan"), float("nan"), float("nan")
     # Stack all samples
     stacked = torch.stack(samples)
     # Compute average tensor
@@ -469,10 +472,10 @@ def regression(
     for _ in range(steps):
         opt.zero_grad()
         result = func(vars, data)
-        l = loss(result, data["target"])
-        l.backward()
+        loss_func = loss(result, data["target"])
+        loss_func.backward()
         opt.step()
-    return l.item()
+    return loss_func.item()
 
 
 # ---------------------------------------------------------------------------- #
