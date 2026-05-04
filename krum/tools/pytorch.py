@@ -76,7 +76,7 @@ __all__ = [
 import io
 import time
 import types
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 
 import torch
 
@@ -84,13 +84,13 @@ import torch
 # "Flatten" and "relink" operations
 
 
-def relink(tensors: Iterable[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
+def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     """
     Relink tensors to share a common contiguous memory storage.
 
     Parameters
     ----------
-    tensors : iterable of torch.Tensor
+    tensors : list of torch.Tensor
         Tensors to relink. All must have the same dtype.
     common : torch.Tensor
         Flat tensor of sufficient size to use as underlying storage.
@@ -131,13 +131,13 @@ def relink(tensors: Iterable[torch.Tensor], common: torch.Tensor) -> torch.Tenso
     return common
 
 
-def flatten(tensors: Iterable[torch.Tensor]) -> torch.Tensor:
+def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
     """
     Flatten tensors into a single contiguous tensor.
 
     Parameters
     ----------
-    tensors : iterable of torch.Tensor
+    tensors : list of torch.Tensor
         Tensors to flatten. All must have the same dtype.
 
     Returns
@@ -209,13 +209,13 @@ def grad_of(tensor: torch.Tensor) -> torch.Tensor:
     return grad
 
 
-def grads_of(tensors: Iterable[torch.Tensor]):
+def grads_of(tensors: list[torch.Tensor]):
     """
     Generator that gets or creates gradients for multiple tensors.
 
     Parameters
     ----------
-    tensors : iterable of torch.Tensor
+    tensors : list of torch.Tensor
         Tensors that may have gradients attached.
 
     Yields
