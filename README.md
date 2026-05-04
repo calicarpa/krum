@@ -131,7 +131,10 @@ Build the documentation locally:
 
 ```bash
 cd docs
-make html
+make html  # 
+make watch # 
+make serve # 
+make clean # 
 ```
 
 ## License

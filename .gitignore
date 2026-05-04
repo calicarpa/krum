@@ -17,6 +17,7 @@
 # Except documentation files
 docs/_build
 !*.rst
+!Makefile
 !*.html
 !*.css
 !*.js
