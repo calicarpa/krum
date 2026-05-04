@@ -72,7 +72,7 @@ batching automatically.
        )
 
 Step 3 — Export in ``__all__``
------------------------------
+------------------------------
 
 List the builder function in ``__all__`` so the loader can discover it.
 

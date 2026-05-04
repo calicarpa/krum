@@ -6,10 +6,15 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import importlib
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
+
+# Make krum submodules available as top-level imports for autodoc compatibility
+for _mod in ("aggregators", "attacks", "experiments", "native", "tools"):
+    sys.modules[_mod] = importlib.import_module(f"krum.{_mod}")
 
 project = "Krum, the Library"
 copyright = "2026"
