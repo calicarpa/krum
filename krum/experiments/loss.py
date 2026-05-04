@@ -32,7 +32,7 @@ Example
 
 __all__ = ["Criterion", "Loss"]
 
-import tools
+from .. import tools
 import torch
 
 # ---------------------------------------------------------------------------- #

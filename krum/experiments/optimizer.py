@@ -30,7 +30,7 @@ Example
 
 __all__ = ["Optimizer"]
 
-import tools
+from .. import tools
 import torch
 
 # ---------------------------------------------------------------------------- #

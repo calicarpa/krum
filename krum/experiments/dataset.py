@@ -40,7 +40,7 @@ import random
 import tempfile
 import types
 
-import tools
+from .. import tools
 import torch
 import torchvision
 

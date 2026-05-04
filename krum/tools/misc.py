@@ -84,7 +84,7 @@ import threading
 import time
 import traceback
 
-import tools
+from . import UserException, Context, trace, warning, fatal
 
 # ---------------------------------------------------------------------------- #
 # Unavailable user exception class
@@ -134,10 +134,10 @@ def fatal_unavailable(*args, **kwargs) -> None:
         Keyword arguments forwarded to
         :func:`make_unavailable_exception_text`.
     """
-    tools.fatal(make_unavailable_exception_text(*args, **kwargs))
+    fatal(make_unavailable_exception_text(*args, **kwargs))
 
 
-class UnavailableException(tools.UserException):
+class UnavailableException(UserException):
     """User-facing exception raised when a selected registry entry is missing."""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -304,7 +304,7 @@ class ClassRegister:
 
         Raises
         ------
-        tools.UserException
+        UserException
             If ``name`` is not registered.
         """
         # Assertions
@@ -320,7 +320,7 @@ class ClassRegister:
                     + ("', '").join(self.__register.keys())
                     + "'"
                 )
-            raise tools.UserException(cause)
+            raise UserException(cause)
         # Instantiation
         return self.__register[name](*args, **kwargs)
 
@@ -389,7 +389,7 @@ def parse_keyval(
 
     Raises
     ------
-    tools.UserException
+    UserException
         If an entry is malformed, a key is provided more than once, or
         conversion to a default value's type fails.
 
@@ -409,7 +409,7 @@ def parse_keyval(
     for entry in list_keyval:
         pos = entry.find(sep)
         if pos < 0:
-            raise tools.UserException(
+            raise UserException(
                 "Expected list of "
                 + repr("<key>:<value>")
                 + ", got "
@@ -418,7 +418,7 @@ def parse_keyval(
             )
         key = entry[:pos]
         if key in parsed:
-            raise tools.UserException(
+            raise UserException(
                 "Key "
                 + repr(key)
                 + " had already been specified with value "
@@ -434,7 +434,7 @@ def parse_keyval(
                 else:
                     val = cls(val)
             except Exception:
-                raise tools.UserException(
+                raise UserException(
                     "Required key "
                     + repr(key)
                     + " expected a value of type "
@@ -574,7 +574,7 @@ onetime_register = {}
 # Plain context augmented with simple execution time measurement
 
 
-class TimedContext(tools.Context):
+class TimedContext(Context):
     """Context manager that logs the elapsed runtime of a block."""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -584,9 +584,9 @@ class TimedContext(tools.Context):
         Parameters
         ----------
         *args : object
-            Positional arguments forwarded to ``tools.Context``.
+            Positional arguments forwarded to ``Context``.
         **kwargs : object
-            Keyword arguments forwarded to ``tools.Context``.
+            Keyword arguments forwarded to ``Context``.
         """
         super().__init__(*args, **kwargs)
 
@@ -597,7 +597,7 @@ class TimedContext(tools.Context):
         Returns
         -------
         object
-            Value returned by ``tools.Context.__enter__``.
+            Value returned by ``Context.__enter__``.
         """
         self._chrono = time.time()
         return super().__enter__()
@@ -609,9 +609,9 @@ class TimedContext(tools.Context):
         Parameters
         ----------
         *args : object
-            Positional arguments forwarded to ``tools.Context.__exit__``.
+            Positional arguments forwarded to ``Context.__exit__``.
         **kwargs : object
-            Keyword arguments forwarded to ``tools.Context.__exit__``.
+            Keyword arguments forwarded to ``Context.__exit__``.
         """
         # Measure elapsed runtime (in ns)
         runtime = (time.time() - self._chrono) * 1000000000.0
@@ -623,7 +623,7 @@ class TimedContext(tools.Context):
         else:
             unit = "s"
         # Format and print string
-        tools.trace(f"Execution time: {runtime:.3g} {unit}")
+        trace(f"Execution time: {runtime:.3g} {unit}")
         # Forward call
         super().__exit__(*args, **kwargs)
 
@@ -662,7 +662,7 @@ def interactive(
     except Exception:
         caller = None
         if glbs is None:
-            tools.warning(
+            warning(
                 "Unable to recover caller's frame, locals and globals",
                 context="interactive",
             )
@@ -716,7 +716,7 @@ def interactive(
                 else:  # Multi-line statement is complete
                     exec(command, glbs, lcls)
         except Exception:
-            with tools.Context("uncaught", "error"):
+            with Context("uncaught", "error"):
                 traceback.print_exc()
         command = ""
         statement = False

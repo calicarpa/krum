@@ -65,7 +65,7 @@ tensor([1., 2., 3.])
 import itertools
 import math
 
-import tools
+from .. import tools
 import torch
 
 from . import register

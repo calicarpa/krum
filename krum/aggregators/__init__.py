@@ -48,7 +48,7 @@ Additional metadata available on each rule:
 import pathlib
 from collections.abc import Callable
 
-import tools
+from .. import tools
 import torch
 
 # ---------------------------------------------------------------------------- #

@@ -83,7 +83,7 @@ tensor([1.0500, 2.0500, 3.0500])
 
 import math
 
-import tools
+from .. import tools
 import torch
 
 from . import register

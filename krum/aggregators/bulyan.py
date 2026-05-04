@@ -76,7 +76,7 @@ tensor([1., 2., 3.])
 
 import math
 
-import tools
+from .. import tools
 import torch
 
 from . import register

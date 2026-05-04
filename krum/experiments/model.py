@@ -36,7 +36,7 @@ __all__ = ["Model"]
 import pathlib
 import types
 
-import tools
+from .. import tools
 import torch
 import torchvision
 

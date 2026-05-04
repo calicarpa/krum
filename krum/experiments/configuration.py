@@ -35,7 +35,7 @@ __all__ = ["Configuration"]
 
 from collections.abc import Mapping
 
-import tools
+from .. import tools
 import torch
 
 # ---------------------------------------------------------------------------- #

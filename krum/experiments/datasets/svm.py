@@ -34,9 +34,8 @@ experiments.batch_dataset : helper used internally to create the infinite
 
 __all__ = ["phishing"]
 
-import experiments
 import requests
-import tools
+from .. import dataset, tools
 import torch
 
 # ---------------------------------------------------------------------------- #
@@ -48,7 +47,7 @@ default_url_phishing = (
 )
 
 #: Default directory where pre-processed datasets are cached.
-default_root = experiments.dataset.Dataset.get_default_root()
+default_root = dataset.Dataset.get_default_root()
 
 # ---------------------------------------------------------------------------- #
 # Dataset lazy-loaders
@@ -193,6 +192,6 @@ def phishing(train=True, batch_size=None, root=None, download=False, *args, **kw
             root or default_root,
             None if download is None else default_url_phishing,
         )
-        return experiments.batch_dataset(
+        return dataset.batch_dataset(
             inputs, labels, train, batch_size, split=8400
         )

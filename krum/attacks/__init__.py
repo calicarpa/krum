@@ -47,7 +47,7 @@ The module exposes three variants for each attack:
 import pathlib
 from collections.abc import Callable
 
-import tools
+from .. import tools
 import torch
 
 # ---------------------------------------------------------------------------- #

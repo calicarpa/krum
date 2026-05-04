@@ -35,7 +35,7 @@ __all__ = ["Checkpoint", "Storage"]
 import copy
 import pathlib
 
-import tools
+from .. import tools
 import torch
 
 from .model import Model
