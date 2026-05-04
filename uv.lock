@@ -680,9 +680,6 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "ruff" },
-    { name = "ty" },
-]
-docs = [
     { name = "shibuya" },
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
@@ -691,6 +688,7 @@ docs = [
     { name = "sphinx-copybutton" },
     { name = "sphinx-favicon" },
     { name = "sphinx-togglebutton" },
+    { name = "ty" },
 ]
 
 [package.metadata]
@@ -701,17 +699,17 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "shibuya", marker = "extra == 'docs'", specifier = ">=2026.1.9" },
-    { name = "sphinx", marker = "extra == 'docs'", specifier = ">=8.1.3" },
-    { name = "sphinx-contributors", marker = "extra == 'docs'", specifier = ">=0.3.0" },
-    { name = "sphinx-copybutton", marker = "extra == 'docs'", specifier = ">=0.5.2" },
-    { name = "sphinx-favicon", marker = "extra == 'docs'", specifier = ">=1.0.1" },
-    { name = "sphinx-togglebutton", marker = "extra == 'docs'", specifier = ">=0.3.2" },
+    { name = "shibuya", marker = "extra == 'dev'", specifier = ">=2026.1.9" },
+    { name = "sphinx", marker = "extra == 'dev'", specifier = ">=8.1.3" },
+    { name = "sphinx-contributors", marker = "extra == 'dev'", specifier = ">=0.3.0" },
+    { name = "sphinx-copybutton", marker = "extra == 'dev'", specifier = ">=0.5.2" },
+    { name = "sphinx-favicon", marker = "extra == 'dev'", specifier = ">=1.0.1" },
+    { name = "sphinx-togglebutton", marker = "extra == 'dev'", specifier = ">=0.3.2" },
     { name = "torch", specifier = ">=2.11.0" },
     { name = "torchvision", specifier = ">=0.26.0" },
     { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.34" },
 ]
-provides-extras = ["dev", "docs"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "markupsafe"
