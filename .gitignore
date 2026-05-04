@@ -1,31 +1,16 @@
-# Ignore everything
-*
-
-# Except directories, placeholders, gitignores, LICENSE, Markdown files and Python sources
-!*/
-!krum/*
-!.placeholder
-!.gitignore
-!LICENSE
-!*.md
-!*.py
-!*.toml
-!.python-version
-!uv.lock
-!.pre-commit-config.yaml
-
-# Except documentation files
+# Ignore build dirs
 docs/_build
-!*.rst
-!Makefile
-!*.html
-!*.css
-!*.js
-!*.svg
 
-# Github 
-!.github/*
-!*.yml
+# Python stuff
+.venv
+**/__pycache__
+krum.egg-info
+krum/native/**/*.ninja_deps
+krum/native/**/*.ninja_log
+krum/native/**/build.ninja
+krum/native/**/*.o
+krum/native/**/*.so
+
 
 # IDE stuff
 .idea
