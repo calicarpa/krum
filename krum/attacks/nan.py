@@ -12,8 +12,7 @@
 # Attack that generates NaN gradient(s), hence the name.
 ###
 
-"""
-NaN-valued Byzantine gradient attack.
+"""NaN-valued Byzantine gradient attack.
 
 This attack generates gradients filled with NaN (Not a Number) values in order
 to test whether an aggregation rule detects, rejects, or propagates non-finite
@@ -33,9 +32,8 @@ Properties
 - Does not alias any honest input gradient.
 - No parameters beyond gradient count.
 
-Example
+Example:
 -------
-
 >>> import torch
 >>> from attacks import nan
 >>> grad_honests = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
@@ -55,8 +53,7 @@ from . import register
 
 
 def attack(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> list[torch.Tensor]:
-    """
-    Generate NaN-valued Byzantine gradients.
+    """Generate NaN-valued Byzantine gradients.
 
     Parameters
     ----------
@@ -68,7 +65,7 @@ def attack(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> list[torc
     **kwargs : object
         Additional keyword arguments, ignored by this attack.
 
-    Returns
+    Returns:
     -------
     list of torch.Tensor
         List containing ``f_real`` references to the same newly allocated
@@ -86,8 +83,7 @@ def attack(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> list[torc
 
 
 def check(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> str | None:
-    """
-    Check parameter validity for the NaN attack.
+    """Check parameter validity for the NaN attack.
 
     Parameters
     ----------
@@ -98,7 +94,7 @@ def check(grad_honests: list[torch.Tensor], f_real: int, **kwargs) -> str | None
     **kwargs : object
         Additional keyword arguments, ignored by this check.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when parameters are valid, otherwise a user-facing error

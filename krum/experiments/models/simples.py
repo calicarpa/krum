@@ -19,7 +19,7 @@ This module exposes four lightweight constructors — :func:`full`, :func:`conv`
 :class:`experiments.Model` loader because they are listed in ``__all__``.
 Each constructor returns a ready-to-use ``torch.nn.Module``.
 
-Example
+Example:
 -------
 >>> from experiments import Model, Configuration
 >>> config = Configuration(device="cpu")
@@ -57,7 +57,7 @@ class _Full(torch.nn.Module):
         x : torch.Tensor
             Input tensor of shape ``(N, 1, 28, 28)`` or ``(N, 28, 28)``.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Log-probability distribution of shape ``(N, 10)``.
@@ -76,7 +76,7 @@ def full(*args, **kwargs):
     **kwargs : object
         Forwarded to :class:`_Full`.
 
-    Returns
+    Returns:
     -------
     _Full
         A fresh fully-connected model instance.
@@ -113,7 +113,7 @@ class _Conv(torch.nn.Module):
         x : torch.Tensor
             Input tensor of shape ``(N, 1, 28, 28)``.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Log-probability distribution of shape ``(N, 10)``.
@@ -136,7 +136,7 @@ def conv(*args, **kwargs):
     **kwargs : object
         Forwarded to :class:`_Conv`.
 
-    Returns
+    Returns:
     -------
     _Conv
         A fresh convolutional model instance.
@@ -179,7 +179,7 @@ class _Logit(torch.nn.Module):
             Input tensor of arbitrary shape; the last dimensions are
             flattened to ``din`` features.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Sigmoid-activated output of shape ``(..., dout)``.
@@ -197,7 +197,7 @@ def logit(*args, **kwargs):
     **kwargs : object
         Forwarded to :class:`_Logit`.
 
-    Returns
+    Returns:
     -------
     _Logit
         A fresh logistic-regression model instance.
@@ -239,7 +239,7 @@ class _Linear(torch.nn.Module):
             Input tensor of arbitrary shape; the last dimensions are
             flattened to ``din`` features.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Linear output of shape ``(..., dout)``.
@@ -257,7 +257,7 @@ def linear(*args, **kwargs):
     **kwargs : object
         Forwarded to :class:`_Linear`.
 
-    Returns
+    Returns:
     -------
     _Linear
         A fresh linear model instance.

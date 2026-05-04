@@ -12,16 +12,14 @@
 # Optimizer wrapper.
 ###
 
-"""
-Optimizer wrapper that resolves PyTorch optimizers by name.
+"""Optimizer wrapper that resolves PyTorch optimizers by name.
 
 This module provides a thin wrapper around ``torch.optim`` that allows
 optimizers to be instantiated from CLI strings while exposing a uniform
 interface for learning-rate adjustments.
 
-Example
+Example:
 -------
-
 >>> from experiments import Optimizer, Model
 >>> model = Model("lenet", num_classes=10)
 >>> optim = Optimizer("adam", model, lr=0.001)
@@ -39,8 +37,7 @@ from .. import tools
 
 
 class Optimizer:
-    """
-    Optimizer wrapper with name resolution and LR control.
+    """Optimizer wrapper with name resolution and LR control.
 
     Parameters
     ----------
@@ -56,7 +53,7 @@ class Optimizer:
         Additional keyword arguments forwarded to the optimizer
         constructor.
 
-    Raises
+    Raises:
     ------
     tools.UnavailableException
         If ``name_build`` is a string that does not match any known
@@ -68,10 +65,9 @@ class Optimizer:
 
     @classmethod
     def _get_optimizers(cls):
-        """
-        Lazily build the name-to-class mapping for PyTorch optimizers.
+        """Lazily build the name-to-class mapping for PyTorch optimizers.
 
-        Returns
+        Returns:
         -------
         dict[str, type]
             Mapping from lower-case names to optimizer classes.
@@ -95,8 +91,7 @@ class Optimizer:
         return cls.__optimizers
 
     def __init__(self, name_build, model, *args, **kwargs):
-        """
-        Initialize the optimizer wrapper.
+        """Initialize the optimizer wrapper.
 
         Parameters
         ----------
@@ -126,20 +121,19 @@ class Optimizer:
         self._name = name
 
     def __getattr__(self, *args):
-        """
-        Forward attribute access to the wrapped optimizer.
+        """Forward attribute access to the wrapped optimizer.
 
         Parameters
         ----------
         *args : object
             Either ``(name,)`` or ``(name, default)``.
 
-        Returns
+        Returns:
         -------
         object
             Attribute from the wrapped optimizer instance.
 
-        Raises
+        Raises:
         ------
         RuntimeError
             If called with more than two positional arguments.
@@ -151,10 +145,9 @@ class Optimizer:
         raise RuntimeError("'Optimizer.__getattr__' called with the wrong number of parameters")
 
     def __str__(self):
-        """
-        Return a printable representation.
+        """Return a printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable optimizer name.
@@ -162,8 +155,7 @@ class Optimizer:
         return f"optimizer {self._name}"
 
     def set_lr(self, lr):
-        """
-        Set the learning rate for all parameter groups.
+        """Set the learning rate for all parameter groups.
 
         Parameters
         ----------

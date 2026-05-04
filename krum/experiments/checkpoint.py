@@ -12,15 +12,13 @@
 # Checkpoint helpers.
 ###
 
-"""
-Checkpoint management for model, optimizer, and arbitrary stateful objects.
+"""Checkpoint management for model, optimizer, and arbitrary stateful objects.
 
 This module provides :class:`Checkpoint` for saving and restoring state
 dictionaries, and :class:`Storage` for plain-dictionary checkpointing.
 
-Example
+Example:
 -------
-
 >>> from experiments import Checkpoint, Model, Optimizer
 >>> ckpt = Checkpoint()
 >>> ckpt.snapshot(model).snapshot(optimizer)
@@ -46,8 +44,7 @@ from .optimizer import Optimizer
 
 
 class Checkpoint:
-    """
-    Collection of state dictionaries with saving/loading helpers.
+    """Collection of state dictionaries with saving/loading helpers.
 
     This class can snapshot any object implementing the ``state_dict`` /
     ``load_state_dict`` protocol (e.g. ``torch.nn.Module``,
@@ -55,9 +52,8 @@ class Checkpoint:
     :class:`~experiments.model.Model` and
     :class:`~experiments.optimizer.Optimizer` wrappers automatically.
 
-    Example
+    Example:
     -------
-
     >>> ckpt = Checkpoint()
     >>> ckpt.snapshot(model, deepcopy=True)
     >>> ckpt.restore(model)
@@ -71,8 +67,7 @@ class Checkpoint:
 
     @classmethod
     def _prepare(cls, instance):
-        """
-        Prepare an instance for checkpointing.
+        """Prepare an instance for checkpointing.
 
         If the instance is a wrapped :class:`Model` or :class:`Optimizer`,
         the underlying PyTorch object is returned instead.
@@ -82,12 +77,12 @@ class Checkpoint:
         instance : object
             Instance to snapshot or restore.
 
-        Returns
+        Returns:
         -------
         tuple[object, str]
             Checkpoint-able instance and its fully-qualified storage key.
 
-        Raises
+        Raises:
         ------
         tools.UserException
             If the instance lacks ``state_dict`` or ``load_state_dict``.
@@ -109,16 +104,13 @@ class Checkpoint:
         return res, tools.fullqual(inst_cls)
 
     def __init__(self):
-        """
-        Create an empty checkpoint.
-        """
+        """Create an empty checkpoint."""
         self._store = {}
         if __debug__:
             self._copied = {}
 
     def snapshot(self, instance, overwrite=False, deepcopy=False, nowarnref=False):
-        """
-        Take (or overwrite) a snapshot of an instance's state dictionary.
+        """Take (or overwrite) a snapshot of an instance's state dictionary.
 
         Parameters
         ----------
@@ -133,12 +125,12 @@ class Checkpoint:
             Suppress the debug warning when restoring a reference is the
             intended behavior.
 
-        Returns
+        Returns:
         -------
         Checkpoint
             Self, for chaining.
 
-        Raises
+        Raises:
         ------
         tools.UserException
             If a snapshot already exists and ``overwrite`` is ``False``.
@@ -158,8 +150,7 @@ class Checkpoint:
         return self
 
     def restore(self, instance, nothrow=False):
-        """
-        Restore an instance from its stored snapshot.
+        """Restore an instance from its stored snapshot.
 
         Parameters
         ----------
@@ -168,12 +159,12 @@ class Checkpoint:
         nothrow : bool, optional
             If ``True``, silently skip when no snapshot is available.
 
-        Returns
+        Returns:
         -------
         Checkpoint
             Self, for chaining.
 
-        Raises
+        Raises:
         ------
         tools.UserException
             If no snapshot exists and ``nothrow`` is ``False``.
@@ -195,8 +186,7 @@ class Checkpoint:
         return self
 
     def load(self, filepath, overwrite=False):
-        """
-        Load checkpoint data from a file.
+        """Load checkpoint data from a file.
 
         Parameters
         ----------
@@ -205,12 +195,12 @@ class Checkpoint:
         overwrite : bool, optional
             Whether to overwrite any existing snapshots.
 
-        Returns
+        Returns:
         -------
         Checkpoint
             Self, for chaining.
 
-        Raises
+        Raises:
         ------
         tools.UserException
             If the checkpoint is non-empty and ``overwrite`` is ``False``.
@@ -229,8 +219,7 @@ class Checkpoint:
         return self
 
     def save(self, filepath, overwrite=False):
-        """
-        Save the current checkpoint to a file.
+        """Save the current checkpoint to a file.
 
         Parameters
         ----------
@@ -239,12 +228,12 @@ class Checkpoint:
         overwrite : bool, optional
             Whether to overwrite an existing file.
 
-        Returns
+        Returns:
         -------
         Checkpoint
             Self, for chaining.
 
-        Raises
+        Raises:
         ------
         tools.UserException
             If the file exists and ``overwrite`` is ``False``.
@@ -266,18 +255,16 @@ class Checkpoint:
 
 
 class Storage(dict):
-    """
-    Plain dictionary that implements the ``state_dict`` protocol.
+    """Plain dictionary that implements the ``state_dict`` protocol.
 
     This allows arbitrary key/value data to be snapshotted and restored
     alongside models and optimizers using :class:`Checkpoint`.
     """
 
     def state_dict(self):
-        """
-        Return the dictionary itself as state.
+        """Return the dictionary itself as state.
 
-        Returns
+        Returns:
         -------
         dict
             Self.
@@ -285,8 +272,7 @@ class Storage(dict):
         return self
 
     def load_state_dict(self, state):
-        """
-        Replace contents with the given state.
+        """Replace contents with the given state.
 
         Parameters
         ----------

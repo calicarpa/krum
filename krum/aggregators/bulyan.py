@@ -12,8 +12,7 @@
 # Bulyan over Multi-Krum GAR.
 ###
 
-"""
-Bulyan aggregation rule built on top of Multi-Krum.
+r"""Bulyan aggregation rule built on top of Multi-Krum.
 
 Bulyan combines distance-based gradient selection with coordinate-wise
 robust averaging. It first selects a candidate set using a Multi-Krum-like
@@ -56,9 +55,8 @@ m : int, optional
     Number of gradients to consider in each Multi-Krum selection step. Defaults
     to ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
 
-Example
+Example:
 -------
-
 >>> import torch
 >>> from aggregators import bulyan
 >>> gradients = [
@@ -93,8 +91,7 @@ except ImportError:
 
 
 def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
-    """
-    Compute the Bulyan aggregate.
+    """Compute the Bulyan aggregate.
 
     Parameters
     ----------
@@ -111,12 +108,12 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Bulyan-aggregated gradient.
 
-    Notes
+    Notes:
     -----
     The returned tensor is newly allocated and does not alias any input tensor.
     """
@@ -166,8 +163,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.
 
 
 def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
-    """
-    Compute the Bulyan aggregate using native C++/CUDA acceleration.
+    """Compute the Bulyan aggregate using native C++/CUDA acceleration.
 
     Parameters
     ----------
@@ -182,7 +178,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) ->
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Bulyan-aggregated gradient.
@@ -195,8 +191,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m=None, **kwargs) ->
 
 
 def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None:
-    """
-    Check whether the Bulyan parameters satisfy the GAR contract.
+    """Check whether the Bulyan parameters satisfy the GAR contract.
 
     Parameters
     ----------
@@ -211,7 +206,7 @@ def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None
         Additional keyword arguments. They are accepted for compatibility with
         the GAR interface and ignored by this check.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when parameters are valid, otherwise a user-facing error
@@ -230,8 +225,7 @@ def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
-    """
-    Compute Bulyan's theoretical resilience upper bound.
+    """Compute Bulyan's theoretical resilience upper bound.
 
     Parameters
     ----------
@@ -243,7 +237,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Gradient dimension. Accepted for compatibility with the GAR metadata
         interface; the current formula does not depend on it.
 
-    Returns
+    Returns:
     -------
     float
         Upper bound on the ratio between non-Byzantine standard deviation and

@@ -12,8 +12,7 @@
 # Simple job management for reproduction scripts.
 ###
 
-"""
-Experiment job management helpers.
+"""Experiment job management helpers.
 
 This module provides utilities for running and managing experiment jobs in a
 reproducible manner.
@@ -30,7 +29,7 @@ Helpers
     ``dict_to_cmdlist`` converts dictionaries into command-line argument lists.
     ``move_directory`` moves an existing directory aside with versioning.
 
-Example
+Example:
 -------
 
 .. code-block:: python
@@ -71,17 +70,17 @@ def move_directory(path: Path) -> Path:
     path : pathlib.Path
         Directory path to move aside if it already exists.
 
-    Returns
+    Returns:
     -------
     pathlib.Path
         The input path, returned unchanged for chaining.
 
-    Raises
+    Raises:
     ------
     RuntimeError
         If ``path`` exists but is not a directory (or a symlink to one).
 
-    Example
+    Example:
     -------
     >>> from pathlib import Path
     >>> move_directory(Path("results"))
@@ -113,17 +112,17 @@ def dict_to_cmdlist(dp: dict[str, Any]) -> list[str]:
     dp : dict of str to Any
         Dictionary mapping parameter names to values.
 
-    Returns
+    Returns:
     -------
     list of str
         Command-line arguments such as ``["--lr", "0.01", "--batch", "32"]``.
 
-    Notes
+    Notes:
     -----
     - Boolean values are included only when they are ``True``.
     - Lists and tuples expand to repeated ``--name value`` pairs.
 
-    Example
+    Example:
     -------
     >>> dict_to_cmdlist({"lr": 0.01, "batch": 32, "debug": True})
     ['--lr', '0.01', '--batch', '32', '--debug']
@@ -161,13 +160,20 @@ class Command:
         Base command as an iterable of strings (e.g. ``["python", "train.py"]``).
         The iterable is copied on instantiation.
 
-    Attributes
+    Attributes:
     ----------
     _basecmd : list of str
         Internal copy of the base command.
     """
 
     def __init__(self, command: Iterable[str]) -> None:
+        """Initialize the command builder.
+
+        Parameters
+        ----------
+        command : iterable of str
+            Base command as an iterable of strings.
+        """
         self._basecmd: list[str] = list(command)
 
     def build(self, seed: int | str, device: str, resdir: Path | str) -> list[str]:
@@ -182,7 +188,7 @@ class Command:
         resdir : pathlib.Path or str
             Target directory path for results.
 
-        Returns
+        Returns:
         -------
         list of str
             Final command list ready to be passed to ``subprocess.run``.
@@ -220,7 +226,7 @@ class Jobs:
     seeds : sequence of int, optional
         Seeds to use for repeating experiments. Default is ``range(1, 6)``.
 
-    Attributes
+    Attributes:
     ----------
     _res_dir : pathlib.Path
         Resolved result directory.
@@ -327,6 +333,20 @@ class Jobs:
         devmult: int = 1,
         seeds: Sequence[int] | None = None,
     ) -> None:
+        """Initialize the experiment launcher.
+
+        Parameters
+        ----------
+        res_dir : pathlib.Path or str
+            Target directory path for results.
+        devices : list of str, optional
+            Devices on which to run experiments (e.g. ``["cuda:0"]``).
+            Defaults to ``["cpu"]``.
+        devmult : int, optional
+            Device multiplier. Defaults to 1.
+        seeds : sequence of int, optional
+            Seeds to use for the experiments. Defaults to ``range(1, 6)``.
+        """
         # Initialize instance
         if devices is None:
             devices = ["cpu"]
@@ -352,7 +372,7 @@ class Jobs:
     def get_seeds(self) -> tuple[int, ...]:
         """Get the list of seeds used for repeating the experiments.
 
-        Returns
+        Returns:
         -------
         tuple of int
             Seeds used by this manager.
@@ -386,7 +406,7 @@ class Jobs:
         command : Command
             Command builder to execute.
 
-        Raises
+        Raises:
         ------
         RuntimeError
             If the manager has already been closed.

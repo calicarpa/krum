@@ -12,16 +12,14 @@
 # Dataset wrappers/helpers.
 ###
 
-"""
-Dataset loading, batching, and sampling utilities.
+"""Dataset loading, batching, and sampling utilities.
 
 This module wraps ``torchvision.datasets`` and custom dataset modules into
 uniform infinite-batch generators. It also provides helpers for train/test
 splitting and raw-tensor batching.
 
-Example
+Example:
 -------
-
 >>> from experiments import Dataset, make_datasets
 >>> trainset, testset = make_datasets("cifar10", train_batch=128)
 >>> inputs, targets = trainset.sample(config)
@@ -74,8 +72,7 @@ transforms = {
 
 
 def get_default_transform(dataset, train):
-    """
-    Return the default transform for a torchvision dataset.
+    """Return the default transform for a torchvision dataset.
 
     Parameters
     ----------
@@ -85,7 +82,7 @@ def get_default_transform(dataset, train):
         Whether to return the training transform. Ignored when
         ``dataset`` is ``None``.
 
-    Returns
+    Returns:
     -------
     torchvision.transforms.Compose or None
         Composed transform, or ``None`` if the dataset is unknown.
@@ -102,8 +99,7 @@ def get_default_transform(dataset, train):
 
 
 class Dataset:
-    """
-    Unified dataset wrapper producing infinite batches.
+    """Unified dataset wrapper producing infinite batches.
 
     This class can wrap:
 
@@ -124,7 +120,7 @@ class Dataset:
     **kwargs : object
         Forwarded to the dataset constructor when ``data`` is a string.
 
-    Raises
+    Raises:
     ------
     tools.UnavailableException
         If ``data`` is an unknown dataset name.
@@ -137,10 +133,9 @@ class Dataset:
 
     @classmethod
     def get_default_root(cls):
-        """
-        Lazily initialize and return the default dataset cache directory.
+        """Lazily initialize and return the default dataset cache directory.
 
-        Returns
+        Returns:
         -------
         pathlib.Path
             Path to the dataset cache. Falls back to the system temp
@@ -170,13 +165,12 @@ class Dataset:
 
     @classmethod
     def _get_datasets(cls):
-        """
-        Lazily build the name-to-builder mapping for datasets.
+        """Lazily build the name-to-builder mapping for datasets.
 
         This includes all ``torchvision.datasets`` plus custom datasets
         discovered under ``experiments/datasets/``.
 
-        Returns
+        Returns:
         -------
         dict[str, callable]
             Lower-case dataset names mapped to builder functions.
@@ -259,8 +253,7 @@ class Dataset:
         return cls.__datasets
 
     def __init__(self, data, name=None, root=None, *args, **kwargs):
-        """
-        Initialize the dataset wrapper.
+        """Initialize the dataset wrapper.
 
         Parameters
         ----------
@@ -302,10 +295,9 @@ class Dataset:
         self.name = name
 
     def __str__(self):
-        """
-        Return a printable representation.
+        """Return a printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable dataset name.
@@ -313,15 +305,14 @@ class Dataset:
         return f"dataset {self.name}"
 
     def sample(self, config=None):
-        """
-        Sample the next batch.
+        """Sample the next batch.
 
         Parameters
         ----------
         config : experiments.Configuration or None, optional
             Target configuration for tensor placement.
 
-        Returns
+        Returns:
         -------
         tuple
             Next batch, optionally moved to the target device.
@@ -332,8 +323,7 @@ class Dataset:
         return tns
 
     def epoch(self, config=None):
-        """
-        Return a finite epoch iterator.
+        """Return a finite epoch iterator.
 
         .. note::
 
@@ -344,7 +334,7 @@ class Dataset:
         config : experiments.Configuration or None, optional
             Target configuration for tensor placement.
 
-        Returns
+        Returns:
         -------
         generator
             Finite iterator over one epoch.
@@ -379,15 +369,14 @@ class Dataset:
 
 
 def make_sampler(loader):
-    """
-    Create an infinite sampler from a DataLoader.
+    """Create an infinite sampler from a DataLoader.
 
     Parameters
     ----------
     loader : torch.utils.data.DataLoader
         Finite data loader.
 
-    Yields
+    Yields:
     ------
     tuple
         Batches, transparently restarting the loader when exhausted.
@@ -415,8 +404,7 @@ def make_datasets(
     num_workers=1,
     **custom_args,
 ):
-    """
-    Build training and testing dataset wrappers.
+    """Build training and testing dataset wrappers.
 
     Parameters
     ----------
@@ -436,7 +424,7 @@ def make_datasets(
     **custom_args : object
         Additional keyword arguments forwarded to the dataset constructor.
 
-    Returns
+    Returns:
     -------
     tuple[Dataset, Dataset]
         Training and testing dataset wrappers.
@@ -476,8 +464,7 @@ def make_datasets(
 
 
 def batch_dataset(inputs, labels, train=False, batch_size=None, split=0.75):
-    """
-    Batch a raw tensor dataset into infinite sampler generators.
+    """Batch a raw tensor dataset into infinite sampler generators.
 
     Parameters
     ----------
@@ -493,7 +480,7 @@ def batch_dataset(inputs, labels, train=False, batch_size=None, split=0.75):
         Fraction of samples for training when ``< 1``, or absolute count
         when ``>= 1``.
 
-    Returns
+    Returns:
     -------
     generator
         Infinite sampler generator.

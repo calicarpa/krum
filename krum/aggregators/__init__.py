@@ -12,8 +12,7 @@
 # Loading of the local modules.
 ###
 
-"""
-Gradient aggregation rules (GARs) for Byzantine-resilient distributed learning.
+"""Gradient aggregation rules (GARs) for Byzantine-resilient distributed learning.
 
 Each rule combines a keyword-only aggregation function with a validation
 function and optional metadata used by the training and experiment scripts.
@@ -63,8 +62,7 @@ def make_gar(
     upper_bound: Callable | None = None,
     influence: Callable | None = None,
 ) -> Callable:
-    """
-    Wrap an unchecked GAR with validation and metadata.
+    """Wrap an unchecked GAR with validation and metadata.
 
     Parameters
     ----------
@@ -81,7 +79,7 @@ def make_gar(
         Function computing the accepted Byzantine-gradient ratio for a given
         set of honest and attack gradients.
 
-    Returns
+    Returns:
     -------
     callable
         Checked or unchecked GAR selected according to ``__debug__``. The
@@ -117,8 +115,7 @@ def register(
     upper_bound: Callable | None = None,
     influence: Callable | None = None,
 ) -> None:
-    """
-    Register a gradient aggregation rule.
+    """Register a gradient aggregation rule.
 
     Parameters
     ----------

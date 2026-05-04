@@ -12,10 +12,11 @@
 # Brute GAR.
 ###
 
-"""
+r"""The Brute aggregation rule exhaustively searches all subsets of gradients.
+
 The Brute aggregation rule exhaustively searches all subsets of
 :math:`n - f` gradients and selects the subset with the smallest finite
-diameter. The diameter of a subset is the maximum pairwise distance between
+ diameter. The diameter of a subset is the maximum pairwise distance between
 any two gradients in that subset.
 
 Use Case
@@ -47,7 +48,7 @@ Complexity
   gradient dimension.
 - Space: :math:`O(n^2)` for storing pairwise distances.
 
-Example
+Example:
 -------
 >>> import torch
 >>> from aggregators import brute
@@ -81,8 +82,7 @@ except ImportError:
 
 
 def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple[int, ...]:
-    """
-    Select the gradient indices forming the smallest-diameter subset.
+    """Select the gradient indices forming the smallest-diameter subset.
 
     Parameters
     ----------
@@ -93,12 +93,12 @@ def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple
     **kwargs : object
         Additional keyword arguments, ignored by this helper.
 
-    Returns
+    Returns:
     -------
     tuple of int
         Indices of the selected :math:`n - f` gradients.
 
-    Notes
+    Notes:
     -----
     Candidate subsets containing non-finite pairwise distances are ignored.
     """
@@ -134,8 +134,7 @@ def _compute_selection(gradients: list[torch.Tensor], f: int, **kwargs) -> tuple
 
 
 def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
-    """
-    Compute the Brute aggregation (mean of smallest-diameter subset).
+    """Compute the Brute aggregation (mean of smallest-diameter subset).
 
     Parameters
     ----------
@@ -147,13 +146,13 @@ def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor |
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Mean of the selected :math:`n - f` gradients with smallest finite
         diameter.
 
-    Notes
+    Notes:
     -----
     The returned tensor is newly computed and does not alias any input tensor.
     """
@@ -162,8 +161,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor |
 
 
 def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.Tensor | float:
-    """
-    Compute the Brute aggregation using native C++/CUDA acceleration.
+    """Compute the Brute aggregation using native C++/CUDA acceleration.
 
     Parameters
     ----------
@@ -174,7 +172,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.T
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor | float
         Mean of the subset selected by the native Brute implementation.
@@ -183,8 +181,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, **kwargs) -> torch.T
 
 
 def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
-    """
-    Check parameter validity for the Brute aggregation rule.
+    """Check parameter validity for the Brute aggregation rule.
 
     Parameters
     ----------
@@ -195,7 +192,7 @@ def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
     **kwargs : object
         Additional keyword arguments, ignored by this check.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when parameters are valid, otherwise a user-facing error
@@ -212,8 +209,7 @@ def check(gradients: list[torch.Tensor], f: int, **kwargs) -> str | None:
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
-    """
-    Compute the theoretical Brute resilience bound.
+    """Compute the theoretical Brute resilience bound.
 
     Parameters
     ----------
@@ -224,7 +220,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
     d : int
         Dimension of the gradient space.
 
-    Returns
+    Returns:
     -------
     float
         Upper bound on the ratio between non-Byzantine standard deviation and
@@ -234,8 +230,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
 
 
 def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, **kwargs) -> float:
-    """
-    Compute the ratio of Byzantine gradients selected by Brute.
+    """Compute the ratio of Byzantine gradients selected by Brute.
 
     Parameters
     ----------
@@ -248,7 +243,7 @@ def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], f: int, 
     **kwargs : object
         Additional keyword arguments forwarded to the selection helper.
 
-    Returns
+    Returns:
     -------
     float
         Fraction of selected gradients that come from ``attacks``.

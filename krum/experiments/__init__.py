@@ -13,8 +13,7 @@
 # Heavily relies on the module 'torchvision'.
 ###
 
-"""
-Experiment components for model training, dataset loading, and evaluation.
+"""Experiment components for model training, dataset loading, and evaluation.
 
 This module groups the building blocks of a Krum training loop:
 
@@ -28,7 +27,7 @@ This module groups the building blocks of a Krum training loop:
 Custom models and datasets can be added under ``experiments/models/`` and
 ``experiments/datasets/``; they are discovered automatically at import time.
 
-Example
+Example:
 -------
 
 .. code-block:: python

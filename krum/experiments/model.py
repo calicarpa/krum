@@ -12,17 +12,15 @@
 # Model wrappers/helpers.
 ###
 
-"""
-Model wrapper with name resolution, initialization, and gradient handling.
+"""Model wrapper with name resolution, initialization, and gradient handling.
 
 This module provides :class:`Model`, a unified interface that can instantiate
 ``torchvision`` models (by name), custom models from ``experiments/models/``,
 or arbitrary callables. It also manages parameter flattening, gradient
 extraction, and data-parallelism automatically.
 
-Example
+Example:
 -------
-
 >>> from experiments import Model, Configuration
 >>> config = Configuration(device="cpu")
 >>> model = Model("resnet18", config, num_classes=10)
@@ -48,8 +46,7 @@ from .configuration import Configuration
 
 
 class Model:
-    """
-    Unified model wrapper with parameter and gradient management.
+    """Unified model wrapper with parameter and gradient management.
 
     Models are resolved by lower-case name from ``torchvision.models`` and
     from custom modules under ``experiments/models/``. Parameters are
@@ -79,7 +76,7 @@ class Model:
     **kwargs : object
         Forwarded to the model constructor.
 
-    Raises
+    Raises:
     ------
     tools.UnavailableException
         If ``name_build`` is an unknown string.
@@ -95,10 +92,9 @@ class Model:
 
     @classmethod
     def _get_models(cls):
-        """
-        Lazily build the name-to-constructor mapping for models.
+        """Lazily build the name-to-constructor mapping for models.
 
-        Returns
+        Returns:
         -------
         dict[str, callable]
             Lower-case model names mapped to constructors.
@@ -156,10 +152,9 @@ class Model:
 
     @classmethod
     def _get_inits(cls):
-        """
-        Lazily build the name-to-function mapping for initializers.
+        """Lazily build the name-to-function mapping for initializers.
 
-        Returns
+        Returns:
         -------
         dict[str, callable]
             Lower-case initializer names mapped to functions.
@@ -191,8 +186,7 @@ class Model:
         *args,
         **kwargs,
     ):
-        """
-        Initialize the model wrapper.
+        """Initialize the model wrapper.
 
         Parameters
         ----------
@@ -280,10 +274,9 @@ class Model:
         }
 
     def __str__(self):
-        """
-        Return a printable representation.
+        """Return a printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable model name.
@@ -292,10 +285,9 @@ class Model:
 
     @property
     def config(self):
-        """
-        Return the immutable configuration.
+        """Return the immutable configuration.
 
-        Returns
+        Returns:
         -------
         experiments.Configuration
             Model configuration.
@@ -303,8 +295,7 @@ class Model:
         return self._config
 
     def default(self, name, new=None, erase=False):
-        """
-        Get and/or set a named default.
+        """Get and/or set a named default.
 
         Parameters
         ----------
@@ -316,12 +307,12 @@ class Model:
         erase : bool, optional
             Force the value to ``None``.
 
-        Returns
+        Returns:
         -------
         object
             Current (or old) value of the default.
 
-        Raises
+        Raises:
         ------
         tools.UnavailableException
             If ``name`` is not a known default.
@@ -334,20 +325,19 @@ class Model:
         return old
 
     def _resolve_defaults(self, **kwargs):
-        """
-        Replace ``None`` values with registered defaults.
+        """Replace ``None`` values with registered defaults.
 
         Parameters
         ----------
         **kwargs : object
             Keyword arguments where ``None`` means "use the default".
 
-        Returns
+        Returns:
         -------
         list[object]
             Resolved values in argument order.
 
-        Raises
+        Raises:
         ------
         RuntimeError
             If a required default is missing.
@@ -362,8 +352,7 @@ class Model:
         return res
 
     def run(self, data, training=False):
-        """
-        Forward pass through the model.
+        """Forward pass through the model.
 
         Parameters
         ----------
@@ -373,7 +362,7 @@ class Model:
             Whether to use training mode (enables dropout, batch-norm
             updates, etc.). Defaults to evaluation mode.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Model output.
@@ -389,10 +378,9 @@ class Model:
         return self.run(*args, **kwargs)
 
     def get(self):
-        """
-        Get a reference to the flat parameter vector.
+        """Get a reference to the flat parameter vector.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Flat parameter tensor. Future calls to :meth:`set` will modify
@@ -401,8 +389,7 @@ class Model:
         return self._params
 
     def set(self, params, relink=None):
-        """
-        Overwrite parameters with the given flat vector.
+        """Overwrite parameters with the given flat vector.
 
         Parameters
         ----------
@@ -423,10 +410,9 @@ class Model:
             self._params.copy_(params, non_blocking=self._config["non_blocking"])
 
     def get_gradient(self):
-        """
-        Get (or create) the flat gradient vector.
+        """Get (or create) the flat gradient vector.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Flat gradient tensor. Future calls to :meth:`set_gradient` will
@@ -441,8 +427,7 @@ class Model:
         return gradient
 
     def set_gradient(self, gradient, relink=None):
-        """
-        Overwrite the gradient with the given flat vector.
+        """Overwrite the gradient with the given flat vector.
 
         Parameters
         ----------
@@ -463,8 +448,7 @@ class Model:
             self.get_gradient().copy_(gradient, non_blocking=self._config["non_blocking"])
 
     def loss(self, dataset=None, loss=None, training=None):
-        """
-        Estimate loss on a batch from the given dataset.
+        """Estimate loss on a batch from the given dataset.
 
         Parameters
         ----------
@@ -476,7 +460,7 @@ class Model:
             Whether this is a training run. ``None`` guesses from
             ``torch.is_grad_enabled()``.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Scalar loss value.
@@ -489,8 +473,7 @@ class Model:
 
     @torch.enable_grad()
     def backprop(self, dataset=None, loss=None, outloss=False, **kwargs):
-        """
-        Compute gradient on a batch from the given dataset.
+        """Compute gradient on a batch from the given dataset.
 
         Parameters
         ----------
@@ -503,7 +486,7 @@ class Model:
         **kwargs : object
             Forwarded to ``loss.backward()``.
 
-        Returns
+        Returns:
         -------
         torch.Tensor or tuple[torch.Tensor, torch.Tensor]
             Flat gradient, optionally paired with the loss value.
@@ -526,8 +509,7 @@ class Model:
         return self.get_gradient()
 
     def update(self, gradient, optimizer=None, relink=None):
-        """
-        Update parameters using the given gradient and optimizer.
+        """Update parameters using the given gradient and optimizer.
 
         Parameters
         ----------
@@ -548,8 +530,7 @@ class Model:
 
     @torch.no_grad()
     def eval(self, dataset=None, criterion=None):
-        """
-        Evaluate the model on a batch from the given dataset.
+        """Evaluate the model on a batch from the given dataset.
 
         Parameters
         ----------
@@ -558,7 +539,7 @@ class Model:
         criterion : experiments.Criterion or None, optional
             Criterion function. ``None`` uses the default criterion.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Mean criterion value over the sampled batch.

@@ -12,8 +12,7 @@
 # Loading of the local modules.
 ###
 
-"""
-Byzantine attack registry used to evaluate aggregation-rule robustness.
+"""Byzantine attack registry used to evaluate aggregation-rule robustness.
 
 Each attack combines a keyword-only generation function with a validation
 function. Registered attacks are loaded dynamically and exposed as module-level
@@ -57,8 +56,7 @@ from .. import tools
 
 
 def register(name: str, unchecked: Callable, check: Callable) -> None:
-    """
-    Register a Byzantine attack.
+    """Register a Byzantine attack.
 
     Parameters
     ----------
@@ -71,7 +69,7 @@ def register(name: str, unchecked: Callable, check: Callable) -> None:
         Validation function associated with ``unchecked``. It must return
         ``None`` when parameters are valid, or an error message otherwise.
 
-    Returns
+    Returns:
     -------
     None
         The attack is registered as a module-level callable.

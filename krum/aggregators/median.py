@@ -12,8 +12,7 @@
 # Coordinate-wise median GAR.
 ###
 
-"""
-Coordinate-wise median aggregation rule.
+r"""Coordinate-wise median aggregation rule.
 
 This rule computes the median of each coordinate independently across all
 submitted gradients. It delegates to ``torch.median`` and does not filter
@@ -45,7 +44,7 @@ where:
 - :math:`n` is the total number of workers.
 - :math:`f` is the number of Byzantine workers.
 
-Example
+Example:
 -------
 >>> import torch
 >>> from aggregators import median
@@ -77,8 +76,7 @@ except ImportError:
 
 
 def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
-    """
-    Compute the coordinate-wise median of all submitted gradients.
+    """Compute the coordinate-wise median of all submitted gradients.
 
     This method delegates to ``torch.median`` and does not filter non-finite
     values before aggregation. NaN values may propagate, while Inf values
@@ -93,12 +91,12 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
         Additional keyword arguments, accepted for compatibility with the GAR
         interface and ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Coordinate-wise median of all input gradients.
 
-    Notes
+    Notes:
     -----
     The returned tensor is newly computed and does not alias any input tensor.
     """
@@ -106,8 +104,7 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
 
 
 def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
-    """
-    Compute the coordinate-wise median using native C++/CUDA acceleration.
+    """Compute the coordinate-wise median using native C++/CUDA acceleration.
 
     Parameters
     ----------
@@ -117,7 +114,7 @@ def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
         Additional keyword arguments, accepted for compatibility with the GAR
         interface and ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Coordinate-wise median of all input gradients.
@@ -126,8 +123,7 @@ def aggregate_native(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
 
 
 def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
-    """
-    Check whether the median rule can be used with the given parameters.
+    """Check whether the median rule can be used with the given parameters.
 
     Parameters
     ----------
@@ -137,7 +133,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
         Additional keyword arguments, accepted for compatibility with the GAR
         interface and ignored by this check.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when parameters are valid, otherwise a user-facing error
@@ -149,8 +145,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
-    """
-    Compute the theoretical coordinate-wise median robustness bound.
+    r"""Compute the theoretical coordinate-wise median robustness bound.
 
     Parameters
     ----------
@@ -162,13 +157,13 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Gradient dimension. Accepted for compatibility with the GAR metadata
         interface; the current formula does not depend on it.
 
-    Returns
+    Returns:
     -------
     float
         Upper bound on the ratio between non-Byzantine standard deviation and
         gradient norm.
 
-    Notes
+    Notes:
     -----
     The bound formula is:
 

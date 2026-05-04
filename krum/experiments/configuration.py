@@ -12,15 +12,14 @@
 # Configuration wrapper.
 ###
 
-"""
-Tensor configuration wrapper.
+"""Tensor configuration wrapper.
 
 This module provides the :class:`Configuration` class, an immutable mapping
 that bundles ``device``, ``dtype``, and memory-transfer options. It is used
 throughout ``experiments`` to ensure every created or moved tensor uses the
 same configuration.
 
-Example
+Example:
 -------
 
 .. code-block:: python
@@ -44,8 +43,7 @@ from .. import tools
 
 
 class Configuration(Mapping):
-    """
-    Immutable tensor configuration holder.
+    """Immutable tensor configuration holder.
 
     This class bundles ``device``, ``dtype``, and memory-transfer options
     into a single immutable mapping. It is used throughout ``experiments``
@@ -64,9 +62,8 @@ class Configuration(Mapping):
     relink : bool, optional
         Whether to relink instead of copying during parameter assignments.
 
-    Example
+    Example:
     -------
-
     >>> from experiments import Configuration
     >>> config = Configuration(device="cpu", dtype=torch.float32)
     >>> config["device"]
@@ -77,8 +74,7 @@ class Configuration(Mapping):
     default_device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def __init__(self, device=None, dtype=None, noblock=False, relink=False):
-        """
-        Initialize the configuration.
+        """Initialize the configuration.
 
         Parameters
         ----------
@@ -113,10 +109,9 @@ class Configuration(Mapping):
         self.relink = relink
 
     def __len__(self):
-        """
-        Return the number of configuration entries.
+        """Return the number of configuration entries.
 
-        Returns
+        Returns:
         -------
         int
             Number of entries in the configuration mapping.
@@ -124,15 +119,14 @@ class Configuration(Mapping):
         return len(self._args)
 
     def __getitem__(self, name):
-        """
-        Get a configuration value by name.
+        """Get a configuration value by name.
 
         Parameters
         ----------
         name : str
             Configuration key (e.g. ``"device"``, ``"dtype"``).
 
-        Returns
+        Returns:
         -------
         object
             Associated configuration value.
@@ -140,10 +134,9 @@ class Configuration(Mapping):
         return self._args[name]
 
     def __iter__(self):
-        """
-        Iterate over all configuration keys.
+        """Iterate over all configuration keys.
 
-        Returns
+        Returns:
         -------
         iterator
             Iterator over configuration entry names.
@@ -151,10 +144,9 @@ class Configuration(Mapping):
         return self._args.__iter__()
 
     def __str__(self):
-        """
-        Return a nicely printable representation.
+        """Return a nicely printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable configuration summary.
@@ -164,10 +156,9 @@ class Configuration(Mapping):
         return str(temp)
 
     def __repr__(self):
-        """
-        Return an evaluable string representation.
+        """Return an evaluable string representation.
 
-        Returns
+        Returns:
         -------
         str
             Python-code string that evaluates to this configuration.

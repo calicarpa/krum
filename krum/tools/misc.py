@@ -12,8 +12,7 @@
 # Miscellaneous Python helpers.
 ###
 
-"""
-Utilities shared across the repository.
+"""Utilities shared across the repository.
 
 This module groups small helpers used for exception handling, parsing, timing,
 interactive exploration, and light registry patterns.
@@ -41,7 +40,7 @@ Miscellaneous helpers
     ``pairwise``, ``line_maximize``, ``interactive``, and
     ``get_loaded_dependencies`` cover assorted convenience tasks.
 
-Example
+Example:
 -------
 
 .. code-block:: python
@@ -93,8 +92,7 @@ from . import Context, UserException, fatal, trace, warning
 
 
 def make_unavailable_exception_text(data: list[str], name: str, what: str = "entry") -> str:
-    """
-    Build the message used by :class:`UnavailableException`.
+    """Build the message used by :class:`UnavailableException`.
 
     Parameters
     ----------
@@ -105,7 +103,7 @@ def make_unavailable_exception_text(data: list[str], name: str, what: str = "ent
     what : str, optional
         Human-readable description of the named objects.
 
-    Returns
+    Returns:
     -------
     str
         User-facing message that lists the available names, or states that no
@@ -122,8 +120,7 @@ def make_unavailable_exception_text(data: list[str], name: str, what: str = "ent
 
 
 def fatal_unavailable(*args, **kwargs) -> None:
-    """
-    Report an unavailable entry as a fatal user-facing error.
+    """Report an unavailable entry as a fatal user-facing error.
 
     Parameters
     ----------
@@ -141,8 +138,7 @@ class UnavailableException(UserException):
     """User-facing exception raised when a selected registry entry is missing."""
 
     def __init__(self, *args, **kwargs) -> None:
-        """
-        Initialize the exception message.
+        """Initialize the exception message.
 
         Parameters
         ----------
@@ -173,8 +169,7 @@ class MethodCallReplicator:
     """
 
     def __init__(self, *args: object) -> None:
-        """
-        Bind the instances that should receive replicated method calls.
+        """Bind the instances that should receive replicated method calls.
 
         Parameters
         ----------
@@ -187,15 +182,14 @@ class MethodCallReplicator:
         self.__instances = args
 
     def __getattr__(self, name: str) -> object:
-        """
-        Return a closure that replicates the named method call.
+        """Return a closure that replicates the named method call.
 
         Parameters
         ----------
         name : str
             Name of the method or callable attribute to replicate.
 
-        Returns
+        Returns:
         -------
         object
             Callable that forwards its arguments to every target callable and
@@ -206,8 +200,7 @@ class MethodCallReplicator:
 
         # Replication closure
         def calls(*args, **kwargs) -> list[object]:
-            """
-            Call each target callable with the provided arguments.
+            """Call each target callable with the provided arguments.
 
             Parameters
             ----------
@@ -216,7 +209,7 @@ class MethodCallReplicator:
             **kwargs : object
                 Keyword arguments forwarded to every target callable.
 
-            Returns
+            Returns:
             -------
             list[object]
                 Results returned by the target callables, in instance order.
@@ -235,8 +228,7 @@ class ClassRegister:
     """Minimal registry mapping user-visible names to classes."""
 
     def __init__(self, singular: str, optplural: str | None = None) -> None:
-        """
-        Create an empty class registry.
+        """Create an empty class registry.
 
         Parameters
         ----------
@@ -258,8 +250,7 @@ class ClassRegister:
         return list(self.__register.keys())
 
     def register(self, name: str, cls: type) -> None:
-        """
-        Register a class under a user-visible name.
+        """Register a class under a user-visible name.
 
         Parameters
         ----------
@@ -279,8 +270,7 @@ class ClassRegister:
         self.__register[name] = cls
 
     def instantiate(self, name: str, *args, **kwargs) -> object:
-        """
-        Instantiate the class registered under ``name``.
+        """Instantiate the class registered under ``name``.
 
         Parameters
         ----------
@@ -291,12 +281,12 @@ class ClassRegister:
         **kwargs : object
             Keyword arguments forwarded to the class constructor.
 
-        Returns
+        Returns:
         -------
         object
             Instance of the registered class.
 
-        Raises
+        Raises:
         ------
         UserException
             If ``name`` is not registered.
@@ -318,8 +308,7 @@ class ClassRegister:
 
 
 def parse_keyval_auto_convert(val: str) -> object:
-    """
-    Infer and convert the type represented by a string.
+    """Infer and convert the type represented by a string.
 
     Conversion is attempted in this order: boolean literals, integer, float, then
     string.
@@ -329,7 +318,7 @@ def parse_keyval_auto_convert(val: str) -> object:
     val : str
         String value to convert.
 
-    Returns
+    Returns:
     -------
     object
         Converted value, or ``val`` unchanged if no non-string type matches.
@@ -351,8 +340,7 @@ def parse_keyval_auto_convert(val: str) -> object:
 
 
 def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = None) -> dict[str, object]:
-    """
-    Parse ``<key>:<value>`` strings into a typed dictionary.
+    """Parse ``<key>:<value>`` strings into a typed dictionary.
 
     This helper is used for command-line options such as
     ``--gar-args lr:0.01``. Keys present in ``defaults`` are converted to the
@@ -368,20 +356,19 @@ def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = No
         inference and are copied into the returned dictionary when the
         corresponding key is not explicitly provided.
 
-    Returns
+    Returns:
     -------
     dict[str, object]
         Parsed key/value pairs with converted values.
 
-    Raises
+    Raises:
     ------
     UserException
         If an entry is malformed, a key is provided more than once, or
         conversion to a default value's type fails.
 
-    Example
+    Example:
     -------
-
     >>> parse_keyval(["lr:0.01", "batch:32"], defaults={"lr": 0.1})
     {'lr': 0.01, 'batch': 32}
     >>> parse_keyval(["debug:true", "workers:4"], defaults={})
@@ -432,23 +419,21 @@ def parse_keyval(list_keyval: list[str], defaults: dict[str, object] | None = No
 
 
 def fullqual(obj: object) -> str:
-    """
-    Return a class or instance's fully qualified name.
+    """Return a class or instance's fully qualified name.
 
     Parameters
     ----------
     obj : object
         Class or instance to describe.
 
-    Returns
+    Returns:
     -------
     str
         Fully qualified class name. Instances are prefixed with
         ``"instance of "``.
 
-    Example
+    Example:
     -------
-
     >>> fullqual(str)
     'builtins.str'
     >>> fullqual(pathlib.Path("."))
@@ -473,8 +458,7 @@ def fullqual(obj: object) -> str:
 
 
 def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., Any]]:
-    """
-    Create or retrieve a thread-safe one-shot flag.
+    """Create or retrieve a thread-safe one-shot flag.
 
     Parameters
     ----------
@@ -482,7 +466,7 @@ def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., 
         Optional global flag name. Reusing the same name returns the same
         getter/setter pair.
 
-    Returns
+    Returns:
     -------
     tuple[callable, callable]
         ``(getter, setter)`` pair. ``getter`` returns whether the flag has been
@@ -498,8 +482,7 @@ def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., 
 
     # Management closures
     def getter(*args, **kwargs):
-        """
-        Return whether the one-shot flag has been set.
+        """Return whether the one-shot flag has been set.
 
         Parameters
         ----------
@@ -508,7 +491,7 @@ def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., 
         **kwargs : object
             Ignored keyword arguments.
 
-        Returns
+        Returns:
         -------
         bool
             ``True`` once the associated setter has been called, otherwise
@@ -520,8 +503,7 @@ def onetime(name: str | None = None) -> tuple[Callable[..., Any], Callable[..., 
             return value
 
     def setter(*args, **kwargs):
-        """
-        Set the one-shot flag to ``True``.
+        """Set the one-shot flag to ``True``.
 
         Parameters
         ----------
@@ -553,8 +535,7 @@ class TimedContext(Context):
     """Context manager that logs the elapsed runtime of a block."""
 
     def __init__(self, *args, **kwargs) -> None:
-        """
-        Initialize the timed context.
+        """Initialize the timed context.
 
         Parameters
         ----------
@@ -566,10 +547,9 @@ class TimedContext(Context):
         super().__init__(*args, **kwargs)
 
     def __enter__(self):
-        """
-        Start timing and enter the parent context.
+        """Start timing and enter the parent context.
 
-        Returns
+        Returns:
         -------
         object
             Value returned by ``Context.__enter__``.
@@ -578,8 +558,7 @@ class TimedContext(Context):
         return super().__enter__()
 
     def __exit__(self, *args, **kwargs) -> None:
-        """
-        Stop timing, log elapsed time, and exit the parent context.
+        """Stop timing, log elapsed time, and exit the parent context.
 
         Parameters
         ----------
@@ -613,8 +592,7 @@ def interactive(
     prompt: str = ">>> ",
     cprmpt: str = "... ",
 ) -> None:
-    """
-    Run a small interactive Python prompt.
+    """Run a small interactive Python prompt.
 
     Press ``Ctrl+D`` or send an equivalent EOF signal to leave the prompt.
 
@@ -704,17 +682,16 @@ IS_LOCAL = 2
 
 
 def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
-    """
-    List currently loaded non-built-in root modules.
+    """List currently loaded non-built-in root modules.
 
-    Returns
+    Returns:
     -------
     list[tuple[str, str | None, int]]
         Tuples of ``(root_module_name, version, flavor)``. ``version`` is the
         module's ``__version__`` attribute when present, otherwise ``None``.
         ``flavor`` is one of ``IS_STANDARD``, ``IS_SITE``, or ``IS_LOCAL``.
 
-    Raises
+    Raises:
     ------
     RuntimeError
         If Python's site-packages locations cannot be discovered on the current
@@ -770,8 +747,7 @@ def line_maximize(
     delta: float = 1.0,
     ratio: float = 0.8,
 ) -> float:
-    """
-    Best-effort argmax search for a scalar function on non-negative inputs.
+    """Best-effort argmax search for a scalar function on non-negative inputs.
 
     The search first expands while values improve, then contracts the step size to
     refine the best point found within the evaluation budget.
@@ -791,7 +767,7 @@ def line_maximize(
         Step contraction ratio, expected to be between ``0.5`` and ``1.0``
         excluded.
 
-    Returns
+    Returns:
     -------
     float
         Best point found under the evaluation budget.
@@ -839,22 +815,20 @@ def line_maximize(
 
 
 def pairwise(data: list | tuple):
-    """
-    Yield unordered pairs from an indexable collection.
+    """Yield unordered pairs from an indexable collection.
 
     Parameters
     ----------
     data : list | tuple
         Indexable collection such as a ``list`` or ``tuple``.
 
-    Yields
+    Yields:
     ------
     tuple
         Tuples ``(data[i], data[j])`` for every ``i < j``.
 
-    Example
+    Example:
     -------
-
     >>> list(pairwise([1, 2, 3]))
     [(1, 2), (1, 3), (2, 3)]
     >>> list(pairwise("ab"))
@@ -871,10 +845,9 @@ def pairwise(data: list | tuple):
 
 
 def localtime() -> str:
-    """
-    Return the current local time formatted for logs.
+    """Return the current local time formatted for logs.
 
-    Returns
+    Returns:
     -------
     str
         Local time as ``YYYY/MM/DD HH:MM:SS``.
@@ -884,10 +857,9 @@ def localtime() -> str:
 
 
 def deltatime_point() -> int:
-    """
-    Capture an opaque point in monotonic time.
+    """Capture an opaque point in monotonic time.
 
-    Returns
+    Returns:
     -------
     int
         Monotonic timestamp rounded to seconds. The value is intended for use
@@ -898,8 +870,7 @@ def deltatime_point() -> int:
 
 
 def deltatime_format(a: int, b: int) -> tuple[int, str]:
-    """
-    Compute and format elapsed time between two captured points.
+    """Compute and format elapsed time between two captured points.
 
     Parameters
     ----------
@@ -908,7 +879,7 @@ def deltatime_format(a: int, b: int) -> tuple[int, str]:
     b : int
         Later point returned by :func:`deltatime_point`.
 
-    Returns
+    Returns:
     -------
     tuple[int, str]
         Tuple ``(seconds, text)`` containing elapsed seconds and a

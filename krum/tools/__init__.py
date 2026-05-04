@@ -12,8 +12,7 @@
 # Bunch of useful tools, but each too small to have its own package.
 ###
 
-"""
-Core Utility Module for Krum.
+"""Core Utility Module for Krum.
 
 This module provides the fundamental infrastructure utilities used throughout
 Krum, including logging, error handling, and common operations.
@@ -59,9 +58,7 @@ from typing import Any, Callable, TextIO
 
 
 class UserException(Exception):
-    """
-    Base exception for user-facing errors.
-    """
+    """Base exception for user-facing errors."""
 
     pass
 
@@ -71,9 +68,7 @@ class UserException(Exception):
 
 
 class Context:
-    """
-    Per-thread logging context and color manager.
-    """
+    """Per-thread logging context and color manager."""
 
     # Constants
     __colors = {
@@ -96,9 +91,7 @@ class Context:
 
     @classmethod
     def __local_init(self):
-        """
-        Initialize thread-local context state if necessary.
-        """
+        """Initialize thread-local context state if necessary."""
         if not hasattr(self.__local, "stack"):
             self.__local.stack = []  # List of pairs (context name, color code)
             self.__local.header = ""  # Current header string
@@ -106,9 +99,7 @@ class Context:
 
     @classmethod
     def __rebuild(self):
-        """
-        Rebuild the current log header and color from the context stack.
-        """
+        """Rebuild the current log header and color from the context stack."""
         # Collect current header and color
         header = ""
         color = None
@@ -129,10 +120,9 @@ class Context:
 
     @classmethod
     def _get(self):
-        """
-        Return the current thread-local header and color escape sequences.
+        """Return the current thread-local header and color escape sequences.
 
-        Returns
+        Returns:
         -------
         tuple[str, str, str, str]
             Current header, header color prefix, message color prefix, and color
@@ -147,8 +137,7 @@ class Context:
         )
 
     def __init__(self, cntxtname: str | None, colorname: str | None) -> None:
-        """
-        Create a context stack entry.
+        """Create a context stack entry.
 
         Parameters
         ----------
@@ -169,10 +158,9 @@ class Context:
         self.__pair = (cntxtname, colorcode)
 
     def __enter__(self):
-        """
-        Enter the logging context.
+        """Enter the logging context.
 
-        Returns
+        Returns:
         -------
         Context
             This context manager instance.
@@ -183,8 +171,7 @@ class Context:
         return self
 
     def __exit__(self, *args, **kwargs) -> None:
-        """
-        Leave the logging context.
+        """Leave the logging context.
 
         Parameters
         ----------
@@ -198,13 +185,10 @@ class Context:
 
 
 class ContextIOWrapper:
-    """
-    Context-aware text I/O wrapper.
-    """
+    """Context-aware text I/O wrapper."""
 
     def __init__(self, output: TextIO, nocolor: bool | None = None) -> None:
-        """
-        Wrap a text output stream.
+        """Wrap a text output stream.
 
         Parameters
         ----------
@@ -224,15 +208,14 @@ class ContextIOWrapper:
         self.__nocolor = nocolor
 
     def __getattr__(self, name: str) -> object:
-        """
-        Forward non-overridden attribute access to the wrapped stream.
+        """Forward non-overridden attribute access to the wrapped stream.
 
         Parameters
         ----------
         name : str
             Attribute name.
 
-        Returns
+        Returns:
         -------
         object
             Attribute value from the wrapped stream.
@@ -240,15 +223,14 @@ class ContextIOWrapper:
         return getattr(self.__output, name)
 
     def write(self, text: str) -> int:
-        """
-        Write text with the active context prefix and color.
+        """Write text with the active context prefix and color.
 
         Parameters
         ----------
         text : str
             Text to write.
 
-        Returns
+        Returns:
         -------
         int
             Return value forwarded from the wrapped stream's ``write`` method.
@@ -275,23 +257,21 @@ class ContextIOWrapper:
 
 
 def _make_color_print(color: str) -> Callable[..., object]:
-    """
-    Build a ``print`` wrapper that runs inside a colored context.
+    """Build a ``print`` wrapper that runs inside a colored context.
 
     Parameters
     ----------
     color : str
         Target color name.
 
-    Returns
+    Returns:
     -------
     object
         Print wrapper closure.
     """
 
     def color_print(*args, context: str | None = None, **kwargs) -> object:
-        """
-        Print inside the configured colored context.
+        """Print inside the configured colored context.
 
         Parameters
         ----------
@@ -302,7 +282,7 @@ def _make_color_print(color: str) -> Callable[..., object]:
         **kwargs : object
             Keyword arguments forwarded to :func:`print`.
 
-        Returns
+        Returns:
         -------
         object
             Return value forwarded from :func:`print`.
@@ -322,8 +302,7 @@ error = _make_color_print("error")
 
 
 def fatal(*args, with_traceback: bool = False, **kwargs) -> None:
-    """
-    Print an error message and terminate the process with exit code 1.
+    """Print an error message and terminate the process with exit code 1.
 
     Parameters
     ----------
@@ -351,23 +330,21 @@ sys.stderr = ContextIOWrapper(sys.stderr)
 
 
 def uncaught_wrap(hook: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Wrap an uncaught exception hook with contextual logging.
+    """Wrap an uncaught exception hook with contextual logging.
 
     Parameters
     ----------
     hook : object
         Uncaught exception hook to wrap.
 
-    Returns
+    Returns:
     -------
     object
         Wrapped uncaught exception hook.
     """
 
     def uncaught_call(etype: type, evalue: object, traceback: object) -> object:
-        """
-        Handle uncaught exceptions with user-facing context.
+        """Handle uncaught exceptions with user-facing context.
 
         Parameters
         ----------
@@ -378,7 +355,7 @@ def uncaught_wrap(hook: Callable[..., Any]) -> Callable[..., Any]:
         traceback : object
             Traceback associated with the exception.
 
-        Returns
+        Returns:
         -------
         object
             Return value forwarded from the wrapped hook for non-user exceptions.
@@ -404,8 +381,7 @@ _imported = {}  # Map symbol name -> module source name
 
 
 def import_exported_symbols(name: str, module, scope: dict) -> None:
-    """
-    Import a module's exported symbols into a target scope.
+    """Import a module's exported symbols into a target scope.
 
     Parameters
     ----------
@@ -443,8 +419,7 @@ def import_directory(
     post: Callable[..., Any] | None = import_exported_symbols,
     ignore: list[str] | None = None,
 ) -> None:
-    """
-    Import every Python module from a directory into a target scope.
+    """Import every Python module from a directory into a target scope.
 
     Parameters
     ----------

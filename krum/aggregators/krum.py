@@ -12,8 +12,7 @@
 # Multi-Krum GAR.
 ###
 
-"""
-Krum and Multi-Krum are distance-based Byzantine-resilient aggregation rules.
+r"""Krum and Multi-Krum are distance-based Byzantine-resilient aggregation rules.
 
 For each candidate gradient, the rule computes a score by summing the distances
 to its :math:`n - f - 1` nearest neighbours. It then selects the :math:`m`
@@ -64,9 +63,8 @@ m : int, optional
     Number of gradients to select for averaging. Defaults to ``n - f - 2``.
     Must satisfy ``1 <= m <= n - f - 2``.
 
-Example
+Example:
 -------
-
 >>> import torch
 >>> from aggregators import krum
 >>> gradients = [
@@ -99,8 +97,7 @@ except ImportError:
 
 
 def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> list[tuple[float, torch.Tensor]]:
-    """
-    Compute Multi-Krum scores for all candidate gradients.
+    """Compute Multi-Krum scores for all candidate gradients.
 
     Parameters
     ----------
@@ -113,7 +110,7 @@ def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> 
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     list of tuple[float, torch.Tensor]
         Candidate gradients paired with their scores, sorted by increasing
@@ -145,8 +142,7 @@ def _compute_scores(gradients: list[torch.Tensor], f: int, m: int, **kwargs) -> 
 
 
 def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
-    """
-    Aggregate gradients with Multi-Krum.
+    """Aggregate gradients with Multi-Krum.
 
     Parameters
     ----------
@@ -161,12 +157,12 @@ def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwa
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Average of the selected ``m`` gradients with the smallest Krum scores.
 
-    Notes
+    Notes:
     -----
     The output tensor is newly created and does not alias any input tensor.
     """
@@ -179,8 +175,7 @@ def aggregate(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwa
 
 
 def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> torch.Tensor:
-    """
-    Aggregate gradients with the native Multi-Krum implementation.
+    """Aggregate gradients with the native Multi-Krum implementation.
 
     Parameters
     ----------
@@ -193,7 +188,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Average of the selected gradients.
@@ -206,8 +201,7 @@ def aggregate_native(gradients: list[torch.Tensor], f: int, m: int | None = None
 
 
 def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs) -> str | None:
-    """
-    Check whether Multi-Krum can be used with the given parameters.
+    """Check whether Multi-Krum can be used with the given parameters.
 
     Parameters
     ----------
@@ -220,7 +214,7 @@ def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs)
     **kwargs : object
         Additional keyword arguments, ignored by this implementation.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when the parameters are valid, otherwise a user-facing error
@@ -239,8 +233,7 @@ def check(gradients: list[torch.Tensor], f: int, m: int | None = None, **kwargs)
 
 
 def upper_bound(n: int, f: int, d: int) -> float:
-    """
-    Compute the theoretical Multi-Krum robustness bound.
+    """Compute the theoretical Multi-Krum robustness bound.
 
     Parameters
     ----------
@@ -252,7 +245,7 @@ def upper_bound(n: int, f: int, d: int) -> float:
         Dimension of the gradient space. This parameter is accepted for the
         standard GAR metadata contract and is not used by this formula.
 
-    Returns
+    Returns:
     -------
     float
         Upper bound on the ratio between non-Byzantine standard deviation and
@@ -268,8 +261,7 @@ def influence(
     m: int | None = None,
     **kwargs,
 ) -> float:
-    """
-    Compute the ratio of Byzantine gradients selected by Multi-Krum.
+    """Compute the ratio of Byzantine gradients selected by Multi-Krum.
 
     Parameters
     ----------
@@ -284,7 +276,7 @@ def influence(
     **kwargs : object
         Additional keyword arguments forwarded to score computation.
 
-    Returns
+    Returns:
     -------
     float
         Ratio of selected gradients that come from ``attacks``.

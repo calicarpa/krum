@@ -1,16 +1,4 @@
-###
-# @file   __init__.py
-# @author Sébastien Rouault <sebastien.rouault@alumni.epfl.ch>
-#
-# @section LICENSE
-#
-# Copyright © 2018-2019 École Polytechnique Fédérale de Lausanne (EPFL).
-# See LICENSE file.
-#
-# @section DESCRIPTION
-#
-# Native (i.e. C++/CUDA) implementations automated building and loading.
-###
+"""Native (i.e. C++/CUDA) implementations automated building and loading."""
 
 # ---------------------------------------------------------------------------- #
 # Initialization procedure
@@ -53,7 +41,7 @@ def _build_and_load() -> None:
     else:
         debug_mode = __debug__
     cpp_std_envname = "NATIVE_STD"
-    cpp_std = os.environ.get(cpp_std_envname, "c++14")
+    cpp_std = os.environ.get(cpp_std_envname, "c++17")
     ident_to_is_python = {"so_": False, "py_": True}
     source_suffixes = {".cpp", ".cc", ".C", ".cxx", ".c++"}
     extra_cflags = ["-Wall", "-Wextra", "-Wfatal-errors", f"-std={cpp_std}"]
@@ -102,12 +90,21 @@ def _build_and_load() -> None:
 
     # Local procedures
     def build_and_load_one(path, deps=None):
-        """Check if the given directory is a module to build and load, and if yes recursively build and load its dependencies before it.
-        Args:
-          path Given directory path
-          deps Dependent module paths
+        """Check if the given directory is a module to build and load.
+
+        If it is a module, recursively build and load its dependencies first.
+
+        Parameters
+        ----------
+        path : pathlib.Path
+            Given directory path.
+        deps : list of pathlib.Path, optional
+            Dependent module paths.
+
         Returns:
-          True on success, False on failure, None if not a module
+        -------
+        bool or None
+            ``True`` on success, ``False`` on failure, ``None`` if not a module.
         """
         if deps is None:
             deps = []
@@ -157,9 +154,7 @@ def _build_and_load() -> None:
                             fail_modules.append(path)  # Mark as failed
                             return False
                         if res:  # Module and its sub-dependencies was/were built and loaded successfully
-                            this_ldflags.append(
-                                "-Wl,--library=:" + str((base_directory / modname / (modname + ".so")).resolve())
-                            )
+                            this_ldflags.append(str((base_directory / modname / (modname + ".so")).resolve()))
                 # List sources
                 sources = []
                 for subpath in path.iterdir():

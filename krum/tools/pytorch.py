@@ -12,7 +12,8 @@
 # Helpers relative to PyTorch.
 ###
 
-"""
+"""Helper functions for PyTorch tensor manipulation and gradient handling.
+
 This module provides helper functions for PyTorch tensor manipulation,
 gradient handling, and common operations used throughout Krum.
 
@@ -43,7 +44,7 @@ Functions
 - ``regression``: Generic optimization for free variables
 - ``pnm``: Export tensor to PGM/PBM format
 
-Example
+Example:
 -------
 
 .. code-block:: python
@@ -85,8 +86,7 @@ import torch
 
 
 def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
-    """
-    Relink tensors to share a common contiguous memory storage.
+    """Relink tensors to share a common contiguous memory storage.
 
     Parameters
     ----------
@@ -96,19 +96,18 @@ def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
         Flat tensor of sufficient size to use as underlying storage.
         Must have the same dtype as the given tensors.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         The common tensor, with ``linked_tensors`` attribute set.
 
-    Notes
+    Notes:
     -----
     The returned tensor has a ``linked_tensors`` attribute pointing to the
     original tensors. This allows updating all tensors simultaneously.
 
-    Example
+    Example:
     -------
-
     >>> import torch
     >>> from tools import relink
     >>> t1 = torch.tensor([1., 2.])
@@ -132,28 +131,26 @@ def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
 
 
 def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
-    """
-    Flatten tensors into a single contiguous tensor.
+    """Flatten tensors into a single contiguous tensor.
 
     Parameters
     ----------
     tensors : list of torch.Tensor
         Tensors to flatten. All must have the same dtype.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Flat tensor containing all data from input tensors, stored in
         a contiguous memory segment.
 
-    Notes
+    Notes:
     -----
     The returned tensor shares memory with the original tensors. Modifications
     to the flat tensor will reflect in the original tensors.
 
-    Example
+    Example:
     -------
-
     >>> import torch
     >>> from tools import flatten
     >>> t1 = torch.tensor([1., 2.])
@@ -175,23 +172,21 @@ def flatten(tensors: list[torch.Tensor]) -> torch.Tensor:
 
 
 def grad_of(tensor: torch.Tensor) -> torch.Tensor:
-    """
-    Get the gradient of a given tensor, create zero gradient if missing.
+    """Get the gradient of a given tensor, create zero gradient if missing.
 
     Parameters
     ----------
     tensor : torch.Tensor
         A tensor that may have a gradient attached.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         The gradient tensor. If none existed, a zero gradient is created
         and attached to the tensor.
 
-    Example
+    Example:
     -------
-
     >>> import torch
     >>> from tools import grad_of
     >>> x = torch.randn(3, requires_grad=True)
@@ -210,22 +205,20 @@ def grad_of(tensor: torch.Tensor) -> torch.Tensor:
 
 
 def grads_of(tensors: list[torch.Tensor]):
-    """
-    Generator that gets or creates gradients for multiple tensors.
+    """Generator that gets or creates gradients for multiple tensors.
 
     Parameters
     ----------
     tensors : list of torch.Tensor
         Tensors that may have gradients attached.
 
-    Yields
+    Yields:
     ------
     torch.Tensor
         Gradient for each tensor.
 
-    Example
+    Example:
     -------
-
     >>> import torch
     >>> from tools import grads_of
     >>> params = [torch.randn(3, requires_grad=True) for _ in range(2)]
@@ -247,21 +240,20 @@ def grads_of(tensors: list[torch.Tensor]):
 def compute_avg_dev_max(
     samples: list[torch.Tensor],
 ) -> tuple[torch.Tensor | None, float, float, float]:
-    """
-    Compute average, average norm, norm deviation, and max absolute value.
+    """Compute average, average norm, norm deviation, and max absolute value.
 
     Parameters
     ----------
     samples : list of torch.Tensor
         List of tensors to compute statistics on.
 
-    Returns
+    Returns:
     -------
     tuple[torch.Tensor, float, float, float]
         Tuple containing: average tensor, average norm, norm deviation, and
         max absolute value.
 
-    Notes
+    Notes:
     -----
     The returned tensor is newly created and does not alias any input tensor.
     """
@@ -287,8 +279,7 @@ def compute_avg_dev_max(
 
 
 class AccumulatedTimedContext:
-    """
-    Accumulated timed context manager with optional CUDA synchronization.
+    """Accumulated timed context manager with optional CUDA synchronization.
 
     This context manager measures elapsed time across multiple entries,
     with optional CUDA synchronization to ensure accurate GPU timing.
@@ -299,7 +290,7 @@ class AccumulatedTimedContext:
         Whether to synchronize CUDA before and after timing. Defaults to
         ``False``.
 
-    Example
+    Example:
     -------
     >>> import torch
     >>> from tools import AccumulatedTimedContext
@@ -311,8 +302,7 @@ class AccumulatedTimedContext:
     """
 
     def __init__(self, sync: bool | float = False) -> None:
-        """
-        Initialize the accumulated timed context.
+        """Initialize the accumulated timed context.
 
         Parameters
         ----------
@@ -330,10 +320,9 @@ class AccumulatedTimedContext:
             self._elapsed = 0.0
 
     def __enter__(self):
-        """
-        Enter the context and start timing.
+        """Enter the context and start timing.
 
-        Returns
+        Returns:
         -------
         AccumulatedTimedContext
             Self reference for context management.
@@ -344,8 +333,7 @@ class AccumulatedTimedContext:
         return self
 
     def __exit__(self, *args) -> None:
-        """
-        Exit the context, stop timing, and accumulate elapsed time.
+        """Exit the context, stop timing, and accumulate elapsed time.
 
         Parameters
         ----------
@@ -358,10 +346,9 @@ class AccumulatedTimedContext:
         self._elapsed += time.perf_counter() - self._start
 
     def current_runtime(self) -> float:
-        """
-        Return the accumulated runtime.
+        """Return the accumulated runtime.
 
-        Returns
+        Returns:
         -------
         float
             Total accumulated time in seconds.
@@ -374,8 +361,7 @@ class AccumulatedTimedContext:
 
 
 def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
-    """
-    Compute weighted mean squared error loss.
+    """Compute weighted mean squared error loss.
 
     Parameters
     ----------
@@ -386,12 +372,12 @@ def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.T
     weight : torch.Tensor
         Weight tensor for each element.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         Weighted MSE loss value.
 
-    Notes
+    Notes:
     -----
     The returned tensor is newly created and does not alias any input tensor.
     """
@@ -399,21 +385,17 @@ def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weight: torch.T
 
 
 class WeightedMSELoss(torch.nn.Module):
-    """
-    Weighted MSE loss module.
+    """Weighted MSE loss module.
 
     This module wraps :func:`weighted_mse_loss` as a PyTorch module.
     """
 
     def __init__(self) -> None:
-        """
-        Initialize the weighted MSE loss module.
-        """
+        """Initialize the weighted MSE loss module."""
         super().__init__()
 
     def forward(self, input: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
-        """
-        Compute weighted MSE loss.
+        """Compute weighted MSE loss.
 
         Parameters
         ----------
@@ -424,7 +406,7 @@ class WeightedMSELoss(torch.nn.Module):
         weight : torch.Tensor
             Weight tensor.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Weighted MSE loss value.
@@ -444,8 +426,7 @@ def regression(
     opt=None,
     steps=1000,
 ) -> float:
-    """
-    Generic optimization for free variables.
+    """Generic optimization for free variables.
 
     Parameters
     ----------
@@ -462,7 +443,7 @@ def regression(
     steps : int, optional
         Number of optimization steps. Defaults to 1000.
 
-    Returns
+    Returns:
     -------
     float
         Final loss value after optimization.
@@ -485,8 +466,7 @@ def regression(
 
 
 def pnm(fd: io.BufferedWriter, tn: torch.Tensor) -> None:
-    """
-    Export tensor to PGM/PBM format.
+    """Export tensor to PGM/PBM format.
 
     Parameters
     ----------
@@ -496,7 +476,7 @@ def pnm(fd: io.BufferedWriter, tn: torch.Tensor) -> None:
         Tensor to export. Supports float32/float64 for grayscale (PGM) or
         boolean/integer for binary (PBM).
 
-    Notes
+    Notes:
     -----
     - Grayscale format (PGM): For float32/float64 tensors, normalizes to 0-255.
     - Binary format (PBM): For other dtypes, converts to binary values.

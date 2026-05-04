@@ -12,7 +12,8 @@
 # Simple arithmetic mean aggregation rule.
 ###
 
-"""
+"""Simplest aggregation rule, computing the arithmetic mean of all submitted gradients.
+
 This is the simplest aggregation rule, computing the arithmetic mean of all
 submitted gradients. It serves as a baseline for comparison with Byzantine-
 resilient methods.
@@ -31,9 +32,8 @@ Properties
 - No parameters: No configuration required beyond the gradient list.
 - Output: Newly created tensor, does not alias any input.
 
-Example
+Example:
 -------
-
 >>> import torch
 >>> from aggregators import average
 >>> gradients = [torch.tensor([1., 2., 3.]), torch.tensor([4., 5., 6.])]
@@ -50,8 +50,7 @@ from . import register
 
 
 def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
-    """
-    Compute the arithmetic mean of all submitted gradients.
+    """Compute the arithmetic mean of all submitted gradients.
 
     Parameters
     ----------
@@ -61,12 +60,12 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
     **kwargs : object
         Additional keyword arguments, ignored by this rule.
 
-    Returns
+    Returns:
     -------
     torch.Tensor
         The arithmetic mean of all input gradients.
 
-    Notes
+    Notes:
     -----
     The output tensor is a new tensor, not aliasing any input tensor.
     """
@@ -74,8 +73,7 @@ def aggregate(gradients: list[torch.Tensor], **kwargs) -> torch.Tensor:
 
 
 def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
-    """
-    Check parameter validity for the averaging rule.
+    """Check parameter validity for the averaging rule.
 
     Parameters
     ----------
@@ -84,7 +82,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
     **kwargs : object
         Additional keyword arguments, ignored by this rule.
 
-    Returns
+    Returns:
     -------
     str or None
         ``None`` when parameters are valid, otherwise a user-facing error
@@ -96,8 +94,7 @@ def check(gradients: list[torch.Tensor], **kwargs) -> str | None:
 
 
 def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], **kwargs) -> float:
-    """
-    Compute the ratio of accepted Byzantine gradients.
+    """Compute the ratio of accepted Byzantine gradients.
 
     For arithmetic mean, all submitted gradients are used in the aggregation,
     so the influence ratio is simply the fraction of Byzantine gradients
@@ -112,7 +109,7 @@ def influence(honests: list[torch.Tensor], attacks: list[torch.Tensor], **kwargs
     **kwargs : object
         Additional keyword arguments, ignored by this rule.
 
-    Returns
+    Returns:
     -------
     float
         Ratio of Byzantine gradients in the aggregation (attackers / total).

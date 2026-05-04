@@ -20,13 +20,13 @@ the :class:`experiments.Dataset` loader because they are listed in ``__all__``.
 Each builder downloads the raw LIBSVM file on first use, caches a pre-processed
 PyTorch tensor version, and returns an infinite-batch generator.
 
-Example
+Example:
 -------
 >>> from experiments import Dataset
 >>> dataset = Dataset("svm-phishing", train=True, download=True)
 >>> inputs, labels = dataset.sample()
 
-See Also
+See Also:
 --------
 experiments.batch_dataset : helper used internally to create the infinite
     sampler from raw tensors.
@@ -70,13 +70,13 @@ def get_phishing(root, url):
         URL to fetch the raw dataset from. If ``None`` and the cache is
         missing, a :class:`RuntimeError` is raised.
 
-    Returns
+    Returns:
     -------
     tuple[torch.Tensor, torch.Tensor]
         ``(inputs, labels)`` where *inputs* has shape ``(11055, 68)`` and
         *labels* has shape ``(11055, 1)``.
 
-    Raises
+    Raises:
     ------
     RuntimeError
         If the cache is missing and *url* is ``None``, or if the download
@@ -158,7 +158,7 @@ def get_phishing(root, url):
 
 
 def phishing(train=True, batch_size=None, root=None, download=False, *args, **kwargs):
-    """Phishing dataset builder returning an infinite-batch generator.
+    r"""Phishing dataset builder returning an infinite-batch generator.
 
     Parameters
     ----------
@@ -178,12 +178,12 @@ def phishing(train=True, batch_size=None, root=None, download=False, *args, **kw
     **kwargs : object
         Ignored (kept for API compatibility).
 
-    Returns
+    Returns:
     -------
     generator
         Infinite sampler yielding ``(inputs, labels)`` tuples.
 
-    Notes
+    Notes:
     -----
     The dataset is split at position ``8400`` (≈ 76 % train / 24 % test).
     The split point was chosen for good divisibility

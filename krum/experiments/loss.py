@@ -12,8 +12,7 @@
 # Loss/criterion wrappers/helpers.
 ###
 
-"""
-Loss and criterion wrappers for training and evaluation.
+"""Loss and criterion wrappers for training and evaluation.
 
 This module provides:
 
@@ -22,9 +21,8 @@ This module provides:
 - :class:`Criterion` — non-derivable evaluation metrics (top-k accuracy,
   sigmoid accuracy).
 
-Example
+Example:
 -------
-
 >>> from experiments import Loss, Criterion
 >>> loss = Loss("crossentropy") + 0.01 * Loss("l2")
 >>> crit = Criterion("top-k", k=5)
@@ -41,8 +39,7 @@ from .. import tools
 
 
 class Loss:
-    """
-    Derivable loss function wrapper with composition support.
+    """Derivable loss function wrapper with composition support.
 
     Losses can be added (``loss1 + loss2``) and scaled (``0.5 * loss``).
     All standard PyTorch losses are available by lower-case name.
@@ -59,7 +56,7 @@ class Loss:
     **kwargs : object
         Forwarded to the loss constructor when ``name_build`` is a string.
 
-    Raises
+    Raises:
     ------
     tools.UnavailableException
         If ``name_build`` is an unknown string.
@@ -69,8 +66,7 @@ class Loss:
 
     @staticmethod
     def _l1loss(output, target, params):
-        """
-        L1 regularization on parameters.
+        """L1 regularization on parameters.
 
         Parameters
         ----------
@@ -81,7 +77,7 @@ class Loss:
         params : torch.Tensor
             Flat parameter tensor.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             L1 norm of ``params``.
@@ -90,8 +86,7 @@ class Loss:
 
     @staticmethod
     def _l2loss(output, target, params):
-        """
-        L2 regularization on parameters.
+        """L2 regularization on parameters.
 
         Parameters
         ----------
@@ -102,7 +97,7 @@ class Loss:
         params : torch.Tensor
             Flat parameter tensor.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             L2 norm of ``params``.
@@ -111,10 +106,9 @@ class Loss:
 
     @classmethod
     def _l1loss_builder(cls):
-        """
-        Build an L1 regularization loss instance.
+        """Build an L1 regularization loss instance.
 
-        Returns
+        Returns:
         -------
         Loss
             L1 loss wrapper.
@@ -123,10 +117,9 @@ class Loss:
 
     @classmethod
     def _l2loss_builder(cls):
-        """
-        Build an L2 regularization loss instance.
+        """Build an L2 regularization loss instance.
 
-        Returns
+        Returns:
         -------
         Loss
             L2 loss wrapper.
@@ -138,15 +131,14 @@ class Loss:
 
     @staticmethod
     def _make_drop_params(builder):
-        """
-        Wrap a PyTorch loss builder to drop the ``params`` argument.
+        """Wrap a PyTorch loss builder to drop the ``params`` argument.
 
         Parameters
         ----------
         builder : callable
             Original loss constructor.
 
-        Returns
+        Returns:
         -------
         callable
             Wrapped builder returning a loss that ignores ``params``.
@@ -164,10 +156,9 @@ class Loss:
 
     @classmethod
     def _get_losses(cls):
-        """
-        Lazily build the name-to-constructor mapping for losses.
+        """Lazily build the name-to-constructor mapping for losses.
 
-        Returns
+        Returns:
         -------
         dict[str, callable]
             Lower-case loss names mapped to builders.
@@ -190,8 +181,7 @@ class Loss:
         return cls.__losses
 
     def __init__(self, name_build, *args, **kwargs):
-        """
-        Initialize the loss wrapper.
+        """Initialize the loss wrapper.
 
         Parameters
         ----------
@@ -226,10 +216,9 @@ class Loss:
         self._name = name
 
     def _str_make(self):
-        """
-        Build the formatted loss string.
+        """Build the formatted loss string.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable loss description.
@@ -237,10 +226,9 @@ class Loss:
         return self._name if self._fact is None else f"{self._fact} x {self._name}"
 
     def __str__(self):
-        """
-        Return a printable representation.
+        """Return a printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable loss name.
@@ -248,8 +236,7 @@ class Loss:
         return f"loss {self._str_make()}"
 
     def __call__(self, output, target, params):
-        """
-        Compute the loss.
+        """Compute the loss.
 
         Parameters
         ----------
@@ -260,7 +247,7 @@ class Loss:
         params : torch.Tensor
             Flat parameter tensor (for regularization losses).
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             Scalar loss value.
@@ -271,15 +258,14 @@ class Loss:
         return res
 
     def __add__(self, loss):
-        """
-        Sum two losses.
+        """Sum two losses.
 
         Parameters
         ----------
         loss : Loss
             Loss to add.
 
-        Returns
+        Returns:
         -------
         Loss
             Composite loss.
@@ -296,15 +282,14 @@ class Loss:
         )
 
     def __mul__(self, factor):
-        """
-        Scale the loss by a constant factor.
+        """Scale the loss by a constant factor.
 
         Parameters
         ----------
         factor : float
             Scaling factor.
 
-        Returns
+        Returns:
         -------
         Loss
             Scaled loss.
@@ -325,15 +310,14 @@ class Loss:
         return self.__mul__(*args, **kwargs)
 
     def __imul__(self, factor):
-        """
-        Scale the loss in place.
+        """Scale the loss in place.
 
         Parameters
         ----------
         factor : float
             Scaling factor.
 
-        Returns
+        Returns:
         -------
         Loss
             Self.
@@ -347,8 +331,7 @@ class Loss:
 
 
 class Criterion:
-    """
-    Non-derivable evaluation metric wrapper.
+    """Non-derivable evaluation metric wrapper.
 
     Available criteria:
 
@@ -366,20 +349,17 @@ class Criterion:
     **kwargs : object
         Forwarded to the criterion constructor.
 
-    Raises
+    Raises:
     ------
     tools.UnavailableException
         If ``name_build`` is an unknown string.
     """
 
     class _TopkCriterion:
-        """
-        Top-k classification accuracy.
-        """
+        """Top-k classification accuracy."""
 
         def __init__(self, k=1):
-            """
-            Initialize top-k criterion.
+            """Initialize top-k criterion.
 
             Parameters
             ----------
@@ -389,8 +369,7 @@ class Criterion:
             self.k = k
 
         def __call__(self, output, target):
-            """
-            Compute top-k accuracy.
+            """Compute top-k accuracy.
 
             Parameters
             ----------
@@ -399,7 +378,7 @@ class Criterion:
             target : torch.Tensor
                 Batch x target index.
 
-            Returns
+            Returns:
             -------
             torch.Tensor
                 1-D tensor ``[num_correct, batch_size]``.
@@ -411,13 +390,10 @@ class Criterion:
             ))
 
     class _SigmoidCriterion:
-        """
-        Binary accuracy with 0.5 threshold.
-        """
+        """Binary accuracy with 0.5 threshold."""
 
         def __call__(self, output, target):
-            """
-            Compute sigmoid accuracy.
+            """Compute sigmoid accuracy.
 
             Parameters
             ----------
@@ -426,7 +402,7 @@ class Criterion:
             target : torch.Tensor
                 Batch x target index (expected in ``{0, 1}``).
 
-            Returns
+            Returns:
             -------
             torch.Tensor
                 1-D tensor ``[num_correct, batch_size]``.
@@ -442,10 +418,9 @@ class Criterion:
 
     @classmethod
     def _get_criterions(cls):
-        """
-        Lazily build the name-to-constructor mapping.
+        """Lazily build the name-to-constructor mapping.
 
-        Returns
+        Returns:
         -------
         dict[str, type]
             Lower-case criterion names mapped to classes.
@@ -461,8 +436,7 @@ class Criterion:
         return cls.__criterions
 
     def __init__(self, name_build, *args, **kwargs):
-        """
-        Initialize the criterion wrapper.
+        """Initialize the criterion wrapper.
 
         Parameters
         ----------
@@ -490,10 +464,9 @@ class Criterion:
         self._name = name
 
     def __str__(self):
-        """
-        Return a printable representation.
+        """Return a printable representation.
 
-        Returns
+        Returns:
         -------
         str
             Human-readable criterion name.
@@ -501,8 +474,7 @@ class Criterion:
         return f"criterion {self._name}"
 
     def __call__(self, output, target):
-        """
-        Compute the criterion.
+        """Compute the criterion.
 
         Parameters
         ----------
@@ -511,7 +483,7 @@ class Criterion:
         target : torch.Tensor
             Expected output.
 
-        Returns
+        Returns:
         -------
         torch.Tensor
             1-D tensor ``[num_correct, batch_size]``.
