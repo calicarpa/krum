@@ -61,11 +61,11 @@ def make_gar(unchecked, check, upper_bound=None, influence=None):
     # Select which function to call by default
     func = checked if __debug__ else unchecked
     # Bind all the (sub) functions to the selected function
-    setattr(func, "check", check)
-    setattr(func, "checked", checked)
-    setattr(func, "unchecked", unchecked)
-    setattr(func, "upper_bound", upper_bound)
-    setattr(func, "influence", influence)
+    func.check = check
+    func.checked = checked
+    func.unchecked = unchecked
+    func.upper_bound = upper_bound
+    func.influence = influence
     # Return the selected function with the associated name
     return func
 

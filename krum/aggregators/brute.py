@@ -56,8 +56,7 @@ def _compute_selection(gradients, f, **kwargs):
             if not math.isfinite(cur_dist):
                 break
             # Check if new maximum
-            if cur_dist > cur_diam:
-                cur_diam = cur_dist
+            cur_diam = max(cur_diam, cur_dist)
         else:
             # Check if new selected diameter
             if sel_iset is None or cur_diam < sel_diam:

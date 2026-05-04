@@ -12,7 +12,7 @@
 # Collection of simple models.
 ###
 
-__all__ = ["full", "conv", "logit", "linear"]
+__all__ = ["conv", "full", "linear", "logit"]
 
 import torch
 

@@ -312,9 +312,7 @@ class Session:
             tools.warning("No valid JSON-formatted configuration, cannot compute the epoch number")
             return self
         dataset_name = self.json["dataset"]
-        training_size = {"mnist": 60000, "fashionmnist": 60000, "cifar10": 50000, "cifar100": 50000}.get(
-            dataset_name, None
-        )
+        training_size = {"mnist": 60000, "fashionmnist": 60000, "cifar10": 50000, "cifar100": 50000}.get(dataset_name)
         if training_size is None:
             tools.warning(f"Unknown dataset {dataset_name!r}, cannot compute the epoch number")
             return self

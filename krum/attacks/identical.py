@@ -79,9 +79,8 @@ def make_attack(compute_direction):
                 return aggregated.dot(aggregated).item()
 
             factor = tools.line_maximize(eval_factor, evals=math.ceil(-factor))
-        else:
-            if negative:
-                factor = -factor
+        elif negative:
+            factor = -factor
         # Generate the Byzantine gradient from the given/computed factor
         byz_grad = grad_avg
         grad_att.mul_(factor)
@@ -128,11 +127,10 @@ def bulyan(grad_stck, grad_avg, target_idx=-1, **kwargs):
     """
     if target_idx == "all":
         return torch.ones_like(grad_avg)
-    else:
-        assert isinstance(target_idx, int), f"Expected an integer or \"all\" for 'target_idx', got {target_idx!r}"
-        grad_att = torch.zeros_like(grad_avg)
-        grad_att[target_idx] = 1
-        return grad_att
+    assert isinstance(target_idx, int), f"Expected an integer or \"all\" for 'target_idx', got {target_idx!r}"
+    grad_att = torch.zeros_like(grad_avg)
+    grad_att[target_idx] = 1
+    return grad_att
 
 
 def empire(grad_stck, grad_avg, **kwargs):

@@ -13,21 +13,21 @@
 ###
 
 __all__ = [
-    "UnavailableException",
-    "fatal_unavailable",
-    "MethodCallReplicator",
     "ClassRegister",
-    "parse_keyval",
-    "fullqual",
-    "onetime",
+    "MethodCallReplicator",
     "TimedContext",
-    "interactive",
-    "get_loaded_dependencies",
-    "line_maximize",
-    "pairwise",
-    "localtime",
-    "deltatime_point",
+    "UnavailableException",
     "deltatime_format",
+    "deltatime_point",
+    "fatal_unavailable",
+    "fullqual",
+    "get_loaded_dependencies",
+    "interactive",
+    "line_maximize",
+    "localtime",
+    "onetime",
+    "pairwise",
+    "parse_keyval",
 ]
 
 import os
@@ -207,7 +207,7 @@ def parse_keyval_auto_convert(val):
     low = val.lower()
     if low == "false":
         return False
-    elif low == "true":
+    if low == "true":
         return True
     # Try guess number
     for cls in (int, float):

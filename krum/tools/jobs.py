@@ -12,7 +12,7 @@
 # Simple job management for reproduction scripts.
 ###
 
-__all__ = ["dict_to_cmdlist", "Command", "Jobs"]
+__all__ = ["Command", "Jobs", "dict_to_cmdlist"]
 
 import shlex
 import subprocess
@@ -61,14 +61,13 @@ def dict_to_cmdlist(dp):
         if isinstance(value, bool):
             if value:
                 cmd.append(f"--{name}")
-        else:
-            if any(isinstance(value, typ) for typ in (list, tuple)):
-                cmd.append(f"--{name}")
-                for subval in value:
-                    cmd.append(str(subval))
-            elif value is not None:
-                cmd.append(f"--{name}")
-                cmd.append(str(value))
+        elif any(isinstance(value, typ) for typ in (list, tuple)):
+            cmd.append(f"--{name}")
+            for subval in value:
+                cmd.append(str(subval))
+        elif value is not None:
+            cmd.append(f"--{name}")
+            cmd.append(str(value))
     return cmd
 
 
@@ -137,7 +136,7 @@ class Jobs:
             args = command.build(seed, device, resdir)
             # Launch the experiment and write the standard output/error
             tools.trace((" ").join(shlex.quote(arg) for arg in args))
-            cmd_res = subprocess.run(args, capture_output=True)
+            cmd_res = subprocess.run(args, check=False, capture_output=True)
             if cmd_res.returncode == 0:
                 tools.info("Experiment successful")
             else:

@@ -185,9 +185,8 @@ class Model:
                 if len(param.shape) > 1:  # Multi-dimensional
                     if init_multi is not None:
                         init_multi(param)
-                else:  # Mono-dimensional
-                    if init_mono is not None:
-                        init_mono(param)
+                elif init_mono is not None:
+                    init_mono(param)
             # Move parameters to target device
             model = model.to(**config)
             device = config["device"]
@@ -387,8 +386,7 @@ class Model:
         # Return the flat gradient (and the loss if requested)
         if outloss:
             return (self.get_gradient(), loss)
-        else:
-            return self.get_gradient()
+        return self.get_gradient()
 
     def update(self, gradient, optimizer=None, relink=None):
         """Update the parameters using the given gradient, and the given optimizer.

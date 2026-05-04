@@ -70,6 +70,10 @@ exclude = [
     "build",
     "dist",
 ]
+fix = true
+show-fixes = true
+preview = true
+explicit-preview-rules = true
 
 [tool.ruff.lint]
 select = [
@@ -105,10 +109,6 @@ ignore = [
     "COM812",# trailing comma missing (can conflict with formatter)
     "ISC001",# implicit str concat (can conflict with formatter)
 ]
-fix = true
-show-fixes = true
-preview = true
-explicit-preview-rules = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

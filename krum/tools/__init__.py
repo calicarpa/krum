@@ -276,7 +276,7 @@ def import_exported_symbols(name, module, scope):
     """
     global _imported
     if hasattr(module, "__all__"):
-        for symname in getattr(module, "__all__"):
+        for symname in module.__all__:
             # Check name
             if not hasattr(module, symname):
                 with Context(None, "warning"):

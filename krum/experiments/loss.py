@@ -12,7 +12,7 @@
 # Loss/criterion wrappers/helpers.
 ###
 
-__all__ = ["Loss", "Criterion"]
+__all__ = ["Criterion", "Loss"]
 
 import torch
 

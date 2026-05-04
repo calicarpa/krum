@@ -72,9 +72,9 @@ def register(name, unchecked, check):
     # Select which function to call by default
     func = checked if __debug__ else unchecked
     # Bind all the (sub) functions to the selected function
-    setattr(func, "check", check)
-    setattr(func, "checked", checked)
-    setattr(func, "unchecked", unchecked)
+    func.check = check
+    func.checked = checked
+    func.unchecked = unchecked
     # Export the selected function with the associated name
     attacks[name] = func
 

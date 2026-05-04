@@ -113,7 +113,7 @@ def _build_and_load():
         nonlocal fail_modules
         with tools.Context(path.name, "info"):
             ident = path.name[:3]
-            if ident in ident_to_is_python.keys():
+            if ident in ident_to_is_python:
                 # Is a module directory
                 if len(path.name) <= 3 or path.name[3] == "_":
                     tools.warning("Skipped invalid module directory name " + repr(path.name))
@@ -154,7 +154,7 @@ def _build_and_load():
                                 )
                             fail_modules.append(path)  # Mark as failed
                             return False
-                        elif res:  # Module and its sub-dependencies was/were built and loaded successfully
+                        if res:  # Module and its sub-dependencies was/were built and loaded successfully
                             this_ldflags.append(
                                 "-Wl,--library=:" + str((base_directory / modname / (modname + ".so")).resolve())
                             )

@@ -12,7 +12,7 @@
 # Dataset wrappers/helpers.
 ###
 
-__all__ = ["get_default_transform", "Dataset", "make_sampler", "make_datasets", "batch_dataset"]
+__all__ = ["Dataset", "batch_dataset", "get_default_transform", "make_datasets", "make_sampler"]
 
 import pathlib
 import random
@@ -411,7 +411,6 @@ def batch_dataset(inputs, labels, train=False, batch_size=None, split=0.75):
         train_len = split_pos
         batch_size = min(batch_size or train_len, train_len)
         return train_gen(inputs[:split_pos], labels[:split_pos], batch_size)
-    else:
-        test_len = dataset_len - split_pos
-        batch_size = min(batch_size or test_len, test_len)
-        return test_gen(inputs[split_pos:], labels[split_pos:], batch_size)
+    test_len = dataset_len - split_pos
+    batch_size = min(batch_size or test_len, test_len)
+    return test_gen(inputs[split_pos:], labels[split_pos:], batch_size)

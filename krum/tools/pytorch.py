@@ -13,16 +13,16 @@
 ###
 
 __all__ = [
-    "relink",
+    "AccumulatedTimedContext",
+    "WeightedMSELoss",
+    "compute_avg_dev_max",
     "flatten",
     "grad_of",
     "grads_of",
-    "compute_avg_dev_max",
-    "AccumulatedTimedContext",
-    "weighted_mse_loss",
-    "WeightedMSELoss",
-    "regression",
     "pnm",
+    "regression",
+    "relink",
+    "weighted_mse_loss",
 ]
 
 import math

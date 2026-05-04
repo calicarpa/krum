@@ -329,7 +329,7 @@ def result_get(name):
         return None
     # Return the bound descriptor, if any
     global result_fds
-    return result_fds.get(name, None)
+    return result_fds.get(name)
 
 
 def result_store(fd, *entries):
@@ -457,10 +457,9 @@ with tools.Context("setup", "info"):
                     def convert_to_supported_json_type(x):
                         if type(x) in {str, int, float, bool, type(None), dict, list}:
                             return x
-                        elif type(x) is set:
+                        if type(x) is set:
                             return list(x)
-                        else:
-                            return str(x)
+                        return str(x)
 
                     datargs = dict(
                         (name, convert_to_supported_json_type(getattr(args, name)))
