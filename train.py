@@ -168,7 +168,7 @@ with tools.Context("cmdline", "info"):
     for name in ("gar", "attack", "model", "dataset", "loss", "criterion"):
         name = f"{name}_args"
         keyval = getattr(args, name)
-        setattr(args, name, dict() if keyval is None else tools.parse_keyval(keyval))
+        setattr(args, name, {} if keyval is None else tools.parse_keyval(keyval))
     # Count the number of real honest workers
     args.nb_honests = args.nb_workers - args.nb_real_byz
     if args.nb_honests < 0:
@@ -233,7 +233,7 @@ with tools.Context("cmdline", "info"):
                         "Batch size",
                         (
                             ("Training", args.batch_size or "max"),
-                            ("Testing", f"{args.batch_size_test or 'max'} × {args.test_repeat}"),
+                            ("Testing", f"{args.batch_size_test or 'max'} x {args.test_repeat}"),
                         ),
                     ),
                     ("Transforms", "none" if args.no_transform else "default"),
@@ -347,9 +347,9 @@ with tools.Context("setup", "info"):
     reproducible = args.seed >= 0
     if reproducible:
         torch.manual_seed(args.seed)
-        import numpy
+        import numpy as np
 
-        numpy.random.seed(args.seed)
+        np.random.seed(args.seed)
     torch.backends.cudnn.deterministic = reproducible
     torch.backends.cudnn.benchmark = not reproducible
     # Configurations
@@ -426,7 +426,7 @@ with tools.Context("setup", "info"):
         except Exception as err:
             tools.warning(f"Unable to create the result directory {str(resdir)!r} ({err}); no result will be stored")
         else:
-            result_fds = dict()
+            result_fds = {}
             try:
                 # Make evaluation file
                 if args.evaluation_delta > 0:
@@ -461,11 +461,11 @@ with tools.Context("setup", "info"):
                             return list(x)
                         return str(x)
 
-                    datargs = dict(
-                        (name, convert_to_supported_json_type(getattr(args, name)))
+                    datargs = {
+                        name: convert_to_supported_json_type(getattr(args, name))
                         for name in dir(args)
                         if len(name) > 0 and name[0] != "_"
-                    )
+                    }
                     del convert_to_supported_json_type
                     json.dump(datargs, fd, ensure_ascii=False, indent="\t")
             except Exception as err:
@@ -552,11 +552,11 @@ with tools.Context("training", "info"):
                 was_training = True
             # ------------------------------------------------------------------------ #
             # Compute (honest) losses (if it makes sense), gradients and voting data
-            grad_honests = list()
-            loss_honests = list()
+            grad_honests = []
+            loss_honests = []
             # For each honest worker
             with atc_gradient:
-                for i in range(args.nb_honests):
+                for _i in range(args.nb_honests):
                     grad, loss = model.backprop(outloss=True)
                     grad = grad.clone().detach_()
                     # Loss append
@@ -578,10 +578,10 @@ with tools.Context("training", "info"):
                 )
             # Move the honest gradients to the GAR device
             if config_gar is not config:
-                grad_honests_gar = list(
+                grad_honests_gar = [
                     grad.to(device=config_gar["device"], non_blocking=config_gar["non_blocking"])
                     for grad in grad_honests
-                )
+                ]
             else:
                 grad_honests_gar = grad_honests
             # ------------------------------------------------------------------------ #
@@ -678,7 +678,7 @@ with tools.Context("training", "info"):
 
 # Print and store timing counters
 with tools.Context("perf", "info"):
-    perfs = dict()
+    perfs = {}
     perf_params = (
         (atc_gradient, "grad", "Gradient computation (per worker)", args.nb_honests),
         (atc_noise, "noise", "Noise addition (per worker)", args.nb_honests),

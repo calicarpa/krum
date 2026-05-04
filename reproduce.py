@@ -103,11 +103,11 @@ with tools.Context("cmdline", "info"):
     # Preprocess/resolve the devices to use
     if args.devices == "auto":
         if torch.cuda.is_available():
-            args.devices = list(f"cuda:{i}" for i in range(torch.cuda.device_count()))
+            args.devices = [f"cuda:{i}" for i in range(torch.cuda.device_count())]
         else:
             args.devices = ["cpu"]
     else:
-        args.devices = list(name.strip() for name in args.devices.split(","))
+        args.devices = [name.strip() for name in args.devices.split(",")]
 
 # ---------------------------------------------------------------------------- #
 # Serial preloading of the dataset
@@ -188,15 +188,15 @@ jobs.close()
 
 # Check if exit requested before going to plotting the results
 if exit_is_requested():
-    exit(0)
+    sys.exit(0)
 
 # ---------------------------------------------------------------------------- #
 # Produce graphs
 
 # Import additional modules
 try:
-    import numpy
-    import pandas
+    import numpy as np
+    import pandas as pd
 
     import histogram
 except ImportError as err:
@@ -224,13 +224,13 @@ def compute_avg_err(name, *cols, avgs="", errs="-err"):
         nonlocal datas
         # For every selected columns
         subds = tuple(histogram.select(data, col).dropna() for data in datas)
-        res = pandas.DataFrame(index=subds[0].index)
+        res = pd.DataFrame(index=subds[0].index)
         for col in subds[0]:
             # Generate compound column names
             avgn = col + avgs
             errn = col + errs
             # Compute compound columns
-            numds = numpy.stack(tuple(subd[col].to_numpy() for subd in subds))
+            numds = np.stack(tuple(subd[col].to_numpy() for subd in subds))
             res[avgn] = numds.mean(axis=0)
             res[errn] = numds.std(axis=0)
         # Return the built data frame
@@ -242,12 +242,12 @@ def compute_avg_err(name, *cols, avgs="", errs="-err"):
 
 with tools.Context("plot", "info"):
     # Plot all the experiments
-    for ds, dsa in (("svm-phishing", None),):
-        for md, mda in (("simples-logit", "din:68"),):
+    for ds, _dsa in (("svm-phishing", None),):
+        for md, _mda in (("simples-logit", "din:68"),):
             for epsilon in (None, 0.1, 0.2, 0.5):
                 for batch_size in (10, 25, 50, 100, 250, 500):
-                    legend = list()
-                    results = list()
+                    legend = []
+                    results = []
                     # Pre-process results for all available combinations of GAR and attack
                     for gar, attacks in (
                         ("average", (("nan", None),)),

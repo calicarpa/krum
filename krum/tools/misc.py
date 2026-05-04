@@ -12,6 +12,52 @@
 # Miscellaneous Python helpers.
 ###
 
+"""
+Utilities shared across the repository.
+
+This module groups small helpers used for exception handling, parsing, timing,
+interactive exploration, and light registry patterns.
+
+Categories
+----------
+
+Exception handling
+    ``UnavailableException`` and ``fatal_unavailable`` build consistent
+    user-facing errors for missing registry entries.
+
+Registry helpers
+    ``MethodCallReplicator`` and ``ClassRegister`` provide small reusable
+    patterns for dispatching calls and registering classes.
+
+Parsing helpers
+    ``parse_keyval`` and ``fullqual`` handle CLI-style key/value parsing and
+    qualified-name formatting.
+
+Timing helpers
+    ``TimedContext``, ``onetime``, ``localtime``, ``deltatime_point``, and
+    ``deltatime_format`` support timing and one-shot flags.
+
+Miscellaneous helpers
+    ``pairwise``, ``line_maximize``, ``interactive``, and
+    ``get_loaded_dependencies`` cover assorted convenience tasks.
+
+Example
+-------
+
+.. code-block:: python
+
+    from tools import UnavailableException, parse_keyval, TimedContext
+
+    try:
+        raise UnavailableException({"a": 1, "b": 2}, "c", "option")
+    except UnavailableException as e:
+        print(e)
+
+    args = parse_keyval(["lr:0.01", "batch:32"])
+    with TimedContext("my_operation"):
+        pass
+"""
+
 __all__ = [
     "ClassRegister",
     "MethodCallReplicator",
@@ -38,18 +84,32 @@ import threading
 import time
 import traceback
 
-from krum import tools
+import tools
 
 # ---------------------------------------------------------------------------- #
 # Unavailable user exception class
 
 
-def make_unavailable_exception_text(data, name, what="entry"):
-    """Make the explanatory string for an 'UnavailableException'.
-    Args:
-      data Iterable (over str) data set
-      name Requested name in the data set
-      what Textual description of what are the objects in the data set
+def make_unavailable_exception_text(
+    data: list[str], name: str, what: str = "entry"
+) -> str:
+    """
+    Build the message used by :class:`UnavailableException`.
+
+    Parameters
+    ----------
+    data : list[str]
+        Available names that the user could have selected.
+    name : str
+        Requested name that was not found in ``data``.
+    what : str, optional
+        Human-readable description of the named objects.
+
+    Returns
+    -------
+    str
+        User-facing message that lists the available names, or states that no
+        names are available.
     """
     # Preparation
     if len(data) == 0:
@@ -61,30 +121,43 @@ def make_unavailable_exception_text(data, name, what="entry"):
     return f"Unknown {what} {name!r}, {end}"
 
 
-def fatal_unavailable(*args, **kwargs):
-    """Helper forwarding the 'UnavailableException' explanatory string to 'fatal'.
-    Args:
-      ... Forward (keyword-)arguments to 'make_unavailable_exception_text'
+def fatal_unavailable(*args, **kwargs) -> None:
+    """
+    Report an unavailable entry as a fatal user-facing error.
+
+    Parameters
+    ----------
+    *args : str
+        Positional arguments forwarded to
+        :func:`make_unavailable_exception_text`.
+    **kwargs : str
+        Keyword arguments forwarded to
+        :func:`make_unavailable_exception_text`.
     """
     tools.fatal(make_unavailable_exception_text(*args, **kwargs))
 
 
 class UnavailableException(tools.UserException):
-    """Exception due to missing entry in a dictionary, where the entry is controlled by the user."""
+    """User-facing exception raised when a selected registry entry is missing."""
 
-    def __init__(self, *args, **kwargs):
-        """Error string constructor.
-        Args:
-          ... Forward (keyword-)arguments to 'make_unavailable_exception_text'
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        Initialize the exception message.
+
+        Parameters
+        ----------
+        *args : str
+            Positional arguments forwarded to
+            :func:`make_unavailable_exception_text`.
+        **kwargs : str
+            Keyword arguments forwarded to
+            :func:`make_unavailable_exception_text`.
         """
         # Finalization
         self._text = make_unavailable_exception_text(*args, **kwargs)
 
     def __str__(self):
-        """Error to string conversion.
-        Returns:
-          Explanatory string
-        """
+        """Return the formatted explanatory message."""
         return self._text
 
 
@@ -93,35 +166,62 @@ class UnavailableException(tools.UserException):
 
 
 class MethodCallReplicator:
-    """Simple method call replicator class."""
+    """Proxy that replicates method calls across multiple instances.
 
-    def __init__(self, *args):
-        """Bind constructor.
-        Args:
-          ... Instance on which to replicate method calls (in the given order)
+    Accessing an attribute returns a callable that invokes the same named
+    attribute on each bound instance, in order, and returns the list of results.
+    """
+
+    def __init__(self, *args: object) -> None:
+        """
+        Bind the instances that should receive replicated method calls.
+
+        Parameters
+        ----------
+        *args : object
+            Instances on which to replicate method calls, in call order.
         """
         # Assertions
-        assert len(args) > 0, "Expected at least one instance on which to forward method calls"
+        assert len(args) > 0, (
+            "Expected at least one instance on which to forward method calls"
+        )
         # Finalization
         self.__instances = args
 
-    def __getattr__(self, name):
-        """Returns a closure that replicate the method call.
-        Args:
-          name Name of the method
-        Returns:
-          Closure replicating the calls
+    def __getattr__(self, name: str) -> object:
+        """
+        Return a closure that replicates the named method call.
+
+        Parameters
+        ----------
+        name : str
+            Name of the method or callable attribute to replicate.
+
+        Returns
+        -------
+        object
+            Callable that forwards its arguments to every target callable and
+            returns their results as a list.
         """
         # Target closures
         closures = [getattr(instance, name) for instance in self.__instances]
 
         # Replication closure
-        def calls(*args, **kwargs):
-            """Simply replicate the calls, forwarding arguments.
-            Args:
-              ... Forwarded arguments
-            Returns:
-              List of returned values
+        def calls(*args, **kwargs) -> list[object]:
+            """
+            Call each target callable with the provided arguments.
+
+            Parameters
+            ----------
+            *args : object
+                Positional arguments forwarded to every target callable.
+            **kwargs : object
+                Keyword arguments forwarded to every target callable.
+
+            Returns
+            -------
+            list[object]
+                Results returned by the target callables, in instance order.
             """
             return [closure(*args, **kwargs) for closure in closures]
 
@@ -134,13 +234,19 @@ class MethodCallReplicator:
 
 
 class ClassRegister:
-    """Simple class register."""
+    """Minimal registry mapping user-visible names to classes."""
 
-    def __init__(self, singular, optplural=None):
-        """Denomination constructor.
-        Args:
-          singular  Singular denomination of the registered class
-          optplural "Optional plural", e.g. "class(es)" for "class" (optional)
+    def __init__(self, singular: str, optplural: str | None = None) -> None:
+        """
+        Create an empty class registry.
+
+        Parameters
+        ----------
+        singular : str
+            Singular description of a registered class, used in error messages.
+        optplural : str | None, optional
+            Optional plural description, e.g. ``"class(es)"`` for ``"class"``.
+            Defaults to ``singular + "(s)"``.
         """
         # Value deduction
         if optplural is None:
@@ -149,36 +255,57 @@ class ClassRegister:
         self.__denoms = (singular, optplural)
         self.__register = {}
 
-    def itemize(self):
-        """Build an iterable over the available class names.
-        Returns:
-          Iterable over the available class names
-        """
+    def itemize(self) -> list[str]:
+        """Return the registered class names."""
         return self.__register.keys()
 
-    def register(self, name, cls):
-        """Register a new class.
-        Args:
-          name Class name
-          cls  Associated class
+    def register(self, name: str, cls: type) -> None:
+        """
+        Register a class under a user-visible name.
+
+        Parameters
+        ----------
+        name : str
+            Name used to retrieve the class.
+        cls : type
+            Class associated with ``name``.
         """
         # Assertions
         assert name not in self.__register, (
             "Name "
             + repr(name)
             + " already in use while registering "
-            + repr(getattr(cls, "__name__", "<unknown " + self.__denoms[0] + " class name>"))
+            + repr(
+                getattr(
+                    cls, "__name__", "<unknown " + self.__denoms[0] + " class name>"
+                )
+            )
         )
         # Registering
         self.__register[name] = cls
 
-    def instantiate(self, name, *args, **kwargs):
-        """Instantiate a registered class.
-        Args:
-          name Class name
-          ...  Forwarded parameters
-        Returns:
-          Registered class instance
+    def instantiate(self, name: str, *args, **kwargs) -> object:
+        """
+        Instantiate the class registered under ``name``.
+
+        Parameters
+        ----------
+        name : str
+            Registered class name.
+        *args : object
+            Positional arguments forwarded to the class constructor.
+        **kwargs : object
+            Keyword arguments forwarded to the class constructor.
+
+        Returns
+        -------
+        object
+            Instance of the registered class.
+
+        Raises
+        ------
+        tools.UserException
+            If ``name`` is not registered.
         """
         # Assertions
         if name not in self.__register:
@@ -186,7 +313,13 @@ class ClassRegister:
             if len(self.__register) == 0:
                 cause += "no registered " + self.__denoms[0]
             else:
-                cause += "available " + self.__denoms[1] + ": '" + ("', '").join(self.__register.keys()) + "'"
+                cause += (
+                    "available "
+                    + self.__denoms[1]
+                    + ": '"
+                    + ("', '").join(self.__register.keys())
+                    + "'"
+                )
             raise tools.UserException(cause)
         # Instantiation
         return self.__register[name](*args, **kwargs)
@@ -196,12 +329,22 @@ class ClassRegister:
 # Simple list of "<key>:<value>" into dictionary parser
 
 
-def parse_keyval_auto_convert(val):
-    """Guess the type of the string representation, and return the converted value.
-    Args:
-      val Value to convert after type guessing
-    Returns:
-      Converted value, or same instance as 'val' if 'str' was the guessed type
+def parse_keyval_auto_convert(val: str) -> object:
+    """
+    Infer and convert the type represented by a string.
+
+    Conversion is attempted in this order: boolean literals, integer, float, then
+    string.
+
+    Parameters
+    ----------
+    val : str
+        String value to convert.
+
+    Returns
+    -------
+    object
+        Converted value, or ``val`` unchanged if no non-string type matches.
     """
     # Try guess 'bool'
     low = val.lower()
@@ -219,14 +362,47 @@ def parse_keyval_auto_convert(val):
     return val
 
 
-def parse_keyval(list_keyval, defaults={}):
-    """Parse list of "<key>:<value>" into a dictionary.
-    Args:
-      list_keyval List of "<key>:<value>"
-      defaults    Default key -> value to use (also ensure type, type is guessed for other keys)
-    Returns:
-      Associated dictionary
+def parse_keyval(
+    list_keyval: list[str], defaults: dict[str, object] | None = None
+) -> dict[str, object]:
     """
+    Parse ``<key>:<value>`` strings into a typed dictionary.
+
+    This helper is used for command-line options such as
+    ``--gar-args lr:0.01``. Keys present in ``defaults`` are converted to the
+    type of their default value; other keys are converted by
+    :func:`parse_keyval_auto_convert`.
+
+    Parameters
+    ----------
+    list_keyval : list[str]
+        Entries formatted as ``<key>:<value>``.
+    defaults : dict[str, object] | None, optional
+        Default key/value mappings. These defaults are also used for type
+        inference and are copied into the returned dictionary when the
+        corresponding key is not explicitly provided.
+
+    Returns
+    -------
+    dict[str, object]
+        Parsed key/value pairs with converted values.
+
+    Raises
+    ------
+    tools.UserException
+        If an entry is malformed, a key is provided more than once, or
+        conversion to a default value's type fails.
+
+    Example
+    -------
+
+    >>> parse_keyval(["lr:0.01", "batch:32"], defaults={"lr": 0.1})
+    {'lr': 0.01, 'batch': 32}
+    >>> parse_keyval(["debug:true", "workers:4"], defaults={})
+    {'debug': True, 'workers': 4}
+    """
+    if defaults is None:
+        defaults = {}
     parsed = {}
     # Parsing
     sep = ":"
@@ -234,12 +410,19 @@ def parse_keyval(list_keyval, defaults={}):
         pos = entry.find(sep)
         if pos < 0:
             raise tools.UserException(
-                "Expected list of " + repr("<key>:<value>") + ", got " + repr(entry) + " as one entry"
+                "Expected list of "
+                + repr("<key>:<value>")
+                + ", got "
+                + repr(entry)
+                + " as one entry"
             )
         key = entry[:pos]
         if key in parsed:
             raise tools.UserException(
-                "Key " + repr(key) + " had already been specified with value " + repr(parsed[key])
+                "Key "
+                + repr(key)
+                + " had already been specified with value "
+                + repr(parsed[key])
             )
         val = entry[pos + len(sep) :]
         # Guess/assert type constructibility
@@ -273,12 +456,28 @@ def parse_keyval(list_keyval, defaults={}):
 # Basic "full-qualification" string builder for a given instance/class
 
 
-def fullqual(obj):
-    """Rebuild a string "qualifying" the given object for debugging purpose.
-    Args:
-      obj Object to "qualify"
-    Returns:
-      "Qualification", e.g.: 'tools.misc.fullqual' or 'instance of pathlib.Path'
+def fullqual(obj: object) -> str:
+    """
+    Return a class or instance's fully qualified name.
+
+    Parameters
+    ----------
+    obj : object
+        Class or instance to describe.
+
+    Returns
+    -------
+    str
+        Fully qualified class name. Instances are prefixed with
+        ``"instance of "``.
+
+    Example
+    -------
+
+    >>> fullqual(str)
+    'builtins.str'
+    >>> fullqual(pathlib.Path("."))
+    'instance of pathlib.PosixPath'
     """
     # Prelude
     if isinstance(obj, type):
@@ -298,13 +497,21 @@ def fullqual(obj):
 # Basic "full-qualification" string builder for a given instance/class
 
 
-def onetime(name=None):
-    """Generate a one time-set (hidden) state variable getter and setter.
-    Args:
-      name Optional name of the global, onetime variable to access
-    Returns:
-      · (Threadsafe) getter closure
-      · (Threadsafe) setter closure
+def onetime(name: str | None = None) -> tuple[callable, callable]:
+    """
+    Create or retrieve a thread-safe one-shot flag.
+
+    Parameters
+    ----------
+    name : str | None, optional
+        Optional global flag name. Reusing the same name returns the same
+        getter/setter pair.
+
+    Returns
+    -------
+    tuple[callable, callable]
+        ``(getter, setter)`` pair. ``getter`` returns whether the flag has been
+        set, and ``setter`` permanently sets it to ``True``.
     """
     global onetime_register
     # Check if name exists
@@ -316,11 +523,21 @@ def onetime(name=None):
 
     # Management closures
     def getter(*args, **kwargs):
-        """Check whether 'value' is set.
-        Args:
-          ... Ignored arguments
-        Returns:
-          Whether 'value' is set
+        """
+        Return whether the one-shot flag has been set.
+
+        Parameters
+        ----------
+        *args : object
+            Ignored positional arguments.
+        **kwargs : object
+            Ignored keyword arguments.
+
+        Returns
+        -------
+        bool
+            ``True`` once the associated setter has been called, otherwise
+            ``False``.
         """
         nonlocal lock
         nonlocal value
@@ -328,9 +545,15 @@ def onetime(name=None):
             return value
 
     def setter(*args, **kwargs):
-        """Set 'value'.
-        Args:
-          ... Ignored arguments
+        """
+        Set the one-shot flag to ``True``.
+
+        Parameters
+        ----------
+        *args : object
+            Ignored positional arguments.
+        **kwargs : object
+            Ignored keyword arguments.
         """
         nonlocal lock
         nonlocal value
@@ -345,39 +568,55 @@ def onetime(name=None):
 
 
 # Register for the onetime variables
-onetime_register = dict()
+onetime_register = {}
 
 # ---------------------------------------------------------------------------- #
 # Plain context augmented with simple execution time measurement
 
 
 class TimedContext(tools.Context):
-    """Timed context class, that print the measure runtime."""
+    """Context manager that logs the elapsed runtime of a block."""
 
-    def __init__(self, *args, **kwargs):
-        """Forward call to parent constructor.
-        Args:
-          ... Forwarded (keyword-)arguments
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        Initialize the timed context.
+
+        Parameters
+        ----------
+        *args : object
+            Positional arguments forwarded to ``tools.Context``.
+        **kwargs : object
+            Keyword arguments forwarded to ``tools.Context``.
         """
         super().__init__(*args, **kwargs)
 
     def __enter__(self):
-        """Enter context: start chrono.
-        Returns:
-          Forwarded return value from parent
+        """
+        Start timing and enter the parent context.
+
+        Returns
+        -------
+        object
+            Value returned by ``tools.Context.__enter__``.
         """
         self._chrono = time.time()
         return super().__enter__()
 
-    def __exit__(self, *args, **kwargs):
-        """Exit context: stop chrono and print elapsed time.
-        Args:
-          ... Forwarded arguments
+    def __exit__(self, *args, **kwargs) -> None:
+        """
+        Stop timing, log elapsed time, and exit the parent context.
+
+        Parameters
+        ----------
+        *args : object
+            Positional arguments forwarded to ``tools.Context.__exit__``.
+        **kwargs : object
+            Keyword arguments forwarded to ``tools.Context.__exit__``.
         """
         # Measure elapsed runtime (in ns)
         runtime = (time.time() - self._chrono) * 1000000000.0
         # Recover ideal unit
-        for unit in ("ns", "µs", "ms"):
+        for _unit in ("ns", "µs", "ms"):
             if runtime < 1000.0:
                 break
             runtime /= 1000.0
@@ -393,13 +632,29 @@ class TimedContext(tools.Context):
 # Switch to interactive mode, executing user inputs
 
 
-def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
-    """Switch to a simple interactive prompt, execute CTRL+D (or equivalent) to leave.
-    Args:
-      glbs   Globals dictionary to use, None to use caller's globals
-      lcls   Locals dictionary to use, None to use given globals or caller's locals/globals
-      prompt Command prompt to display
-      cprmpt Command prompt to display when continuing a line
+def interactive(
+    glbs: dict[str, object] | None = None,
+    lcls: dict[str, object] | None = None,
+    prompt: str = ">>> ",
+    cprmpt: str = "... ",
+) -> None:
+    """
+    Run a small interactive Python prompt.
+
+    Press ``Ctrl+D`` or send an equivalent EOF signal to leave the prompt.
+
+    Parameters
+    ----------
+    glbs : dict[str, object] | None, optional
+        Globals dictionary used when evaluating commands. If ``None``, the
+        caller's globals are used when available.
+    lcls : dict[str, object] | None, optional
+        Locals dictionary used when evaluating commands. If ``None``, the
+        caller's locals are used when available, otherwise ``glbs`` is used.
+    prompt : str, optional
+        Prompt displayed for a new command.
+    cprmpt : str, optional
+        Prompt displayed while continuing a multi-line command.
     """
     # Recover caller's globals and locals
     try:
@@ -407,12 +662,15 @@ def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
     except Exception:
         caller = None
         if glbs is None:
-            tools.warning("Unable to recover caller's frame, locals and globals", context="interactive")
+            tools.warning(
+                "Unable to recover caller's frame, locals and globals",
+                context="interactive",
+            )
     if glbs is None:
         if caller is not None and hasattr(caller, "f_globals"):
             glbs = caller.f_globals
         else:
-            glbs = dict()
+            glbs = {}
     if lcls is None:
         if caller is not None and hasattr(caller, "f_locals"):
             lcls = caller.f_locals
@@ -427,7 +685,9 @@ def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
             # Input new line
             try:
                 line = input()
-                print("\033[A")  # Trick to "advertise" new line on stdout after new line on stdin
+                print(
+                    "\033[A"
+                )  # Trick to "advertise" new line on stdout after new line on stdin
             except BaseException as err:
                 if any(isinstance(err, cls) for cls in (EOFError, KeyboardInterrupt)):
                     print()  # Since no new line was printed by pressing ENTER
@@ -446,7 +706,9 @@ def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
                     command = line
                     try:
                         exec(command, glbs, lcls)
-                    except SyntaxError:  # Heuristic that we are dealing with a multi-line statement
+                    except (
+                        SyntaxError
+                    ):  # Heuristic that we are dealing with a multi-line statement
                         continue
                 elif len(line) > 0:
                     command += os.linesep + line
@@ -464,15 +726,28 @@ def interactive(glbs=None, lcls=None, prompt=">>> ", cprmpt="... "):
 # List non-standard, currently loaded module names and metadata.
 
 
-def get_loaded_dependencies():
-    """List non-builtin, currently loaded root module names and metadata.
-    Returns:
-      List of tuples (<root module name>, <version or 'None'>, <0: is standard, 1: is site-specific, 2: is local>)
-    Raises:
-      'RuntimeError' on unsupported platforms
+def get_loaded_dependencies() -> list[tuple[str, str | None, int]]:
+    """
+    List currently loaded non-built-in root modules.
+
+    Returns
+    -------
+    list[tuple[str, str | None, int]]
+        Tuples of ``(root_module_name, version, flavor)``. ``version`` is the
+        module's ``__version__`` attribute when present, otherwise ``None``.
+        ``flavor`` is one of ``IS_STANDARD``, ``IS_SITE``, or ``IS_LOCAL``.
+
+    Raises
+    ------
+    RuntimeError
+        If Python's site-packages locations cannot be discovered on the current
+        platform.
     """
     # Get the site-packages directories, and make "flavor"-detection closure
-    path_sites = tuple(pathlib.Path(path) for path in site.getsitepackages() + [site.getusersitepackages()])
+    path_sites = tuple(
+        pathlib.Path(path)
+        for path in site.getsitepackages() + [site.getusersitepackages()]
+    )
 
     def flavor_of(path):
         path = pathlib.Path(path)
@@ -491,7 +766,7 @@ def get_loaded_dependencies():
         return get_loaded_dependencies.IS_LOCAL
 
     # Iterate over the loaded modules
-    res = list()
+    res = []
     for name, module in sys.modules.items():
         # Skip non-root modules
         if "." in name:
@@ -516,19 +791,41 @@ get_loaded_dependencies.IS_SITE = 1
 get_loaded_dependencies.IS_LOCAL = 2
 
 # ---------------------------------------------------------------------------- #
-# Find the x maximizing a function y = f(x), with (x, y) ∊ ℝ⁺× ℝ
+# Find the x maximizing a function y = f(x), with (x, y) ∊ ℝ⁺x ℝ
 
 
-def line_maximize(scape, evals=16, start=0.0, delta=1.0, ratio=0.8):
-    """Best-effort arg-maximize a scape: ℝ⁺⟶ ℝ, by mere exploration.
-    Args:
-      scape Function to best-effort arg-maximize
-      evals Maximum number of evaluations, must be a positive integer
-      start Initial x evaluated, must be a non-negative float
-      delta Initial step delta, must be a positive float
-      ratio Contraction ratio, must be between 0.5 and 1. (both excluded)
-    Returns:
-      Best-effort maximizer x under the evaluation budget
+def line_maximize(
+    scape: callable,
+    evals: int = 16,
+    start: float = 0.0,
+    delta: float = 1.0,
+    ratio: float = 0.8,
+) -> float:
+    """
+    Best-effort argmax search for a scalar function on non-negative inputs.
+
+    The search first expands while values improve, then contracts the step size to
+    refine the best point found within the evaluation budget.
+
+    Parameters
+    ----------
+    scape : callable
+        Function to maximize. It is called with non-negative ``float`` values and
+        must return comparable scores.
+    evals : int, optional
+        Maximum number of function evaluations.
+    start : float, optional
+        Initial non-negative point to evaluate.
+    delta : float, optional
+        Initial positive step size.
+    ratio : float, optional
+        Step contraction ratio, expected to be between ``0.5`` and ``1.0``
+        excluded.
+
+    Returns
+    -------
+    float
+        Best point found under the evaluation budget.
     """
     # Variable setup
     best_x = start
@@ -572,12 +869,27 @@ def line_maximize(scape, evals=16, start=0.0, delta=1.0, ratio=0.8):
 # Simple generator on the pairs (x, y) of an indexable such that index x < index y
 
 
-def pairwise(data):
-    """Simple generator of the pairs (x, y) in a tuple such that index x < index y.
-    Args:
-      data Indexable (including ability to query length) containing the elements
-    Returns:
-      Generator over the pairs of the elements of 'data'
+def pairwise(data: list | tuple):
+    """
+    Yield unordered pairs from an indexable collection.
+
+    Parameters
+    ----------
+    data : list | tuple
+        Indexable collection such as a ``list`` or ``tuple``.
+
+    Yields
+    ------
+    tuple
+        Tuples ``(data[i], data[j])`` for every ``i < j``.
+
+    Example
+    -------
+
+    >>> list(pairwise([1, 2, 3]))
+    [(1, 2), (1, 3), (2, 3)]
+    >>> list(pairwise("ab"))
+    [('a', 'b')]
     """
     n = len(data)
     for i in range(n - 1):
@@ -589,32 +901,49 @@ def pairwise(data):
 # Simple duration helpers
 
 
-def localtime():
-    """Return the formatted local time.
-    Returns:
-      Human-readable local time
+def localtime() -> str:
+    """
+    Return the current local time formatted for logs.
+
+    Returns
+    -------
+    str
+        Local time as ``YYYY/MM/DD HH:MM:SS``.
     """
     lt = time.localtime()
     return f"{lt.tm_year:04}/{lt.tm_mon:02}/{lt.tm_mday:02} {lt.tm_hour:02}:{lt.tm_min:02}:{lt.tm_sec:02}"
 
 
-def deltatime_point():
-    """Take a point in time.
-    Returns:
-      Opaque point-in-time
+def deltatime_point() -> int:
+    """
+    Capture an opaque point in monotonic time.
+
+    Returns
+    -------
+    int
+        Monotonic timestamp rounded to seconds. The value is intended for use
+        with :func:`deltatime_format`.
     """
     point = time.monotonic_ns()
     return (point + 5 * 10**8) // 10**9
 
 
-def deltatime_format(a, b):
-    """Compute and format the time elapsed between two points in time.
-    Args:
-      a Earlier point-in-time
-      b Later point-in-time
-    Returns:
-      Elapsed time integer (in s),
-      Formatted elapsed time string (human-readable way)
+def deltatime_format(a: int, b: int) -> tuple[int, str]:
+    """
+    Compute and format elapsed time between two captured points.
+
+    Parameters
+    ----------
+    a : int
+        Earlier point returned by :func:`deltatime_point`.
+    b : int
+        Later point returned by :func:`deltatime_point`.
+
+    Returns
+    -------
+    tuple[int, str]
+        Tuple ``(seconds, text)`` containing elapsed seconds and a
+        human-readable duration string.
     """
     # Elapsed time (in seconds)
     t = b - a

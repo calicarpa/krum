@@ -12,18 +12,55 @@
 # Bunch of useful tools, but each too small to have its own package.
 ###
 
+"""
+Core Utility Module for Krum.
+
+This module provides the fundamental infrastructure utilities used throughout
+Krum, including logging, error handling, and common operations.
+
+Key Components
+--------------
+
+**Exceptions:**
+
+- ``UserException``: Base exception for user-facing errors
+- ``Context``: Thread-local context for colored logging
+
+**Logging:**
+
+- ``info()``, ``success()``, ``warning()``, ``error()``: Colored logging functions
+- ``fatal()``: Print error and exit
+
+**I/O:**
+
+- ``ContextIOWrapper``: Wrapper for stdout/stderr with context prefixing
+
+**Module Loading:**
+
+- ``import_directory()``: Load all Python modules from a directory
+- ``import_exported_symbols()``: Import symbols from a module
+
+**Utilities:**
+
+- ``parse_keyval()``: Parse key:value CLI arguments
+- ``fullqual()``: Get fully qualified name of objects
+- ``onetime()``: Thread-safe one-time flag
+"""
+
 import os
-import pathlib
 import sys
 import threading
 import traceback
+from pathlib import Path
 
 # ---------------------------------------------------------------------------- #
 # User exception base class, print string representation and exit(1) on uncaught
 
 
 class UserException(Exception):
-    """User exception base class."""
+    """
+    Base exception for user-facing errors.
+    """
 
     pass
 
@@ -33,7 +70,9 @@ class UserException(Exception):
 
 
 class Context:
-    """Per-thread context and color management static class."""
+    """
+    Per-thread logging context and color manager.
+    """
 
     # Constants
     __colors = {
@@ -55,86 +94,126 @@ class Context:
     __local = threading.local()
 
     @classmethod
-    def __local_init(cls):
-        """Initialize the thread local data if necessary."""
-        if not hasattr(cls.__local, "stack"):
-            cls.__local.stack = []  # List of pairs (context name, color code)
-            cls.__local.header = ""  # Current header string
-            cls.__local.color = cls.__clrend  # Current color code
+    def __local_init(self):
+        """
+        Initialize thread-local context state if necessary.
+        """
+        if not hasattr(self.__local, "stack"):
+            self.__local.stack = []  # List of pairs (context name, color code)
+            self.__local.header = ""  # Current header string
+            self.__local.color = self.__clrend  # Current color code
 
     @classmethod
-    def __rebuild(cls):
-        """Rebuild the header and apply the current color."""
+    def __rebuild(self):
+        """
+        Rebuild the current log header and color from the context stack.
+        """
         # Collect current header and color
         header = ""
         color = None
-        for ctx, clr in reversed(cls.__local.stack):
+        for ctx, clr in reversed(self.__local.stack):
             if ctx is not None:
                 header = "[" + ctx + "] " + header
-            if clr is not None:
-                if color is None:
-                    color = clr
+            if clr is not None and color is None:
+                color = clr
         if color is None:
-            color = cls.__clrend
+            color = self.__clrend
         # Prepend thread name if not main thread
         cthrd = threading.current_thread()
         if cthrd != threading.main_thread():
             header = "[" + cthrd.name + "] " + header
         # Store the new header and color
-        cls.__local.header = header
-        cls.__local.color = color
+        self.__local.header = header
+        self.__local.color = color
 
     @classmethod
-    def _get(cls):
-        """Get the thread-local header and color.
-        Returns:
-          Current header, begin header color, begin color, ending color
+    def _get(self):
         """
-        cls.__local_init()
-        return cls.__local.header, cls.__colors["header"], cls.__local.color, cls.__clrend
+        Return the current thread-local header and color escape sequences.
 
-    def __init__(self, cntxtname, colorname):
-        """Color selection constructor.
-        Args:
-          cntxtname Context name (None for none)
-          colorname Color name (None for no change)
+        Returns
+        -------
+        tuple[str, str, str, str]
+            Current header, header color prefix, message color prefix, and color
+            reset suffix.
+        """
+        self.__local_init()
+        return (
+            self.__local.header,
+            self.__colors["header"],
+            self.__local.color,
+            self.__clrend,
+        )
+
+    def __init__(self, cntxtname: str | None, colorname: str | None) -> None:
+        """
+        Create a context stack entry.
+
+        Parameters
+        ----------
+        cntxtname : str or None
+            Context name to prepend to log lines, or ``None`` for no additional
+            context.
+        colorname : str or None
+            Color name to apply while the context is active, or ``None`` to keep the
+            current color.
         """
         # Color code resolution
         if colorname is None:
             colorcode = None
         else:
-            assert colorname in type(self).__colors, "Unknown color name " + repr(colorname)
+            assert colorname in type(self).__colors, "Unknown color name " + repr(
+                colorname
+            )
             colorcode = type(self).__colors[colorname]
         # Finalization
         self.__pair = (cntxtname, colorcode)
 
     def __enter__(self):
-        """Enter context.
-        Returns:
-          self
+        """
+        Enter the logging context.
+
+        Returns
+        -------
+        Context
+            This context manager instance.
         """
         type(self).__local_init()
         type(self).__local.stack.append(self.__pair)
         type(self).__rebuild()
         return self
 
-    def __exit__(self, *args, **kwargs):
-        """Leave context.
-        Args:
-          ... Ignored arguments
+    def __exit__(self, *args, **kwargs) -> None:
+        """
+        Leave the logging context.
+
+        Parameters
+        ----------
+        *args : object
+            Ignored positional arguments supplied by the context manager protocol.
+        **kwargs : object
+            Ignored keyword arguments supplied by the context manager protocol.
         """
         type(self).__local.stack.pop()
         type(self).__rebuild()
 
 
 class ContextIOWrapper:
-    """Context-aware text IO wrapper class."""
+    """
+    Context-aware text I/O wrapper.
+    """
 
-    def __init__(self, output, nocolor=None):
-        """New line no color assumed constructor.
-        Args:
-          output  Wrapped output
-          nocolor Whether to apply colors or not (if None, no color for non-TTY)
+    def __init__(self, output: object, nocolor: bool | None = None) -> None:
+        """
+        Wrap a text output stream.
+
+        Parameters
+        ----------
+        output : object
+            Wrapped stream-like object.
+        nocolor : bool or None, optional
+            Whether to disable ANSI colors. If ``None``, colors are disabled for
+            non-TTY streams.
         """
         # Check whether to apply coloring if unset
         if nocolor is None:
@@ -145,21 +224,35 @@ class ContextIOWrapper:
         self.__output = output
         self.__nocolor = nocolor
 
-    def __getattr__(self, name):
-        """Forward non-overloaded attributes.
-        Args:
-          name Non-overloaded attribute name
-        Returns:
-          Non-overloaded attribute
+    def __getattr__(self, name: str) -> object:
+        """
+        Forward non-overridden attribute access to the wrapped stream.
+
+        Parameters
+        ----------
+        name : str
+            Attribute name.
+
+        Returns
+        -------
+        object
+            Attribute value from the wrapped stream.
         """
         return getattr(self.__output, name)
 
-    def write(self, text):
-        """Wrap the given text with the context if necessary.
-        Args:
-          text Text to update and write
-        Returns:
-          Forwarded value
+    def write(self, text: str) -> int:
+        """
+        Write text with the active context prefix and color.
+
+        Parameters
+        ----------
+        text : str
+            Text to write.
+
+        Returns
+        -------
+        int
+            Return value forwarded from the wrapped stream's ``write`` method.
         """
         # Get the current context
         header, clrheader, clrbegin, clrend = Context._get()
@@ -182,21 +275,38 @@ class ContextIOWrapper:
         return self.__output.write(text + clrend)
 
 
-def _make_color_print(color):
-    """Build the closure that wrap a 'print' inside a colored context.
-    Args:
-      color Target color name
-    Returns:
-      Print wrapper closure
+def _make_color_print(color: str) -> object:
+    """
+    Build a ``print`` wrapper that runs inside a colored context.
+
+    Parameters
+    ----------
+    color : str
+        Target color name.
+
+    Returns
+    -------
+    object
+        Print wrapper closure.
     """
 
-    def color_print(*args, context=None, **kwargs):
-        """Print in 'color'.
-        Args:
-          context Context name to use
-          ...     Forwarded arguments
-        Returns:
-          Forwarded return value
+    def color_print(*args, context: str | None = None, **kwargs) -> object:
+        """
+        Print inside the configured colored context.
+
+        Parameters
+        ----------
+        *args : object
+            Positional arguments forwarded to :func:`print`.
+        context : str or None, optional
+            Context name to use while printing.
+        **kwargs : object
+            Keyword arguments forwarded to :func:`print`.
+
+        Returns
+        -------
+        object
+            Return value forwarded from :func:`print`.
         """
         with Context(context, color):
             return print(*args, **kwargs)
@@ -209,11 +319,18 @@ for color in ["trace", "info", "success", "warning", "error"]:
     globals()[color] = _make_color_print(color)
 
 
-def fatal(*args, with_traceback=False, **kwargs):
-    """Error colored print that calls 'exit(1)' instead of returning.
-    Args:
-      with_traceback Include a traceback after the message
-      ...            Forwarded arguments
+def fatal(*args, with_traceback: bool = False, **kwargs) -> None:
+    """
+    Print an error message and terminate the process with exit code 1.
+
+    Parameters
+    ----------
+    *args : object
+        Positional arguments forwarded to :func:`error`.
+    with_traceback : bool, optional
+        Whether to include the current traceback after the message.
+    **kwargs : object
+        Keyword arguments forwarded to :func:`error`.
     """
     global error
     error(*args, **kwargs)
@@ -231,22 +348,38 @@ sys.stderr = ContextIOWrapper(sys.stderr)
 # Uncaught exception context wrapping
 
 
-def uncaught_wrap(hook):
-    """Wrap an uncaught hook with a context.
-    Args:
-      hook Uncaught hook to wrap
-    Returns:
-      Wrapped uncaught hook
+def uncaught_wrap(hook: object) -> object:
+    """
+    Wrap an uncaught exception hook with contextual logging.
+
+    Parameters
+    ----------
+    hook : object
+        Uncaught exception hook to wrap.
+
+    Returns
+    -------
+    object
+        Wrapped uncaught exception hook.
     """
 
-    def uncaught_call(etype, evalue, traceback):
-        """Update context, check if user exception or forward-call.
-        Args:
-          etype     Exception class
-          evalue    Exception value
-          traceback Traceback at the exception
-        Returns:
-          Forwarded value
+    def uncaught_call(etype: type, evalue: object, traceback: object) -> object:
+        """
+        Handle uncaught exceptions with user-facing context.
+
+        Parameters
+        ----------
+        etype : type
+            Exception class.
+        evalue : object
+            Exception value.
+        traceback : object
+            Traceback associated with the exception.
+
+        Returns
+        -------
+        object
+            Return value forwarded from the wrapped hook for non-user exceptions.
         """
         if issubclass(etype, UserException):
             with Context("fatal", "error"):
@@ -254,6 +387,7 @@ def uncaught_wrap(hook):
         else:
             with Context("uncaught", "error"):
                 return hook(etype, evalue, traceback)
+        return None
 
     return uncaught_call
 
@@ -264,15 +398,21 @@ sys.excepthook = uncaught_wrap(sys.excepthook)
 # ---------------------------------------------------------------------------- #
 # Local module loading and post-processing
 
-_imported = dict()  # Map symbol name -> module source name
+_imported = {}  # Map symbol name -> module source name
 
 
-def import_exported_symbols(name, module, scope):
-    """Import the exported objects of the loaded module into the given scope.
-    Args:
-      name   Module name
-      module Module instance
-      scope  Target scope
+def import_exported_symbols(name: str, module, scope: dict) -> None:
+    """
+    Import a module's exported symbols into a target scope.
+
+    Parameters
+    ----------
+    name : str
+        Source module name.
+    module : module
+        Loaded module instance.
+    scope : dict
+        Target scope to update with exported symbols.
     """
     global _imported
     if hasattr(module, "__all__"):
@@ -284,26 +424,47 @@ def import_exported_symbols(name, module, scope):
                 continue
             if symname in _imported:
                 with Context(None, "warning"):
-                    print("Symbol " + repr(symname) + " already exported by " + repr(_imported[symname]))
+                    print(
+                        "Symbol "
+                        + repr(symname)
+                        + " already exported by "
+                        + repr(_imported[symname])
+                    )
                 continue
             if symname in scope:
                 with Context(None, "warning"):
-                    print("Symbol " + repr(symname) + " already exported by '__init__.py'")
+                    print(
+                        "Symbol " + repr(symname) + " already exported by '__init__.py'"
+                    )
                 continue
             # Import in module scope
             scope[symname] = getattr(module, symname)
             _imported[symname] = name
 
 
-def import_directory(dirpath, scope, post=import_exported_symbols, ignore=["__init__"]):
-    """Import every module from the given directory in the given scope.
-    Args:
-      dirpath Directory path
-      scope   Target scope
-      post    Post module import function (name, module, scope) -> None
-      ignore  List of module names to ignore
+def import_directory(
+    dirpath: Path,
+    scope: dict,
+    post: object = import_exported_symbols,
+    ignore: list[str] = None,
+) -> None:
+    """
+    Import every Python module from a directory into a target scope.
+
+    Parameters
+    ----------
+    dirpath : pathlib.Path
+        Directory containing modules to import.
+    scope : dict
+        Target scope used for imports and post-processing.
+    post : object, optional
+        Post-import callback with signature ``(name, module, scope) -> None``.
+    ignore : list[str], optional
+        Module names to ignore.
     """
     # Import in the scope of the caller
+    if ignore is None:
+        ignore = ["__init__"]
     for path in dirpath.iterdir():
         if path.is_file() and path.suffix == ".py":
             name = path.stem
@@ -318,10 +479,15 @@ def import_directory(dirpath, scope, post=import_exported_symbols, ignore=["__in
                         post(name, getattr(base, name), scope)
                 except Exception as err:
                     with Context(None, "warning"):
-                        print("Loading failed for module " + repr(path.name) + ": " + str(err))
+                        print(
+                            "Loading failed for module "
+                            + repr(path.name)
+                            + ": "
+                            + str(err)
+                        )
                         with Context("traceback", "trace"):
                             traceback.print_exc()
 
 
 with Context("tools", None):
-    import_directory(pathlib.Path(__file__).parent, globals())
+    import_directory(Path(__file__).parent, globals())

@@ -69,7 +69,7 @@ except Exception:
         Args:
           closure Ignored parameter
         """
-        tools.warning("GTK 3.0 is unavailable: %s" % (err,))
+        tools.warning(f"GTK 3.0 is unavailable: {err}")
 
 # ---------------------------------------------------------------------------- #
 # Data frame columns selection helper
@@ -91,7 +91,7 @@ def select(data, *only_columns):
     if len(only_columns) == 0:
         return data
     # Intelligent selection
-    columns = list()
+    columns = []
     for only_column in only_columns:
         only_column = only_column.lower()
         for column in data.columns:
@@ -136,7 +136,7 @@ class _DataFrameDisplayWindow(Gtk.Window):
           Converted data to string
         """
         if type(x) is float:
-            return "%e" % x
+            return f"{x:e}"
         return str(x).strip()
 
     def __init__(self, data, title="Display data"):
@@ -149,7 +149,7 @@ class _DataFrameDisplayWindow(Gtk.Window):
         # Make and fill list store
         store = Gtk.ListStore(*([str] * (len(data.columns) + 1)))
         for row in data.itertuples():
-            store.append(list(self.to_string(x) for x in row))
+            store.append([self.to_string(x) for x in row])
         # Make the associated tree view
         view = Gtk.TreeView(store)
         columns = list(data.columns)
@@ -196,8 +196,7 @@ class Session:
         # Ensure directory exist
         if not path_results.exists():
             raise tools.UserException(
-                "Result directory %r cannot be accessed or does not exist"
-                % str(path_results)
+                f"Result directory {str(path_results)!r} cannot be accessed or does not exist"
             )
         # Load configuration string
         path_config = path_results / "config"
@@ -205,8 +204,7 @@ class Session:
             data_config = path_config.read_text().strip()
         except Exception as err:
             tools.warning(
-                "Result directory %r: unable to read configuration (%s)"
-                % (str(path_results), err)
+                f"Result directory {str(path_results)!r}: unable to read configuration ({err})"
             )
             data_config = None
         # Load configuration json
@@ -216,8 +214,7 @@ class Session:
                 data_json = json.load(fd)
         except Exception as err:
             tools.warning(
-                "Result directory %r: unable to read JSON configuration (%s)"
-                % (str(path_results), err)
+                f"Result directory {str(path_results)!r}: unable to read JSON configuration ({err})"
             )
             data_json = None
         # Load training data
@@ -229,8 +226,7 @@ class Session:
             data_study.index.name = "Step number"
         except Exception as err:
             tools.warning(
-                "Result directory %r: unable to read training data (%s)"
-                % (str(path_results), err)
+                f"Result directory {str(path_results)!r}: unable to read training data ({err})"
             )
             data_study = None
         # Load evaluation data
@@ -240,8 +236,7 @@ class Session:
             data_eval.index.name = "Step number"
         except Exception as err:
             tools.warning(
-                "Result directory %r: unable to read evaluation data (%s)"
-                % (str(path_results), err)
+                f"Result directory {str(path_results)!r}: unable to read evaluation data ({err})"
             )
             data_eval = None
         # Merge data frames
@@ -284,8 +279,7 @@ class Session:
         display(
             self.get(*only_columns),
             title=(
-                "Session data%s for %r"
-                % (" (subset)" if len(only_columns) > 0 else "", self.name)
+                "Session data{} for {!r}".format(" (subset)" if len(only_columns) > 0 else "", self.name)
             ),
         )
         # Return self to enable chaining
@@ -343,7 +337,7 @@ class Session:
         }.get(dataset_name)
         if training_size is None:
             tools.warning(
-                "Unknown dataset %r, cannot compute the epoch number" % dataset_name
+                f"Unknown dataset {dataset_name!r}, cannot compute the epoch number"
             )
             return self
         self.data[column_name] = self.data["Training point count"] / training_size
@@ -465,8 +459,7 @@ class LinePlot:
             data = data.data
         elif not isinstance(data, pandas.DataFrame):
             raise RuntimeError(
-                "Expected a Session or DataFrame for 'data', got a %r"
-                % tools.fullqual(type(data))
+                f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
             )
         # Get the x-axis values
         if self._idx is None:
@@ -474,8 +467,7 @@ class LinePlot:
         else:
             if self._idx not in data:
                 raise RuntimeError(
-                    "No column named %r to use as index in the given session/dataframe"
-                    % (self._idx,)
+                    f"No column named {self._idx!r} to use as index in the given session/dataframe"
                 )
             x = data[self._idx].to_numpy()
         # Select semantic: empty list = select all
@@ -541,8 +533,7 @@ class LinePlot:
             data = data.data
         elif not isinstance(data, pandas.DataFrame):
             raise RuntimeError(
-                "Expected a Session or DataFrame for 'data', got a %r"
-                % tools.fullqual(type(data))
+                f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
             )
         # Get the x-axis values
         if self._idx is None:
@@ -550,8 +541,7 @@ class LinePlot:
         else:
             if self._idx not in data:
                 raise RuntimeError(
-                    "No column named %r to use as index in the given session/dataframe"
-                    % (self._idx,)
+                    f"No column named {self._idx!r} to use as index in the given session/dataframe"
                 )
             x = data[self._idx].to_numpy()
         # Pick a new line style and color
@@ -641,15 +631,13 @@ class LinePlot:
         if zlabel is not None:
             if self._tax is None:
                 tools.warning(
-                    "No secondary y-axis found, but its label %r was provided"
-                    % (zlabel,)
+                    f"No secondary y-axis found, but its label {zlabel!r} was provided"
                 )
             else:
                 self._tax.set_ylabel(zlabel)
         elif self._tax is not None:
             tools.warning(
-                "No label provided for the secondary y-axis; using label %r from the primary"
-                % (ylabel,)
+                f"No label provided for the secondary y-axis; using label {ylabel!r} from the primary"
             )
             self._tax.set_ylabel(ylabel)
         self._ax.set_xlim(left=xmin, right=xmax)

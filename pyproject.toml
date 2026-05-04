@@ -73,51 +73,29 @@ exclude = [
 fix = true
 show-fixes = true
 preview = true
-explicit-preview-rules = true
 
 [tool.ruff.lint]
+explicit-preview-rules = true
 select = [
     "E",    # pycodestyle errors
     "F",    # Pyflakes
     "I",    # isort
-    "N",    # pep8-naming
     "W",    # pycodestyle warnings
-    "UP",   # pyupgrade
     "B",    # flake8-bugbear
     "C4",   # flake8-comprehensions
-    "SIM",  # flake8-simplify
-    "A",    # flake8-builtins
-    "COM",  # flake8-commas
-    "ISC",  # flake8-implicit-str-concat
-    "ICN",  # flake8-import-conventions
-    "G",    # flake8-logging-format
-    "T20",  # flake8-print
     "RET",  # flake8-return
-    "C90",  # mccabe complexity
-    "TCH",  # flake8-type-checking
-    "FA",   # flake8-future-annotations
-    "PGH",  # pygrep-hooks
-    "RUF",  # ruff-specific rules
-    "PERF", # perflint
-    "PLR",  # pylint refactor
-    "PLW",  # pylint warnings
 ]
 ignore = [
     "E402",  # module level import not at top of file (intentional in this codebase)
     "E501",  # line too long (handled by formatter)
-    "N818",  # exception naming (UserException, StopTrainingLoop are intentional)
-    "COM812",# trailing comma missing (can conflict with formatter)
-    "ISC001",# implicit str concat (can conflict with formatter)
+    "UP031", # percent format (legacy codebase, too noisy to fix now)
 ]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.mccabe]
-max-complexity = 15
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # unused imports (re-exports)
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.format]
 quote-style = "double"

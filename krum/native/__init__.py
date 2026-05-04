@@ -16,7 +16,7 @@
 # Initialization procedure
 
 
-def _build_and_load():
+def _build_and_load() -> None:
     """Incrementally rebuild all libraries and bind all local modules in the global."""
     glob = globals()
     # Standard imports
@@ -58,7 +58,7 @@ def _build_and_load():
     source_suffixes = {".cpp", ".cc", ".C", ".cxx", ".c++"}
     extra_cflags = ["-Wall", "-Wextra", "-Wfatal-errors", f"-std={cpp_std}"]
     if torch.cuda.is_available():
-        source_suffixes.update(set((".cu" + suffix) for suffix in source_suffixes))
+        source_suffixes.update({(".cu" + suffix) for suffix in source_suffixes})
         source_suffixes.add(".cu")
         extra_cflags.append("-DTORCH_CUDA_AVAILABLE")
     extra_cuda_cflags = ["-DTORCH_CUDA_AVAILABLE", "--expt-relaxed-constexpr", f"-std={cpp_std}"]
@@ -68,7 +68,7 @@ def _build_and_load():
         extra_include_paths = [str(extra_include_path.resolve())]
     except Exception:
         extra_include_paths = None
-        warnings.warn("Not found include directory: " + repr(str(extra_include_path)))
+        warnings.warn("Not found include directory: " + repr(str(extra_include_path)), stacklevel=2)
     # Print configuration information
     cpp_std_message = "Native modules compiled with {} standard; (re)define {!r} in the environment to compile with another standard".format(
         cpp_std, f"{cpp_std_envname}=<standard>"
@@ -101,7 +101,7 @@ def _build_and_load():
     fail_modules = []
 
     # Local procedures
-    def build_and_load_one(path, deps=[]):
+    def build_and_load_one(path, deps=None):
         """Check if the given directory is a module to build and load, and if yes recursively build and load its dependencies before it.
         Args:
           path Given directory path
@@ -109,6 +109,8 @@ def _build_and_load():
         Returns:
           True on success, False on failure, None if not a module
         """
+        if deps is None:
+            deps = []
         nonlocal done_modules
         nonlocal fail_modules
         with tools.Context(path.name, "info"):
@@ -184,6 +186,7 @@ def _build_and_load():
                     return False
                 done_modules.append(path)  # Mark as built and loaded
                 return True
+        return None
 
     # Main loop
     for path in base_directory.iterdir():

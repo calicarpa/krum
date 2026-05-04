@@ -10,44 +10,69 @@
 # @section DESCRIPTION
 #
 # Loading of the local modules.
-#
-# Each attack MUST support taking any named arguments, possibly ignoring them.
-# The parameters MUST all be passed as their keyword arguments.
-# The reserved argument names, and their interface, are the following:
-# · grad_honest: Non-empty list of honest gradients generated
-# · f_decl     : Number of declared Byzantine gradients at the GAR
-# · f_real     : Number of actual Byzantine gradients to generate
-# · model      : Model (duck-typing 'experiments.Model') with valid default dataset and loss set
-# · defense    : Aggregation rule (see module 'aggregators') in use to defeat
-# The attack, given "valid" parameter(s), MUST return a list of f_byz tensor(s).
-# Each of these returned tensors MUST NOT be a reference to any tensor given as parameter,
-# although each returned tensors MAY be references to the same tensor.
-#
-# Each attack MUST provide a "check" function, taking the same arguments as the attack itself.
-# The "check" member function returns 'None' when the parameters are valid,
-# or an explanatory string when the parameters are not valid.
-# The check member function MUST NOT modify the given parameters.
-#
-# Once registered, the check member function will be available as member "check".
-# The raw function and a wrapped checking the input/output of the raw function
-# will respectively be available as members "unchecked" and "checked".
-# Which of these two functions is called by default depends whether debug mode is enabled.
 ###
 
-import pathlib
+"""
+Byzantine attack registry used to evaluate aggregation-rule robustness.
 
-from krum import tools
+Each attack combines a keyword-only generation function with a validation
+function. Registered attacks are loaded dynamically and exposed as module-level
+callables.
+
+Contract
+--------
+
+Each attack MUST:
+
+1. Accept keyword-only arguments.
+2. Accept the reserved parameter ``grad_honests`` (non-empty list of honest gradients).
+3. Accept the reserved parameter ``f_decl`` (number of declared Byzantine gradients).
+4. Accept the reserved parameter ``f_real`` (number of Byzantine gradients to generate).
+5. Accept the reserved parameter ``model`` (model with configured defaults).
+6. Accept the reserved parameter ``defense`` (aggregation rule to defeat).
+7. Return exactly ``f_real`` tensors (list of Byzantine gradients).
+8. NOT return tensors that alias any honest input tensor.
+9. MAY reuse the same Byzantine tensor object when all generated gradients are identical.
+
+Each attack MUST provide a ``check`` function that validates parameters and
+returns ``None`` when valid, or a user-facing error message otherwise.
+
+The module exposes three variants for each attack:
+
+- ``attack``: The default version (checked in debug mode, unchecked in release)
+- ``attack.checked``: Always validates parameters
+- ``attack.unchecked``: Skips validation (faster in production)
+"""
+
+import pathlib
+from collections.abc import Callable
+
+import tools
+import torch
 
 # ---------------------------------------------------------------------------- #
 # Automated attack loader
 
 
-def register(name, unchecked, check):
-    """Simple registration-wrapper helper.
-    Args:
-      name      Attack name
-      unchecked Associated function (see module description)
-      check     Parameter validity check function
+def register(name: str, unchecked: Callable, check: Callable) -> None:
+    """
+    Register a Byzantine attack.
+
+    Parameters
+    ----------
+    name : str
+        User-visible attack name.
+    unchecked : callable
+        Attack implementation without parameter checks. It must return exactly
+        ``f_real`` Byzantine gradients.
+    check : callable
+        Validation function associated with ``unchecked``. It must return
+        ``None`` when parameters are valid, or an error message otherwise.
+
+    Returns
+    -------
+    None
+        The attack is registered as a module-level callable.
     """
     global attacks
     # Check if name already in use
@@ -60,7 +85,9 @@ def register(name, unchecked, check):
         # Check parameter validity
         message = check(f_real=f_real, **kwargs)
         if message is not None:
-            raise tools.UserException(f"Attack {name!r} cannot be used with the given parameters: {message}")
+            raise tools.UserException(
+                f"Attack {name!r} cannot be used with the given parameters: {message}"
+            )
         # Attack
         res = unchecked(f_real=f_real, **kwargs)
         # Forward asserted return value
@@ -80,7 +107,7 @@ def register(name, unchecked, check):
 
 
 # Registered attacks (mapping name -> attack)
-attacks = dict()
+attacks = {}
 
 # Load native and all local modules
 with tools.Context("attacks", None):

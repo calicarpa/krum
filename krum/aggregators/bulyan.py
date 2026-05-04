@@ -12,11 +12,72 @@
 # Bulyan over Multi-Krum GAR.
 ###
 
+"""
+Bulyan aggregation rule built on top of Multi-Krum.
+
+Bulyan combines distance-based gradient selection with coordinate-wise
+robust averaging. It first selects a candidate set using a Multi-Krum-like
+criterion, then aggregates each coordinate from the values closest to the
+coordinate-wise median.
+
+Use Case
+--------
+
+Use Bulyan when stronger Byzantine resilience is needed than plain Multi-Krum
+can provide, and when the worker count is high enough to satisfy the stricter
+``n >= 4f + 3`` requirement.
+
+Properties
+----------
+
+- Two-stage aggregation: geometric selection then coordinate-wise averaging.
+- Requires at least :math:`4f + 3` submitted gradients.
+- Uses only newly allocated output tensors and does not return aliases of input
+  gradients.
+- Theoretical bound available through :func:`upper_bound`.
+
+Algorithm
+---------
+
+1. Select candidate gradients with the smallest Multi-Krum scores.
+2. For each coordinate, compute the median over the selected candidates.
+3. Average the values closest to that median.
+
+Complexity
+----------
+
+- Time: :math:`O(n^2 \\cdot d)` where :math:`n` is the number of gradients and
+  :math:`d` is the gradient dimension.
+- Space: :math:`O(n^2)` for storing pairwise distances.
+
+Parameters
+----------
+m : int, optional
+    Number of gradients to consider in each Multi-Krum selection step. Defaults
+    to ``n - f - 2``. Must satisfy ``1 <= m <= n - f - 2``.
+
+Example
+-------
+
+>>> import torch
+>>> from aggregators import bulyan
+>>> gradients = [
+...     torch.tensor([1., 2., 3.]),
+...     torch.tensor([1.1, 2.1, 3.1]),
+...     torch.tensor([0.9, 1.9, 2.9]),
+...     torch.tensor([1.2, 2.2, 3.2]),
+...     torch.tensor([0.8, 1.8, 2.8]),
+...     torch.tensor([1.05, 2.05, 3.05]),
+...     torch.tensor([100., 200., 300.]),  # Byzantine
+... ]
+>>> result = bulyan(gradients=gradients, f=1)
+tensor([1., 2., 3.])
+"""
+
 import math
 
+import tools
 import torch
-
-from krum import tools
 
 from . import register
 
@@ -30,15 +91,33 @@ except ImportError:
 # Bulyan GAR class
 
 
-def aggregate(gradients, f, m=None, **kwargs):
-    """Bulyan over Multi-Krum rule.
-    Args:
-      gradients Non-empty list of gradients to aggregate
-      f         Number of Byzantine gradients to tolerate
-      m         Optional number of averaged gradients for Multi-Krum
-      ...       Ignored keyword-arguments
-    Returns:
-      Aggregated gradient
+def aggregate(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> torch.Tensor:
+    """
+    Compute the Bulyan aggregate.
+
+    Parameters
+    ----------
+    gradients : list of torch.Tensor
+        Non-empty list of flattened gradients to aggregate. All tensors must
+        have the same shape, dtype, and device.
+    f : int
+        Number of Byzantine gradients to tolerate. Must satisfy
+        ``1 <= f <= (n - 3) // 4`` where ``n = len(gradients)``.
+    m : int, optional
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. Defaults to ``n - f - 2``.
+    **kwargs : object
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this implementation.
+
+    Returns
+    -------
+    torch.Tensor
+        Bulyan-aggregated gradient.
+
+    Notes
+    -----
+    The returned tensor is newly allocated and does not alias any input tensor.
     """
     n = len(gradients)
     d = gradients[0].shape[0]
@@ -47,7 +126,7 @@ def aggregate(gradients, f, m=None, **kwargs):
     if m is None:
         m = m_max
     # Compute all pairwise distances
-    distances = list([(math.inf, None)] * n for _ in range(n))
+    distances = [[(math.inf, None)] * n for _ in range(n)]
     for gid_x, gid_y in tools.pairwise(tuple(range(n))):
         dist = gradients[gid_x].sub(gradients[gid_y]).norm().item()
         if not math.isfinite(dist):
@@ -63,7 +142,9 @@ def aggregate(gradients, f, m=None, **kwargs):
         scores[gid] = (sum(dist for dist, _ in dists), gid)
         distances[gid] = dict(dists)
     # Selection loop
-    selected = torch.empty(n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device)
+    selected = torch.empty(
+        n - 2 * f - 2, d, dtype=gradients[0].dtype, device=gradients[0].device
+    )
     for i in range(selected.shape[0]):
         # Update 'm'
         m = min(m, m_max - i)
@@ -75,26 +156,47 @@ def aggregate(gradients, f, m=None, **kwargs):
         scores[0] = (math.inf, None)
         for score, gid in scores[1:]:
             if gid == gid_prune:
-                scores[gid] = (score - distances[gid][gid_prune], gid)
+                scores[gid] = (score - distance[gid][gid_prune], gid)
     # Coordinate-wise averaged median
     m = selected.shape[0] - 2 * f
     median = selected.median(dim=0).values
-    closests = selected.clone().sub_(median).abs_().topk(m, dim=0, largest=False, sorted=False).indices
-    closests.mul_(d).add_(torch.arange(0, d, dtype=closests.dtype, device=closests.device))
-    avgmed = selected.take(closests).mean(dim=0)
+    closests = (
+        selected.clone()
+        .sub_(median)
+        .abs_()
+        .topk(m, dim=0, largest=False, sorted=False)
+        .indices
+    )
+    closests.mul_(d).add_(
+        torch.arange(0, d, dtype=closests.dtype, device=closests.device)
+    )
+    return selected.take(closests).mean(dim=0)
     # Return resulting gradient
-    return avgmed
 
 
-def aggregate_native(gradients, f, m=None, **kwargs):
-    """Bulyan over Multi-Krum rule.
-    Args:
-      gradients Non-empty list of gradients to aggregate
-      f         Number of Byzantine gradients to tolerate
-      m         Optional number of averaged gradients for Multi-Krum
-      ...       Ignored keyword-arguments
-    Returns:
-      Aggregated gradient
+def aggregate_native(
+    gradients: list[torch.Tensor], f: int, m=None, **kwargs
+) -> torch.Tensor:
+    """
+    Compute the Bulyan aggregate using native C++/CUDA acceleration.
+
+    Parameters
+    ----------
+    gradients : list of torch.Tensor
+        Non-empty list of flattened gradients to aggregate.
+    f : int
+        Number of Byzantine gradients to tolerate.
+    m : int, optional
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. Defaults to ``n - f - 2``.
+    **kwargs : object
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this implementation.
+
+    Returns
+    -------
+    torch.Tensor
+        Bulyan-aggregated gradient.
     """
     # Defaults
     if m is None:
@@ -103,32 +205,67 @@ def aggregate_native(gradients, f, m=None, **kwargs):
     return native.bulyan.aggregate(gradients, f, m)
 
 
-def check(gradients, f, m=None, **kwargs):
-    """Check parameter validity for Bulyan over Multi-Krum rule.
-    Args:
-      gradients Non-empty list of gradients to aggregate
-      f         Number of Byzantine gradients to tolerate
-      m         Optional number of averaged gradients for Multi-Krum
-      ...       Ignored keyword-arguments
-    Returns:
-      None if valid, otherwise error message string
+def check(gradients: list[torch.Tensor], f: int, m=None, **kwargs) -> str | None:
+    """
+    Check whether the Bulyan parameters satisfy the GAR contract.
+
+    Parameters
+    ----------
+    gradients : list of torch.Tensor
+        Non-empty list of gradients to aggregate.
+    f : int
+        Number of Byzantine gradients to tolerate.
+    m : int, optional
+        Number of nearest gradients considered in each Multi-Krum selection
+        step. If provided, must satisfy ``1 <= m <= n - f - 2``.
+    **kwargs : object
+        Additional keyword arguments. They are accepted for compatibility with
+        the GAR interface and ignored by this check.
+
+    Returns
+    -------
+    str or None
+        ``None`` when parameters are valid, otherwise a user-facing error
+        message.
     """
     if not isinstance(gradients, list) or len(gradients) < 1:
-        return f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
+        return (
+            f"Expected a list of at least one gradient to aggregate, got {gradients!r}"
+        )
     if not isinstance(f, int) or f < 1 or len(gradients) < 4 * f + 3:
-        return f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(len(gradients) - 3) // 4}"
-    if m is not None and (not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2):
-        return f"Invalid number of selected gradients, got m = {f!r}, expected 1 ≤ m ≤ {len(gradients) - f - 2}"
+        return (
+            "Invalid number of Byzantine gradients to tolerate, got f = %r, expected 1 ≤ f ≤ %d"
+            % (f, (len(gradients) - 3) // 4)
+        )
+    if m is not None and (
+        not isinstance(m, int) or m < 1 or m > len(gradients) - f - 2
+    ):
+        return (
+            "Invalid number of selected gradients, got m = %r, expected 1 ≤ m ≤ %d"
+            % (f, len(gradients) - f - 2)
+        )
+    return None
 
 
-def upper_bound(n, f, d):
-    """Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm to use this rule.
-    Args:
-      n Number of workers (Byzantine + non-Byzantine)
-      f Expected number of Byzantine workers
-      d Dimension of the gradient space
-    Returns:
-      Theoretical upper-bound
+def upper_bound(n: int, f: int, d: int) -> float:
+    """
+    Compute Bulyan's theoretical resilience upper bound.
+
+    Parameters
+    ----------
+    n : int
+        Total number of workers, including Byzantine workers.
+    f : int
+        Expected number of Byzantine workers.
+    d : int
+        Gradient dimension. Accepted for compatibility with the GAR metadata
+        interface; the current formula does not depend on it.
+
+    Returns
+    -------
+    float
+        Upper bound on the ratio between non-Byzantine standard deviation and
+        gradient norm under the Bulyan assumptions.
     """
     return 1 / math.sqrt(2 * (n - f + f * (n + f * (n - f - 2) - 2) / (n - 2 * f - 2)))
 

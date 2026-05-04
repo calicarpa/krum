@@ -87,7 +87,7 @@ template<class T> __global__ void distances_finalize(T* flat_dist, T* distances,
 /** Special single-block merge-sort for indirected array of limited length.
  * @param value  Input constant value array
  * @param rank   (Input/)output only "rank" array
- * @param length Length of the arrays (at most 2 × #threads/block)
+ * @param length Length of the arrays (at most 2 x #threads/block)
 **/
 template<class T> __global__ void merge_sort_limited(T const* value, size_t* rank, size_t length) {
     // Shared variable declaration
@@ -191,7 +191,7 @@ template<class T> __global__ void compute_scores_prune_distances(T const* flat_d
  * @param scores    Input/output score array
  * @param distances Input constant pruned distance matrix
  * @param ranks     Output only "rank" array
- * @param n         Length of the arrays (at most 2 × #threads/block)
+ * @param n         Length of the arrays (at most 2 x #threads/block)
 **/
 template<class T> __global__ void remove_smallest_scoring_gradient(T* scores, T const* distances, size_t const* ranks, size_t n) {
     // Compute thread position to maximize spreading over the available warps
