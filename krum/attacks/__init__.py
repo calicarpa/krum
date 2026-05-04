@@ -50,12 +50,13 @@ from typing import Any, cast
 import torch
 
 from .. import tools
+from .base import Attack, AttackSpec, FunctionAttack
 
 # ---------------------------------------------------------------------------- #
 # Automated attack loader
 
 
-def register(name: str, unchecked: Callable, check: Callable) -> None:
+def register(name: str | AttackSpec, unchecked: Callable, check: Callable) -> None:
     """Register a Byzantine attack.
 
     Parameters
@@ -74,9 +75,11 @@ def register(name: str, unchecked: Callable, check: Callable) -> None:
     None
         The attack is registered as a module-level callable.
     """
-    global attacks
+    global attack_aliases, attack_objects, attack_specs, attacks
+    spec = name if isinstance(name, AttackSpec) else AttackSpec(name=name)
+    name = spec.name
     # Check if name already in use
-    if name in attacks:
+    if name in attacks or name in attack_aliases:
         tools.warning(f"Unable to register {name!r} attack: name already in use")
         return
 
@@ -100,16 +103,41 @@ def register(name: str, unchecked: Callable, check: Callable) -> None:
     func.check = check
     func.checked = checked
     func.unchecked = unchecked
+    func.spec = spec
     # Export the selected function with the associated name
     attacks[name] = func
+    attack_specs[name] = spec
+    attack_objects[name] = FunctionAttack(spec, func.unchecked, func.check)
+    for alias in spec.aliases:
+        if alias in attacks or alias in attack_aliases:
+            tools.warning(f"Unable to register {alias!r} alias for {name!r} attack: name already in use")
+            continue
+        attack_aliases[alias] = name
+        attacks[alias] = func
+
+
+def register_class(cls: type[Attack]) -> type[Attack]:
+    """Register an ``Attack`` subclass and return it unchanged."""
+    instance = cls()
+    register(instance.spec, instance.generate, instance.check)
+    attack_objects[instance.spec.name] = instance
+    return cls
+
+
+def get(name: str) -> Callable:
+    """Return a registered attack by canonical name or alias."""
+    return attacks[name]
 
 
 # Registered attacks (mapping name -> attack)
 attacks = {}
+attack_aliases = {}
+attack_specs = {}
+attack_objects = {}
 
 # Load native and all local modules
 with tools.Context("attacks", None):
-    tools.import_directory(pathlib.Path(__file__).parent, globals())
+    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base"])
 
 # Bind/overwrite the attack names with the associated attacks in globals()
 for name, attack in attacks.items():

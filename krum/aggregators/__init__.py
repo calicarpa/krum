@@ -51,6 +51,7 @@ from typing import Any, cast
 import torch
 
 from .. import tools
+from .base import Aggregator, AggregatorSpec, FunctionAggregator
 
 # ---------------------------------------------------------------------------- #
 # Automated GAR loader
@@ -61,6 +62,7 @@ def make_gar(
     check: Callable,
     upper_bound: Callable | None = None,
     influence: Callable | None = None,
+    spec: AggregatorSpec | None = None,
 ) -> Callable:
     """Wrap an unchecked GAR with validation and metadata.
 
@@ -87,6 +89,12 @@ def make_gar(
         ``unchecked``, ``upper_bound``, and ``influence`` attributes.
     """
 
+    name = "<unnamed>"
+    if spec is not None:
+        name = spec.name
+        upper_bound = upper_bound or spec.upper_bound
+        influence = influence or spec.influence
+
     # Closure wrapping the call with checks
     def checked(**kwargs):
         # Check parameter validity
@@ -104,12 +112,13 @@ def make_gar(
     func.unchecked = unchecked
     func.upper_bound = upper_bound
     func.influence = influence
+    func.spec = spec
     # Return the selected function with the associated name
     return func
 
 
 def register(
-    name: str,
+    name: str | AggregatorSpec,
     unchecked: Callable,
     check: Callable,
     upper_bound: Callable | None = None,
@@ -130,21 +139,52 @@ def register(
     influence : callable, optional
         Function computing the accepted Byzantine-gradient ratio.
     """
-    global gars
+    global gar_aliases, gar_objects, gar_specs, gars
+    spec = (
+        name
+        if isinstance(name, AggregatorSpec)
+        else AggregatorSpec(name=name, upper_bound=upper_bound, influence=influence)
+    )
+    name = spec.name
     # Check if name already in use
-    if name in gars:
+    if name in gars or name in gar_aliases:
         tools.warning(f"Unable to register {name!r} GAR: name already in use")
         return
     # Export the selected function with the associated name
-    gars[name] = make_gar(unchecked, check, upper_bound=upper_bound, influence=influence)
+    rule = make_gar(unchecked, check, upper_bound=upper_bound, influence=influence, spec=spec)
+    gars[name] = rule
+    gar_specs[name] = spec
+    gar_objects[name] = FunctionAggregator(spec, rule.unchecked, rule.check)
+    for alias in spec.aliases:
+        if alias in gars or alias in gar_aliases:
+            tools.warning(f"Unable to register {alias!r} alias for {name!r} GAR: name already in use")
+            continue
+        gar_aliases[alias] = name
+        gars[alias] = rule
+
+
+def register_class(cls: type[Aggregator]) -> type[Aggregator]:
+    """Register an ``Aggregator`` subclass and return it unchanged."""
+    instance = cls()
+    register(instance.spec, instance.aggregate, instance.check)
+    gar_objects[instance.spec.name] = instance
+    return cls
+
+
+def get(name: str) -> Callable:
+    """Return a registered GAR by canonical name or alias."""
+    return gars[name]
 
 
 # Registered rules (mapping name -> aggregation rule)
 gars = {}
+gar_aliases = {}
+gar_specs = {}
+gar_objects = {}
 
 # Load all local modules
 with tools.Context("aggregators", None):
-    tools.import_directory(pathlib.Path(__file__).parent, globals())
+    tools.import_directory(pathlib.Path(__file__).parent, globals(), ignore=["__init__", "base"])
 
 # Bind/overwrite the GAR name with the associated rules in globals()
 for name, rule in gars.items():
