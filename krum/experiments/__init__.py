@@ -46,7 +46,7 @@ Example
 
 import pathlib
 
-import tools
+from krum import tools
 
 # ---------------------------------------------------------------------------- #
 # Load all local modules

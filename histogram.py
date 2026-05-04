@@ -19,6 +19,8 @@ import threading
 
 import matplotlib.pyplot as plt
 
+import pandas as pd
+
 from krum import aggregators, tools
 
 # Change common font for the default LaTeX one
@@ -62,7 +64,7 @@ try:
                 gtk_lazy_main = thread
         # Submit the job to the main loop
         GLib.idle_add(closure)
-except Exception:
+except Exception as err:
 
     def gtk_run(closure):
         """Sink in case GTK cannot be used.
@@ -220,7 +222,7 @@ class Session:
         # Load training data
         path_study = path_results / "study"
         try:
-            data_study = pandas.read_csv(
+            data_study = pd.read_csv(
                 path_study, sep="\t", index_col=0, na_values="     nan"
             )
             data_study.index.name = "Step number"
@@ -232,7 +234,7 @@ class Session:
         # Load evaluation data
         path_eval = path_results / "eval"
         try:
-            data_eval = pandas.read_csv(path_eval, sep="\t", index_col=0)
+            data_eval = pd.read_csv(path_eval, sep="\t", index_col=0)
             data_eval.index.name = "Step number"
         except Exception as err:
             tools.warning(
@@ -457,7 +459,7 @@ class LinePlot:
         # Recover the dataframe if a session was given
         if isinstance(data, Session):
             data = data.data
-        elif not isinstance(data, pandas.DataFrame):
+        elif not isinstance(data, pd.DataFrame):
             raise RuntimeError(
                 f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
             )
@@ -531,7 +533,7 @@ class LinePlot:
         # Recover the dataframe if a session was given
         if isinstance(data, Session):
             data = data.data
-        elif not isinstance(data, pandas.DataFrame):
+        elif not isinstance(data, pd.DataFrame):
             raise RuntimeError(
                 f"Expected a Session or DataFrame for 'data', got a {tools.fullqual(type(data))!r}"
             )
@@ -719,7 +721,7 @@ class HistPlot:
           self
         """
         # Convert 'pandas.Series' to numpy
-        if isinstance(data, pandas.Series):
+        if isinstance(data, pd.Series):
             data = data.to_numpy()
         # Make the histogram
         self._ax.hist(data, bins=self._bins)
