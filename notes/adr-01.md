@@ -1,6 +1,6 @@
 # ADR 2026-05-05
 
-We assume the user is fluent in python programming.
+We assume the user is fluent in python programming, and pytorch.
 
 ## To discuss
 
