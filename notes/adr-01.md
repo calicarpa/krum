@@ -1,4 +1,4 @@
-# ADR
+# ADR 2026-05-05
 
 We assume the user is fluent in python programming.
 
@@ -19,5 +19,6 @@ We assume the user is fluent in python programming.
 
 ## Decisions
 
+???
 - We focus on 1st order methods only. I.e., gradient aggregations. 0th-order (models aggregation) is excluded.
 - We avoid global variables and registers
