@@ -4,6 +4,7 @@ docs/_build
 # Python stuff
 .venv
 **/__pycache__
+*.egg-info/
 
 
 # IDE stuff

@@ -1,9 +1,10 @@
 """Model class encapsulating a nn.Module with zero-copy flat views."""
 
 import torch
-from tools.pytorch import relink
 from torch import nn
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
+
+from krum.tools.pytorch import relink
 
 
 class Model:
