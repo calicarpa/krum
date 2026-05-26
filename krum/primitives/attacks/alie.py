@@ -1,4 +1,4 @@
-"""A Little Is Enough attack."""
+"""ALIE-style attack using exact honest gradient statistics."""
 
 import warnings
 
@@ -8,10 +8,10 @@ from .attack import Attack
 
 
 class ALIEAttack(Attack):
-    """A Little Is Enough attack.
+    """ALIE-style attack using exact honest gradient statistics.
 
-    Generates Byzantine gradients from the coordinate-wise mean and standard
-    deviation of honest gradients.
+    Generates Byzantine gradients from the exact coordinate-wise mean and
+    standard deviation of the honest gradients passed to the attack.
 
     Args:
         z: Attack factor. Use "max" to compute the maximal valid attack factor.
@@ -43,7 +43,7 @@ class ALIEAttack(Attack):
         honest_gradients: torch.Tensor,
         num_byzantine: int,
     ) -> torch.Tensor:
-        """Generate Byzantine gradients using ALIE.
+        """Generate Byzantine gradients using ALIE-style statistics.
 
         Args:
             honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.

@@ -17,6 +17,7 @@ for _mod, _pkg in (
     ("tools", "krum.tools"),
     ("primitives", "krum.primitives"),
     ("aggregators", "krum.primitives.aggregators"),
+    ("attacks", "krum.primitives.attacks"),
 ):
     sys.modules[_mod] = importlib.import_module(_pkg)
 
@@ -147,6 +148,11 @@ html_theme_options = {
                     "title": "Aggregators",
                     "url": "reference/aggregators/index",
                     "summary": "What are aggregators",
+                },
+                {
+                    "title": "Attacks",
+                    "url": "reference/attacks/index",
+                    "summary": "What are attacks",
                 },
                 {
                     "title": "Primitives",

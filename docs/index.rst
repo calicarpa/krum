@@ -12,6 +12,7 @@ and analyzing results.
 
    reference/architecture
    reference/aggregators/index
+   reference/attacks/index
    reference/tools/index
    reference/primitives
 
