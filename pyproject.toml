@@ -13,6 +13,7 @@ license-files = ["LICENSE"]
 authors = [
     {name = "Sébastien Rouault", email = "sebastien.rouault@alumni.epfl.ch"},
     {name = "Arthur Danjou", email = "arthur.danjou@dauphine.eu"},
+    {name = "Mohamad Ammar Said", email = "mohamad-ammar.said@polytechnique.edu"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
