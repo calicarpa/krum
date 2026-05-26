@@ -1,0 +1,75 @@
+"""Tests for the Bulyan aggregator."""
+
+import unittest
+
+import torch
+
+from krum.primitives.aggregators import Bulyan
+
+
+class BulyanTest(unittest.TestCase):
+    """Test Bulyan aggregator."""
+
+    def test_aggregate_returns_gradient(self) -> None:
+        """Bulyan returns a gradient of the expected shape."""
+        agg = Bulyan(n=7, f=1, m=4)
+        grads = torch.tensor([
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [2.0, 0.0],
+            [3.0, 0.0],
+            [4.0, 0.0],
+            [5.0, 0.0],
+            [6.0, 0.0],
+        ])
+        result = agg.aggregate(grads)
+        self.assertEqual(result.shape, (2,))
+
+    def test_aggregate_preserves_dtype(self) -> None:
+        """Aggregate preserves the input dtype."""
+        agg = Bulyan(n=7, f=1, m=4)
+        grads = torch.tensor(
+            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 0.0]],
+            dtype=torch.float64,
+        )
+        result = agg.aggregate(grads)
+        self.assertEqual(result.dtype, torch.float64)
+
+    def test_default_m(self) -> None:
+        """M defaults to n - f - 2 when not provided."""
+        agg = Bulyan(n=7, f=1)
+        self.assertEqual(agg.m, 4)
+
+    def test_influence_ratio_returns_nan(self) -> None:
+        """influence_ratio returns NaN for Bulyan (not implemented)."""
+        agg = Bulyan(n=7, f=1)
+        honest = torch.ones((5, 4))
+        byzantine = torch.zeros((2, 4))
+        result = agg.influence_ratio(honest, byzantine)
+        self.assertTrue(torch.isnan(torch.tensor(result)))
+
+    def test_check_rejects_insufficient_workers(self) -> None:
+        """Check raises ValueError when n < 4f + 3."""
+        with self.assertRaises(ValueError):
+            Bulyan(n=5, f=1)
+
+    def test_check_rejects_invalid_m(self) -> None:
+        """Check raises ValueError when m is out of bounds."""
+        with self.assertRaises(ValueError):
+            Bulyan(n=7, f=1, m=10)
+
+    def test_upper_bound_returns_finite_value(self) -> None:
+        """upper_bound returns a finite positive value."""
+        agg = Bulyan(n=7, f=1)
+        bound = agg.upper_bound()
+        self.assertGreater(bound, 0.0)
+        self.assertLess(bound, 1.0)
+
+    def test_parameters_are_keyword_only(self) -> None:
+        """Parameters must be passed as keywords."""
+        with self.assertRaises(TypeError):
+            Bulyan(7, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
