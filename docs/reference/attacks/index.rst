@@ -33,6 +33,14 @@ Overview
      - Sends gradients filled with positive or negative infinity
      - ``sign``
      - :math:`b \times d`
+   * - Zero
+     - Sends gradients filled with zero values
+     - None
+     - :math:`b \times d`
+   * - SignFlip
+     - Sends scaled gradients in the opposite direction of the honest mean
+     - ``scale``
+     - :math:`b \times d`
    * - ALIE
      - Sends mean-shifted gradients using exact honest coordinate-wise statistics
      - ``z``, ``direction``
@@ -47,6 +55,8 @@ Available Attacks
 
    classes/nan
    classes/inf
+   classes/zero
+   classes/sign_flip
    classes/alie
 
 API Reference
