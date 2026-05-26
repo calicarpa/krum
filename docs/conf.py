@@ -13,8 +13,12 @@ import sys
 sys.path.insert(0, os.path.abspath(".."))
 
 # Make krum submodules available as top-level imports for autodoc compatibility
-for _mod in ("aggregators", "attacks", "experiments", "native", "tools"):
-    sys.modules[_mod] = importlib.import_module(f"krum.{_mod}")
+for _mod, _pkg in (
+    ("tools", "krum.tools"),
+    ("primitives", "krum.primitives"),
+    ("aggregators", "krum.primitives.aggregators"),
+):
+    sys.modules[_mod] = importlib.import_module(_pkg)
 
 project = "Krum, the Library"
 copyright = "2026"
@@ -145,24 +149,14 @@ html_theme_options = {
                     "summary": "What are aggregators",
                 },
                 {
-                    "title": "Attacks",
-                    "url": "reference/attacks/index",
-                    "summary": "What are attacks",
-                },
-                {
-                    "title": "Experiments",
-                    "url": "reference/experiments/index",
-                    "summary": "What define an experiment",
+                    "title": "Primitives",
+                    "url": "reference/primitives",
+                    "summary": "Core abstractions",
                 },
                 {
                     "title": "Tools",
                     "url": "reference/tools/index",
                     "summary": "Which tools are available",
-                },
-                {
-                    "title": "Native",
-                    "url": "reference/native",
-                    "summary": "What is native",
                 },
             ],
         },

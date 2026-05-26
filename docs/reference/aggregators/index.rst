@@ -28,21 +28,20 @@ Overview
      - :math:`\mathcal{O}(n^2 d)`
      - :math:`2f + 3`
      - Moderate
+   * - MultiKrum
+     - :math:`\mathcal{O}(n^2 d)`
+     - :math:`2f + 3`
+     - Moderate
    * - Bulyan
      - :math:`\mathcal{O}(n^2 d)`
      - :math:`4f + 3`
      - Strong
-   * - Brute
-     - :math:`\mathcal{O}(\binom{n}{n-f}d)`
-     - :math:`2f + 1`
-     - Optimal
 
 where:
 
 - :math:`n` = total number of workers
 - :math:`f` = number of Byzantine workers
 - :math:`d` = gradient dimension
-- :math:`\binom{n}{k}` = binomial coefficient
 
 Available Aggregators
 ---------------------
@@ -54,8 +53,8 @@ Available Aggregators
    classes/average
    classes/median
    classes/krum
+   classes/multikrum
    classes/bulyan
-   classes/brute
 
 API Reference
 -------------

@@ -1,7 +1,7 @@
 Tools
 =====
 
-Utility modules for Krum providing infrastructure, tensor operations, and job management.
+Utility modules for Krum providing tensor operations.
 
 Overview
 --------
@@ -13,18 +13,9 @@ Overview
    * - Module
      - Description
      - Key Functions
-   * - ``tools``
-     - Core utilities (logging, exceptions, parsing)
-     - Context, UserException, parse_keyval
    * - ``tools.pytorch``
      - PyTorch helpers (tensor operations, gradients)
-     - flatten, relink, compute_avg_dev_max
-   * - ``tools.misc``
-     - Miscellaneous utilities (registries, timing)
-     - pairwise, line_maximize, fullqual
-   * - ``tools.jobs``
-     - Job management for experiments
-     - Command, Jobs, dict_to_cmdlist
+     - flatten, relink
 
 Available Tools
 ---------------
@@ -34,8 +25,6 @@ Available Tools
    :caption: Utility Modules:
 
    classes/pytorch
-   classes/misc
-   classes/jobs
 
 API Reference
 -------------

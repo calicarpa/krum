@@ -12,7 +12,5 @@ Repository Map
    :widths: 20, 40, 40
 
    "``aggregators/``", "Robust aggregation rules", "New rules, native variants, influence functions"
-   "``attacks/``", "Byzantine attacks", "New attack directions, multi-worker scenarios"
-   "``experiments/``", "Model / dataset / loss / criterion / optimizer", "New models, datasets, metrics"
-   "``native/``", "Auto-compiled C++/CUDA extensions", "Fast implementations of hot paths"
-   "``tools/``", "Cross-cutting utilities", "Logging, parallelism, parsing, registries"
+   "``tools/``", "Cross-cutting utilities", "Tensor flatten/relink, logging, parallelism"
+   "``primitives/``", "Core abstractions", "Model wrapper (zero-copy flat views)"

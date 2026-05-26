@@ -10,9 +10,3 @@ Average
 
    For coordinate-wise robustness, see :doc:`median`.
    For distance-based selection, see :doc:`krum` or :doc:`bulyan`.
-
-API Reference
--------------
-
-.. autofunction:: aggregators.average.influence
-   :no-index:
