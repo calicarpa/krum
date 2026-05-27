@@ -25,25 +25,13 @@ Overview
      - Description
      - Parameters
      - Output
-   * - NaN
-     - Sends gradients filled with NaN values
-     - None
-     - :math:`b \times d`
-   * - Inf
-     - Sends gradients filled with positive or negative infinity
-     - ``sign``
-     - :math:`b \times d`
-   * - Zero
-     - Sends gradients filled with zero values
-     - None
-     - :math:`b \times d`
    * - SignFlip
      - Sends scaled gradients in the opposite direction of the honest mean
      - ``scale``
      - :math:`b \times d`
    * - ALIE
      - Sends mean-shifted gradients using exact honest coordinate-wise statistics
-     - ``z``, ``direction``
+     - ``z``, ``direction`` (:class:`attacks.Direction`)
      - :math:`b \times d`
 
 Available Attacks
@@ -53,9 +41,6 @@ Available Attacks
    :maxdepth: 1
    :caption: Gradient Attacks:
 
-   classes/nan
-   classes/inf
-   classes/zero
    classes/sign_flip
    classes/alie
 
