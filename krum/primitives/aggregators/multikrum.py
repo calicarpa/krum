@@ -26,9 +26,7 @@ class MultiKrum(Aggregator):
             ValueError: If parameters are invalid.
         """
         if m < 1 or m > n - f - 2:
-            raise ValueError(
-                f"Invalid number of selected gradients, got m = {self.m!r}, expected 1 ≤ m ≤ {self.n - self.f - 2}"
-            )
+            raise ValueError(f"Invalid number of selected gradients, got m = {m!r}, expected 1 ≤ m ≤ {n - f - 2}")
         if n < 2 * f + 3:
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {self.f!r}, expected 1 ≤ f ≤ {(self.n - 3) // 2}"
