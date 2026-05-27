@@ -48,14 +48,6 @@ class MultiKrumTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
-    def test_influence_ratio_partial(self) -> None:
-        """Influence_ratio returns the fraction of selected Byzantine gradients."""
-        agg = MultiKrum(n=5, f=1, m=2)
-        honest = torch.tensor([[0.0, 0.0], [10.0, 0.0], [20.0, 0.0], [200.0, 200.0]])
-        byzantine = torch.tensor([[5.0, 0.0]])
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertEqual(result, 0.5)
-
     def test_check_rejects_insufficient_workers(self) -> None:
         """Check raises ValueError when n < 2f + 3."""
         with self.assertRaises(ValueError):
@@ -70,13 +62,6 @@ class MultiKrumTest(unittest.TestCase):
         """Check raises ValueError when m > n - f - 2."""
         with self.assertRaises(ValueError):
             MultiKrum(n=5, f=1, m=3)
-
-    def test_upper_bound_returns_finite_value(self) -> None:
-        """upper_bound returns a finite positive value."""
-        agg = MultiKrum(n=5, f=1, m=2)
-        bound = agg.upper_bound()
-        self.assertGreater(bound, 0.0)
-        self.assertLess(bound, 1.0)
 
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""

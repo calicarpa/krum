@@ -21,7 +21,6 @@ class Average(Aggregator):
             f: Number of Byzantine workers to tolerate.
         """
         super().__init__(n=n, f=f)
-        self.check()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients by computing the mean.
@@ -33,18 +32,3 @@ class Average(Aggregator):
             Mean of the gradients of shape (d,).
         """
         return gradients.mean(0)
-
-    def influence_ratio(self, honest_gradients: torch.Tensor, byzantine_gradients: torch.Tensor) -> float:
-        """Compute the ratio of accepted Byzantine gradients.
-
-        Args:
-            honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.
-            byzantine_gradients: Tensor of shape (b, d) containing gradients from Byzantine workers.
-
-        Returns:
-            Ratio of accepted Byzantine gradients.
-        """
-        total = honest_gradients.size(0) + byzantine_gradients.size(0)
-        if total == 0:
-            return 0.0
-        return byzantine_gradients.size(0) / total

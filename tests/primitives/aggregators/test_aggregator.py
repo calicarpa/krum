@@ -12,7 +12,6 @@ class _ConcreteAggregator(Aggregator):
 
     def __init__(self, *, n, f):
         super().__init__(n=n, f=f)
-        self.check()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         return gradients.mean(0)

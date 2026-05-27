@@ -19,7 +19,18 @@ class Aggregator(ABC):
         Args:
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
+
+        Raises:
+            ValueError: If parameters are invalid.
         """
+        if n < 1:
+            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
+        if f < 0:
+            raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
+        if f > n:
+            raise ValueError(
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
+            )
         self.n = n
         self.f = f
 
@@ -34,21 +45,6 @@ class Aggregator(ABC):
             Aggregated gradient of shape (d,).
         """
         pass
-
-    def check(self) -> None:
-        """Check parameter validity for aggregator rule.
-
-        Raises:
-            ValueError: If parameters are invalid for the aggregation rule.
-        """
-        if self.n < 1:
-            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {self.n!r}")
-        if self.f < 0:
-            raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {self.f!r}, expected 0 ≤ f")
-        if self.f > self.n:
-            raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got f = {self.f!r}, expected f ≤ n = {self.n!r}"
-            )
 
     def upper_bound(self) -> float:
         """Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm.

@@ -1,6 +1,5 @@
 """Bulyan aggregator from The Hidden Vulnerability of Distributed Learning in Byzantium."""
 
-import numpy as np
 import torch
 
 from .aggregator import Aggregator
@@ -22,26 +21,18 @@ class Bulyan(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
             m: Number of selected gradients. Defaults to n - f - 2 if None.
-        """
-        self.m = m if m is not None else n - f - 2
-        super().__init__(n=n, f=f)
-        self.check()
-
-    def check(self) -> None:
-        """Check parameter validity for Bulyan rule.
 
         Raises:
-            ValueError: If parameters are invalid for the Bulyan rule.
+            ValueError: If parameters are invalid.
         """
-        super().check()
-        if self.f < 1 or self.n < 4 * self.f + 3:
+        self.m = m if m is not None else n - f - 2
+        if self.m < 1 or self.m > n - f - 2:
+            raise ValueError(f"Invalid number of selected gradients, got m = {self.m!r}, expected 1 ≤ m ≤ {n - f - 2}")
+        if f < 1 or n < 4 * f + 3:
             raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got f = {self.f!r}, expected 1 ≤ f ≤ {(self.n - 3) // 4}"
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
-        if self.m < 1 or self.m > self.n - self.f - 2:
-            raise ValueError(
-                f"Invalid number of selected gradients, got m = {self.m!r}, expected 1 ≤ m ≤ {self.n - self.f - 2}"
-            )
+        super().__init__(n=n, f=f)
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients using the Bulyan algorithm.
@@ -84,13 +75,3 @@ class Bulyan(Aggregator):
         _, closests_indices = torch.topk(distances_to_median, bulyan_m, dim=0, largest=False)
 
         return selected_tensor.gather(0, closests_indices).mean(dim=0)
-
-    def upper_bound(self) -> float:
-        """Compute the theoretical upper bound on the ratio non-Byzantine standard deviation / norm.
-
-        Returns:
-            Theoretical upper bound.
-        """
-        return 1 / np.sqrt(
-            2 * (self.n - self.f + self.f * (self.n + self.f * (self.n - self.f - 2) - 2) / (self.n - 2 * self.f - 2))
-        )

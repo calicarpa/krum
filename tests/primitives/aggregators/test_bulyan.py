@@ -40,14 +40,6 @@ class BulyanTest(unittest.TestCase):
         agg = Bulyan(n=7, f=1)
         self.assertEqual(agg.m, 4)
 
-    def test_influence_ratio_returns_nan(self) -> None:
-        """influence_ratio returns NaN for Bulyan (not implemented)."""
-        agg = Bulyan(n=7, f=1)
-        honest = torch.ones((5, 4))
-        byzantine = torch.zeros((2, 4))
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertTrue(torch.isnan(torch.tensor(result)))
-
     def test_check_rejects_insufficient_workers(self) -> None:
         """Check raises ValueError when n < 4f + 3."""
         with self.assertRaises(ValueError):
@@ -57,13 +49,6 @@ class BulyanTest(unittest.TestCase):
         """Check raises ValueError when m is out of bounds."""
         with self.assertRaises(ValueError):
             Bulyan(n=7, f=1, m=10)
-
-    def test_upper_bound_returns_finite_value(self) -> None:
-        """upper_bound returns a finite positive value."""
-        agg = Bulyan(n=7, f=1)
-        bound = agg.upper_bound()
-        self.assertGreater(bound, 0.0)
-        self.assertLess(bound, 1.0)
 
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""

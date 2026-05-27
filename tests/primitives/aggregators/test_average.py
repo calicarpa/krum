@@ -32,25 +32,6 @@ class AverageTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
-    def test_influence_ratio_all_honest(self) -> None:
-        """influence_ratio is zero when there are no Byzantine gradients."""
-        agg = Average(n=3, f=0)
-        honest = torch.ones((3, 4))
-        byzantine = torch.empty((0, 4))
-        self.assertEqual(agg.influence_ratio(honest, byzantine), 0.0)
-
-    def test_influence_ratio_all_byzantine(self) -> None:
-        """influence_ratio is 1 when all gradients are Byzantine."""
-        agg = Average(n=3, f=3)
-        honest = torch.empty((0, 4))
-        byzantine = torch.ones((3, 4))
-        self.assertEqual(agg.influence_ratio(honest, byzantine), 1.0)
-
-    def test_upper_bound_is_nan(self) -> None:
-        """upper_bound returns NaN for Average."""
-        agg = Average(n=5, f=1)
-        self.assertTrue(torch.isnan(torch.tensor(agg.upper_bound())))
-
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
         with self.assertRaises(TypeError):

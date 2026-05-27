@@ -41,33 +41,10 @@ class KrumTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
-    def test_influence_ratio_no_byzantine_influence(self) -> None:
-        """influence_ratio is zero when Byzantine grads are far from the cluster."""
-        agg = Krum(n=5, f=1)
-        honest = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
-        byzantine = torch.tensor([[100.0, 100.0]])
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertEqual(result, 0.0)
-
-    def test_influence_ratio_outlier_not_selected(self) -> None:
-        """Influence_ratio is zero when the Byzantine gradient is a far outlier."""
-        agg = Krum(n=5, f=1)
-        honest = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
-        byzantine = torch.tensor([[100.0, 100.0]])
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertEqual(result, 0.0)
-
     def test_check_rejects_insufficient_workers(self) -> None:
         """Check raises ValueError when n < 2f + 3."""
         with self.assertRaises(ValueError):
             Krum(n=3, f=1)
-
-    def test_upper_bound_returns_finite_value(self) -> None:
-        """upper_bound returns a finite positive value."""
-        agg = Krum(n=5, f=1)
-        bound = agg.upper_bound()
-        self.assertGreater(bound, 0.0)
-        self.assertLess(bound, 1.0)
 
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""

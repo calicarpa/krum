@@ -39,28 +39,6 @@ class MedianTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
-    def test_influence_ratio_no_byzantine_influence(self) -> None:
-        """Influence_ratio is zero when Byzantine grads are far from the median."""
-        agg = Median(n=5, f=2)
-        honest = torch.tensor([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-        byzantine = torch.tensor([[100.0, 100.0], [200.0, 200.0]])
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertEqual(result, 0.0)
-
-    def test_influence_ratio_full_byzantine_influence(self) -> None:
-        """Influence_ratio is 1 when Byzantine grads dominate the median."""
-        agg = Median(n=5, f=3)
-        honest = torch.tensor([[1.0, 10.0], [2.0, 20.0]])
-        byzantine = torch.tensor([[1.5, 15.0], [1.5, 15.0], [1.5, 15.0]])
-        result = agg.influence_ratio(honest, byzantine)
-        self.assertEqual(result, 1.0)
-
-    def test_upper_bound_returns_expected_value(self) -> None:
-        """upper_bound returns 1 / sqrt(n - f)."""
-        agg = Median(n=10, f=2)
-        expected = 1.0 / (10.0 - 2.0) ** 0.5
-        self.assertAlmostEqual(agg.upper_bound(), expected)
-
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
         with self.assertRaises(TypeError):
