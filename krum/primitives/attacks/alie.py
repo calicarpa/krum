@@ -58,7 +58,9 @@ class ALIEAttack(Attack):
         if not torch.is_floating_point(honest_gradients):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
         if num_byzantine < 0:
-            msg = f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
+            msg = (
+                f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
+            )
             raise ValueError(msg)
 
         if num_byzantine == 0:
