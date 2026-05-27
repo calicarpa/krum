@@ -5,6 +5,7 @@ import warnings
 import torch
 
 from .attack import Attack
+from .types import Direction
 
 
 class ALIEAttack(Attack):
@@ -15,15 +16,15 @@ class ALIEAttack(Attack):
 
     Args:
         z: Attack factor. Use "max" to compute the maximal valid attack factor.
-        direction: Direction of the perturbation. Must be "positive" or "negative".
+        direction: Direction of the perturbation.
     """
 
-    def __init__(self, *, z: float | str = "max", direction: str = "negative") -> None:
+    def __init__(self, *, z: float | str = "max", direction: Direction = Direction.NEGATIVE) -> None:
         """Initialize the attack.
 
         Args:
             z: Attack factor. Use "max" to compute the maximal valid attack factor.
-            direction: Direction of the perturbation. Must be "positive" or "negative".
+            direction: Direction of the perturbation.
         """
         if z != "max":
             if not isinstance(z, int | float):
@@ -32,9 +33,9 @@ class ALIEAttack(Attack):
             if z < 0:
                 msg = f"Invalid attack factor, got {z!r}, expected z >= 0 or 'max'"
                 raise ValueError(msg)
-        if direction not in {"positive", "negative"}:
-            msg = f"Invalid perturbation direction, got {direction!r}, expected 'positive' or 'negative'"
-            raise ValueError(msg)
+        if not isinstance(direction, Direction):
+            msg = f"Invalid perturbation direction, got {direction!r}, expected a Direction"
+            raise TypeError(msg)
         self.z = z
         self.direction = direction
 
@@ -52,7 +53,13 @@ class ALIEAttack(Attack):
         Returns:
             Byzantine gradients of shape (num_byzantine, d).
         """
-        self.check(honest_gradients, num_byzantine)
+        if honest_gradients.ndim != 2:
+            raise ValueError("Expected a 2D tensor of honest gradients")
+        if not torch.is_floating_point(honest_gradients):
+            raise TypeError("Expected honest gradients to use a floating-point dtype")
+        if num_byzantine < 0:
+            msg = f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
+            raise ValueError(msg)
 
         if num_byzantine == 0:
             return honest_gradients.new_empty((0, honest_gradients.shape[1]))
@@ -70,7 +77,7 @@ class ALIEAttack(Attack):
         mean = honest_gradients.mean(dim=0)
         std = honest_gradients.std(dim=0, correction=0)
         perturbation = z * std
-        malicious_gradient = mean + perturbation if self.direction == "positive" else mean - perturbation
+        malicious_gradient = mean + perturbation if self.direction is Direction.POSITIVE else mean - perturbation
 
         return malicious_gradient.repeat(num_byzantine, 1)
 

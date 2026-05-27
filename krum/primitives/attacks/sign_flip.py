@@ -40,7 +40,13 @@ class SignFlipAttack(Attack):
         Returns:
             Byzantine gradients of shape (num_byzantine, d).
         """
-        self.check(honest_gradients, num_byzantine)
+        if honest_gradients.ndim != 2:
+            raise ValueError("Expected a 2D tensor of honest gradients")
+        if not torch.is_floating_point(honest_gradients):
+            raise TypeError("Expected honest gradients to use a floating-point dtype")
+        if num_byzantine < 0:
+            msg = f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
+            raise ValueError(msg)
         if honest_gradients.shape[0] == 0:
             msg = "Expected at least one honest gradient to compute the honest mean"
             raise ValueError(msg)

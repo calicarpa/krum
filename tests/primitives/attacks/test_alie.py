@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.attacks import ALIEAttack
+from krum.primitives.attacks import ALIEAttack, Direction
 
 
 class ALIEAttackTest(unittest.TestCase):
@@ -44,7 +44,7 @@ class ALIEAttackTest(unittest.TestCase):
         """Attack can perturb in the positive direction."""
         honest_gradients = torch.arange(52, dtype=torch.float64).reshape(26, 2)
 
-        byzantine_gradients = ALIEAttack(z=1.0, direction="positive")(honest_gradients, num_byzantine=24)
+        byzantine_gradients = ALIEAttack(z=1.0, direction=Direction.POSITIVE)(honest_gradients, num_byzantine=24)
 
         expected_gradient = honest_gradients.mean(dim=0) + honest_gradients.std(dim=0, correction=0)
         expected = expected_gradient.repeat(24, 1)
@@ -74,9 +74,9 @@ class ALIEAttackTest(unittest.TestCase):
             ALIEAttack(z="invalid")
 
     def test_rejects_invalid_direction(self) -> None:
-        """Attack direction must be positive or negative."""
-        with self.assertRaises(ValueError):
-            ALIEAttack(direction="zero")
+        """Attack direction must be a Direction."""
+        with self.assertRaises(TypeError):
+            ALIEAttack(direction="zero")  # type: ignore[arg-type]
 
     def test_parameters_are_keyword_only(self) -> None:
         """Attack parameters cannot be passed positionally."""
