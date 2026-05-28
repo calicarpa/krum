@@ -9,23 +9,27 @@ class GaussianAttack(Attack):
     """Gaussian Byzantine attack.
 
     Byzantine workers send vectors drawn from an isotropic Gaussian
-    distribution with mean zero and configurable standard deviation.
+    distribution with configurable mean and standard deviation.
     This attack is independent of the honest gradients.
 
     Args:
+        mu: Mean of the Gaussian noise. Default 0 as used in the
+            Krum NIPS-2017 paper.
         std: Standard deviation of the Gaussian noise. Default 200
             as used in the Krum NIPS-2017 paper.
     """
 
-    def __init__(self, *, std: float = 200.0) -> None:
+    def __init__(self, *, mu: float = 0.0, std: float = 200.0) -> None:
         """Initialize the Gaussian attack.
 
         Args:
+            mu: Mean of the Gaussian noise.
             std: Standard deviation of the Gaussian noise.
         """
         if std < 0:
             msg = f"Invalid standard deviation, got {std!r}, expected std >= 0"
             raise ValueError(msg)
+        self.mu = mu
         self.std = std
 
     def generate(
@@ -57,4 +61,7 @@ class GaussianAttack(Attack):
             return honest_gradients.new_empty((0, honest_gradients.shape[1]))
 
         d = honest_gradients.shape[1]
-        return torch.randn(num_byzantine, d, device=honest_gradients.device, dtype=honest_gradients.dtype) * self.std
+        return (
+            self.mu
+            + torch.randn(num_byzantine, d, device=honest_gradients.device, dtype=honest_gradients.dtype) * self.std
+        )

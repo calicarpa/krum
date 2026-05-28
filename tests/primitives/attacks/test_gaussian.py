@@ -39,12 +39,24 @@ class GaussianAttackTest(unittest.TestCase):
         self.assertEqual(byz.device, honest.device)
 
     def test_generate_has_zero_mean_approximately(self) -> None:
-        """Generated gradients have approximately zero mean."""
-        attack = GaussianAttack(std=200.0)
+        """Generated gradients have approximately zero mean when mu=0."""
+        attack = GaussianAttack(mu=0.0, std=200.0)
         honest = torch.randn(10, 100)
         byz = attack.generate(honest, 1000)
         mean = byz.mean()
         self.assertLess(abs(mean.item()), 20.0)  # within ~3 sigma of sample mean
+
+    def test_generate_respects_mu(self) -> None:
+        """Generated gradients respect the configured mu."""
+        attack = GaussianAttack(mu=42.0, std=0.0)
+        honest = torch.randn(5, 10)
+        byz = attack.generate(honest, 3)
+        self.assertTrue(torch.allclose(byz, torch.full((3, 10), 42.0)))
+
+    def test_default_mu_is_zero(self) -> None:
+        """Mu defaults to 0."""
+        attack = GaussianAttack(std=200.0)
+        self.assertEqual(attack.mu, 0.0)
 
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
