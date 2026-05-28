@@ -21,9 +21,13 @@ Overview
      - :math:`1`
      - None (baseline)
    * - Median
-     - :math:`\mathcal{O}(nd)`
-     - :math:`1`
-     - Basic
+      - :math:`\mathcal{O}(nd)`
+      - :math:`1`
+      - Basic
+   * - Trimmed Mean
+      - :math:`\mathcal{O}(nd \log n)`
+      - :math:`2f + 1`
+      - Basic
    * - Krum
      - :math:`\mathcal{O}(n^2 d)`
      - :math:`2f + 3`
@@ -52,6 +56,7 @@ Available Aggregators
 
    classes/average
    classes/median
+   classes/trimmed_mean
    classes/krum
    classes/multikrum
    classes/bulyan

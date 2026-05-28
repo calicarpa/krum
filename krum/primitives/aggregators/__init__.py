@@ -6,5 +6,6 @@ from krum.primitives.aggregators.bulyan import Bulyan
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.median import Median
 from krum.primitives.aggregators.multikrum import MultiKrum
+from krum.primitives.aggregators.trimmed_mean import TrimmedMean
 
-__all__ = ["Aggregator", "Average", "Bulyan", "Krum", "Median", "MultiKrum"]
+__all__ = ["Aggregator", "Average", "Bulyan", "Krum", "Median", "MultiKrum", "TrimmedMean"]
