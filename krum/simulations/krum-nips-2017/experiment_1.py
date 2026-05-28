@@ -109,7 +109,6 @@ def run_simulation(
     rounds: int,
     batch_size: int,
     lr: float,
-    lr_decay: float,
     model_cls: type[nn.Module],
     train_set: Dataset[Any],
     test_loader: DataLoader[Any],
@@ -184,9 +183,6 @@ def run_simulation(
         model.set_gradients(aggregated)
         opt.step()
 
-        for pg in opt.param_groups:
-            pg["lr"] *= lr_decay
-
         if t % 10 == 0 or t == rounds - 1:
             error = _evaluate(model, test_loader, device)
             errors.append((t, error))
@@ -209,8 +205,7 @@ def main() -> None:
     rounds = 500
     n = 20
     batch_size = 3
-    lr = 0.05
-    lr_decay = 0.999
+    lr = 0.01
     f_list = [0, int(n * 0.33)]
 
     train_set, test_set = spambase_dataset()
@@ -225,6 +220,7 @@ def main() -> None:
             agg = agg_cls(n=n, f=f)
             label = f"{agg_label}_f{f}"
             print(f"\n=== {label} ===")
+            _set_seed(seed, device)
             errors = run_simulation(
                 label=label,
                 aggregator=agg,
@@ -233,7 +229,6 @@ def main() -> None:
                 rounds=rounds,
                 batch_size=batch_size,
                 lr=lr,
-                lr_decay=lr_decay,
                 model_cls=MLPSpambase,
                 train_set=train_set,
                 test_loader=test_loader,
