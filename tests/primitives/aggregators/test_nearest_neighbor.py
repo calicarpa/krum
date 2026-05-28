@@ -1,0 +1,77 @@
+"""Tests for nearest-neighbor averaging."""
+
+import unittest
+
+import torch
+
+from krum.primitives.aggregators import NearestNeighbor
+
+
+class NearestNeighborTest(unittest.TestCase):
+    """Test nearest-neighbor averaging."""
+
+    def test_aggregate_averages_closest_vectors_to_pivot(self) -> None:
+        """Aggregate drops the farthest f vectors from the pivot."""
+        agg = NearestNeighbor(n=4, f=1)
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [100.0, 0.0]])
+
+        result = agg.aggregate(grads, pivot=torch.tensor([0.0, 0.0]))
+
+        expected = torch.tensor([1.0, 0.0])
+        self.assertTrue(torch.equal(result, expected))
+
+    def test_aggregate_uses_call_specific_pivot(self) -> None:
+        """The pivot is supplied for each aggregation call."""
+        agg = NearestNeighbor(n=4, f=1)
+        grads = torch.tensor([[100.0, 0.0], [11.0, 0.0], [10.0, 0.0], [9.0, 0.0]])
+
+        result = agg.aggregate(grads, pivot=torch.tensor([10.0, 0.0]))
+
+        expected = torch.tensor([10.0, 0.0])
+        self.assertTrue(torch.equal(result, expected))
+
+    def test_aggregate_pivot_does_not_need_to_be_a_candidate(self) -> None:
+        """The pivot can be supplied independently of the candidate tensor."""
+        agg = NearestNeighbor(n=4, f=2)
+        grads = torch.tensor([[0.0, 0.0], [2.0, 0.0], [10.0, 0.0], [11.0, 0.0]])
+
+        result = agg.aggregate(grads, pivot=torch.tensor([9.5, 0.0]))
+
+        expected = torch.tensor([10.5, 0.0])
+        self.assertTrue(torch.equal(result, expected))
+
+    def test_aggregate_preserves_dtype(self) -> None:
+        """Aggregate preserves input dtype."""
+        agg = NearestNeighbor(n=3, f=1)
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [100.0, 0.0]], dtype=torch.float64)
+
+        result = agg.aggregate(grads, pivot=torch.tensor([0.0, 0.0], dtype=torch.float64))
+
+        self.assertEqual(result.dtype, torch.float64)
+
+    def test_rejects_wrong_number_of_gradients(self) -> None:
+        """The candidate count must match n."""
+        agg = NearestNeighbor(n=3, f=1)
+        with self.assertRaises(ValueError):
+            agg.aggregate(torch.empty((2, 4)), pivot=torch.empty(4))
+
+    def test_rejects_wrong_pivot_shape(self) -> None:
+        """The pivot must have the same vector shape as a candidate."""
+        agg = NearestNeighbor(n=3, f=1)
+        with self.assertRaises(ValueError):
+            agg.aggregate(torch.empty((3, 4)), pivot=torch.empty(5))
+
+    def test_requires_pivot_keyword(self) -> None:
+        """The pivot is required for each aggregation call."""
+        agg = NearestNeighbor(n=3, f=1)
+        with self.assertRaises(TypeError):
+            agg.aggregate(torch.empty((3, 4)))  # type: ignore[call-arg]
+
+    def test_parameters_are_keyword_only(self) -> None:
+        """Parameters must be passed as keywords."""
+        with self.assertRaises(TypeError):
+            NearestNeighbor(3, 1)  # type: ignore[misc]
+
+
+if __name__ == "__main__":
+    unittest.main()
