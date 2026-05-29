@@ -56,6 +56,30 @@ class RelinkTest(unittest.TestCase):
         self.assertEqual(t1[0, 0].item(), 10.0)
         self.assertEqual(t1[1, 1].item(), 20.0)
 
+    def test_relink_overwrites_original_data(self) -> None:
+        """Relink replaces tensor data with views into the common buffer."""
+        t1 = torch.tensor([1.0, 2.0])
+        t2 = torch.tensor([3.0])
+        common = torch.tensor([10.0, 20.0, 30.0])
+
+        relink([t1, t2], common)
+
+        expected = torch.tensor([10.0, 20.0, 30.0])
+        self.assertTrue(torch.equal(common, expected))
+        self.assertEqual(t1[0].item(), 10.0)
+        self.assertEqual(t2[0].item(), 30.0)
+
+    def test_relink_preserves_dtype(self) -> None:
+        """Relink preserves the dtype of the common tensor."""
+        t1 = torch.tensor([1.0, 2.0], dtype=torch.float64)
+        t2 = torch.tensor([3.0], dtype=torch.float64)
+        common = torch.zeros(3, dtype=torch.float64)
+
+        relink([t1, t2], common)
+
+        self.assertEqual(t1.dtype, torch.float64)
+        self.assertEqual(t2.dtype, torch.float64)
+
 
 class FlattenTest(unittest.TestCase):
     """Test flatten."""
@@ -88,6 +112,36 @@ class FlattenTest(unittest.TestCase):
         flat = flatten([t1, t2])
 
         self.assertEqual(len(flat.linked_tensors), 2)
+
+    def test_flatten_single_tensor(self) -> None:
+        """Flatten works with a single tensor."""
+        t = torch.tensor([1.0, 2.0, 3.0])
+
+        flat = flatten([t])
+        flat[0] = 99.0
+
+        self.assertEqual(t[0].item(), 99.0)
+
+    def test_flatten_modifying_original_updates_flat(self) -> None:
+        """Modifying an original tensor after flatten updates the flat view."""
+        t1 = torch.tensor([1.0, 2.0])
+        t2 = torch.tensor([3.0, 4.0])
+
+        flat = flatten([t1, t2])
+        t1[0] = 77.0
+        t2[1] = 88.0
+
+        self.assertEqual(flat[0].item(), 77.0)
+        self.assertEqual(flat[3].item(), 88.0)
+
+    def test_flatten_preserves_dtype(self) -> None:
+        """Flatten result has the same dtype as input tensors."""
+        t1 = torch.tensor([1.0, 2.0], dtype=torch.float64)
+        t2 = torch.tensor([3.0], dtype=torch.float64)
+
+        flat = flatten([t1, t2])
+
+        self.assertEqual(flat.dtype, torch.float64)
 
 
 if __name__ == "__main__":
