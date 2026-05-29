@@ -70,9 +70,9 @@ class KrumSimulation:
         results_dir: Path | str | None = None,
     ) -> None:
         """Initialize the simulation with the given parameters."""
-        if n != aggregator.n:
+        if hasattr(aggregator, "n") and n != aggregator.n:
             raise ValueError(f"n={n} does not match aggregator.n={aggregator.n}")
-        if f != aggregator.f:
+        if hasattr(aggregator, "f") and f != aggregator.f:
             raise ValueError(f"f={f} does not match aggregator.f={aggregator.f}")
 
         self.model_cls = model_cls
@@ -175,7 +175,7 @@ class KrumSimulation:
 
         all_gradients = torch.stack(worker_gradients)
         aggregated = self.aggregator(all_gradients)
-        self._model.set_gradients(aggregated)
+        self._model.gradients = aggregated
         self._opt.step()
 
     def evaluate(self) -> float:

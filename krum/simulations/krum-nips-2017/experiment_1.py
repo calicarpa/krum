@@ -37,8 +37,7 @@ def main() -> None:
     results_dir.mkdir(parents=True, exist_ok=True)
 
     for f in f_list:
-        for agg_cls, agg_label in [(Average, "Average"), (Krum, "Krum")]:
-            agg = agg_cls(n=n, f=f)
+        for agg, agg_label in [(Average(), "Average"), (Krum(n=n, f=f), "Krum")]:
             label = f"{agg_label}_f{f}"
             print(f"\n=== {label} ===")
 

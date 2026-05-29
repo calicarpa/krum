@@ -16,7 +16,7 @@ from models import MLPMnist, MLPSpambase
 from simulation import KrumSimulation
 from torch.utils.data import Dataset
 
-from krum.primitives.aggregators import Aggregator, Average, Krum
+from krum.primitives.aggregators import Average, Krum
 from krum.primitives.attacks import OmniscientAttack
 
 
@@ -46,8 +46,7 @@ def main() -> None:
     for ds_name, (train_set, test_set), model_cls in datasets:
         for f in f_list:
             for bs in batch_sizes:
-                for agg_cls, agg_label in [(Average, "Average"), (Krum, "Krum")]:
-                    agg: Aggregator = agg_cls(n=n, f=f)
+                for agg, agg_label in [(Average(), "Average"), (Krum(n=n, f=f), "Krum")]:
                     attack = OmniscientAttack(kappa=100.0)
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
                     print(f"\n=== {label} ===")

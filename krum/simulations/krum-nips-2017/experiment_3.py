@@ -37,7 +37,7 @@ def main() -> None:
     results_dir.mkdir(parents=True, exist_ok=True)
 
     configs = [
-        (Average(n=n, f=0), "Average_f0", 0),
+        (Average(), "Average_f0", 0),
         (Krum(n=n, f=f), "Krum_f6", f),
         (MultiKrum(n=n, f=f, m=n - f), "MultiKrum_f6", f),
     ]
