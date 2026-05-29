@@ -52,7 +52,12 @@ class Bulyan(Aggregator):
 
         Returns:
             Aggregated gradient of shape (d,).
+
+        Raises:
+            ValueError: If the number of gradients does not match ``n``.
         """
+        if gradients.shape[0] != self.n:
+            raise ValueError(f"Expected {self.n} gradients, got {gradients.shape[0]}")
         distances = torch.cdist(gradients, gradients, p=2.0)
         valid_mask = torch.ones(self.n, dtype=torch.bool, device=gradients.device)
         selected = []
