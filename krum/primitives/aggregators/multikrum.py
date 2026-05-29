@@ -25,6 +25,7 @@ class MultiKrum(Aggregator):
         Raises:
             ValueError: If parameters are invalid.
         """
+        super().__init__()
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -42,7 +43,6 @@ class MultiKrum(Aggregator):
         self.n = n
         self.f = f
         self.m = m
-        super().__init__()
 
     def _compute_scores(self, gradients: torch.Tensor) -> torch.Tensor:
         """Internal helper to compute Krum scores."""

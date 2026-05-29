@@ -25,6 +25,7 @@ class Bulyan(Aggregator):
         Raises:
             ValueError: If parameters are invalid.
         """
+        super().__init__()
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -42,7 +43,6 @@ class Bulyan(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
-        super().__init__()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients using the Bulyan algorithm.
