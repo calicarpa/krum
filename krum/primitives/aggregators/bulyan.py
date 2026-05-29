@@ -55,6 +55,7 @@ class Bulyan(Aggregator):
         Raises:
             ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
+        super().__init__()
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
