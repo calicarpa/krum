@@ -12,27 +12,18 @@ class TrimmedMean(Aggregator):
     and ``f`` largest values per coordinate, then averaging the remaining ones.
 
     Args:
-        n: Total number of workers.
         f: Number of Byzantine workers to tolerate.
     """
 
-    def __init__(self, *, n: int, f: int):
+    def __init__(self, *, f: int):
         """Initialize the Trimmed Mean aggregator.
 
         Args:
-            n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
         """
         super().__init__()
-        if n < 1:
-            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
-        if f > n:
-            raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
-            )
-        self.n = n
         self.f = f
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
@@ -43,5 +34,10 @@ class TrimmedMean(Aggregator):
 
         Returns:
             Coordinate-wise trimmed mean of shape (d,).
+
+        Raises:
+            ValueError: If the number of gradients is insufficient.
         """
+        if gradients.shape[0] <= 2 * self.f:
+            raise ValueError(f"At least 2f+1 = {2 * self.f + 1} gradients required, got {gradients.shape[0]}")
         return gradients.sort(dim=0).values[self.f : -self.f].mean(dim=0)
