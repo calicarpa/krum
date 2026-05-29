@@ -35,15 +35,24 @@ class MonnaProtocolTest(unittest.TestCase):
         expected = torch.tensor([[5.5, 11.0], [16.5, 22.0]])
         self.assertTrue(torch.equal(result, expected))
 
-    def test_mix_each_worker_runs_nearest_neighbor_from_each_pivot(self) -> None:
-        """Each honest worker gets its own nearest-neighbor average."""
-        honest = torch.tensor([[0.0], [10.0]])
+    def test_mix_each_worker_averages_n_minus_2f_coordination_vectors(self) -> None:
+        """Each worker runs NNA on n - f local vectors and averages n - 2f of them."""
+        honest = torch.tensor([[0.0], [10.0], [20.0]])
         byzantine = torch.tensor([[100.0]])
+        generator = torch.Generator().manual_seed(0)
 
-        mixed = mix_each_worker(honest, byzantine, f=1)
+        mixed = mix_each_worker(honest, byzantine, f=1, generator=generator)
 
-        expected = torch.tensor([[5.0], [5.0]])
+        expected = torch.tensor([[5.0], [15.0], [15.0]])
         self.assertTrue(torch.equal(mixed, expected))
+
+    def test_mix_each_worker_requires_one_byzantine_vector_per_fault(self) -> None:
+        """The coordination candidate set must contain exactly f Byzantine vectors."""
+        honest = torch.tensor([[0.0], [10.0], [20.0]])
+        byzantine = torch.tensor([[100.0], [200.0]])
+
+        with self.assertRaises(ValueError):
+            mix_each_worker(honest, byzantine, f=1)
 
     def test_run_round_computes_real_gradients_and_updates_each_worker(self) -> None:
         """One round performs real backward passes and local parameter updates."""
@@ -73,9 +82,12 @@ class MonnaProtocolTest(unittest.TestCase):
         """Byzantine rounds need an explicit attack implementation."""
         module = nn.Linear(1, 1, bias=False)
         model = Model(module)
-        state = initial_state(model, num_honest=1)
-        config = MonnaConfig(num_honest=1, num_byzantine=1, learning_rate=0.1)
-        batches = [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))]
+        state = initial_state(model, num_honest=2)
+        config = MonnaConfig(num_honest=2, num_byzantine=1, learning_rate=0.1)
+        batches = [
+            (torch.tensor([[1.0]]), torch.tensor([[1.0]])),
+            (torch.tensor([[2.0]]), torch.tensor([[2.0]])),
+        ]
 
         with self.assertRaises(ValueError):
             run_round(state, config=config, model=model, batches=batches, loss_fn=nn.MSELoss())

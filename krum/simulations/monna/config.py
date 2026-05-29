@@ -25,6 +25,11 @@ class MonnaConfig:
             raise ValueError(f"Expected at least one honest worker, got {self.num_honest!r}")
         if self.num_byzantine < 0:
             raise ValueError(f"Expected non-negative Byzantine worker count, got {self.num_byzantine!r}")
+        if self.num_honest <= self.num_byzantine:
+            raise ValueError(
+                "Expected enough honest workers for MoNNA coordination, "
+                f"got num_honest={self.num_honest!r} and num_byzantine={self.num_byzantine!r}"
+            )
         if self.learning_rate <= 0:
             raise ValueError(f"Expected positive learning rate, got {self.learning_rate!r}")
         if self.beta < 0 or self.beta >= 1:

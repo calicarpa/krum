@@ -71,30 +71,77 @@ def compute_momentum(previous: torch.Tensor, gradients: torch.Tensor, *, beta: f
     return previous.mul(beta).add(gradients, alpha=1.0 - beta)
 
 
-def mix_each_worker(honest_vectors: torch.Tensor, byzantine_vectors: torch.Tensor, *, f: int) -> torch.Tensor:
-    """Run nearest-neighbor averaging independently for every honest worker.
+def _coordination_candidates(
+    honest_vectors: torch.Tensor,
+    byzantine_vectors: torch.Tensor,
+    *,
+    worker_index: int,
+    f: int,
+    generator: torch.Generator | None = None,
+) -> torch.Tensor:
+    """Build the ``n - f`` vectors available to one honest worker during coordination."""
+    num_honest = honest_vectors.shape[0]
+    num_nodes = num_honest + f
+    num_received = num_nodes - f - 1
+    if num_received < 0:
+        raise ValueError(
+            "Expected enough nodes to average n - 2f values, "
+            f"got num_honest={num_honest!r} and f={f!r}"
+        )
+
+    all_vectors = torch.cat([honest_vectors, byzantine_vectors], dim=0)
+    other_indices = torch.cat(
+        [
+            torch.arange(0, worker_index, device=honest_vectors.device),
+            torch.arange(worker_index + 1, num_nodes, device=honest_vectors.device),
+        ]
+    )
+    permutation = torch.randperm(other_indices.numel(), generator=generator, device=honest_vectors.device)
+    received_indices = other_indices[permutation[:num_received]]
+    return torch.cat([honest_vectors[worker_index].unsqueeze(0), all_vectors[received_indices]], dim=0)
+
+
+def mix_each_worker(
+    honest_vectors: torch.Tensor,
+    byzantine_vectors: torch.Tensor,
+    *,
+    f: int,
+    generator: torch.Generator | None = None,
+) -> torch.Tensor:
+    """Run one MoNNA coordination mixing step for every honest worker.
+
+    Each honest worker waits for ``n - f - 1`` received vectors selected from
+    a random permutation of the other ``n - 1`` nodes, combines them with its
+    own vector, and runs nearest-neighbor averaging over that local set of
+    ``n - f`` vectors. The NNA rule then discards ``f`` vectors, so the
+    returned average is computed over ``n - 2f`` vectors.
 
     Args:
-        honest_vectors: Honest worker vectors of shape ``(h, d)``.
-        byzantine_vectors: Byzantine vectors of shape ``(b, d)``.
+        honest_vectors: Honest worker vectors of shape ``(n - f, d)``.
+        byzantine_vectors: Byzantine vectors of shape ``(f, d)``.
         f: Number of Byzantine vectors to discard.
+        generator: Optional PyTorch random generator for reproducible receive selection.
 
     Returns:
-        Mixed vectors, one per honest worker, shape ``(h, d)``.
+        Mixed vectors, one per honest worker, shape ``(n - f, d)``.
     """
     if honest_vectors.ndim != 2:
         raise ValueError(f"Expected honest vectors with shape (h, d), got {tuple(honest_vectors.shape)!r}")
     if byzantine_vectors.ndim != 2:
         raise ValueError(f"Expected Byzantine vectors with shape (b, d), got {tuple(byzantine_vectors.shape)!r}")
+    if byzantine_vectors.shape[0] != f:
+        raise ValueError(f"Expected {f!r} Byzantine vectors, got {byzantine_vectors.shape[0]!r}")
     if byzantine_vectors.shape[1:] != honest_vectors.shape[1:]:
         raise ValueError(
             f"Expected Byzantine vector shape (*, {honest_vectors.shape[1]}), got {tuple(byzantine_vectors.shape)!r}"
         )
 
-    candidates = torch.cat([honest_vectors, byzantine_vectors], dim=0)
-    aggregator = NearestNeighbor(n=candidates.shape[0], f=f)
+    aggregator = NearestNeighbor(n=honest_vectors.shape[0], f=f)
     mixed = []
-    for pivot in honest_vectors:
+    for worker_index, pivot in enumerate(honest_vectors):
+        candidates = _coordination_candidates(
+            honest_vectors, byzantine_vectors, worker_index=worker_index, f=f, generator=generator
+        )
         mixed.append(aggregator.aggregate(candidates, pivot=pivot))
     return torch.stack(mixed)
 
