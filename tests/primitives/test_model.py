@@ -24,10 +24,7 @@ class ModelTest(unittest.TestCase):
         flat[0] = 99.0
 
         self.assertNotEqual(flat[0].item(), original[0].item())
-
-        # Verify the first parameter was updated
-        new_flat = torch.cat([p.data.view(-1) for p in self.linear.parameters()])
-        self.assertEqual(new_flat[0].item(), 99.0)
+        self.assertEqual(self.linear.weight[0, 0].item(), 99.0)
 
     def test_parameters_update_from_module_side(self) -> None:
         """Modifying a module parameter updates the flat tensor."""
@@ -65,9 +62,7 @@ class ModelTest(unittest.TestCase):
         flat_grads = self.model.gradients
         flat_grads[0] = 99.0
 
-        # Verify the first parameter's grad was updated
-        new_flat = torch.cat([p.grad.data.view(-1) for p in self.linear.parameters()])
-        self.assertEqual(new_flat[0].item(), 99.0)
+        self.assertEqual(self.linear.weight.grad[0, 0].item(), 99.0)
 
     def test_gradients_recreates_on_each_access(self) -> None:
         """Accessing gradients twice returns different tensor objects."""
