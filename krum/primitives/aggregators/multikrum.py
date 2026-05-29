@@ -60,7 +60,12 @@ class MultiKrum(Aggregator):
 
         Returns:
             Aggregated gradient of shape (d,).
+
+        Raises:
+            ValueError: If the number of gradients does not match ``n``.
         """
+        if gradients.shape[0] != self.n:
+            raise ValueError(f"Expected {self.n} gradients, got {gradients.shape[0]}")
         scores = self._compute_scores(gradients)
         _, top_indices = torch.topk(scores, self.m, largest=False)
 
