@@ -28,7 +28,17 @@ class NearestNeighbor(Aggregator):
         Raises:
             ValueError: If parameters are invalid.
         """
-        super().__init__(n=n, f=f)
+        super().__init__()
+        if n < 1:
+            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
+        if f < 0:
+            raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
+        if f > n:
+            raise ValueError(
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
+            )
+        self.n = n
+        self.f = f
 
     def aggregate(self, gradients: torch.Tensor, *, pivot: torch.Tensor) -> torch.Tensor:
         """Aggregate the closest gradients to the pivot.
