@@ -5,7 +5,7 @@ from collections.abc import Callable, Iterable, Sequence
 import torch
 
 from krum.primitives import Model
-from krum.primitives.aggregators import Aggregator
+from krum.primitives.aggregators import Aggregator, NearestNeighborAverage
 from krum.primitives.attacks import Attack
 
 Batch = tuple[torch.Tensor, torch.Tensor]
@@ -19,6 +19,11 @@ class MonnaSimulation:
     The object owns configuration, state, data streams, attack, and aggregator.
     Calling :meth:`step` executes one local training phase followed by one
     model-mixing phase over parameter vectors.
+
+    The model-mixing phase defaults to nearest-neighbor averaging over the
+    ``n - 2f`` models closest to each worker's own model. Passing ``aggregator``
+    overrides that rule (e.g. to compare other robust aggregators); MoNNA still
+    owns the default and its sizing.
     """
 
     def __init__(
@@ -27,12 +32,12 @@ class MonnaSimulation:
         model: Model,
         data: Sequence[Iterable[Batch]],
         loss_fn: LossFn,
-        aggregator: Aggregator,
         num_honest: int,
         num_byzantine: int,
         learning_rate: float,
         beta: float = 0.99,
         attack: Attack | None = None,
+        aggregator: Aggregator | None = None,
         seed: int | None = None,
     ) -> None:
         """Initialize a MoNNA simulation."""
@@ -59,8 +64,8 @@ class MonnaSimulation:
             raise ValueError("An attack is required when num_byzantine > 0")
         if attack is not None and not callable(attack):
             raise TypeError("Expected attack to be callable")
-        if not isinstance(aggregator, Aggregator):
-            raise TypeError(f"Expected aggregator to be an Aggregator, got {type(aggregator).__name__}")
+        if aggregator is not None and not isinstance(aggregator, Aggregator):
+            raise TypeError(f"Expected aggregator to be an Aggregator or None, got {type(aggregator).__name__}")
         if seed is not None and not isinstance(seed, int):
             raise TypeError(f"Expected seed to be an int or None, got {type(seed).__name__}")
 
@@ -72,7 +77,9 @@ class MonnaSimulation:
         self.learning_rate = learning_rate
         self.beta = beta
         self.attack = attack
-        self.aggregator = aggregator
+        # Each worker mixes over its n - f received models and keeps the
+        # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
+        self.aggregator = aggregator or NearestNeighborAverage(num_closest=num_honest - num_byzantine)
         self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(num_honest, 1)
         self.momentum = torch.zeros_like(self.parameters)

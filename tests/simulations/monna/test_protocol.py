@@ -31,7 +31,6 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighborAverage(num_closest=num_honest - num_byzantine),
             num_honest=num_honest,
             num_byzantine=num_byzantine,
             learning_rate=learning_rate,
@@ -55,7 +54,6 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighborAverage(num_closest=3),
             num_honest=3,
             num_byzantine=0,
             learning_rate=0.1,
@@ -108,7 +106,6 @@ class MonnaProtocolTest(unittest.TestCase):
             model=model,
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighborAverage(num_closest=2),
             num_honest=2,
             num_byzantine=0,
             learning_rate=0.1,
@@ -126,6 +123,33 @@ class MonnaProtocolTest(unittest.TestCase):
         self.assertTrue(torch.allclose(result["mixed_parameters"], expected_mixed_parameters))
         self.assertTrue(torch.allclose(simulation.parameters, expected_mixed_parameters))
 
+    def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
+        """MoNNA owns the mixing rule: default NNA keeps num_honest - num_byzantine."""
+        simulation = self.make_simulation(
+            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack()
+        )
+
+        self.assertIsInstance(simulation.aggregator, NearestNeighborAverage)
+        self.assertEqual(simulation.aggregator.num_closest, 3)
+
+    def test_accepts_aggregator_override(self) -> None:
+        """A supplied aggregator replaces the default mixing rule."""
+        module = nn.Linear(1, 1, bias=False)
+        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(3)]
+        custom = NearestNeighborAverage(num_closest=1)
+
+        simulation = MonnaSimulation(
+            model=Model(module),
+            data=data,
+            loss_fn=nn.MSELoss(),
+            num_honest=3,
+            num_byzantine=0,
+            learning_rate=0.1,
+            aggregator=custom,
+        )
+
+        self.assertIs(simulation.aggregator, custom)
+
     def test_simulation_requires_attack_when_byzantine_workers_are_configured(self) -> None:
         """Byzantine rounds need an explicit attack implementation."""
         module = nn.Linear(1, 1, bias=False)
@@ -139,7 +163,6 @@ class MonnaProtocolTest(unittest.TestCase):
                 model=Model(module),
                 data=data,
                 loss_fn=nn.MSELoss(),
-                aggregator=NearestNeighborAverage(num_closest=1),
                 num_honest=2,
                 num_byzantine=1,
                 learning_rate=0.1,
@@ -158,7 +181,6 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighborAverage(num_closest=1),
             num_honest=2,
             num_byzantine=1,
             learning_rate=0.1,
