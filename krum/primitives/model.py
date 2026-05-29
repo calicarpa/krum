@@ -1,4 +1,13 @@
-"""Model class encapsulating a nn.Module with zero-copy flat views."""
+"""Model class encapsulating a nn.Module with zero-copy flat views.
+
+Parameters and gradients are exposed as flat tensors via ``relink``,
+so that reading or writing the flat tensor instantly reflects on the
+model. Both ``model.parameters`` and ``model.gradients`` support getter
+and setter semantics:
+
+    >>> model.parameters[0] = 1.0       # modifies the model weight
+    >>> model.gradients = flat           # writes aggregated grads back
+"""
 
 import torch
 from torch import nn
@@ -9,9 +18,11 @@ from krum.tools.pytorch import flatten, relink
 class Model:
     """Model encapsulating a nn.Module with zero-copy flat views of parameters and gradients.
 
-    The end-user never needs to flatten tensors manually. Parameters and
-    gradients are exposed as flat tensors that share memory with the model —
-    modify the flat view and the model is updated instantly.
+    All parameters and gradients are relinked to a single contiguous buffer.
+    Reading the ``parameters`` or ``gradients`` property returns a flat tensor
+    sharing that buffer — modifying it modifies the model directly.
+    Writing to ``model.gradients = flat`` unpacks the flat vector back into
+    each parameter's ``.grad``, again with shared memory.
 
     The end-user is responsible for tensor copy, swap, and sharing
     (e.g. calling ``.clone()`` before sending gradients to a remote worker).
