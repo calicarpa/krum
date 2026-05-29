@@ -48,6 +48,21 @@ class MultiKrumTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
+    def test_check_rejects_invalid_n(self) -> None:
+        """Check raises ValueError when n < 1."""
+        with self.assertRaises(ValueError):
+            MultiKrum(n=0, f=0, m=1)
+
+    def test_check_rejects_negative_f(self) -> None:
+        """Check raises ValueError when f < 0."""
+        with self.assertRaises(ValueError):
+            MultiKrum(n=5, f=-1, m=1)
+
+    def test_check_rejects_f_greater_than_n(self) -> None:
+        """Check raises ValueError when f > n."""
+        with self.assertRaises(ValueError):
+            MultiKrum(n=5, f=10, m=1)
+
     def test_check_rejects_insufficient_workers(self) -> None:
         """Check raises ValueError when n < 2f + 3."""
         with self.assertRaises(ValueError):

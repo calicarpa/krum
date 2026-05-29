@@ -23,7 +23,17 @@ class TrimmedMean(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
         """
-        super().__init__(n=n, f=f)
+        if n < 1:
+            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
+        if f < 0:
+            raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
+        if f > n:
+            raise ValueError(
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
+            )
+        self.n = n
+        self.f = f
+        super().__init__()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.

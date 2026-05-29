@@ -6,21 +6,11 @@ from .aggregator import Aggregator
 
 
 class Average(Aggregator):
-    """Average aggregator that computes the mean of the gradients.
+    """Average aggregator that computes the mean of the gradients."""
 
-    Args:
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate.
-    """
-
-    def __init__(self, *, n: int, f: int):
-        """Initialize the Average aggregator.
-
-        Args:
-            n: Total number of workers.
-            f: Number of Byzantine workers to tolerate.
-        """
-        super().__init__(n=n, f=f)
+    def __init__(self) -> None:
+        """Initialize the Average aggregator."""
+        super().__init__()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients by computing the mean.

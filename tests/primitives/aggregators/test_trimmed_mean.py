@@ -42,6 +42,21 @@ class TrimmedMeanTest(unittest.TestCase):
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
+    def test_check_rejects_invalid_n(self) -> None:
+        """Check raises ValueError when n < 1."""
+        with self.assertRaises(ValueError):
+            TrimmedMean(n=0, f=0)
+
+    def test_check_rejects_negative_f(self) -> None:
+        """Check raises ValueError when f < 0."""
+        with self.assertRaises(ValueError):
+            TrimmedMean(n=5, f=-1)
+
+    def test_check_rejects_f_greater_than_n(self) -> None:
+        """Check raises ValueError when f > n."""
+        with self.assertRaises(ValueError):
+            TrimmedMean(n=5, f=10)
+
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
         with self.assertRaises(TypeError):

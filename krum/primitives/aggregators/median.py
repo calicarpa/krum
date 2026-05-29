@@ -6,21 +6,11 @@ from .aggregator import Aggregator
 
 
 class Median(Aggregator):
-    """Median aggregator.
+    """Median aggregator."""
 
-    Args:
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate.
-    """
-
-    def __init__(self, *, n: int, f: int):
-        """Initialize the Median aggregator.
-
-        Args:
-            n: Total number of workers.
-            f: Number of Byzantine workers to tolerate.
-        """
-        super().__init__(n=n, f=f)
+    def __init__(self) -> None:
+        """Initialize the Median aggregator."""
+        super().__init__()
 
     def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.

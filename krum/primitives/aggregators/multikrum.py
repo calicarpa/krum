@@ -25,14 +25,24 @@ class MultiKrum(Aggregator):
         Raises:
             ValueError: If parameters are invalid.
         """
+        if n < 1:
+            raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
+        if f < 0:
+            raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
+        if f > n:
+            raise ValueError(
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
+            )
         if m < 1 or m > n - f - 2:
             raise ValueError(f"Invalid number of selected gradients, got m = {m!r}, expected 1 ≤ m ≤ {n - f - 2}")
         if n < 2 * f + 3:
             raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got f = {self.f!r}, expected 1 ≤ f ≤ {(self.n - 3) // 2}"
+                f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
             )
+        self.n = n
+        self.f = f
         self.m = m
-        super().__init__(n=n, f=f)
+        super().__init__()
 
     def _compute_scores(self, gradients: torch.Tensor) -> torch.Tensor:
         """Internal helper to compute Krum scores."""
