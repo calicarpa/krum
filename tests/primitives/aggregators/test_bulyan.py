@@ -76,6 +76,12 @@ class BulyanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Bulyan.aggregate(torch.tensor([[1.0], [2.0], [3.0]]), n=7, f=1)
 
+    def test_check_rejects_wrong_number_of_gradients(self) -> None:
+        """Check raises ValueError when gradients.shape[0] != n."""
+        agg = Bulyan(n=7, f=1)
+        with self.assertRaises(ValueError):
+            agg.aggregate(torch.tensor([[1.0], [2.0], [3.0]]))
+
 
 if __name__ == "__main__":
     unittest.main()
