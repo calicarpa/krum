@@ -3,7 +3,7 @@
 import torch
 from torch import nn
 
-from krum.tools.pytorch import flatten
+from krum.tools.pytorch import flatten, relink
 
 
 class Model:
@@ -66,20 +66,6 @@ class Model:
         """
         return sum(p.numel() for p in self.module.parameters())
 
-    def set_gradients(self, gradients: torch.Tensor) -> None:
-        """Write a flat gradient vector into each parameter's ``.grad``.
-
-        Use this after receiving an aggregated gradient from the server.
-
-        Args:
-            gradients: Tensor of shape (d,) containing the aggregated gradients.
-        """
-        offset = 0
-        for p in self.module.parameters():
-            numel = p.numel()
-            p.grad = gradients[offset : offset + numel].view_as(p).clone()
-            offset += numel
-
     @property
     def parameters(self) -> torch.Tensor:
         """Zero-copy flat view of module parameters.
@@ -99,6 +85,9 @@ class Model:
         """Zero-copy flat view of module gradients.
 
         The returned tensor shares memory with each parameter's ``.grad``.
+        If a parameter has no gradient yet, a zero-filled gradient is
+        allocated and assigned to it.
+
         Re-flattens on every access since gradients are replaced after
         each ``backward()`` call.
 
@@ -109,5 +98,28 @@ class Model:
         Returns:
             Tensor of shape (d,) sharing memory with all module gradients.
         """
-        grads = [p.grad for p in self.module.parameters()]
+        grads = []
+        for p in self.module.parameters():
+            if p.grad is None:
+                p.grad = torch.zeros_like(p)
+            grads.append(p.grad)
         return flatten(grads)
+
+    @gradients.setter
+    def gradients(self, flat: torch.Tensor) -> None:
+        """Write a flat gradient vector into each parameter's ``.grad``.
+
+        Relinks every ``.grad`` to share a common flat buffer, so that
+        accessing ``model.gradients`` afterwards returns a view of that
+        same memory. If a parameter has no gradient yet, one is allocated
+        first.
+
+        Args:
+            flat: Tensor of shape (d,) containing the aggregated gradients.
+        """
+        grads = []
+        for p in self.module.parameters():
+            if p.grad is None:
+                p.grad = torch.zeros_like(p)
+            grads.append(p.grad)
+        relink(grads, flat.clone())

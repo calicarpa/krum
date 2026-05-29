@@ -97,11 +97,11 @@ class ModelTest(unittest.TestCase):
         expected = sum(p.numel() for p in self.linear.parameters())
         self.assertEqual(self.model.numel, expected)
 
-    def test_set_gradients_writes_flat_into_grads(self) -> None:
-        """set_gradients unpacks a flat tensor into each parameter's .grad."""
+    def test_gradients_setter_writes_flat_into_grads(self) -> None:
+        """Setting gradients unpacks a flat tensor into each parameter's .grad."""
         d = self.model.numel
         flat = torch.randn(d)
-        self.model.set_gradients(flat)
+        self.model.gradients = flat
         for p in self.linear.parameters():
             self.assertIsNotNone(p.grad)
             self.assertEqual(p.grad.numel(), p.numel())

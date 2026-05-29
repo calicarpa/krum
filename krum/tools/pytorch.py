@@ -20,7 +20,7 @@ def relink(tensors: list[torch.Tensor], common: torch.Tensor) -> torch.Tensor:
     offset = 0
     for tensor in tensors:
         end = offset + tensor.numel()
-        tensor.data = common[offset:end].view(tensor.shape)
+        tensor.data = common[offset:end].view(*tensor.shape)
         offset = end
     common.linked_tensors = tensors
     return common
