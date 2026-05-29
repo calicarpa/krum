@@ -178,7 +178,7 @@ class MonnaSimulation:
     def aggregate_received_models(self, candidates: torch.Tensor, *, pivot: torch.Tensor) -> torch.Tensor:
         """Aggregate the set of models one worker received.
 
-        ``NearestNeighbor`` anchors on the worker's own model via ``pivot``;
+        ``NearestNeighborAverage`` anchors on the worker's own model via ``pivot``;
         pivot-free aggregators (e.g. Krum, Median) ignore it.
         """
         try:

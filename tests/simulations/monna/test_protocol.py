@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 from krum.primitives import Model
-from krum.primitives.aggregators import NearestNeighbor
+from krum.primitives.aggregators import NearestNeighborAverage
 from krum.primitives.attacks import SignFlipAttack
 from krum.simulations.monna import MonnaSimulation
 
@@ -31,7 +31,7 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighbor(n=num_honest, f=num_byzantine),
+            aggregator=NearestNeighborAverage(num_closest=num_honest - num_byzantine),
             num_honest=num_honest,
             num_byzantine=num_byzantine,
             learning_rate=learning_rate,
@@ -55,7 +55,7 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighbor(n=3, f=0),
+            aggregator=NearestNeighborAverage(num_closest=3),
             num_honest=3,
             num_byzantine=0,
             learning_rate=0.1,
@@ -108,7 +108,7 @@ class MonnaProtocolTest(unittest.TestCase):
             model=model,
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighbor(n=2, f=0),
+            aggregator=NearestNeighborAverage(num_closest=2),
             num_honest=2,
             num_byzantine=0,
             learning_rate=0.1,
@@ -139,7 +139,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 model=Model(module),
                 data=data,
                 loss_fn=nn.MSELoss(),
-                aggregator=NearestNeighbor(n=2, f=1),
+                aggregator=NearestNeighborAverage(num_closest=1),
                 num_honest=2,
                 num_byzantine=1,
                 learning_rate=0.1,
@@ -158,7 +158,7 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            aggregator=NearestNeighbor(n=2, f=1),
+            aggregator=NearestNeighborAverage(num_closest=1),
             num_honest=2,
             num_byzantine=1,
             learning_rate=0.1,
