@@ -100,6 +100,16 @@ class ALIEAttackTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             ALIEAttack()(honest_gradients, num_byzantine=1)
 
+    def test_accepts_sequence_of_per_worker_vectors(self) -> None:
+        """Honest gradients may be a sequence of 1-D vectors, not just a 2-D tensor."""
+        as_tensor = torch.arange(52, dtype=torch.float64).reshape(26, 2)
+        as_sequence = [as_tensor[i] for i in range(as_tensor.shape[0])]
+
+        from_sequence = ALIEAttack(z=1.0)(as_sequence, num_byzantine=24)
+        from_tensor = ALIEAttack(z=1.0)(as_tensor, num_byzantine=24)
+
+        self.assertTrue(torch.equal(from_sequence, from_tensor))
+
 
 if __name__ == "__main__":
     unittest.main()

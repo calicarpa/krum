@@ -7,6 +7,8 @@ Reference:
     Systems 30 (NIPS 2017).
 """
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Attack
@@ -43,14 +45,14 @@ class SignFlipAttack(Attack):
 
     def generate(
         self,
-        honest_gradients: torch.Tensor,
+        honest_gradients: Sequence[torch.Tensor],
         num_byzantine: int,
     ) -> torch.Tensor:
         """Generate sign-flipped Byzantine gradients.
 
         Args:
-            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
-                from the ``h`` honest workers.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
@@ -58,24 +60,22 @@ class SignFlipAttack(Attack):
             sign-flipped honest mean is repeated ``num_byzantine`` times.
 
         Raises:
-            ValueError: If ``honest_gradients`` is not 2-D, ``num_byzantine``
-                is negative, or there are no honest gradients to average.
-            TypeError: If ``honest_gradients`` does not use a floating-point
-                dtype.
+            ValueError: If ``num_byzantine`` is negative or there are no honest
+                gradients to average.
+            TypeError: If the honest gradients do not use a floating-point dtype.
         """
-        if honest_gradients.ndim != 2:
-            raise ValueError("Expected a 2D tensor of honest gradients")
-        if not torch.is_floating_point(honest_gradients):
-            raise TypeError("Expected honest gradients to use a floating-point dtype")
         if num_byzantine < 0:
             msg = (
                 f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
             )
             raise ValueError(msg)
-        if honest_gradients.shape[0] == 0:
+        if len(honest_gradients) == 0:
             msg = "Expected at least one honest gradient to compute the honest mean"
             raise ValueError(msg)
+        stacked = torch.stack(list(honest_gradients))
+        if not torch.is_floating_point(stacked):
+            raise TypeError("Expected honest gradients to use a floating-point dtype")
 
-        malicious_gradient = -self.scale * honest_gradients.mean(dim=0)
+        malicious_gradient = -self.scale * stacked.mean(dim=0)
 
         return malicious_gradient.repeat(num_byzantine, 1)

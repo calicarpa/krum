@@ -46,6 +46,19 @@ class SignFlipAttackTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             SignFlipAttack()(torch.empty((0, 5)), num_byzantine=2)
 
+    def test_accepts_sequence_of_per_worker_vectors(self) -> None:
+        """Honest gradients may be a sequence of 1-D vectors, not just a 2-D tensor."""
+        as_sequence = [
+            torch.tensor([1.0, 3.0], dtype=torch.float64),
+            torch.tensor([5.0, 7.0], dtype=torch.float64),
+        ]
+        as_tensor = torch.tensor([[1.0, 3.0], [5.0, 7.0]], dtype=torch.float64)
+
+        from_sequence = SignFlipAttack()(as_sequence, num_byzantine=3)
+        from_tensor = SignFlipAttack()(as_tensor, num_byzantine=3)
+
+        self.assertTrue(torch.equal(from_sequence, from_tensor))
+
 
 if __name__ == "__main__":
     unittest.main()

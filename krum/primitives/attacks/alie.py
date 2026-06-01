@@ -7,6 +7,7 @@ Reference:
 """
 
 import warnings
+from collections.abc import Sequence
 from enum import Enum
 
 import torch
@@ -79,14 +80,14 @@ class ALIEAttack(Attack):
 
     def generate(
         self,
-        honest_gradients: torch.Tensor,
+        honest_gradients: Sequence[torch.Tensor],
         num_byzantine: int,
     ) -> torch.Tensor:
         """Generate Byzantine gradients using ALIE-style statistics.
 
         Args:
-            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
-                from the ``h`` honest workers.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
@@ -95,27 +96,27 @@ class ALIEAttack(Attack):
             ``(0, d)``.
 
         Raises:
-            ValueError: If ``honest_gradients`` is not 2-D, ``num_byzantine``
-                is negative, or the worker configuration admits no
-                non-negative ALIE factor.
-            TypeError: If ``honest_gradients`` does not use a floating-point
-                dtype.
+            ValueError: If there are no honest gradients, ``num_byzantine`` is
+                negative, or the worker configuration admits no non-negative
+                ALIE factor.
+            TypeError: If the honest gradients do not use a floating-point dtype.
         """
-        if honest_gradients.ndim != 2:
-            raise ValueError("Expected a 2D tensor of honest gradients")
-        if not torch.is_floating_point(honest_gradients):
-            raise TypeError("Expected honest gradients to use a floating-point dtype")
         if num_byzantine < 0:
             msg = (
                 f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
             )
             raise ValueError(msg)
+        if len(honest_gradients) == 0:
+            raise ValueError("Expected at least one honest gradient to compute ALIE statistics")
+        stacked = torch.stack(list(honest_gradients))
+        if not torch.is_floating_point(stacked):
+            raise TypeError("Expected honest gradients to use a floating-point dtype")
 
         if num_byzantine == 0:
-            return honest_gradients.new_empty((0, honest_gradients.shape[1]))
+            return stacked.new_empty((0, stacked.shape[1]))
 
-        z_max = self._max_z(honest_gradients, num_byzantine)
-        z = z_max if self.z == "max" else honest_gradients.new_tensor(self.z)
+        z_max = self._max_z(stacked, num_byzantine)
+        z = z_max if self.z == "max" else stacked.new_tensor(self.z)
         if z > z_max:
             warnings.warn(
                 f"ALIE attack factor z = {float(z)!r} is greater than z_max = {float(z_max)!r}; "
@@ -124,8 +125,8 @@ class ALIEAttack(Attack):
                 stacklevel=2,
             )
 
-        mean = honest_gradients.mean(dim=0)
-        std = honest_gradients.std(dim=0, correction=0)
+        mean = stacked.mean(dim=0)
+        std = stacked.std(dim=0, correction=0)
         perturbation = z * std
         malicious_gradient = mean + perturbation if self.direction is Direction.POSITIVE else mean - perturbation
 

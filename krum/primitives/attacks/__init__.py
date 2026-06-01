@@ -11,6 +11,7 @@ submodules with ``from . import Attack``.
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 
 import torch
 
@@ -27,14 +28,14 @@ class Attack(ABC):
     @abstractmethod
     def generate(
         self,
-        honest_gradients: torch.Tensor,
+        honest_gradients: Sequence[torch.Tensor],
         num_byzantine: int,
     ) -> torch.Tensor:
         """Generate Byzantine gradients from observed honest gradients.
 
         Args:
-            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
-                from the ``h`` honest workers.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
@@ -44,14 +45,14 @@ class Attack(ABC):
 
     def __call__(
         self,
-        honest_gradients: torch.Tensor,
+        honest_gradients: Sequence[torch.Tensor],
         num_byzantine: int,
     ) -> torch.Tensor:
         """Call :meth:`generate` to produce Byzantine gradients.
 
         Args:
-            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
-                from the ``h`` honest workers.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
