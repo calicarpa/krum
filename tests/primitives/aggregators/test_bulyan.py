@@ -92,6 +92,35 @@ class BulyanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Bulyan.aggregate([torch.tensor([1.0]), torch.tensor([2.0]), torch.tensor([3.0])], n=7, f=1)
 
+    def test_call_class_delegates_to_aggregate_with_kwargs(self) -> None:
+        """Calling the class directly delegates to aggregate, including keyword args."""
+        grads = [
+            torch.tensor([0.0, 0.0]),
+            torch.tensor([1.0, 0.0]),
+            torch.tensor([2.0, 0.0]),
+            torch.tensor([3.0, 0.0]),
+            torch.tensor([4.0, 0.0]),
+            torch.tensor([5.0, 0.0]),
+            torch.tensor([6.0, 0.0]),
+        ]
+        result = Bulyan(grads, n=7, f=1, m=4)
+        self.assertEqual(result.shape, (2,))
+
+    def test_call_instance_delegates_to_aggregate_with_kwargs(self) -> None:
+        """__call__ on an instance delegates to aggregate, including keyword args."""
+        grads = [
+            torch.tensor([0.0, 0.0]),
+            torch.tensor([1.0, 0.0]),
+            torch.tensor([2.0, 0.0]),
+            torch.tensor([3.0, 0.0]),
+            torch.tensor([4.0, 0.0]),
+            torch.tensor([5.0, 0.0]),
+            torch.tensor([6.0, 0.0]),
+        ]
+        instance = Bulyan()
+        result = instance(grads, n=7, f=1, m=4)
+        self.assertEqual(result.shape, (2,))
+
 
 if __name__ == "__main__":
     unittest.main()

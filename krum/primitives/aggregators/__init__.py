@@ -1,8 +1,13 @@
 """Byzantine-resilient gradient aggregation rules.
 
-All aggregators are **stateless**: they are exposed as classmethods and are
-called as ``Aggregate.aggregate(gradients, **kwargs)`` without instantiating
-an object. Specialized parameters (``f``, ``n``, ``m``) are keyword-only.
+All aggregators are **stateless**: each rule is a classmethod that can be
+called in three equivalent ways:
+
+* ``Aggregate.aggregate(gradients, **kwargs)`` — explicit classmethod call
+* ``Aggregate(gradients, **kwargs)`` — call the class directly
+* ``Aggregate()(gradients, **kwargs)`` — call an instance
+
+Specialized parameters (``f``, ``n``, ``m``) are keyword-only.
 
 Available rules:
 
@@ -18,20 +23,36 @@ Available rules:
   trimmed mean (Mhamdi et al., ICML 2018).
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import Sequence
 from typing import Any
 
 import torch
 
 
-class Aggregator(ABC):
+class _AggregatorMeta(ABCMeta):
+    """Metaclass that makes ``Average(gradients, **kw)`` route to ``aggregate``.
+
+    When called with positional arguments the class itself acts as the
+    aggregation function.  Calling without arguments (``Average()``) still
+    returns an instance.
+    """
+
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+        if args:
+            return cls.aggregate(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
+
+
+class Aggregator(ABC, metaclass=_AggregatorMeta):
     """Abstract base class for stateless gradient aggregation rules.
 
     Subclasses implement :meth:`aggregate` as a ``@classmethod`` — no instance
-    state is required, and the caller invokes the rule directly on the class.
-    The first positional argument is the gradients sequence; specialized
-    hyperparameters are passed as keyword-only arguments via ``**kwargs``.
+    state is required.  The aggregator can be called in three equivalent ways:
+
+    * ``Average.aggregate(gradients, **kwargs)`` — explicit classmethod call
+    * ``Average(gradients, **kwargs)`` — call the class directly
+    * ``Average()(gradients, **kwargs)`` — call an instance
     """
 
     @classmethod
@@ -50,4 +71,6 @@ class Aggregator(ABC):
         """
         pass
 
-    __call__ = aggregate
+    def __call__(self, *args: object, **kwargs: object) -> torch.Tensor:
+        """Forward to :meth:`aggregate` so instances are callable as ``aggregator(...)``."""
+        return self.aggregate(*args, **kwargs)  # type: ignore[arg-type]

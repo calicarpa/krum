@@ -33,6 +33,21 @@ class AverageTest(unittest.TestCase):
         result = Average.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
+    def test_call_class_delegates_to_aggregate(self) -> None:
+        """Calling the class directly delegates to aggregate."""
+        grads = [torch.tensor([1.0, 2.0]), torch.tensor([3.0, 4.0]), torch.tensor([5.0, 6.0])]
+        result = Average(grads)
+        expected = torch.tensor([3.0, 4.0])
+        self.assertTrue(torch.equal(result, expected))
+
+    def test_call_instance_delegates_to_aggregate(self) -> None:
+        """__call__ on an instance delegates to aggregate."""
+        grads = [torch.tensor([1.0, 2.0]), torch.tensor([3.0, 4.0]), torch.tensor([5.0, 6.0])]
+        instance = Average()
+        result = instance(grads)
+        expected = torch.tensor([3.0, 4.0])
+        self.assertTrue(torch.equal(result, expected))
+
 
 if __name__ == "__main__":
     unittest.main()
