@@ -1,12 +1,12 @@
-"""Model class encapsulating a ``Module`` with zero-copy flat views.
+"""Zero-copy flat-tensor view of a ``torch.nn.Module``.
 
-Parameters and gradients are exposed as flat tensors via ``relink``,
-so that reading or writing the flat tensor instantly reflects on the
-model. Both ``model.parameters`` and ``model.gradients`` support getter
-and setter semantics:
+The :class:`Model` wrapper relinks a module's parameters and gradients to
+contiguous flat tensors, so that aggregators and attacks can operate on a
+single 1-D view of the model state without copying data on every access.
 
-    >>> model.parameters[0] = 1.0       # modifies the model weight
-    >>> model.gradients = flat           # writes aggregated grads back
+Example:
+    >>> model.parameters[0] = 1.0      # mutates the model weight in place
+    >>> model.gradients = flat         # writes aggregated gradients back
 """
 
 from collections.abc import Iterator
@@ -41,7 +41,7 @@ class Model:
     __slots__ = tuple(__annotations__)
 
     @classmethod
-    def _relink(cls, tensors: tuple[Tensor], common: Tensor) -> Tensor:
+    def _relink(cls, tensors: tuple[Tensor, ...], common: Tensor) -> Tensor:
         """Relink tensors to share a common contiguous memory storage.
 
         After relinking, modifying ``common`` or any individual tensor reflects
@@ -63,7 +63,7 @@ class Model:
             return common
 
     @classmethod
-    def _flatten(cls, tensors: tuple[Tensor]) -> Tensor:
+    def _flatten(cls, tensors: tuple[Tensor, ...]) -> Tensor:
         """Flatten tensors into a single contiguous tensor sharing memory.
 
         Args:
@@ -78,7 +78,7 @@ class Model:
             return cls._relink(tensors, common)
 
     def __init__(self, module: Module):
-        """Initialize the model.
+        """Initialize the Model wrapper.
 
         Args:
             module: The module to encapsulate.
@@ -88,7 +88,7 @@ class Model:
         self._flat_gradients = None
 
     def _reset(self) -> None:
-        """Invalidate cached flat views (e.g. after module swap)."""
+        """Invalidate cached flat views, e.g. after swapping the encapsulated module."""
         self._flat_parameters = None
         self._flat_gradients = None
 
@@ -96,7 +96,7 @@ class Model:
         """Return a string representation of the model.
 
         Returns:
-            String with the module class name.
+            A ``<Model 'ModuleName'>`` style string.
         """
         mname = type(self._module).__qualname__
         return f"<Model {mname!r}>"
@@ -131,7 +131,8 @@ class Model:
         module itself is changed.
 
         Returns:
-            Tensor of shape (d,) sharing memory with all module parameters.
+            Tensor of shape ``(d,)`` sharing memory with all module
+            parameters, in the iteration order of ``module.parameters()``.
         """
         if self._flat_parameters is None:
             self._flat_parameters = self._flatten(tuple(self._module.parameters()))
@@ -144,7 +145,8 @@ class Model:
         Relinking the module parameters does not affect their gradients.
 
         Args:
-            flat: Tensor of shape (d,) containing the module parameters
+            flat: Tensor of shape ``(d,)`` containing the module parameters,
+                in the same flattening order as :attr:`parameters`.
         """
         self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
 
@@ -155,14 +157,16 @@ class Model:
         initializes gradients that have not been instantiated yet.
 
         Args:
-            empty: If True, allocate empty tensors instead of zero-filled ones.
+            empty: If ``True``, allocate empty tensors instead of zero-filled
+                ones. Used by the gradients setter, which then overwrites them
+                with the caller's flat tensor.
 
         Yields:
             Gradient tensors of the module parameters.
         """
         for parameter in self._module.parameters():
             if parameter.grad is None:
-                parameter.grad = torch.empty(0) if empty else torch.zeros_like(parameter)
+                parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
             yield parameter.grad
 
     @property
@@ -180,7 +184,8 @@ class Model:
         and then relinked to that already-existing, flat gradient's buffer.
 
         Returns:
-            Tensor of shape (d,) sharing memory with all module gradients
+            Tensor of shape ``(d,)`` sharing memory with all module
+            gradients, in the iteration order of ``module.parameters()``.
         """
         if self._flat_gradients is None:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
@@ -201,15 +206,15 @@ class Model:
         return self._flat_gradients
 
     @gradients.setter
-    def gradients(self, flat: Tensor | None) -> None:
+    def gradients(self, flat: Tensor) -> None:
         """Zero-copy relink of the module parameters' gradients.
 
         Relinks every ``.grad`` to share the ``flat`` buffer, so that accessing
-        ``model.gradients`` afterwards returns a view of that same memory.
-
+        :attr:`gradients` afterwards returns a view of that same memory.
         Relinking the gradients does not affect the module parameters.
 
         Args:
-            flat: Tensor of shape (d,) containing the gradients to set
+            flat: Tensor of shape ``(d,)`` containing the gradients to set,
+                in the same flattening order as :attr:`gradients`.
         """
         self._flat_gradients = self._relink(tuple(self._gradients(empty=True)), flat)
