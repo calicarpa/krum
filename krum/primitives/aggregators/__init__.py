@@ -30,6 +30,3 @@ class Aggregator(ABC):
             Aggregated gradient of shape (d,).
         """
         return self.aggregate(gradients)
-
-
-__all__ = ["Aggregator"]
