@@ -1,4 +1,10 @@
-"""ALIE-style attack using exact honest gradient statistics."""
+"""A Little Is Enough (ALIE) gradient attack.
+
+Reference:
+    Baruch, Gilad, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
+    Is Enough: Circumventing Defenses For Distributed Learning." In
+    Advances in Neural Information Processing Systems 32 (NeurIPS 2019).
+"""
 
 import warnings
 
@@ -12,19 +18,40 @@ class ALIEAttack(Attack):
     """ALIE-style attack using exact honest gradient statistics.
 
     Generates Byzantine gradients from the exact coordinate-wise mean and
-    standard deviation of the honest gradients passed to the attack.
+    standard deviation of the honest gradients passed to the attack. The
+    attack perturbs the honest mean by ``z * std`` along the chosen
+    :class:`Direction`, where ``z`` is the attack factor.
+
+    This corresponds to a statistics-oracle variant of ALIE rather than the
+    original paper's more restricted information setting: the attacker is
+    assumed to know the full honest gradient distribution, not just a
+    subset.
 
     Args:
-        z: Attack factor. Use "max" to compute the maximal valid attack factor.
-        direction: Direction of the perturbation.
+        z: Attack factor in standard-deviation units. Use the string
+            ``"max"`` to compute the largest factor that keeps the
+            generated gradients inside the assumed ``Krum`` /
+            ``MultiKrum`` selection set, derived from the honest
+            distribution and the worker counts. A :class:`RuntimeWarning`
+            is emitted if a numeric ``z`` exceeds ``z_max``.
+        direction: Direction of the perturbation relative to the honest
+            mean. Defaults to :attr:`Direction.NEGATIVE`.
+
+    Raises:
+        TypeError: If ``z`` is not a number or the string ``"max"``, or if
+            ``direction`` is not a :class:`Direction`.
+        ValueError: If ``z`` is a negative number.
     """
 
     def __init__(self, *, z: float | str = "max", direction: Direction = Direction.NEGATIVE) -> None:
         """Initialize the attack.
 
         Args:
-            z: Attack factor. Use "max" to compute the maximal valid attack factor.
-            direction: Direction of the perturbation.
+            z: Attack factor in standard-deviation units. Use ``"max"`` to
+                compute the largest factor that keeps the generated
+                gradients inside the Krum / MultiKrum selection set.
+            direction: Direction of the perturbation relative to the
+                honest mean.
         """
         if z != "max":
             if not isinstance(z, int | float):
@@ -47,11 +74,21 @@ class ALIEAttack(Attack):
         """Generate Byzantine gradients using ALIE-style statistics.
 
         Args:
-            honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.
+            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
+                from the ``h`` honest workers.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
-            Byzantine gradients of shape (num_byzantine, d).
+            Byzantine gradients of shape ``(num_byzantine, d)``. When
+            ``num_byzantine == 0``, returns an empty tensor of shape
+            ``(0, d)``.
+
+        Raises:
+            ValueError: If ``honest_gradients`` is not 2-D, ``num_byzantine``
+                is negative, or the worker configuration admits no
+                non-negative ALIE factor.
+            TypeError: If ``honest_gradients`` does not use a floating-point
+                dtype.
         """
         if honest_gradients.ndim != 2:
             raise ValueError("Expected a 2D tensor of honest gradients")
@@ -84,17 +121,25 @@ class ALIEAttack(Attack):
         return malicious_gradient.repeat(num_byzantine, 1)
 
     def _max_z(self, honest_gradients: torch.Tensor, num_byzantine: int) -> torch.Tensor:
-        """Compute the maximal valid ALIE attack factor.
+        """Compute the maximal valid ALIE attack factor for the worker configuration.
+
+        ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,
+        where ``h`` is the number of honest workers and ``s`` is the
+        number of honest supporters needed to keep the attack inside the
+        selection set assumed by Krum / MultiKrum.
 
         Args:
-            honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.
+            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
+                from the ``h`` honest workers.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
-            Maximal attack factor.
+            Maximal attack factor, as a 0-D tensor on the same device and
+            dtype as ``honest_gradients``.
 
         Raises:
-            ValueError: If the worker configuration does not allow a non-negative ALIE factor.
+            ValueError: If there are no honest gradients, or if the worker
+                configuration does not admit a non-negative ALIE factor.
         """
         num_honest = honest_gradients.shape[0]
         if num_honest == 0:

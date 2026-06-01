@@ -1,4 +1,11 @@
-"""Sign-flip attack."""
+"""Sign-flip gradient attack.
+
+Reference:
+    Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
+    Stainer. "Machine learning with adversaries: Byzantine tolerant
+    gradient descent." In Advances in Neural Information Processing
+    Systems 30 (NIPS 2017).
+"""
 
 import torch
 
@@ -9,17 +16,25 @@ class SignFlipAttack(Attack):
     """Sign-flip attack.
 
     Generates Byzantine gradients from the negative honest mean, optionally
-    scaled by a positive factor.
+    scaled by a positive factor. Intuitively, every Byzantine worker tries
+    to make the aggregated gradient point in the opposite direction of the
+    honest update.
 
     Args:
-        scale: Scale applied to the sign-flipped honest mean.
+        scale: Non-negative scale applied to the sign-flipped honest mean.
+            ``scale = 1`` sends the exact negative honest mean; larger
+            values amplify the attack.
+
+    Raises:
+        ValueError: If ``scale`` is negative.
     """
 
     def __init__(self, *, scale: float = 1.0) -> None:
         """Initialize the attack.
 
         Args:
-            scale: Scale applied to the sign-flipped honest mean.
+            scale: Non-negative scale applied to the sign-flipped honest
+                mean.
         """
         if scale < 0:
             msg = f"Invalid sign-flip scale, got {scale!r}, expected scale >= 0"
@@ -34,11 +49,19 @@ class SignFlipAttack(Attack):
         """Generate sign-flipped Byzantine gradients.
 
         Args:
-            honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.
+            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
+                from the ``h`` honest workers.
             num_byzantine: Number of Byzantine gradients to generate.
 
         Returns:
-            Byzantine gradients of shape (num_byzantine, d).
+            Byzantine gradients of shape ``(num_byzantine, d)``. The same
+            sign-flipped honest mean is repeated ``num_byzantine`` times.
+
+        Raises:
+            ValueError: If ``honest_gradients`` is not 2-D, ``num_byzantine``
+                is negative, or there are no honest gradients to average.
+            TypeError: If ``honest_gradients`` does not use a floating-point
+                dtype.
         """
         if honest_gradients.ndim != 2:
             raise ValueError("Expected a 2D tensor of honest gradients")

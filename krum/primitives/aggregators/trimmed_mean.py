@@ -1,4 +1,4 @@
-"""Trimmed Mean aggregator."""
+"""Coordinate-wise trimmed mean aggregation rule."""
 
 from collections.abc import Sequence
 
@@ -8,10 +8,30 @@ from . import Aggregator
 
 
 class TrimmedMean(Aggregator):
-    """Trimmed Mean aggregator.
+    """Coordinate-wise trimmed mean aggregation rule.
 
-    Computes the coordinate-wise trimmed mean by removing the ``f`` smallest
-    and ``f`` largest values per coordinate, then averaging the remaining ones.
+    For every coordinate, the ``f`` smallest and ``f`` largest values are
+    dropped, then the remaining values are averaged. This requires at least
+    ``2f + 1`` workers and provides basic Byzantine resilience: adversarial
+    workers can only shift at most ``f`` samples per coordinate.
+
+    Reference:
+        Yin, Dong, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
+        "Byzantine-Robust Distributed Learning: Towards Optimal Statistical
+        Rates." In Proceedings of the 35th International Conference on
+        Machine Learning (ICML 2018).
+
+    Args:
+        gradients: Sequence of 1-D tensors, one per worker.
+        f: Number of Byzantine workers to tolerate. Must satisfy
+            ``0 <= f`` and ``len(gradients) > 2f``.
+
+    Returns:
+        Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.
+
+    Raises:
+        ValueError: If ``f`` is negative or if there are not enough gradients
+            to trim (``len(gradients) <= 2f``).
     """
 
     @classmethod
@@ -19,14 +39,16 @@ class TrimmedMean(Aggregator):
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
-            gradients: Sequence of Tensors containing gradients from workers.
-            f: Number of Byzantine workers to tolerate.
+            gradients: Sequence of 1-D tensors containing gradients from workers.
+            f: Number of Byzantine workers to tolerate. Must satisfy
+                ``0 <= f`` and ``len(gradients) > 2f``.
 
         Returns:
-            Coordinate-wise trimmed mean.
+            Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.
 
         Raises:
-            ValueError: If the number of gradients is insufficient.
+            ValueError: If ``f`` is negative or if there are not enough gradients
+                to trim (``len(gradients) <= 2f``).
         """
         if f < 0:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")

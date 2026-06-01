@@ -1,4 +1,10 @@
-"""Bulyan aggregator from The Hidden Vulnerability of Distributed Learning in Byzantium."""
+"""Bulyan aggregation rule (Mhamdi et al., ICML 2018).
+
+Reference:
+    El Mhamdi, El Mahdi, Rachid Guerraoui, and Sébastien Rouault. "The Hidden
+    Vulnerability of Distributed Learning in Byzantium." In Proceedings of
+    the 35th International Conference on Machine Learning (ICML 2018).
+"""
 
 from collections.abc import Sequence
 
@@ -8,7 +14,34 @@ from . import Aggregator
 
 
 class Bulyan(Aggregator):
-    """Bulyan aggregator from The Hidden Vulnerability of Distributed Learning in Byzantium."""
+    """Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
+
+    Bulyan first iteratively applies :class:`~krum.primitives.aggregators.multikrum.MultiKrum`
+    to select a small set of consistent gradients, then aggregates that set
+    coordinate-wise by trimming the ``f`` smallest and ``f`` largest values
+    per coordinate and averaging what remains. It tolerates up to
+    ``(n - 3) // 4`` Byzantine workers.
+
+    Reference:
+        El Mhamdi, El Mahdi, Rachid Guerraoui, and Sébastien Rouault. "The
+        Hidden Vulnerability of Distributed Learning in Byzantium." In
+        Proceedings of the 35th International Conference on Machine
+        Learning (ICML 2018).
+
+    Args:
+        gradients: Sequence of 1-D tensors, one per worker.
+        n: Total number of workers. Must satisfy ``n >= 4f + 3``.
+        f: Number of Byzantine workers to tolerate. Must satisfy
+            ``1 <= f <= (n - 3) // 4``.
+        m: Number of gradients selected by MultiKrum at each iteration.
+            Defaults to ``n - f - 2``.
+
+    Returns:
+        Aggregated gradient of shape ``(d,)``.
+
+    Raises:
+        ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+    """
 
     @classmethod
     def aggregate(
@@ -23,16 +56,18 @@ class Bulyan(Aggregator):
         """Aggregate the gradients using the Bulyan algorithm.
 
         Args:
-            gradients: Sequence of Tensors containing gradients from workers.
-            n: Total number of workers.
-            f: Number of Byzantine workers to tolerate.
-            m: Number of selected gradients. Defaults to n - f - 2.
+            gradients: Sequence of 1-D tensors containing gradients from workers.
+            n: Total number of workers. Must satisfy ``n >= 4f + 3``.
+            f: Number of Byzantine workers to tolerate. Must satisfy
+                ``1 <= f <= (n - 3) // 4``.
+            m: Number of gradients selected by MultiKrum at each iteration.
+                Defaults to ``n - f - 2``.
 
         Returns:
-            Aggregated gradient of shape (d,).
+            Aggregated gradient of shape ``(d,)``.
 
         Raises:
-            ValueError: If parameters are invalid.
+            ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")

@@ -44,7 +44,24 @@ extensions = [
 
 
 def linkcode_resolve(domain, info):
-    """Return a URL to the source code on GitHub for the given object."""
+    """Resolve a documented object to a permalink to its source on GitHub.
+
+    Used by the ``sphinx.ext.linkcode`` extension to turn ``[source]`` links
+    in the rendered HTML into deep links to the corresponding file and line
+    on the project's GitHub ``main`` branch.
+
+    Args:
+        domain: Sphinx object domain. Only ``"py"`` is handled; any other
+            domain returns ``None``.
+        info: Dictionary provided by Sphinx with ``"module"`` (the fully
+            qualified module name) and ``"fullname"`` (the dotted
+            attribute path inside the module).
+
+    Returns:
+        A ``github.com/calicarpa/krum/blob/main/<path>`` URL optionally
+        anchored to a line (``#L<n>``), or ``None`` if the object cannot
+        be resolved to a source file inside the repository.
+    """
     if domain != "py":
         return None
 
