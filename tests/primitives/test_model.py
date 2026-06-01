@@ -53,6 +53,13 @@ class ModelTest(unittest.TestCase):
 
         self.assertIsNot(flat1, flat2)
 
+    def test_parameters_setter_relinks_weights(self) -> None:
+        """Setting parameters unpacks a flat tensor into the module weights."""
+        d = sum(p.numel() for p in self.linear.parameters())
+        flat = torch.randn(d)
+        self.model.parameters = flat
+        self.assertIs(self.model.parameters, flat)
+
     def test_gradients_zero_copy(self) -> None:
         """Modifying the flat gradients tensor updates individual grads."""
         x = torch.randn(1, 3)
@@ -75,17 +82,6 @@ class ModelTest(unittest.TestCase):
 
         self.assertIsNot(flat1, flat2)
 
-    def test_repr(self) -> None:
-        """__repr__ includes the module class name."""
-        r = repr(self.model)
-        self.assertIn("Linear", r)
-
-    def test_module_setter(self) -> None:
-        """Setting a new module updates the internal reference."""
-        new_module = nn.Linear(10, 5)
-        self.model.module = new_module
-        self.assertIs(self.model.module, new_module)
-
     def test_gradients_setter_writes_flat_into_grads(self) -> None:
         """Setting gradients unpacks a flat tensor into each parameter's .grad."""
         d = sum(p.numel() for p in self.linear.parameters())
@@ -95,6 +91,22 @@ class ModelTest(unittest.TestCase):
             self.assertIsNotNone(p.grad)
             self.assertEqual(p.grad.numel(), p.numel())
             self.assertFalse(torch.equal(p.grad, torch.zeros_like(p.grad)))
+
+    def test_module_setter(self) -> None:
+        """Setting a new module updates the internal reference."""
+        new_module = nn.Linear(10, 5)
+        self.model.module = new_module
+        self.assertIs(self.model.module, new_module)
+
+    def test_repr(self) -> None:
+        """__repr__ includes the module class name."""
+        r = repr(self.model)
+        self.assertIn("Linear", r)
+
+    def test_slots_prevent_arbitrary_attributes(self) -> None:
+        """Cannot set arbitrary attributes on slotted instances."""
+        with self.assertRaises(AttributeError):
+            self.model.extra = 42
 
 
 if __name__ == "__main__":
