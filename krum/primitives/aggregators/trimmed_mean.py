@@ -1,5 +1,7 @@
 """Trimmed Mean aggregator."""
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Aggregator
@@ -26,18 +28,19 @@ class TrimmedMean(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
         self.f = f
 
-    def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
+    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
-            gradients: Tensor of shape (n, d) containing gradients from workers.
+            gradients: Sequence of Tensors containing gradients from workers.
 
         Returns:
-            Coordinate-wise trimmed mean of shape (d,).
+            Coordinate-wise trimmed mean.
 
         Raises:
             ValueError: If the number of gradients is insufficient.
         """
-        if gradients.shape[0] <= 2 * self.f:
-            raise ValueError(f"At least 2f+1 = {2 * self.f + 1} gradients required, got {gradients.shape[0]}")
-        return gradients.sort(dim=0).values[self.f : -self.f].mean(dim=0)
+        if len(gradients) <= 2 * self.f:
+            raise ValueError(f"At least 2f+1 = {2 * self.f + 1} gradients required, got {len(gradients)}")
+        stacked = torch.stack(list(gradients))
+        return stacked.sort(dim=0).values[self.f : -self.f].mean(dim=0)

@@ -1,5 +1,7 @@
 """Bulyan aggregator from The Hidden Vulnerability of Distributed Learning in Byzantium."""
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Aggregator
@@ -44,11 +46,11 @@ class Bulyan(Aggregator):
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
 
-    def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
+    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
         """Aggregate the gradients using the Bulyan algorithm.
 
         Args:
-            gradients: Tensor of shape (n, d) containing gradients from workers.
+            gradients: Sequence of Tensors containing gradients from workers.
 
         Returns:
             Aggregated gradient of shape (d,).
@@ -56,10 +58,11 @@ class Bulyan(Aggregator):
         Raises:
             ValueError: If the number of gradients does not match ``n``.
         """
-        if gradients.shape[0] != self.n:
-            raise ValueError(f"Expected {self.n} gradients, got {gradients.shape[0]}")
-        distances = torch.cdist(gradients, gradients, p=2.0)
-        valid_mask = torch.ones(self.n, dtype=torch.bool, device=gradients.device)
+        if len(gradients) != self.n:
+            raise ValueError(f"Expected {self.n} gradients, got {len(gradients)}")
+        stacked = torch.stack(list(gradients))
+        distances = torch.cdist(stacked, stacked, p=2.0)
+        valid_mask = torch.ones(self.n, dtype=torch.bool, device=stacked.device)
         selected = []
 
         m_cur = self.m
@@ -76,7 +79,7 @@ class Bulyan(Aggregator):
             scores[~valid_mask] = float("inf")
 
             _, top_nodes = torch.topk(scores, m_cur, largest=False)
-            selected.append(gradients[top_nodes].mean(dim=0))
+            selected.append(stacked[top_nodes].mean(dim=0))
 
             best_node = top_nodes[0]
             valid_mask[best_node] = False

@@ -1,5 +1,7 @@
 """MultiKrum aggregation rule."""
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Aggregator
@@ -44,19 +46,19 @@ class MultiKrum(Aggregator):
         self.f = f
         self.m = m
 
-    def _compute_scores(self, gradients: torch.Tensor) -> torch.Tensor:
+    def _compute_scores(self, stacked: torch.Tensor) -> torch.Tensor:
         """Internal helper to compute Krum scores."""
-        distances = torch.cdist(gradients, gradients, p=2.0)
+        distances = torch.cdist(stacked, stacked, p=2.0)
         distances.fill_diagonal_(float("inf"))
 
         sorted_distances, _ = torch.sort(distances, dim=1)
         return sorted_distances[:, : self.n - self.f - 1].sum(dim=1)
 
-    def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
+    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
         """Aggregate gradients using MultiKrum.
 
         Args:
-            gradients: Tensor of shape (n, d) containing gradients from workers.
+            gradients: Sequence of Tensors containing gradients from workers.
 
         Returns:
             Aggregated gradient of shape (d,).
@@ -64,9 +66,10 @@ class MultiKrum(Aggregator):
         Raises:
             ValueError: If the number of gradients does not match ``n``.
         """
-        if gradients.shape[0] != self.n:
-            raise ValueError(f"Expected {self.n} gradients, got {gradients.shape[0]}")
-        scores = self._compute_scores(gradients)
+        if len(gradients) != self.n:
+            raise ValueError(f"Expected {self.n} gradients, got {len(gradients)}")
+        stacked = torch.stack(list(gradients))
+        scores = self._compute_scores(stacked)
         _, top_indices = torch.topk(scores, self.m, largest=False)
 
-        return gradients[top_indices].mean(dim=0)
+        return stacked[top_indices].mean(dim=0)

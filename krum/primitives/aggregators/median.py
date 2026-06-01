@@ -1,5 +1,7 @@
 """Median aggregator."""
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Aggregator
@@ -12,13 +14,13 @@ class Median(Aggregator):
         """Initialize the Median aggregator."""
         super().__init__()
 
-    def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
+    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.
 
         Args:
-            gradients: Tensor of shape (n, d) containing gradients from workers.
+            gradients: Sequence of Tensors containing gradients from workers.
 
         Returns:
-            Coordinate-wise median of shape (d,).
+            Coordinate-wise median.
         """
-        return gradients.median(dim=0).values
+        return torch.stack(list(gradients)).median(dim=0).values

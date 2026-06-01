@@ -13,13 +13,13 @@ class MultiKrumTest(unittest.TestCase):
     def test_aggregate_averages_top_m(self) -> None:
         """MultiKrum averages the m gradients with smallest Krum scores."""
         agg = MultiKrum(n=5, f=1, m=2)
-        grads = torch.tensor([
-            [0.0, 0.0],
-            [1.0, 0.0],
-            [2.0, 0.0],
-            [3.0, 0.0],
-            [100.0, 100.0],
-        ])
+        grads = [
+            torch.tensor([0.0, 0.0]),
+            torch.tensor([1.0, 0.0]),
+            torch.tensor([2.0, 0.0]),
+            torch.tensor([3.0, 0.0]),
+            torch.tensor([100.0, 100.0]),
+        ]
         result = agg.aggregate(grads)
         self.assertEqual(result.shape, (2,))
         expected = torch.tensor([1.5, 0.0])
@@ -28,23 +28,26 @@ class MultiKrumTest(unittest.TestCase):
     def test_aggregate_m_equals_one_is_krum(self) -> None:
         """MultiKrum with m=1 is equivalent to Krum."""
         agg = MultiKrum(n=5, f=1, m=1)
-        grads = torch.tensor([
-            [0.0, 0.0],
-            [1.0, 0.0],
-            [2.0, 0.0],
-            [3.0, 0.0],
-            [100.0, 100.0],
-        ])
+        grads = [
+            torch.tensor([0.0, 0.0]),
+            torch.tensor([1.0, 0.0]),
+            torch.tensor([2.0, 0.0]),
+            torch.tensor([3.0, 0.0]),
+            torch.tensor([100.0, 100.0]),
+        ]
         result = agg.aggregate(grads)
         self.assertTrue(torch.equal(result, grads[1]))
 
     def test_aggregate_preserves_dtype(self) -> None:
         """Aggregate preserves the input dtype."""
         agg = MultiKrum(n=5, f=1, m=2)
-        grads = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]],
-            dtype=torch.float64,
-        )
+        grads = [
+            torch.tensor([0.0, 0.0], dtype=torch.float64),
+            torch.tensor([1.0, 0.0], dtype=torch.float64),
+            torch.tensor([2.0, 0.0], dtype=torch.float64),
+            torch.tensor([3.0, 0.0], dtype=torch.float64),
+            torch.tensor([100.0, 100.0], dtype=torch.float64),
+        ]
         result = agg.aggregate(grads)
         self.assertEqual(result.dtype, torch.float64)
 
@@ -84,10 +87,10 @@ class MultiKrumTest(unittest.TestCase):
             MultiKrum(5, 1, 2)
 
     def test_check_rejects_wrong_number_of_gradients(self) -> None:
-        """Check raises ValueError when gradients.shape[0] != n."""
+        """Check raises ValueError when len(gradients) != n."""
         agg = MultiKrum(n=5, f=1, m=2)
         with self.assertRaises(ValueError):
-            agg.aggregate(torch.tensor([[1.0], [2.0], [3.0]]))
+            agg.aggregate([torch.tensor([1.0]), torch.tensor([2.0]), torch.tensor([3.0])])
 
 
 if __name__ == "__main__":

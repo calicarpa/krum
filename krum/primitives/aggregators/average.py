@@ -1,5 +1,7 @@
 """Average aggregator that computes the mean of the gradients."""
 
+from collections.abc import Sequence
+
 import torch
 
 from . import Aggregator
@@ -12,13 +14,13 @@ class Average(Aggregator):
         """Initialize the Average aggregator."""
         super().__init__()
 
-    def aggregate(self, gradients: torch.Tensor) -> torch.Tensor:
+    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
         """Aggregate the gradients by computing the mean.
 
         Args:
-            gradients: Tensor of shape (n, d) containing gradients from workers.
+            gradients: Sequence of Tensors containing gradients from workers.
 
         Returns:
-            Mean of the gradients of shape (d,).
+            Mean of the gradients.
         """
-        return gradients.mean(0)
+        return torch.stack(list(gradients)).mean(0)
