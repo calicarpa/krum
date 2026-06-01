@@ -16,19 +16,27 @@ from . import Aggregator
 
 
 class Bulyan(Aggregator):
-    """Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
+    r"""Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
 
-    Bulyan first iteratively applies :class:`~krum.primitives.aggregators.multikrum.MultiKrum`
-    to select a small set of consistent gradients, then aggregates that set
-    coordinate-wise by trimming the ``f`` smallest and ``f`` largest values
-    per coordinate and averaging what remains. It tolerates up to
-    ``(n - 3) // 4`` Byzantine workers.
+    Bulyan first iteratively applies a Krum-style scoring rule to
+    select a set S of θ = n − 2f gradients (one per iteration — the
+    gradient with the lowest Krum score among the still-unselected
+    gradients, then removed from the candidate pool). It then
+    aggregates that set coordinate-wise by taking the median over S
+    and averaging the β = θ − 2f = n − 4f closest values to the
+    median per coordinate.
+
+    The paper studies ``Bulyan(A)`` with ``A = Krum`` (``Bulyan(Krum)``)
+    in all figures; this implementation follows that choice. A
+    different base rule A could be plugged in by overriding
+    :meth:`_select_one`.
+
+    Requires :math:`n \geq 4f + 3`.
 
     Reference:
-        El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
-        Hidden Vulnerability of Distributed Learning in Byzantium." In
-        Proceedings of the 35th International Conference on Machine
-        Learning (ICML 2018).
+        El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault.
+        "The Hidden Vulnerability of Distributed Learning in
+        Byzantium." ICML 2018, Section 4.
 
     Args:
         gradients: Sequence of 1-D tensors, one per worker.
