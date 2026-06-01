@@ -1,7 +1,9 @@
+# ── Build system
 [build-system]
 requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+# ── Package metadata
 [project]
 name = "krum"
 version = "0.1.0"
@@ -15,6 +17,7 @@ authors = [
     {name = "Arthur Danjou", email = "arthur.danjou@dauphine.eu"},
     {name = "Mohamad Ammar Said", email = "mohamad-ammar.said@polytechnique.edu"}
 ]
+# See https://pypi.org/classifiers/
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -26,6 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
+# Runtime dependencies (pulled by pip install krum)
 dependencies = [
     "matplotlib>=3.10.9",
     "numpy>=2.2.6",
@@ -34,6 +38,7 @@ dependencies = [
     "torchvision>=0.26.0",
 ]
 
+# Development and documentation dependencies (pip install krum[dev])
 [project.optional-dependencies]
 dev = [
     "pre-commit>=4.0.0",
@@ -52,13 +57,23 @@ Homepage = "https://github.com/calicarpa/krum"
 Repository = "https://github.com/calicarpa/krum"
 Issues = "https://github.com/calicarpa/krum/issues"
 
+# ── Type checker (pyright)
+[tool.pyright]
+# Disabled: ABC subclasses legitimately add keyword-only args to aggregate()
+# (e.g. TrimmedMean adds f, MultiKrum adds n/f/m). The base class only defines
+# the common contract.
+reportIncompatibleMethodOverride = false
+
+# ── Packaging
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["krum*"]
 
+# Include C++ / CUDA headers and build artefacts in the native extension
 [tool.setuptools.package-data]
 "krum.native" = ["**/*.hpp", "**/*.cpp", "**/*.cu", "**/*.h", "**/*.deps", "**/.placeholder"]
 
+# ── Linter & formatter (ruff)
 [tool.ruff]
 target-version = "py310"
 line-length = 120
@@ -70,21 +85,23 @@ exclude = [
     "build",
     "dist",
 ]
+# Apply safe fixes automatically
 fix = true
 show-fixes = true
+# Opt into rules still under preview
 preview = true
 
 [tool.ruff.lint]
 explicit-preview-rules = true
 select = [
     "E",    # pycodestyle errors
-    "F",    # Pyflakes
-    "I",    # isort
+    "F",    # Pyflakes (unused imports, undefined names, etc.)
+    "I",    # isort (import ordering)
     "W",    # pycodestyle warnings
-    "B",    # flake8-bugbear
-    "C4",   # flake8-comprehensions
-    "RET",  # flake8-return
-    "D",    # flake8-docstrings
+    "B",    # flake8-bugbear (common gotchas)
+    "C4",   # flake8-comprehensions (suggest better comprehensions)
+    "RET",  # flake8-return (simplify return statements)
+    "D",    # pydocstyle (docstring conventions)
 ]
 ignore = [
     "E402",  # module level import not at top of file (intentional in this codebase)
@@ -92,8 +109,9 @@ ignore = [
     "UP031", # percent format (legacy codebase, too noisy to fix now)
 ]
 
+# Re-exports in __init__.py are intentional — don't flag them as unused
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # unused imports (re-exports)
+"__init__.py" = ["F401"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -104,6 +122,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
+# ── Test & docs dependencies (PEP 735 dependency groups)
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
