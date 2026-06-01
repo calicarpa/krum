@@ -71,8 +71,8 @@ class ModelTest(unittest.TestCase):
 
         self.assertEqual(self.linear.weight.grad[0, 0].item(), 99.0)
 
-    def test_gradients_recreates_on_each_access(self) -> None:
-        """Accessing gradients twice returns different tensor objects."""
+    def test_gradients_cache_returns_same_object(self) -> None:
+        """Accessing gradients twice returns the same tensor object."""
         x = torch.randn(1, 3)
         loss = self.linear(x).sum()
         loss.backward()
@@ -80,7 +80,7 @@ class ModelTest(unittest.TestCase):
         flat1 = self.model.gradients
         flat2 = self.model.gradients
 
-        self.assertIsNot(flat1, flat2)
+        self.assertIs(flat1, flat2)
 
     def test_gradients_setter_writes_flat_into_grads(self) -> None:
         """Setting gradients unpacks a flat tensor into each parameter's .grad."""
