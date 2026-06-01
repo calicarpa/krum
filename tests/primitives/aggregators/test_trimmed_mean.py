@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.aggregators import TrimmedMean
+from krum.primitives.aggregators.trimmed_mean import TrimmedMean
 
 
 class TrimmedMeanTest(unittest.TestCase):

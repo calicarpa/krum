@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.aggregators import Median
+from krum.primitives.aggregators.median import Median
 
 
 class MedianTest(unittest.TestCase):

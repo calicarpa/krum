@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.aggregators import MultiKrum
+from krum.primitives.aggregators.multikrum import MultiKrum
 
 
 class MultiKrumTest(unittest.TestCase):

@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.aggregators import Bulyan
+from krum.primitives.aggregators.bulyan import Bulyan
 
 
 class BulyanTest(unittest.TestCase):

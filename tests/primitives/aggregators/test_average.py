@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.aggregators import Average
+from krum.primitives.aggregators.average import Average
 
 
 class AverageTest(unittest.TestCase):
