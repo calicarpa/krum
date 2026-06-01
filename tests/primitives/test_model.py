@@ -76,10 +76,9 @@ class ModelTest(unittest.TestCase):
         self.assertIsNot(flat1, flat2)
 
     def test_repr(self) -> None:
-        """__repr__ includes the module class name and parameter count."""
+        """__repr__ includes the module class name."""
         r = repr(self.model)
         self.assertIn("Linear", r)
-        self.assertIn("d=", r)
 
     def test_module_setter(self) -> None:
         """Setting a new module updates the internal reference."""
@@ -87,14 +86,9 @@ class ModelTest(unittest.TestCase):
         self.model.module = new_module
         self.assertIs(self.model.module, new_module)
 
-    def test_numel(self) -> None:
-        """Numel returns the total number of scalar parameters."""
-        expected = sum(p.numel() for p in self.linear.parameters())
-        self.assertEqual(self.model.numel, expected)
-
     def test_gradients_setter_writes_flat_into_grads(self) -> None:
         """Setting gradients unpacks a flat tensor into each parameter's .grad."""
-        d = self.model.numel
+        d = sum(p.numel() for p in self.linear.parameters())
         flat = torch.randn(d)
         self.model.gradients = flat
         for p in self.linear.parameters():
