@@ -19,7 +19,7 @@ class Krum(MultiKrum):
     """Krum aggregation rule.
 
     For each worker gradient, Krum scores it by the sum of its distances to
-    its ``n - f - 1`` closest neighbors, and returns the gradient with the
+    its ``n - f - 2`` closest neighbors, and returns the gradient with the
     smallest score — the one most consistent with the other honest workers.
     This is :class:`MultiKrum` with ``m = 1``.
     """
