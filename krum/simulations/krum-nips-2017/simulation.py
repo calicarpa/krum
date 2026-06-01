@@ -30,10 +30,13 @@ class KrumSimulation:
         model_cls: ``nn.Module`` subclass to instantiate for training.
         train_set: Full training dataset (will be IID-sharded across workers).
         test_set: Test dataset (used for evaluation via full-batch loader).
-        aggregator: Gradient aggregation rule (e.g. ``Average``, ``Krum``).
+        aggregator: Gradient aggregation rule class (e.g. ``Average``, ``Krum``).
+        aggregator_kwargs: Extra kwargs passed to ``aggregator.aggregate``
+            (e.g. ``{"m": 12}`` for ``MultiKrum``). ``n`` and ``f`` are
+            automatically forwarded from the simulation.
         attack: Byzantine attack strategy (e.g. ``GaussianAttack``).
-        n: Total number of workers. Must match ``aggregator.n``.
-        f: Number of Byzantine workers. Must match ``aggregator.f``.
+        n: Total number of workers.
+        f: Number of Byzantine workers.
         rounds: Number of synchronous rounds.
         batch_size: Mini-batch size per honest worker.
         lr: Learning rate for SGD.
@@ -55,7 +58,8 @@ class KrumSimulation:
         model_cls: type[nn.Module],
         train_set: Dataset[Any],
         test_set: Dataset[Any],
-        aggregator: Aggregator,
+        aggregator: type[Aggregator],
+        aggregator_kwargs: dict[str, Any] | None = None,
         attack: Attack,
         n: int,
         f: int,
@@ -70,15 +74,11 @@ class KrumSimulation:
         results_dir: Path | str | None = None,
     ) -> None:
         """Initialize the simulation with the given parameters."""
-        if hasattr(aggregator, "n") and n != aggregator.n:
-            raise ValueError(f"n={n} does not match aggregator.n={aggregator.n}")
-        if hasattr(aggregator, "f") and f != aggregator.f:
-            raise ValueError(f"f={f} does not match aggregator.f={aggregator.f}")
-
         self.model_cls = model_cls
         self.train_set = train_set
         self.test_set = test_set
         self.aggregator = aggregator
+        self._aggregator_kwargs = aggregator_kwargs or {}
         self.attack = attack
         self.n = n
         self.f = f
@@ -174,7 +174,7 @@ class KrumSimulation:
                 worker_gradients.append(g)
 
         all_gradients = torch.stack(worker_gradients)
-        aggregated = self.aggregator(all_gradients)
+        aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.f, **self._aggregator_kwargs)
         self._model.gradients = aggregated
         self._opt.step()
 

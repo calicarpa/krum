@@ -13,7 +13,10 @@ from datasets import spambase_dataset
 from models import MLPSpambase
 from simulation import KrumSimulation
 
-from krum.primitives.aggregators import Average, Krum, MultiKrum
+from krum.primitives.aggregators import Aggregator
+from krum.primitives.aggregators.average import Average
+from krum.primitives.aggregators.krum import Krum
+from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks import GaussianAttack
 
 
@@ -36,19 +39,20 @@ def main() -> None:
     results_dir = Path("results/experiment_3")
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    configs = [
-        (Average(), "Average_f0", 0),
-        (Krum(n=n, f=f), "Krum_f6", f),
-        (MultiKrum(n=n, f=f, m=n - f - 2), "MultiKrum_f6", f),
+    configs: list[tuple[type[Aggregator], str, int, dict[str, Any] | None]] = [
+        (Average, "Average_f0", 0, None),
+        (Krum, "Krum_f6", f, None),
+        (MultiKrum, "MultiKrum_f6", f, {"m": n - f - 2}),
     ]
 
-    for agg, label, f_val in configs:
+    for agg, label, f_val, agg_kw in configs:
         print(f"\n=== {label} ===")
         sim = KrumSimulation(
             model_cls=MLPSpambase,
             train_set=train_set,
             test_set=test_set,
             aggregator=agg,
+            aggregator_kwargs=agg_kw,
             attack=attack,
             n=n,
             f=f_val,
