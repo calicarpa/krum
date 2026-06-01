@@ -57,12 +57,9 @@ Homepage = "https://github.com/calicarpa/krum"
 Repository = "https://github.com/calicarpa/krum"
 Issues = "https://github.com/calicarpa/krum/issues"
 
-# ── Type checker (pyright)
-[tool.pyright]
-# Disabled: ABC subclasses legitimately add keyword-only args to aggregate()
-# (e.g. TrimmedMean adds f, MultiKrum adds n/f/m). The base class only defines
-# the common contract.
-reportIncompatibleMethodOverride = false
+# ── Type checker (ty)
+[tool.ty.rules]
+invalid-method-override = "ignore"
 
 # ── Packaging
 [tool.setuptools.packages.find]

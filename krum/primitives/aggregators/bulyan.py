@@ -7,6 +7,7 @@ Reference:
 """
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -52,6 +53,7 @@ class Bulyan(Aggregator):
         n: int,
         f: int,
         m: int | None = None,
+        **specialized: Any,
     ) -> torch.Tensor:
         """Aggregate the gradients using the Bulyan algorithm.
 
@@ -62,6 +64,7 @@ class Bulyan(Aggregator):
                 ``1 <= f <= (n - 3) // 4``.
             m: Number of gradients selected by MultiKrum at each iteration.
                 Defaults to ``n - f - 2``.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Aggregated gradient of shape ``(d,)``.

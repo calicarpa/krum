@@ -1,6 +1,7 @@
 """MultiKrum: multi-gradient averaging rule (Blanchard et al., NIPS 2017)."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -36,7 +37,9 @@ class MultiKrum(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, m: int) -> torch.Tensor:
+    def aggregate(
+        cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, m: int, **specialized: Any
+    ) -> torch.Tensor:
         """Aggregate gradients using MultiKrum.
 
         Args:
@@ -46,6 +49,7 @@ class MultiKrum(Aggregator):
                 ``1 <= f <= (n - 3) // 2``.
             m: Number of selected gradients to average. Must satisfy
                 ``1 <= m <= n - f - 2``.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Aggregated gradient of shape ``(d,)``.

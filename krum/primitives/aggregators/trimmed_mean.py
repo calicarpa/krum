@@ -1,6 +1,7 @@
 """Coordinate-wise trimmed mean aggregation rule."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -35,13 +36,14 @@ class TrimmedMean(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, f: int) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, f: int, **specialized: Any) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``0 <= f`` and ``len(gradients) > 2f``.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.

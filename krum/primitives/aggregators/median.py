@@ -1,6 +1,7 @@
 """Coordinate-wise median aggregation rule."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -23,11 +24,12 @@ class Median(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, **specialized: Any) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Coordinate-wise median of the gradients, of shape ``(d,)``.

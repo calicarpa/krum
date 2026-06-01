@@ -1,6 +1,7 @@
 """Krum: single-gradient selection rule (Blanchard et al., NIPS 2017)."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -35,13 +36,14 @@ class Krum(MultiKrum):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, **specialized: Any) -> torch.Tensor:
         """Aggregate gradients using Krum.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Aggregated gradient of shape ``(d,)``.

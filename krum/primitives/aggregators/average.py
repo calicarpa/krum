@@ -1,6 +1,7 @@
 """Plain mean (arithmetic average) aggregation rule — non-robust baseline."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -23,11 +24,12 @@ class Average(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, **specialized: Any) -> torch.Tensor:
         """Aggregate the gradients by computing the element-wise mean.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Element-wise mean of the gradients, of shape ``(d,)``.
