@@ -31,6 +31,10 @@ class SignFlipAttack(Attack):
         ValueError: If ``scale`` is negative.
     """
 
+    scale: float
+
+    __slots__ = tuple(__annotations__)
+
     def __init__(self, *, scale: float = 1.0) -> None:
         """Initialize the attack.
 

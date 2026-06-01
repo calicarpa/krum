@@ -25,6 +25,10 @@ class Attack(ABC):
     num_byzantine)`` and must implement :meth:`generate`.
     """
 
+    # No instance state of its own; the empty slots let subclasses' __slots__
+    # take effect (a non-slotted base would still give instances a __dict__).
+    __slots__ = ()
+
     @abstractmethod
     def generate(
         self,

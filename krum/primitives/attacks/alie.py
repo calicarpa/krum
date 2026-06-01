@@ -55,6 +55,11 @@ class ALIEAttack(Attack):
         ValueError: If ``z`` is a negative number.
     """
 
+    z: float | str
+    direction: Direction
+
+    __slots__ = tuple(__annotations__)
+
     def __init__(self, *, z: float | str = "max", direction: Direction = Direction.NEGATIVE) -> None:
         """Initialize the attack.
 
