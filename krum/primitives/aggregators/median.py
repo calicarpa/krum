@@ -2,7 +2,7 @@
 
 import torch
 
-from .aggregator import Aggregator
+from . import Aggregator
 
 
 class Median(Aggregator):

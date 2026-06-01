@@ -1,6 +1,6 @@
 """Krum aggregation rule."""
 
-from .multikrum import MultiKrum
+from . import MultiKrum
 
 
 class Krum(MultiKrum):
