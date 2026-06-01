@@ -22,6 +22,7 @@ class MonnaProtocolTest(unittest.TestCase):
         learning_rate: float,
         beta: float = 0.99,
         attack=None,
+        byzantine_reach: str = "all",
         seed: int | None = None,
     ) -> MonnaSimulation:
         """Create a tiny simulation for method-level tests."""
@@ -36,6 +37,7 @@ class MonnaProtocolTest(unittest.TestCase):
             learning_rate=learning_rate,
             beta=beta,
             attack=attack,
+            byzantine_reach=byzantine_reach,
             seed=seed,
         )
 
@@ -192,6 +194,88 @@ class MonnaProtocolTest(unittest.TestCase):
 
         self.assertEqual(result["byzantine_parameters"].shape, (1, 1))
         self.assertEqual(result["mixed_parameters"].shape, (2, 1))
+
+    def test_byzantine_reach_rejects_unknown_value(self) -> None:
+        """Only the two documented reach modes are accepted."""
+        with self.assertRaises(ValueError):
+            self.make_simulation(
+                num_honest=3,
+                num_byzantine=1,
+                learning_rate=0.1,
+                attack=SignFlipAttack(),
+                byzantine_reach="everyone",
+            )
+
+    def test_gathered_set_keeps_n_minus_f_size_with_self_first_in_both_modes(self) -> None:
+        """Every received set holds n - f models led by the worker's own model."""
+        # n = 7: 5 honest, 2 Byzantine; each worker receives n - f = 5 models.
+        honest = torch.arange(5.0).unsqueeze(1)  # ids 0..4
+        byzantine = torch.tensor([[100.0], [101.0]])  # ids 100, 101
+
+        for reach in ("all", "sampled"):
+            simulation = self.make_simulation(
+                num_honest=5,
+                num_byzantine=2,
+                learning_rate=0.1,
+                attack=SignFlipAttack(),
+                byzantine_reach=reach,
+                seed=0,
+            )
+            for worker_index in range(5):
+                received = simulation.gather_received_models(honest, byzantine, worker_index=worker_index)
+                self.assertEqual(received.shape, (5, 1), msg=f"{reach=} {worker_index=}")
+                self.assertEqual(received[0].item(), float(worker_index), msg=f"{reach=} {worker_index=}")
+
+    def test_all_reach_injects_every_byzantine_model_into_each_worker(self) -> None:
+        """``"all"`` is the worst case: all f Byzantine models reach every worker."""
+        honest = torch.arange(5.0).unsqueeze(1)
+        byzantine = torch.tensor([[100.0], [101.0]])
+        simulation = self.make_simulation(
+            num_honest=5,
+            num_byzantine=2,
+            learning_rate=0.1,
+            attack=SignFlipAttack(),
+            byzantine_reach="all",
+            seed=0,
+        )
+
+        for worker_index in range(5):
+            received = simulation.gather_received_models(honest, byzantine, worker_index=worker_index)
+            ids = set(received.squeeze(1).tolist())
+            self.assertTrue({100.0, 101.0}.issubset(ids), msg=f"{worker_index=} {ids=}")
+
+    def test_sampled_reach_draws_byzantine_models_at_random(self) -> None:
+        """``"sampled"`` lets Byzantine reach vary, never exceeding f per worker."""
+        honest = torch.arange(5.0).unsqueeze(1)
+        byzantine = torch.tensor([[100.0], [101.0]])
+        simulation = self.make_simulation(
+            num_honest=5,
+            num_byzantine=2,
+            learning_rate=0.1,
+            attack=SignFlipAttack(),
+            byzantine_reach="sampled",
+            seed=0,
+        )
+
+        byzantine_counts = []
+        for worker_index in range(5):
+            received = simulation.gather_received_models(honest, byzantine, worker_index=worker_index)
+            byzantine_counts.append(sum(1 for x in received.squeeze(1).tolist() if x >= 100.0))
+
+        # Bounded by f, and not the constant f that "all" would produce.
+        self.assertTrue(all(0 <= count <= 2 for count in byzantine_counts), msg=f"{byzantine_counts=}")
+        self.assertNotEqual(byzantine_counts, [2, 2, 2, 2, 2])
+
+    def test_all_reach_excludes_byzantine_when_none_configured(self) -> None:
+        """With f = 0 the received set is purely honest and still sized n."""
+        honest = torch.arange(4.0).unsqueeze(1)
+        byzantine = honest.new_empty((0, 1))
+        simulation = self.make_simulation(num_honest=4, num_byzantine=0, learning_rate=0.1, seed=0)
+
+        received = simulation.gather_received_models(honest, byzantine, worker_index=1)
+
+        self.assertEqual(received.shape, (4, 1))
+        self.assertEqual(received[0].item(), 1.0)
 
 
 if __name__ == "__main__":

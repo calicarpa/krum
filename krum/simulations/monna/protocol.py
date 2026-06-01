@@ -1,6 +1,7 @@
 """Class-based MoNNA simulation."""
 
 from collections.abc import Callable, Iterable, Sequence
+from typing import Literal
 
 import torch
 
@@ -11,6 +12,7 @@ from krum.primitives.attacks import Attack
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
 StepResult = dict[str, int | torch.Tensor]
+ByzantineReach = Literal["all", "sampled"]
 
 
 class MonnaSimulation:
@@ -24,6 +26,22 @@ class MonnaSimulation:
     ``n - 2f`` models closest to each worker's own model. Passing ``aggregator``
     overrides that rule (e.g. to compare other robust aggregators); MoNNA still
     owns the default and its sizing.
+
+    Each honest worker receives ``n - f`` models per round: its own plus a set of
+    responders. ``byzantine_reach`` controls how the Byzantine models are placed
+    in that set:
+
+    * ``"all"`` (default) injects every Byzantine model into every honest
+      worker's received set and randomizes only the honest responders. This is
+      the worst-case adversary used by the reference MoNNA implementation: the
+      attack always reaches every worker, so the robustness it measures is not
+      inflated by an adversary that randomly misses some workers.
+    * ``"sampled"`` draws the responders uniformly from all other nodes, so a
+      worker may receive anywhere from ``0`` to ``f`` Byzantine models. This
+      models gossip where Byzantine reach is itself random.
+
+    Both modes keep the received-set size at ``n - f``; only the Byzantine
+    composition differs.
     """
 
     def __init__(
@@ -38,6 +56,7 @@ class MonnaSimulation:
         beta: float = 0.99,
         attack: Attack | None = None,
         aggregator: Aggregator | None = None,
+        byzantine_reach: ByzantineReach = "all",
         seed: int | None = None,
     ) -> None:
         """Initialize a MoNNA simulation."""
@@ -66,6 +85,8 @@ class MonnaSimulation:
             raise TypeError("Expected attack to be callable")
         if aggregator is not None and not isinstance(aggregator, Aggregator):
             raise TypeError(f"Expected aggregator to be an Aggregator or None, got {type(aggregator).__name__}")
+        if byzantine_reach not in ("all", "sampled"):
+            raise ValueError(f"Expected byzantine_reach to be 'all' or 'sampled', got {byzantine_reach!r}")
         if seed is not None and not isinstance(seed, int):
             raise TypeError(f"Expected seed to be an int or None, got {type(seed).__name__}")
 
@@ -77,6 +98,7 @@ class MonnaSimulation:
         self.learning_rate = learning_rate
         self.beta = beta
         self.attack = attack
+        self.byzantine_reach = byzantine_reach
         # Each worker mixes over its n - f received models and keeps the
         # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
         self.aggregator = aggregator or NearestNeighborAverage(num_closest=num_honest - num_byzantine)
@@ -166,13 +188,44 @@ class MonnaSimulation:
         *,
         worker_index: int,
     ) -> torch.Tensor:
-        """Build the ``n - f`` set of models received by one honest worker."""
+        """Build the ``n - f`` set of models received by one honest worker.
+
+        The worker's own model leads the set so a pivot-anchored aggregator can
+        rely on its position; the remaining ``n - f - 1`` models are placed
+        according to :attr:`byzantine_reach`.
+        """
+        own = honest_vectors[worker_index].unsqueeze(0)
+        if self.byzantine_reach == "all":
+            # Worst case: every Byzantine model reaches this worker; only the
+            # honest responders are random. self (1) + n-2f-1 honest + f byz = n-f.
+            responders = self.select_honest_responder_indices(worker_index=worker_index, device=honest_vectors.device)
+            return torch.cat([own, honest_vectors[responders], byzantine_parameters], dim=0)
+        # "sampled": responders drawn uniformly from all other nodes, so a worker
+        # receives 0..f Byzantine models. self (1) + n-f-1 sampled = n-f.
         all_vectors = torch.cat([honest_vectors, byzantine_parameters], dim=0)
         received_indices = self.select_received_model_indices(worker_index=worker_index, device=honest_vectors.device)
-        return torch.cat([honest_vectors[worker_index].unsqueeze(0), all_vectors[received_indices]], dim=0)
+        return torch.cat([own, all_vectors[received_indices]], dim=0)
+
+    def select_honest_responder_indices(self, *, worker_index: int, device: torch.device) -> torch.Tensor:
+        """Randomly select the ``n - 2f - 1`` other honest workers that respond to one worker.
+
+        Used by the ``"all"`` reach mode, where the ``f`` Byzantine models are
+        always included, so the honest responders fill the remaining slots.
+        """
+        num_responders = self.num_honest - self.num_byzantine - 1
+        other_indices = torch.cat([
+            torch.arange(0, worker_index, device=device),
+            torch.arange(worker_index + 1, self.num_honest, device=device),
+        ])
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
+        return other_indices[permutation[:num_responders]]
 
     def select_received_model_indices(self, *, worker_index: int, device: torch.device) -> torch.Tensor:
-        """Randomly select the ``n - f - 1`` nodes received by one honest worker."""
+        """Randomly select the ``n - f - 1`` nodes received by one honest worker.
+
+        Used by the ``"sampled"`` reach mode, where responders are drawn
+        uniformly from every other node, honest or Byzantine.
+        """
         num_nodes = self.num_honest + self.num_byzantine
         num_received = num_nodes - self.num_byzantine - 1
         other_indices = torch.cat([
