@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
@@ -9,25 +10,16 @@ import torch
 class Aggregator(ABC):
     """Base class for gradient aggregation rules in Byzantine-resilient distributed learning."""
 
+    @classmethod
     @abstractmethod
-    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, **specialized: Any) -> torch.Tensor:
         """Aggregate the gradients.
 
         Args:
             gradients: Sequence of Tensors containing gradients from workers.
+            **specialized: Keyword-only arguments specific to each aggregation rule.
 
         Returns:
             Aggregated gradient of shape (d,).
         """
         pass
-
-    def __call__(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
-        """Aggregate the gradients.
-
-        Args:
-            gradients: Sequence of Tensors containing gradients from workers.
-
-        Returns:
-            Aggregated gradient of shape (d,).
-        """
-        return self.aggregate(gradients)

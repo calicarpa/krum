@@ -10,11 +10,8 @@ from . import Aggregator
 class Median(Aggregator):
     """Median aggregator."""
 
-    def __init__(self) -> None:
-        """Initialize the Median aggregator."""
-        super().__init__()
-
-    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
+    @classmethod
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /) -> torch.Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.
 
         Args:

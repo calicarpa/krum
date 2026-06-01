@@ -8,26 +8,24 @@ from . import Aggregator
 
 
 class MultiKrum(Aggregator):
-    """MultiKrum aggregation rule.
+    """MultiKrum aggregation rule."""
 
-    Args:
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate.
-        m: Number of gradients to average (1 for Krum).
-    """
-
-    def __init__(self, *, n: int, f: int, m: int) -> None:
-        """Initialize MultiKrum aggregator.
+    @classmethod
+    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, m: int) -> torch.Tensor:
+        """Aggregate gradients using MultiKrum.
 
         Args:
+            gradients: Sequence of Tensors containing gradients from workers.
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
             m: Number of gradients to average (1 for Krum).
 
+        Returns:
+            Aggregated gradient of shape (d,).
+
         Raises:
             ValueError: If parameters are invalid.
         """
-        super().__init__()
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -42,34 +40,17 @@ class MultiKrum(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
             )
-        self.n = n
-        self.f = f
-        self.m = m
-
-    def _compute_scores(self, stacked: torch.Tensor) -> torch.Tensor:
-        """Internal helper to compute Krum scores."""
-        distances = torch.cdist(stacked, stacked, p=2.0)
-        distances.fill_diagonal_(float("inf"))
-
-        sorted_distances, _ = torch.sort(distances, dim=1)
-        return sorted_distances[:, : self.n - self.f - 1].sum(dim=1)
-
-    def aggregate(self, gradients: Sequence[torch.Tensor]) -> torch.Tensor:
-        """Aggregate gradients using MultiKrum.
-
-        Args:
-            gradients: Sequence of Tensors containing gradients from workers.
-
-        Returns:
-            Aggregated gradient of shape (d,).
-
-        Raises:
-            ValueError: If the number of gradients does not match ``n``.
-        """
-        if len(gradients) != self.n:
-            raise ValueError(f"Expected {self.n} gradients, got {len(gradients)}")
+        if len(gradients) != n:
+            raise ValueError(f"Expected {n} gradients, got {len(gradients)}")
         stacked = torch.stack(list(gradients))
-        scores = self._compute_scores(stacked)
-        _, top_indices = torch.topk(scores, self.m, largest=False)
+        scores = cls._compute_scores(stacked, n=n, f=f)
+        _, top_indices = torch.topk(scores, m, largest=False)
 
         return stacked[top_indices].mean(dim=0)
+
+    @staticmethod
+    def _compute_scores(stacked: torch.Tensor, *, n: int, f: int) -> torch.Tensor:
+        distances = torch.cdist(stacked, stacked, p=2.0)
+        distances.fill_diagonal_(float("inf"))
+        sorted_distances, _ = torch.sort(distances, dim=1)
+        return sorted_distances[:, : n - f - 1].sum(dim=1)
