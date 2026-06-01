@@ -7,11 +7,22 @@ Reference:
 """
 
 import warnings
+from enum import Enum
 
 import torch
 
 from . import Attack
-from .types import Direction
+
+
+class Direction(str, Enum):
+    """Sign of the perturbation applied by ALIE relative to the honest mean.
+
+    Chooses whether the perturbation ``z * std`` is added to (``POSITIVE``) or
+    subtracted from (``NEGATIVE``) the honest coordinate-wise mean.
+    """
+
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
 
 
 class ALIEAttack(Attack):

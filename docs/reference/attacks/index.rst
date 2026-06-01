@@ -31,7 +31,7 @@ Overview
      - :math:`b \times d`
    * - ALIE
      - Sends mean-shifted gradients using exact honest coordinate-wise statistics
-     - ``z``, ``direction`` (:class:`attacks.Direction`)
+     - ``z``, ``direction`` (:class:`attacks.alie.Direction`)
      - :math:`b \times d`
 
 Available Attacks
