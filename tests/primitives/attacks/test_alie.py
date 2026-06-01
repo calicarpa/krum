@@ -4,7 +4,8 @@ import unittest
 
 import torch
 
-from krum.primitives.attacks import ALIEAttack, Direction
+from krum.primitives.attacks.alie import ALIEAttack
+from krum.primitives.attacks.types import Direction
 
 
 class ALIEAttackTest(unittest.TestCase):

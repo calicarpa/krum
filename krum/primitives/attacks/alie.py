@@ -10,7 +10,7 @@ import warnings
 
 import torch
 
-from .attack import Attack
+from . import Attack
 from .types import Direction
 
 

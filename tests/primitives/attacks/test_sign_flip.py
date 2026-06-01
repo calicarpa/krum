@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.attacks import SignFlipAttack
+from krum.primitives.attacks.sign_flip import SignFlipAttack
 
 
 class SignFlipAttackTest(unittest.TestCase):

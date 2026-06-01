@@ -9,7 +9,7 @@ Reference:
 
 import torch
 
-from .attack import Attack
+from . import Attack
 
 
 class SignFlipAttack(Attack):

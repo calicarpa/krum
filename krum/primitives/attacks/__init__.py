@@ -1,22 +1,60 @@
 """Gradient attacks that simulate Byzantine workers.
 
-An :class:`~krum.primitives.attacks.attack.Attack` observes the gradients of
-honest workers and produces gradients that mimic what adversarial (Byzantine)
-workers would send. They are used to stress-test
-:mod:`~krum.primitives.aggregators` rules.
+An :class:`Attack` observes the gradients of honest workers and produces
+gradients that mimic what adversarial (Byzantine) workers would send. They are
+used to stress-test :mod:`~krum.primitives.aggregators` rules.
 
-Provided attacks:
-
-* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` — sends the
-  sign-flipped honest mean (Blanchard et al., NIPS 2017).
-* :class:`~krum.primitives.attacks.alie.ALIEAttack` — sends a mean-shifted
-  gradient computed from exact honest coordinate-wise statistics
-  (Baruch et al., ICML 2019).
+Concrete attacks live in their own submodules and are imported directly from
+them (e.g. ``from krum.primitives.attacks.sign_flip import SignFlipAttack``).
+The package root only exposes the :class:`Attack` base class, imported by
+submodules with ``from . import Attack``.
 """
 
-from krum.primitives.attacks.alie import ALIEAttack
-from krum.primitives.attacks.attack import Attack
-from krum.primitives.attacks.sign_flip import SignFlipAttack
-from krum.primitives.attacks.types import Direction
+from abc import ABC, abstractmethod
 
-__all__ = ["ALIEAttack", "Attack", "Direction", "SignFlipAttack"]
+import torch
+
+
+class Attack(ABC):
+    """Base class for gradient attacks in Byzantine-resilient distributed learning.
+
+    An attack observes the gradients produced by honest workers and returns
+    gradients that a Byzantine worker (or workers) would send to the
+    aggregator. Subclasses are invoked as ``attack(honest_gradients,
+    num_byzantine)`` and must implement :meth:`generate`.
+    """
+
+    @abstractmethod
+    def generate(
+        self,
+        honest_gradients: torch.Tensor,
+        num_byzantine: int,
+    ) -> torch.Tensor:
+        """Generate Byzantine gradients from observed honest gradients.
+
+        Args:
+            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
+                from the ``h`` honest workers.
+            num_byzantine: Number of Byzantine gradients to generate.
+
+        Returns:
+            Byzantine gradients of shape ``(num_byzantine, d)``.
+        """
+        pass
+
+    def __call__(
+        self,
+        honest_gradients: torch.Tensor,
+        num_byzantine: int,
+    ) -> torch.Tensor:
+        """Call :meth:`generate` to produce Byzantine gradients.
+
+        Args:
+            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
+                from the ``h`` honest workers.
+            num_byzantine: Number of Byzantine gradients to generate.
+
+        Returns:
+            Byzantine gradients of shape ``(num_byzantine, d)``.
+        """
+        return self.generate(honest_gradients, num_byzantine)
