@@ -16,7 +16,7 @@ to provide their own metric reporting.
 
 import csv
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import torch
 import torch.nn as nn
@@ -60,9 +60,35 @@ class CentralisedSimulation:
             Byzantine tolerance.
         rounds: Number of synchronous training rounds.
         batch_size: Mini-batch size per honest worker.
-        lr: Initial learning rate for SGD.
-        lr_decay: Multiplicative learning rate decay per round. ``None``
-            disables the scheduler. Default: ``None``.
+        lr: Initial learning rate for SGD. Used as :math:`η_0` by every
+            supported scheduler.
+        lr_schedule: Learning-rate schedule applied after each round.
+            ``"exponential"`` uses :class:`ExponentialLR` with
+            multiplicative decay ``lr_decay`` per round (the default
+            for the ICML 2018 protocol). ``"robbins_monro"`` uses the
+            :math:`η(t) = r_η · η_0 / (t + r_η)` schedule of El Mhamdi
+            et al. (ICML 2018), with fading rate ``r_eta``. ``"none"``
+            keeps a constant learning rate (the default for the NIPS
+            2017 protocol).
+        lr_decay: Multiplicative learning-rate decay per round, used
+            when ``lr_schedule == "exponential"``. ``None`` disables
+            the scheduler in that mode. Default: ``0.99``.
+        r_eta: Fading rate for the Robbins-Monro schedule
+            :math:`η(t) = r_η · η_0 / (t + r_η)`. Required when
+            ``lr_schedule == "robbins_monro"``.
+        weight_decay: :math:`ℓ_2` regularization coefficient passed to
+            :class:`torch.optim.SGD`. Set to ``0.0`` (default) to
+            disable. Section 5.1 of El Mhamdi et al. (ICML 2018)
+            recommends ``1e-4``.
+        xavier_init: When ``True``, apply Glorot/Xavier uniform
+            initialization to every weight tensor of the model after
+            construction, and zero-initialize biases. Matches Section
+            5.1 of El Mhamdi et al. (ICML 2018).
+        stop_attack_at: If set, the Byzantine attack is disabled at
+            round ``t = stop_attack_at``: the ``f`` Byzantine workers
+            then send zero gradients. Used by Experiment 1 / Figure 2
+            of El Mhamdi et al. (ICML 2018), where the attack is
+            maintained only up to round 50.
         loss_fn: Per-sample loss function. Default: ``cross_entropy``.
         device: Device for training and evaluation. Auto-detected if ``None``
             (CUDA → MPS → CPU).
@@ -76,6 +102,8 @@ class CentralisedSimulation:
     Raises:
         RuntimeError: If :meth:`run` is called more than once on the same
             instance.
+        ValueError: If ``lr_schedule`` is invalid or required
+            hyperparameters (``r_eta``) are missing.
     """
 
     def __init__(
@@ -92,7 +120,12 @@ class CentralisedSimulation:
         rounds: int,
         batch_size: int,
         lr: float,
-        lr_decay: float | None = None,
+        lr_schedule: Literal["exponential", "robbins_monro", "none"] = "exponential",
+        lr_decay: float | None = 0.99,
+        r_eta: float | None = None,
+        weight_decay: float = 0.0,
+        xavier_init: bool = False,
+        stop_attack_at: int | None = None,
         loss_fn: Callable[..., torch.Tensor] = nn.functional.cross_entropy,
         device: torch.device | None = None,
         seed: int = 42,
@@ -101,6 +134,24 @@ class CentralisedSimulation:
         results_dir: Path | str | None = None,
     ) -> None:
         """See the class docstring for the full parameter list."""
+        if lr_schedule not in {"exponential", "robbins_monro", "none"}:
+            raise ValueError(
+                f"Invalid lr_schedule, got {lr_schedule!r}, expected 'exponential', 'robbins_monro', or 'none'"
+            )
+        if lr_schedule == "robbins_monro" and r_eta is None:
+            raise ValueError("lr_schedule='robbins_monro' requires the r_eta parameter")
+        if lr_schedule == "exponential" and lr_decay is None:
+            raise ValueError(
+                "lr_schedule='exponential' with lr_decay=None is ambiguous; "
+                "use lr_schedule='none' to disable scheduling"
+            )
+        if r_eta is not None and r_eta <= 0:
+            raise ValueError(f"Invalid r_eta, got {r_eta!r}, expected r_eta > 0")
+        if weight_decay < 0:
+            raise ValueError(f"Invalid weight_decay, got {weight_decay!r}, expected weight_decay >= 0")
+        if stop_attack_at is not None and stop_attack_at < 0:
+            raise ValueError(f"Invalid stop_attack_at, got {stop_attack_at!r}, expected stop_attack_at >= 0")
+
         self.model_cls = model_cls
         self.train_set = train_set
         self.test_set = test_set
@@ -112,7 +163,12 @@ class CentralisedSimulation:
         self.rounds = rounds
         self.batch_size = batch_size
         self.lr = lr
+        self.lr_schedule = lr_schedule
         self.lr_decay = lr_decay
+        self.r_eta = r_eta
+        self.weight_decay = weight_decay
+        self.xavier_init = xavier_init
+        self.stop_attack_at = stop_attack_at
         self.loss_fn = loss_fn
         self.device = device or self._detect_device()
         self.seed = seed
@@ -127,6 +183,7 @@ class CentralisedSimulation:
         self._full_loader: DataLoader[Any] | None = None
         self._test_loader: DataLoader[Any] | None = None
         self._has_run = False
+        self._current_round = 0
 
     @property
     def model(self) -> Model:
@@ -150,16 +207,32 @@ class CentralisedSimulation:
         dedicated :class:`~torch.utils.data.DataLoader` with its own RNG
         generator, so mini-batch sampling is reproducible across runs.
 
+        The SGD optimizer is created with the configured ``weight_decay``.
         An :class:`~torch.optim.lr_scheduler.ExponentialLR` scheduler is
-        created when ``lr_decay`` is set.
+        created when ``lr_schedule == "exponential"``; the Robbins-Monro
+        schedule is applied manually inside :meth:`step` (no scheduler
+        object is created).
+
+        When ``xavier_init`` is enabled, every weight tensor of the
+        instantiated model is re-initialized with the Glorot/Xavier
+        uniform rule, and every bias is reset to zero.
 
         Safe to call multiple times — each call resets all internal state.
         """
         self._set_seed()
         self._model = Model(self.model_cls().to(self.device))
-        self._opt = torch.optim.SGD(self._model.module.parameters(), lr=self.lr)
-        if self.lr_decay is not None:
+        if self.xavier_init:
+            self._xavier_init_(self._model.module)
+        self._opt = torch.optim.SGD(
+            self._model.module.parameters(),
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+        )
+        if self.lr_schedule == "exponential":
+            assert self.lr_decay is not None
             self._scheduler = ExponentialLR(self._opt, gamma=self.lr_decay)
+        else:
+            self._scheduler = None
 
         train_size = len(self.train_set)
         shard_size = train_size // self.n
@@ -177,14 +250,19 @@ class CentralisedSimulation:
         self._full_loader = DataLoader(self.train_set, batch_size=len(self.train_set), shuffle=False)
         self._test_loader = DataLoader(self.test_set, batch_size=len(self.test_set), shuffle=False)
         self._has_run = False
+        self._current_round = 0
 
     def step(self) -> None:
         """Advance the simulation by one synchronous round.
 
+        #. The learning rate is updated to the value of the current round
+           (only for the Robbins-Monro schedule; the exponential schedule
+           updates the rate after the optimizer step instead).
         #. Each of the ``n - f`` honest workers computes a gradient on its
            local data shard via :meth:`_train_one_worker`.
-        #. If :math:`f > 0`, Byzantine workers generate attack gradients.
-           For :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`,
+        #. If :math:`f > 0` and the attack has not been stopped, Byzantine
+           workers generate attack gradients. For
+           :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`,
            the full-dataset honest gradient is computed first.
         #. The aggregator combines all ``n`` gradients into a single update
            via ``self.aggregator.aggregate(...)``.
@@ -198,6 +276,9 @@ class CentralisedSimulation:
         if self._model is None or self._opt is None:
             raise RuntimeError("Simulation not set up. Call setup() first.")
 
+        if self.lr_schedule == "robbins_monro":
+            self._apply_robbins_monro_lr(self._current_round)
+
         num_honest = self.n - self.f
         worker_gradients: list[torch.Tensor] = []
 
@@ -206,20 +287,33 @@ class CentralisedSimulation:
             worker_gradients.append(g)
 
         if self.f > 0:
-            if isinstance(self.attack, OmniscientAttack):
-                self._set_full_gradient_for_attack()
+            attack_stopped = self.stop_attack_at is not None and self._current_round >= self.stop_attack_at
+            if attack_stopped:
+                d = worker_gradients[0].numel()
+                zero_grad = torch.zeros(
+                    d,
+                    device=worker_gradients[0].device,
+                    dtype=worker_gradients[0].dtype,
+                )
+                for _ in range(self.f):
+                    worker_gradients.append(zero_grad.clone())
+            else:
+                if isinstance(self.attack, OmniscientAttack):
+                    self._set_full_gradient_for_attack()
 
-            honest_gradients = torch.stack(worker_gradients)
-            byz_gradients = self.attack.generate(honest_gradients, self.f)
-            for g in byz_gradients:
-                worker_gradients.append(g)
+                honest_gradients = torch.stack(worker_gradients)
+                byz_gradients = self.attack.generate(honest_gradients, self.f)
+                for g in byz_gradients:
+                    worker_gradients.append(g)
 
         all_gradients = torch.stack(worker_gradients)
         aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.f, **self._aggregator_kwargs)
         self._model.gradients = aggregated
         self._opt.step()
-        if self._scheduler is not None:
+        if self.lr_schedule == "exponential" and self._scheduler is not None:
             self._scheduler.step()
+
+        self._current_round += 1
 
     def evaluate(self) -> Any:
         """Compute evaluation metrics after a training round.
@@ -350,7 +444,7 @@ class CentralisedSimulation:
         self.results_dir.mkdir(parents=True, exist_ok=True)
         torch.save(data, self.results_dir / f"{self.label}.pt")
 
-    def _save_csv(self, traces: list[tuple[int, float, float, float]]) -> None:
+    def _save_csv(self, traces: list[tuple[Any, ...]]) -> None:
         """Persist per-run traces as a ``.csv`` file.
 
         Columns: ``round, train_loss, test_accuracy, test_loss``.
@@ -412,6 +506,40 @@ class CentralisedSimulation:
         loss = self.loss_fn(self._model.module(x), y)
         loss.backward()
         return self._model.gradients.clone()
+
+    def _apply_robbins_monro_lr(self, t: int) -> None:
+        """Set the SGD learning rate to the Robbins-Monro value for round ``t``.
+
+        The Robbins-Monro schedule of El Mhamdi et al. (ICML 2018, Section
+        5.1) is :math:`η(t) = r_η · η_0 / (t + r_η)`. This is applied
+        manually to the optimizer's parameter groups, because the
+        schedule depends on the round index and is not natively supported
+        by :class:`torch.optim.lr_scheduler`.
+
+        Args:
+            t: Current round index (0-based).
+        """
+        assert self.r_eta is not None and self._opt is not None
+        new_lr = self.r_eta * self.lr / (t + self.r_eta)
+        for param_group in self._opt.param_groups:
+            param_group["lr"] = new_lr
+
+    @staticmethod
+    def _xavier_init_(module: nn.Module) -> None:
+        """Re-initialize every weight tensor of ``module`` with Xavier-uniform.
+
+        Biases are reset to zero. Convolutional and linear layers are
+        the only ones re-initialized: scalar/vector buffers (e.g.
+        ``BatchNorm`` running statistics) are left untouched.
+
+        Args:
+            module: The module to re-initialize in place.
+        """
+        for m in module.modules():
+            if isinstance(m, (nn.Linear, nn.Conv2d)):
+                nn.init.xavier_uniform_(m.weight)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
 
     def _set_full_gradient_for_attack(self) -> None:
         """Compute the full-dataset honest gradient and pass it to an omniscient attack.
