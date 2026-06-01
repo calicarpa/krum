@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # Make krum submodules available as top-level imports for autodoc compatibility
 for _mod, _pkg in (
-    ("tools", "krum.tools"),
     ("primitives", "krum.primitives"),
     ("aggregators", "krum.primitives.aggregators"),
     ("attacks", "krum.primitives.attacks"),
@@ -158,11 +157,6 @@ html_theme_options = {
                     "title": "Primitives",
                     "url": "reference/primitives",
                     "summary": "Core abstractions",
-                },
-                {
-                    "title": "Tools",
-                    "url": "reference/tools/index",
-                    "summary": "Which tools are available",
                 },
             ],
         },

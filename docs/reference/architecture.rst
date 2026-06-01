@@ -12,5 +12,4 @@ Repository Map
    :widths: 20, 40, 40
 
    "``aggregators/``", "Robust aggregation rules", "New rules, native variants, influence functions"
-   "``tools/``", "Cross-cutting utilities", "Tensor flatten/relink, logging, parallelism"
    "``primitives/``", "Core abstractions", "Model wrapper (zero-copy flat views)"
