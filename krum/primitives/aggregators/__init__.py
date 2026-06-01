@@ -49,3 +49,5 @@ class Aggregator(ABC):
             Aggregated gradient of shape ``(d,)``.
         """
         pass
+
+    __call__ = aggregate
