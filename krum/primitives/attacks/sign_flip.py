@@ -33,7 +33,7 @@ class SignFlipAttack(Attack):
 
     scale: float
 
-    __slots__ = tuple(__annotations__)
+    __slots__ = ("scale",)
 
     def __init__(self, *, scale: float = 1.0) -> None:
         """Initialize the attack.

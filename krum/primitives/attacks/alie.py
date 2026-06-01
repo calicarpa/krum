@@ -58,7 +58,7 @@ class ALIEAttack(Attack):
     z: float | str
     direction: Direction
 
-    __slots__ = tuple(__annotations__)
+    __slots__ = ("z", "direction")
 
     def __init__(self, *, z: float | str = "max", direction: Direction = Direction.NEGATIVE) -> None:
         """Initialize the attack.
