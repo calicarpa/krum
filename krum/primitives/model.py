@@ -38,7 +38,7 @@ class Model:
     _flat_parameters: Tensor | None
     _flat_gradients: Tensor | None
 
-    __slots__ = tuple(__annotations__)
+    __slots__ = ("_module", "_flat_parameters", "_flat_gradients")
 
     @classmethod
     def _relink(cls, tensors: tuple[Tensor, ...], common: Tensor) -> Tensor:
