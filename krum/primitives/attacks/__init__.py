@@ -47,19 +47,6 @@ class Attack(ABC):
         """
         pass
 
-    def __call__(
-        self,
-        honest_gradients: Sequence[torch.Tensor],
-        num_byzantine: int,
-    ) -> torch.Tensor:
-        """Call :meth:`generate` to produce Byzantine gradients.
-
-        Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            num_byzantine: Number of Byzantine gradients to generate.
-
-        Returns:
-            Byzantine gradients of shape ``(num_byzantine, d)``.
-        """
-        return self.generate(honest_gradients, num_byzantine)
+    def __call__(self, *args: object, **kwargs: object) -> torch.Tensor:
+        """Forward to :meth:`generate` so attacks are callable as ``attack(...)``."""
+        return self.generate(*args, **kwargs)  # type: ignore[arg-type]

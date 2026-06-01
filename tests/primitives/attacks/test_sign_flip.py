@@ -59,6 +59,18 @@ class SignFlipAttackTest(unittest.TestCase):
 
         self.assertTrue(torch.equal(from_sequence, from_tensor))
 
+    def test_calling_the_attack_forwards_to_generate(self) -> None:
+        """``attack(...)`` is equivalent to ``attack.generate(...)``."""
+        honest_gradients = torch.tensor([[1.0, 3.0], [5.0, 7.0]], dtype=torch.float64)
+        attack = SignFlipAttack(scale=2.0)
+
+        self.assertTrue(
+            torch.equal(
+                attack(honest_gradients, num_byzantine=2),
+                attack.generate(honest_gradients, num_byzantine=2),
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
