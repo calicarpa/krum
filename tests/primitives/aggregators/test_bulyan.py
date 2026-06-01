@@ -66,6 +66,27 @@ class BulyanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Bulyan.aggregate(torch.tensor([[1.0], [2.0], [3.0], [4.0], [5.0]]), n=5, f=1)
 
+    def test_aggregate_rejects_byzantine_outlier(self) -> None:
+        """Bulyan produces a result close to the honest majority, not the Byzantine."""
+        honest = [
+            torch.tensor([0.0]),
+            torch.tensor([0.5]),
+            torch.tensor([1.0]),
+            torch.tensor([1.5]),
+            torch.tensor([2.0]),
+            torch.tensor([2.5]),
+        ]
+        byzantine = torch.tensor([100.0])
+        grads = honest + [byzantine]
+        result = Bulyan.aggregate(grads, n=7, f=1, m=4)
+        self.assertEqual(result.shape, (1,))
+        self.assertLess(result.item(), 10.0)
+
+    def test_check_rejects_m_below_one(self) -> None:
+        """Check raises ValueError when m < 1."""
+        with self.assertRaises(ValueError):
+            Bulyan.aggregate([torch.tensor([1.0])], n=7, f=1, m=0)
+
     def test_check_rejects_invalid_m(self) -> None:
         """Check raises ValueError when m is out of bounds."""
         with self.assertRaises(ValueError):

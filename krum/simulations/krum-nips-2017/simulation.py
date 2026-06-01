@@ -2,7 +2,7 @@
 
 Reproduces the parameter-server distributed SGD experiments from:
 
-    Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien Stainer.
+    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien Stainer.
     "Machine learning with adversaries: Byzantine tolerant gradient descent."
     In Advances in Neural Information Processing Systems 30 (NIPS 2017).
 
@@ -27,27 +27,25 @@ class KrumSimulation(CentralisedSimulation):
     - Reports a single **misclassification error rate** on the test set
       instead of the full ``(train_loss, test_accuracy, test_loss)`` triple.
 
-    References:
-        Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-        Stainer. "Machine learning with adversaries: Byzantine tolerant
-        gradient descent." NIPS 2017.
-
     See Also:
         :class:`~krum.simulations.centralised.CentralisedSimulation`
             for the full constructor parameter list.
     """
 
-    def evaluate(self) -> float:
-        """Compute misclassification error rate on the test set.
+    def evaluate(self) -> tuple[float, float]:
+        """Compute misclassification error and cross-entropy loss on the test set.
 
         Returns:
-            Error rate in :math:`[0, 1]`.
+            Tuple of ``(error, loss)``. Error is the misclassification rate
+            in :math:`[0, 1]`; loss is the cross-entropy on the test set.
         """
-        return self.evaluate_test_error()
+        return self.evaluate_test_error_and_loss()
 
-    def _log_round(self, t: int, result: float) -> None:
+    def _log_round(self, t: int, result: tuple[float, float]) -> None:
+        error, loss = result
         if self.label:
-            print(f"[{self.label}] round {t:3d}  error={result:.4f}")
+            print(f"[{self.label}] round {t:3d}  error={error:.4f}  loss={loss:.4f}")
 
     def _save_traces(self, traces: list[tuple[int, Any]]) -> None:
-        self._save_pt({"errors": traces, "label": self.label, "seed": self.seed})
+        # traces are (round, error, loss)
+        self._save_pt({"traces": traces, "label": self.label, "seed": self.seed})

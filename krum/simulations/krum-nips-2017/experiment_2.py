@@ -31,7 +31,7 @@ def main() -> None:
     """
     rounds = 500
     n = 20
-    f_list = [0, int(n * 0.4)]
+    f_list = [0, 9]
     batch_sizes = [3, 5, 10, 20, 40, 80, 160]
     lr = 0.01
     seed = 42

@@ -81,10 +81,10 @@ def _plot_results(results_dir: Path) -> None:
     traces: dict[str, tuple[list[int], list[float]]] = {}
     for path in sorted(results_dir.glob("*.pt")):
         data: dict[str, Any] = torch.load(path, weights_only=True)
-        if "errors" not in data:
+        if "traces" not in data:
             continue
         label: str = data["label"]
-        rounds, errors = zip(*data["errors"], strict=True)
+        rounds, errors, _losses = zip(*data["traces"], strict=True)
         traces[label] = (list(rounds), list(errors))
 
     fig, ax = plt.subplots(figsize=(8, 5))
