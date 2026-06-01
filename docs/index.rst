@@ -13,6 +13,7 @@ and analyzing results.
    reference/primitives
    reference/aggregators/index
    reference/attacks/index
+    reference/simulations/index
 
 .. toctree::
    :maxdepth: 1

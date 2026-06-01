@@ -17,6 +17,7 @@ for _mod, _pkg in (
     ("primitives", "krum.primitives"),
     ("aggregators", "krum.primitives.aggregators"),
     ("attacks", "krum.primitives.attacks"),
+    ("simulations", "krum.simulations"),
 ):
     sys.modules[_mod] = importlib.import_module(_pkg)
 
