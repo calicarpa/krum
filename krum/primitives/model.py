@@ -79,7 +79,7 @@ class Model:
             common = torch.cat(tuple(tensor.view(-1) for tensor in tensors))
             return cls._relink(tensors, common)
 
-    def __init__(self, module: Module):
+    def __init__(self, module: Module) -> None:
         """Initialize the Model wrapper.
 
         Args:
