@@ -9,7 +9,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, mean, ones, sort, stack, topk
+from torch import Tensor, bool, cdist, mean, ones, sort, stack, topk
 
 from . import Aggregator
 
