@@ -9,3 +9,6 @@ docs/_build
 
 # IDE stuff
 .idea
+
+# Downloaded datasets
+data/
