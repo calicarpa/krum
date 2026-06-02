@@ -1,11 +1,6 @@
 """Byzantine-resilient gradient aggregation rules.
 
-All aggregators are **stateless**: each rule is a classmethod that can be
-called in three equivalent ways:
-
-* ``Aggregate.aggregate(gradients, **kwargs)`` — explicit classmethod call
-* ``Aggregate(gradients, **kwargs)`` — call the class directly
-* ``Aggregate()(gradients, **kwargs)`` — call an instance
+All aggregators are **stateless**: each rule is a classmethod.
 
 Specialized parameters (``f``, ``n``, ``m``) are keyword-only.
 
@@ -34,11 +29,7 @@ class Aggregator(ABC):
     """Abstract base class for stateless gradient aggregation rules.
 
     Subclasses implement :meth:`aggregate` as a ``@classmethod`` — no instance
-    state is required.  The aggregator can be called in three equivalent ways:
-
-    * ``Average.aggregate(gradients, **kwargs)`` — explicit classmethod call
-    * ``Average(gradients, **kwargs)`` — call the class directly
-    * ``Average()(gradients, **kwargs)`` — call an instance
+    state is required.
     """
 
     @classmethod
@@ -54,5 +45,8 @@ class Aggregator(ABC):
 
         Returns:
             Aggregated gradient of shape ``(d,)``.
+
+        Raises:
+            NotImplementedError: If the subclass does not implement this method.
         """
-        pass
+        raise NotImplementedError
