@@ -6,7 +6,6 @@ Reference:
     Advances in Neural Information Processing Systems 32 (NeurIPS 2019).
 """
 
-import warnings
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
@@ -45,9 +44,7 @@ class ALIEAttack(Attack):
         f: Number of Byzantine gradients to generate.
         z: Attack factor in standard-deviation units. Use the string ``"max"``
             to compute the largest factor ``z_max`` that keeps the Byzantine
-            gradients within a majority of the honest gradient distribution. A
-            :class:`RuntimeWarning` is emitted if a numeric ``z`` exceeds
-            ``z_max``.
+            gradients within a majority of the honest gradient distribution.
         direction: Direction of the perturbation relative to the honest mean.
             Defaults to :attr:`Direction.NEGATIVE`.
 
@@ -120,15 +117,7 @@ class ALIEAttack(Attack):
         if f == 0:
             return stacked.new_empty((0, stacked.shape[1]))
 
-        z_max = cls._max_z(stacked, f)
-        z_value = z_max if z == "max" else stacked.new_tensor(z)
-        if z_value > z_max:
-            warnings.warn(
-                f"ALIE attack factor z = {float(z_value)!r} is greater than z_max = {float(z_max)!r}; "
-                "the generated gradients may be easy to distinguish from honest gradients.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
+        z_value = cls.max_z(stacked, f) if z == "max" else stacked.new_tensor(z)
 
         mean = stacked.mean(dim=0)
         std = stacked.std(dim=0, correction=0)
@@ -138,7 +127,7 @@ class ALIEAttack(Attack):
         return malicious_gradient.repeat(f, 1)
 
     @staticmethod
-    def _max_z(honest_gradients: Tensor, f: int) -> Tensor:
+    def max_z(honest_gradients: Tensor, f: int) -> Tensor:
         """Compute the maximal valid ALIE attack factor for the worker configuration.
 
         ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,

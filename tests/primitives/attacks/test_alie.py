@@ -51,12 +51,11 @@ class ALIEAttackTest(unittest.TestCase):
 
         self.assertTrue(torch.allclose(byzantine_gradients, expected))
 
-    def test_warns_when_z_is_above_max_z(self) -> None:
-        """Attack factor can exceed z_max but emits a warning."""
+    def test_allows_attack_factor_above_z_max(self) -> None:
+        """A numeric attack factor above z_max is used as-is."""
         honest_gradients = torch.arange(52, dtype=torch.float64).reshape(26, 2)
 
-        with self.assertWarns(RuntimeWarning):
-            byzantine_gradients = ALIEAttack.generate(honest_gradients, f=24, z=2.0)
+        byzantine_gradients = ALIEAttack.generate(honest_gradients, f=24, z=2.0)
 
         expected_gradient = honest_gradients.mean(dim=0) - 2 * honest_gradients.std(dim=0, correction=0)
         expected = expected_gradient.repeat(24, 1)
