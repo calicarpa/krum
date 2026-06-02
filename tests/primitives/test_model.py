@@ -69,7 +69,9 @@ class ModelTest(unittest.TestCase):
         flat_grads = self.model.gradients
         flat_grads[0] = 99.0
 
-        self.assertEqual(self.linear.weight.grad[0, 0].item(), 99.0)
+        grad = self.linear.weight.grad
+        assert grad is not None
+        self.assertEqual(grad[0, 0].item(), 99.0)
 
     def test_gradients_cache_returns_same_object(self) -> None:
         """Accessing gradients twice returns the same tensor object."""
@@ -88,9 +90,10 @@ class ModelTest(unittest.TestCase):
         flat = torch.randn(d)
         self.model.gradients = flat
         for p in self.linear.parameters():
-            self.assertIsNotNone(p.grad)
-            self.assertEqual(p.grad.numel(), p.numel())
-            self.assertFalse(torch.equal(p.grad, torch.zeros_like(p.grad)))
+            grad = p.grad
+            assert grad is not None
+            self.assertEqual(grad.numel(), p.numel())
+            self.assertFalse(torch.equal(grad, torch.zeros_like(grad)))
 
     def test_module_setter(self) -> None:
         """Setting a new module updates the internal reference."""
