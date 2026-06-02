@@ -43,9 +43,8 @@ class ALIEAttack(Attack):
         honest_gradients: Sequence of 1-D tensors, one per honest worker.
         f: Number of Byzantine gradients to generate.
         z: Attack factor in standard-deviation units. Use the string ``"max"``
-            to compute the largest factor that keeps the generated gradients
-            inside the assumed ``Krum`` / ``MultiKrum`` selection set, derived
-            from the honest distribution and the worker counts. A
+            to compute the largest factor ``z_max`` that keeps the Byzantine
+            gradients within a majority of the honest gradient distribution. A
             :class:`RuntimeWarning` is emitted if a numeric ``z`` exceeds
             ``z_max``.
         direction: Direction of the perturbation relative to the honest mean.
@@ -81,8 +80,8 @@ class ALIEAttack(Attack):
                 worker, each of shape ``(d,)``.
             f: Number of Byzantine gradients to generate.
             z: Attack factor in standard-deviation units, or ``"max"`` for the
-                largest factor that stays inside the Krum / MultiKrum selection
-                set.
+                largest factor that keeps the Byzantine gradients within a
+                majority of the honest gradient distribution.
             direction: Direction of the perturbation relative to the honest mean.
             **specialized: Additional keyword arguments.
 
@@ -142,9 +141,9 @@ class ALIEAttack(Attack):
         """Compute the maximal valid ALIE attack factor for the worker configuration.
 
         ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,
-        where ``h`` is the number of honest workers and ``s`` is the
-        number of honest supporters needed to keep the attack inside the
-        selection set assumed by Krum / MultiKrum.
+        where ``h`` is the number of honest workers and ``s`` is the number of
+        honest workers needed to form a majority among the ``n = h + f``
+        workers: ``s = floor(n / 2) + 1 - f``.
 
         Args:
             honest_gradients: Tensor of shape ``(h, d)`` containing gradients
@@ -164,14 +163,12 @@ class ALIEAttack(Attack):
             msg = "Expected at least one honest gradient to compute ALIE statistics"
             raise ValueError(msg)
         num_workers = num_honest + f
+        # s = floor(n / 2) + 1 - f: honest workers needed for a majority of n = h + f.
         num_supporters = num_workers // 2 + 1 - f
         ratio = (num_honest - num_supporters) / num_honest
         if ratio >= 1:
             msg = f"Invalid worker configuration for ALIE, got normal CDF target = {ratio!r}, expected target < 1"
             raise ValueError(msg)
-        # z_max is the largest z such that Phi(z) < (h - s) / h,
-        # where h is the number of honest workers and s is the number
-        # of honest supporters needed to keep the attack inside the majority.
         z_max = torch.distributions.Normal(
             honest_gradients.new_tensor(0.0),
             honest_gradients.new_tensor(1.0),
