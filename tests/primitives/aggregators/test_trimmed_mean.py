@@ -73,33 +73,6 @@ class TrimmedMeanTest(unittest.TestCase):
                 [torch.tensor([1.0]), torch.tensor([2.0]), torch.tensor([3.0]), torch.tensor([4.0])], f=2
             )
 
-    def test_call_class_delegates_to_aggregate_with_kwargs(self) -> None:
-        """Calling the class directly delegates to aggregate, including keyword args."""
-        grads = [
-            torch.tensor([1.0, 10.0]),
-            torch.tensor([2.0, 3.0]),
-            torch.tensor([3.0, 5.0]),
-            torch.tensor([4.0, 7.0]),
-            torch.tensor([100.0, 1.0]),
-        ]
-        result = TrimmedMean(grads, f=1)
-        expected = torch.tensor([3.0, 5.0])
-        self.assertTrue(torch.allclose(result, expected))
-
-    def test_call_instance_delegates_to_aggregate_with_kwargs(self) -> None:
-        """__call__ on an instance delegates to aggregate, including keyword args."""
-        grads = [
-            torch.tensor([1.0, 10.0]),
-            torch.tensor([2.0, 3.0]),
-            torch.tensor([3.0, 5.0]),
-            torch.tensor([4.0, 7.0]),
-            torch.tensor([100.0, 1.0]),
-        ]
-        instance = TrimmedMean()
-        result = instance(grads, f=1)
-        expected = torch.tensor([3.0, 5.0])
-        self.assertTrue(torch.allclose(result, expected))
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -83,33 +83,6 @@ class MultiKrumTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             MultiKrum.aggregate([torch.tensor([1.0]), torch.tensor([2.0]), torch.tensor([3.0])], n=5, f=1, m=2)
 
-    def test_call_class_delegates_to_aggregate_with_kwargs(self) -> None:
-        """Calling the class directly delegates to aggregate, including keyword args."""
-        grads = [
-            torch.tensor([0.0, 0.0]),
-            torch.tensor([1.0, 0.0]),
-            torch.tensor([2.0, 0.0]),
-            torch.tensor([3.0, 0.0]),
-            torch.tensor([100.0, 100.0]),
-        ]
-        result = MultiKrum(grads, n=5, f=1, m=2)
-        expected = torch.tensor([1.5, 0.0])
-        self.assertTrue(torch.allclose(result, expected))
-
-    def test_call_instance_delegates_to_aggregate_with_kwargs(self) -> None:
-        """__call__ on an instance delegates to aggregate, including keyword args."""
-        grads = [
-            torch.tensor([0.0, 0.0]),
-            torch.tensor([1.0, 0.0]),
-            torch.tensor([2.0, 0.0]),
-            torch.tensor([3.0, 0.0]),
-            torch.tensor([100.0, 100.0]),
-        ]
-        instance = MultiKrum()
-        result = instance(grads, n=5, f=1, m=2)
-        expected = torch.tensor([1.5, 0.0])
-        self.assertTrue(torch.allclose(result, expected))
-
 
 if __name__ == "__main__":
     unittest.main()

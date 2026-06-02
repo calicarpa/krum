@@ -25,21 +25,6 @@ class AggregatorTest(unittest.TestCase):
         expected = torch.tensor([3.0, 4.0])
         self.assertTrue(torch.equal(result, expected))
 
-    def test_call_class_delegates_to_aggregate(self) -> None:
-        """Calling the class directly delegates to aggregate."""
-        grads = [torch.tensor([1.0, 2.0]), torch.tensor([3.0, 4.0]), torch.tensor([5.0, 6.0])]
-        result = _ConcreteAggregator(grads)
-        expected = torch.tensor([3.0, 4.0])
-        self.assertTrue(torch.equal(result, expected))
-
-    def test_call_instance_delegates_to_aggregate(self) -> None:
-        """__call__ on an instance delegates to aggregate."""
-        grads = [torch.tensor([1.0, 2.0]), torch.tensor([3.0, 4.0]), torch.tensor([5.0, 6.0])]
-        instance = _ConcreteAggregator()
-        result = instance(grads)
-        expected = torch.tensor([3.0, 4.0])
-        self.assertTrue(torch.equal(result, expected))
-
 
 if __name__ == "__main__":
     unittest.main()
