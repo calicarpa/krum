@@ -30,21 +30,7 @@ from typing import Any
 import torch
 
 
-class _AggregatorMeta(ABCMeta):
-    """Metaclass that makes ``Average(gradients, **kw)`` route to ``aggregate``.
-
-    When called with positional arguments the class itself acts as the
-    aggregation function.  Calling without arguments (``Average()``) still
-    returns an instance.
-    """
-
-    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
-        if args:
-            return cls.aggregate(*args, **kwargs)
-        return super().__call__(*args, **kwargs)
-
-
-class Aggregator(ABC, metaclass=_AggregatorMeta):
+class Aggregator(ABC):
     """Abstract base class for stateless gradient aggregation rules.
 
     Subclasses implement :meth:`aggregate` as a ``@classmethod`` — no instance
@@ -70,7 +56,3 @@ class Aggregator(ABC, metaclass=_AggregatorMeta):
             Aggregated gradient of shape ``(d,)``.
         """
         pass
-
-    def __call__(self, *args: object, **kwargs: object) -> torch.Tensor:
-        """Forward to :meth:`aggregate` so instances are callable as ``aggregator(...)``."""
-        return self.aggregate(*args, **kwargs)  # type: ignore[arg-type]
