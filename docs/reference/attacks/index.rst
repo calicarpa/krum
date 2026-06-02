@@ -2,17 +2,18 @@ Attacks
 =======
 
 Krum provides gradient attacks that generate Byzantine gradients from honest
-worker gradients. Every attack implements the :class:`attacks.Attack` contract:
+worker gradients. Attacks are stateless: each one implements the
+:class:`attacks.Attack` contract as a classmethod, called directly on the class:
 
 .. code-block:: python
 
-   attack(honest_gradients, num_byzantine)
+   SomeAttack.generate(honest_gradients, f=...)
 
 where:
 
 - ``honest_gradients`` is a sequence of :math:`h` per-worker gradient vectors,
   each of shape :math:`(d,)` (a stacked :math:`(h, d)` tensor also works)
-- ``num_byzantine`` (:math:`b`) is the number of Byzantine gradients to generate
+- ``f`` (:math:`b`) is the number of Byzantine gradients to generate
 - the returned tensor has shape :math:`(b, d)`
 
 Overview

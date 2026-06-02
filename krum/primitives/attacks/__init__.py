@@ -12,41 +12,36 @@ submodules with ``from . import Attack``.
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import Any
 
 import torch
 
 
 class Attack(ABC):
-    """Base class for gradient attacks in Byzantine-resilient distributed learning.
+    """Abstract base class for stateless gradient attacks.
 
-    An attack observes the gradients produced by honest workers and returns
-    gradients that a Byzantine worker (or workers) would send to the
-    aggregator. Subclasses are invoked as ``attack(honest_gradients,
-    num_byzantine)`` and must implement :meth:`generate`.
+    Subclasses implement :meth:`generate` as a ``@classmethod`` — no instance
+    state is required, and the caller invokes the attack directly on the class.
+    The first positional argument is the honest gradients; ``f`` (the number of
+    Byzantine gradients to generate) and any attack-specific hyperparameters are
+    keyword-only.
     """
 
-    # No instance state of its own; the empty slots let subclasses' __slots__
-    # take effect (a non-slotted base would still give instances a __dict__).
-    __slots__ = ()
-
+    @classmethod
     @abstractmethod
-    def generate(
-        self,
-        honest_gradients: Sequence[torch.Tensor],
-        num_byzantine: int,
-    ) -> torch.Tensor:
+    def generate(cls, honest_gradients: Sequence[torch.Tensor], /, *, f: int, **specialized: Any) -> torch.Tensor:
         """Generate Byzantine gradients from observed honest gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest
                 worker, each of shape ``(d,)``.
-            num_byzantine: Number of Byzantine gradients to generate.
+            f: Number of Byzantine gradients to generate.
+            **specialized: Keyword-only arguments specific to each attack.
 
         Returns:
-            Byzantine gradients of shape ``(num_byzantine, d)``.
-        """
-        pass
+            Byzantine gradients of shape ``(f, d)``.
 
-    def __call__(self, *args: object, **kwargs: object) -> torch.Tensor:
-        """Forward to :meth:`generate` so attacks are callable as ``attack(...)``."""
-        return self.generate(*args, **kwargs)  # type: ignore[arg-type]
+        Raises:
+            NotImplementedError: If the subclass does not implement this method.
+        """
+        raise NotImplementedError

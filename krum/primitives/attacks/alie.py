@@ -9,6 +9,7 @@ Reference:
 import warnings
 from collections.abc import Sequence
 from enum import Enum
+from typing import Any
 
 import torch
 
@@ -30,45 +31,72 @@ class ALIEAttack(Attack):
     """ALIE-style attack using exact honest gradient statistics.
 
     Generates Byzantine gradients from the exact coordinate-wise mean and
-    standard deviation of the honest gradients passed to the attack. The
-    attack perturbs the honest mean by ``z * std`` along the chosen
-    :class:`Direction`, where ``z`` is the attack factor.
+    standard deviation of the honest gradients passed to the attack. The attack
+    perturbs the honest mean by ``z * std`` along the chosen :class:`Direction`,
+    where ``z`` is the attack factor.
 
     This corresponds to a statistics-oracle variant of ALIE rather than the
-    original paper's more restricted information setting: the attacker is
-    assumed to know the full honest gradient distribution, not just a
-    subset.
+    original paper's more restricted information setting: the attacker is assumed
+    to know the full honest gradient distribution, not just a subset.
 
     Args:
-        z: Attack factor in standard-deviation units. Use the string
-            ``"max"`` to compute the largest factor that keeps the
-            generated gradients inside the assumed ``Krum`` /
-            ``MultiKrum`` selection set, derived from the honest
-            distribution and the worker counts. A :class:`RuntimeWarning`
-            is emitted if a numeric ``z`` exceeds ``z_max``.
-        direction: Direction of the perturbation relative to the honest
-            mean. Defaults to :attr:`Direction.NEGATIVE`.
+        honest_gradients: Sequence of 1-D tensors, one per honest worker.
+        f: Number of Byzantine gradients to generate.
+        z: Attack factor in standard-deviation units. Use the string ``"max"``
+            to compute the largest factor that keeps the generated gradients
+            inside the assumed ``Krum`` / ``MultiKrum`` selection set, derived
+            from the honest distribution and the worker counts. A
+            :class:`RuntimeWarning` is emitted if a numeric ``z`` exceeds
+            ``z_max``.
+        direction: Direction of the perturbation relative to the honest mean.
+            Defaults to :attr:`Direction.NEGATIVE`.
+
+    Returns:
+        Byzantine gradients of shape ``(f, d)``.
 
     Raises:
-        TypeError: If ``z`` is not a number or the string ``"max"``, or if
-            ``direction`` is not a :class:`Direction`.
-        ValueError: If ``z`` is a negative number.
+        TypeError: If ``z`` is not a number or the string ``"max"``, if
+            ``direction`` is not a :class:`Direction`, or if the honest gradients
+            do not use a floating-point dtype.
+        ValueError: If ``z`` is negative, ``f`` is negative, there are no honest
+            gradients, or the worker configuration admits no non-negative ALIE
+            factor.
     """
 
-    z: float | str
-    direction: Direction
-
-    __slots__ = ("z", "direction")
-
-    def __init__(self, *, z: float | str = "max", direction: Direction = Direction.NEGATIVE) -> None:
-        """Initialize the attack.
+    @classmethod
+    def generate(
+        cls,
+        honest_gradients: Sequence[torch.Tensor],
+        /,
+        *,
+        f: int,
+        z: float | str = "max",
+        direction: Direction = Direction.NEGATIVE,
+        **specialized: Any,
+    ) -> torch.Tensor:
+        """Generate Byzantine gradients using ALIE-style statistics.
 
         Args:
-            z: Attack factor in standard-deviation units. Use ``"max"`` to
-                compute the largest factor that keeps the generated
-                gradients inside the Krum / MultiKrum selection set.
-            direction: Direction of the perturbation relative to the
-                honest mean.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``.
+            f: Number of Byzantine gradients to generate.
+            z: Attack factor in standard-deviation units, or ``"max"`` for the
+                largest factor that stays inside the Krum / MultiKrum selection
+                set.
+            direction: Direction of the perturbation relative to the honest mean.
+            **specialized: Additional keyword arguments.
+
+        Returns:
+            Byzantine gradients of shape ``(f, d)``. When ``f == 0``, returns an
+            empty tensor of shape ``(0, d)``.
+
+        Raises:
+            TypeError: If ``z`` is not a number or ``"max"``, ``direction`` is
+                not a :class:`Direction`, or the honest gradients are not
+                floating-point.
+            ValueError: If ``z`` is negative, ``f`` is negative, there are no
+                honest gradients, or the worker configuration admits no
+                non-negative ALIE factor.
         """
         if z != "max":
             if not isinstance(z, int | float):
@@ -80,36 +108,8 @@ class ALIEAttack(Attack):
         if not isinstance(direction, Direction):
             msg = f"Invalid perturbation direction, got {direction!r}, expected a Direction"
             raise TypeError(msg)
-        self.z = z
-        self.direction = direction
-
-    def generate(
-        self,
-        honest_gradients: Sequence[torch.Tensor],
-        num_byzantine: int,
-    ) -> torch.Tensor:
-        """Generate Byzantine gradients using ALIE-style statistics.
-
-        Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            num_byzantine: Number of Byzantine gradients to generate.
-
-        Returns:
-            Byzantine gradients of shape ``(num_byzantine, d)``. When
-            ``num_byzantine == 0``, returns an empty tensor of shape
-            ``(0, d)``.
-
-        Raises:
-            ValueError: If there are no honest gradients, ``num_byzantine`` is
-                negative, or the worker configuration admits no non-negative
-                ALIE factor.
-            TypeError: If the honest gradients do not use a floating-point dtype.
-        """
-        if num_byzantine < 0:
-            msg = (
-                f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
-            )
+        if f < 0:
+            msg = f"Invalid number of Byzantine gradients to generate, got {f!r}, expected 0 <= f"
             raise ValueError(msg)
         if len(honest_gradients) == 0:
             raise ValueError("Expected at least one honest gradient to compute ALIE statistics")
@@ -117,14 +117,14 @@ class ALIEAttack(Attack):
         if not torch.is_floating_point(stacked):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
 
-        if num_byzantine == 0:
+        if f == 0:
             return stacked.new_empty((0, stacked.shape[1]))
 
-        z_max = self._max_z(stacked, num_byzantine)
-        z = z_max if self.z == "max" else stacked.new_tensor(self.z)
-        if z > z_max:
+        z_max = cls._max_z(stacked, f)
+        z_value = z_max if z == "max" else stacked.new_tensor(z)
+        if z_value > z_max:
             warnings.warn(
-                f"ALIE attack factor z = {float(z)!r} is greater than z_max = {float(z_max)!r}; "
+                f"ALIE attack factor z = {float(z_value)!r} is greater than z_max = {float(z_max)!r}; "
                 "the generated gradients may be easy to distinguish from honest gradients.",
                 RuntimeWarning,
                 stacklevel=2,
@@ -132,12 +132,13 @@ class ALIEAttack(Attack):
 
         mean = stacked.mean(dim=0)
         std = stacked.std(dim=0, correction=0)
-        perturbation = z * std
-        malicious_gradient = mean + perturbation if self.direction is Direction.POSITIVE else mean - perturbation
+        perturbation = z_value * std
+        malicious_gradient = mean + perturbation if direction is Direction.POSITIVE else mean - perturbation
 
-        return malicious_gradient.repeat(num_byzantine, 1)
+        return malicious_gradient.repeat(f, 1)
 
-    def _max_z(self, honest_gradients: torch.Tensor, num_byzantine: int) -> torch.Tensor:
+    @staticmethod
+    def _max_z(honest_gradients: torch.Tensor, f: int) -> torch.Tensor:
         """Compute the maximal valid ALIE attack factor for the worker configuration.
 
         ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,
@@ -148,7 +149,7 @@ class ALIEAttack(Attack):
         Args:
             honest_gradients: Tensor of shape ``(h, d)`` containing gradients
                 from the ``h`` honest workers.
-            num_byzantine: Number of Byzantine gradients to generate.
+            f: Number of Byzantine gradients to generate.
 
         Returns:
             Maximal attack factor, as a 0-D tensor on the same device and
@@ -162,8 +163,8 @@ class ALIEAttack(Attack):
         if num_honest == 0:
             msg = "Expected at least one honest gradient to compute ALIE statistics"
             raise ValueError(msg)
-        num_workers = num_honest + num_byzantine
-        num_supporters = num_workers // 2 + 1 - num_byzantine
+        num_workers = num_honest + f
+        num_supporters = num_workers // 2 + 1 - f
         ratio = (num_honest - num_supporters) / num_honest
         if ratio >= 1:
             msg = f"Invalid worker configuration for ALIE, got normal CDF target = {ratio!r}, expected target < 1"
