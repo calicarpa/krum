@@ -1,61 +1,75 @@
 """Nearest-neighbor averaging aggregator."""
 
-import torch
+from collections.abc import Sequence
+from typing import Any
 
-from .aggregator import Aggregator
+from torch import Tensor, argsort, mean, stack
+from torch.linalg import vector_norm
+
+from . import Aggregator
 
 
 class NearestNeighborAverage(Aggregator):
     """Average the ``num_closest`` vectors nearest to a call-specific pivot.
 
     The rule keeps the ``num_closest`` vectors with smallest Euclidean distance
-    to the pivot, then returns their mean. The pivot belongs to a single
-    aggregation call, so it is passed to :meth:`aggregate` rather than stored on
-    the aggregator.
+    to the pivot, then returns their mean. Both ``num_closest`` and the pivot
+    belong to a single aggregation call, so they are passed to :meth:`aggregate`
+    rather than stored on the (stateless) aggregator.
 
     How many vectors to keep is a caller policy (e.g. ``n - f`` for plain
     nearest-neighbor averaging, ``n - 2f`` for MoNNA-style model mixing); this
     rule only needs the resulting count, not ``n`` or ``f``.
 
     Args:
+        gradients: Sequence of 1-D tensors, one per worker.
         num_closest: Number of nearest vectors to average.
+        pivot: Tensor of shape ``(d,)`` used as the distance reference.
+
+    Returns:
+        Mean of the ``num_closest`` closest vectors, shape ``(d,)``.
+
+    Raises:
+        ValueError: If ``num_closest`` is not positive, fewer than
+            ``num_closest`` candidates are supplied, or the pivot shape is wrong.
     """
 
-    def __init__(self, *, num_closest: int):
-        """Initialize the nearest-neighbor averaging aggregator.
-
-        Args:
-            num_closest: Number of nearest vectors to average.
-
-        Raises:
-            ValueError: If ``num_closest`` is not positive.
-        """
-        super().__init__()
-        if num_closest < 1:
-            raise ValueError(f"Expected num_closest to be at least 1, got {num_closest!r}")
-        self.num_closest = num_closest
-
-    def aggregate(self, gradients: torch.Tensor, *, pivot: torch.Tensor) -> torch.Tensor:
+    @classmethod
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        *,
+        num_closest: int,
+        pivot: Tensor,
+        out: Tensor | None = None,
+        **specialized: Any,
+    ) -> Tensor:
         """Average the ``num_closest`` vectors nearest to the pivot.
 
         Args:
-            gradients: Tensor of shape ``(m, d)`` containing candidate vectors.
+            gradients: Sequence of ``m`` candidate vectors, each of shape ``(d,)``.
+            num_closest: Number of nearest vectors to average.
             pivot: Tensor of shape ``(d,)`` used as the distance reference.
+            out: Optional pre-allocated tensor to write the result into.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Mean of the ``num_closest`` closest vectors, shape ``(d,)``.
 
         Raises:
-            ValueError: If the input shapes are invalid or fewer than
-                ``num_closest`` candidates are supplied.
+            ValueError: If ``num_closest`` is not positive, fewer than
+                ``num_closest`` candidates are supplied, or the pivot shape is
+                wrong.
         """
-        if gradients.ndim != 2:
-            raise ValueError(f"Expected gradients with shape (m, d), got shape {tuple(gradients.shape)!r}")
-        if gradients.shape[0] < self.num_closest:
-            raise ValueError(f"Expected at least num_closest={self.num_closest} gradients, got {gradients.shape[0]!r}")
-        if pivot.shape != gradients.shape[1:]:
-            raise ValueError(f"Expected pivot with shape {tuple(gradients.shape[1:])!r}, got {tuple(pivot.shape)!r}")
+        if num_closest < 1:
+            raise ValueError(f"Expected num_closest to be at least 1, got {num_closest!r}")
+        stacked = stack(list(gradients))
+        if stacked.shape[0] < num_closest:
+            raise ValueError(f"Expected at least num_closest={num_closest} gradients, got {stacked.shape[0]!r}")
+        if pivot.shape != stacked.shape[1:]:
+            raise ValueError(f"Expected pivot with shape {tuple(stacked.shape[1:])!r}, got {tuple(pivot.shape)!r}")
 
-        distances = torch.linalg.vector_norm(gradients - pivot, dim=1)
-        closest = torch.argsort(distances, stable=True)[: self.num_closest]
-        return gradients[closest].mean(0)
+        distances = vector_norm(stacked - pivot, dim=1)
+        closest = argsort(distances, stable=True)[:num_closest]
+        return mean(stacked[closest], 0, out=out)

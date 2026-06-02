@@ -1,13 +1,14 @@
 """Tests for the MoNNA simulation protocol."""
 
 import unittest
+from functools import partial
 
 import torch
 from torch import nn
 
 from krum.primitives import Model
-from krum.primitives.aggregators import NearestNeighborAverage
-from krum.primitives.attacks import SignFlipAttack
+from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
+from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.simulations.monna import MonnaSimulation
 
 
@@ -85,7 +86,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=3,
             num_byzantine=1,
             learning_rate=0.1,
-            attack=SignFlipAttack(),
+            attack=SignFlipAttack.generate,
             seed=0,
         )
 
@@ -128,17 +129,18 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
         """MoNNA owns the mixing rule: default NNA keeps num_honest - num_byzantine."""
         simulation = self.make_simulation(
-            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack()
+            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack.generate
         )
 
-        self.assertIsInstance(simulation.aggregator, NearestNeighborAverage)
-        self.assertEqual(simulation.aggregator.num_closest, 3)
+        self.assertIsInstance(simulation.aggregator, partial)
+        self.assertIs(simulation.aggregator.func.__self__, NearestNeighborAverage)
+        self.assertEqual(simulation.aggregator.keywords["num_closest"], 3)
 
     def test_accepts_aggregator_override(self) -> None:
         """A supplied aggregator replaces the default mixing rule."""
         module = nn.Linear(1, 1, bias=False)
         data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(3)]
-        custom = NearestNeighborAverage(num_closest=1)
+        custom = partial(NearestNeighborAverage.aggregate, num_closest=1)
 
         simulation = MonnaSimulation(
             model=Model(module),
@@ -187,7 +189,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_byzantine=1,
             learning_rate=0.1,
             beta=0.0,
-            attack=SignFlipAttack(),
+            attack=SignFlipAttack.generate,
         )
 
         result = simulation.step()
@@ -202,7 +204,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 num_honest=3,
                 num_byzantine=1,
                 learning_rate=0.1,
-                attack=SignFlipAttack(),
+                attack=SignFlipAttack.generate,
                 byzantine_reach="everyone",
             )
 
@@ -217,7 +219,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 num_honest=5,
                 num_byzantine=2,
                 learning_rate=0.1,
-                attack=SignFlipAttack(),
+                attack=SignFlipAttack.generate,
                 byzantine_reach=reach,
                 seed=0,
             )
@@ -234,7 +236,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=5,
             num_byzantine=2,
             learning_rate=0.1,
-            attack=SignFlipAttack(),
+            attack=SignFlipAttack.generate,
             byzantine_reach="all",
             seed=0,
         )
@@ -252,7 +254,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=5,
             num_byzantine=2,
             learning_rate=0.1,
-            attack=SignFlipAttack(),
+            attack=SignFlipAttack.generate,
             byzantine_reach="sampled",
             seed=0,
         )

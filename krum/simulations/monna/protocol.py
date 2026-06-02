@@ -1,18 +1,23 @@
 """Class-based MoNNA simulation."""
 
 from collections.abc import Callable, Iterable, Sequence
+from functools import partial
 from typing import Literal
 
 import torch
 
 from krum.primitives import Model
-from krum.primitives.aggregators import Aggregator, NearestNeighborAverage
-from krum.primitives.attacks import Attack
+from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
 StepResult = dict[str, int | torch.Tensor]
 ByzantineReach = Literal["all", "sampled"]
+# Attacks and aggregators are stateless callables: an attack maps the honest
+# models and ``f`` to the Byzantine models; an aggregator maps the received
+# models and a pivot to one mixed model.
+AttackFn = Callable[..., torch.Tensor]
+AggregatorFn = Callable[..., torch.Tensor]
 
 
 class MonnaSimulation:
@@ -54,8 +59,8 @@ class MonnaSimulation:
         num_byzantine: int,
         learning_rate: float,
         beta: float = 0.99,
-        attack: Attack | None = None,
-        aggregator: Aggregator | None = None,
+        attack: AttackFn | None = None,
+        aggregator: AggregatorFn | None = None,
         byzantine_reach: ByzantineReach = "all",
         seed: int | None = None,
     ) -> None:
@@ -83,8 +88,8 @@ class MonnaSimulation:
             raise ValueError("An attack is required when num_byzantine > 0")
         if attack is not None and not callable(attack):
             raise TypeError("Expected attack to be callable")
-        if aggregator is not None and not isinstance(aggregator, Aggregator):
-            raise TypeError(f"Expected aggregator to be an Aggregator or None, got {type(aggregator).__name__}")
+        if aggregator is not None and not callable(aggregator):
+            raise TypeError("Expected aggregator to be callable")
         if byzantine_reach not in ("all", "sampled"):
             raise ValueError(f"Expected byzantine_reach to be 'all' or 'sampled', got {byzantine_reach!r}")
         if seed is not None and not isinstance(seed, int):
@@ -101,7 +106,9 @@ class MonnaSimulation:
         self.byzantine_reach = byzantine_reach
         # Each worker mixes over its n - f received models and keeps the
         # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
-        self.aggregator = aggregator or NearestNeighborAverage(num_closest=num_honest - num_byzantine)
+        self.aggregator = aggregator or partial(
+            NearestNeighborAverage.aggregate, num_closest=num_honest - num_byzantine
+        )
         self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(num_honest, 1)
         self.momentum = torch.zeros_like(self.parameters)
@@ -167,9 +174,11 @@ class MonnaSimulation:
         """Generate Byzantine model vectors injected into the model-mixing phase."""
         if self.num_byzantine == 0:
             return local_parameters.new_empty((0, local_parameters.shape[1]))
-        return self.attack(local_parameters, num_byzantine=self.num_byzantine)
+        return self.attack(local_parameters, f=self.num_byzantine)
 
-    def aggregate_over_received_nodes(self, local_parameters: torch.Tensor, byzantine_parameters: torch.Tensor) -> torch.Tensor:
+    def aggregate_over_received_nodes(
+        self, local_parameters: torch.Tensor, byzantine_parameters: torch.Tensor
+    ) -> torch.Tensor:
         """Run MoNNA model mixing over post-local-update parameter vectors."""
         mixed_parameters = []
         for worker_index, pivot in enumerate(local_parameters):
@@ -239,12 +248,9 @@ class MonnaSimulation:
         """Aggregate the set of models one worker received.
 
         ``NearestNeighborAverage`` anchors on the worker's own model via ``pivot``;
-        pivot-free aggregators (e.g. Krum, Median) ignore it.
+        pivot-free aggregators (e.g. Krum, Median) absorb it through ``**specialized``.
         """
-        try:
-            return self.aggregator.aggregate(candidates, pivot=pivot)
-        except TypeError:
-            return self.aggregator.aggregate(candidates)
+        return self.aggregator(candidates, pivot=pivot)
 
     def commit_step(
         self,
