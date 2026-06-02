@@ -23,7 +23,7 @@ Available rules:
   trimmed mean (Mhamdi et al., ICML 2018).
 """
 
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Any
 
