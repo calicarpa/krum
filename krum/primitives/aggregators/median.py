@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, stack
+from torch import Tensor, long, median, stack
 
 from . import Aggregator
 
@@ -18,20 +18,34 @@ class Median(Aggregator):
 
     Args:
         gradients: Sequence of 1-D tensors, one per worker.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Coordinate-wise median of the gradients, of shape ``(d,)``.
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            out: Optional pre-allocated tensor to write the result into.
             **specialized: Additional keyword arguments.
 
         Returns:
             Coordinate-wise median of the gradients, of shape ``(d,)``.
         """
-        return stack(list(gradients)).median(dim=0).values
+        result = stack(list(gradients))
+        if out is not None:
+            indices = out.new_empty(out.shape, dtype=long)
+
+            median(result, dim=0, out=(out, indices))
+            return out
+        return result.median(dim=0).values

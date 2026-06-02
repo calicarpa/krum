@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, stack
+from torch import Tensor, mean, stack
 
 from . import Aggregator
 
@@ -26,6 +26,7 @@ class TrimmedMean(Aggregator):
         gradients: Sequence of 1-D tensors, one per worker.
         f: Number of Byzantine workers to tolerate. Must satisfy
             ``0 <= f`` and ``len(gradients) > 2f``.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.
@@ -36,11 +37,20 @@ class TrimmedMean(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, *, f: int, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        *,
+        f: int,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            out: Optional pre-allocated tensor to write the result into.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``0 <= f`` and ``len(gradients) > 2f``.
             **specialized: Additional keyword arguments.
@@ -54,7 +64,14 @@ class TrimmedMean(Aggregator):
         """
         if f < 0:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
-        if len(gradients) <= 2 * f:
-            raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {len(gradients)}")
-        stacked = stack(list(gradients))
-        return stacked.sort(dim=0).values[f:-f].mean(dim=0)
+
+        grad_list = list(gradients)
+        num_grads = len(grad_list)
+
+        if num_grads <= 2 * f:
+            raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {num_grads}")
+
+        stacked = stack(grad_list)
+        sorted_values = stacked.sort(dim=0).values
+        trimmed = sorted_values[f : num_grads - f]
+        return mean(trimmed, dim=0, out=out)

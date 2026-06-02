@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, stack
+from torch import Tensor, mean, stack
 
 from . import Aggregator
 
@@ -18,20 +18,31 @@ class Average(Aggregator):
 
     Args:
         gradients: Sequence of 1-D tensors, one per worker.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Element-wise mean of the gradients, of shape ``(d,)``.
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate the gradients by computing the element-wise mean.
 
         Args:
-            gradients: Sequence of 1-D tensors containing gradients from workers.
+            gradients: Sequence of 1-D tensors containing gradients from workers,
+                or a pre-stacked 2-D tensor of shape ``(n, d)``.
+            out: Optional pre-allocated tensor to write the result into.
             **specialized: Additional keyword arguments.
 
         Returns:
             Element-wise mean of the gradients, of shape ``(d,)``.
         """
-        return stack(list(gradients)).mean(0)
+        if not isinstance(gradients, Tensor):
+            gradients = stack(list(gradients))
+        return mean(gradients, dim=0, out=out)

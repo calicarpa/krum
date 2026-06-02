@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, sort, stack, topk
+from torch import Tensor, cdist, mean, sort, stack, topk
 
 from . import Aggregator
 
@@ -28,6 +28,7 @@ class MultiKrum(Aggregator):
         f: Number of Byzantine workers to tolerate. Must satisfy
             ``1 <= f <= (n - 3) // 2``.
         m: Number of selected gradients to average.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Aggregated gradient of shape ``(d,)``.
@@ -37,11 +38,22 @@ class MultiKrum(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, *, n: int, f: int, m: int, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        *,
+        n: int,
+        f: int,
+        m: int,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate gradients using MultiKrum.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 2``.
@@ -55,6 +67,9 @@ class MultiKrum(Aggregator):
         Raises:
             ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
+        grad_list = list(gradients)
+        num_grads = len(grad_list)
+
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -69,13 +84,15 @@ class MultiKrum(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
             )
-        if len(gradients) != n:
-            raise ValueError(f"Expected {n} gradients, got {len(gradients)}")
-        stacked_tensors = stack(list(gradients))
+
+        if num_grads != n:
+            raise ValueError(f"Expected {n} gradients, got {num_grads}")
+
+        stacked_tensors = stack(grad_list)
         scores = cls._compute_scores(stacked_tensors, n=n, f=f)
         _, top_indices = topk(scores, m, largest=False)
 
-        return stacked_tensors[top_indices].mean(dim=0)
+        return mean(stacked_tensors[top_indices], dim=0, out=out)
 
     @staticmethod
     def _compute_scores(stacked: Tensor, *, n: int, f: int) -> Tensor:
@@ -94,6 +111,5 @@ class MultiKrum(Aggregator):
             Tensor of shape ``(n,)`` containing the Krum score of each worker.
         """
         distances = cdist(stacked, stacked, p=2.0)
-        distances.fill_diagonal_(float("inf"))
         sorted_distances, _ = sort(distances, dim=1)
         return sorted_distances[:, : n - f - 1].sum(dim=1)

@@ -27,6 +27,7 @@ class Krum(MultiKrum):
         n: Total number of workers.
         f: Number of Byzantine workers to tolerate. Must satisfy
             ``1 <= f <= (n - 3) // 2``.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Aggregated gradient of shape ``(d,)``.
@@ -36,11 +37,21 @@ class Krum(MultiKrum):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, *, n: int, f: int, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        *,
+        n: int,
+        f: int,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate gradients using Krum.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate.
             **specialized: Additional keyword arguments.
@@ -52,4 +63,4 @@ class Krum(MultiKrum):
             ValueError: If ``n < 1``, ``f < 0``, ``f > n``, ``n < 2f + 3``,
                 or ``len(gradients) != n``.
         """
-        return MultiKrum.aggregate(gradients, n=n, f=f, m=1)
+        return MultiKrum.aggregate(gradients, out=out, n=n, f=f, m=1)

@@ -34,12 +34,22 @@ class Aggregator(ABC):
 
     @classmethod
     @abstractmethod
-    def aggregate(cls, gradients: Sequence[Tensor], /, **specialized: Any) -> Tensor:
+    def aggregate(
+        cls,
+        gradients: Sequence[Tensor],
+        /,
+        out: Tensor | None = None,
+        **specialized: Any,
+    ) -> Tensor:
         """Aggregate the gradients into a single tensor.
 
         Args:
             gradients: Sequence of 1-D tensors containing one gradient per
                 worker. Tensors are expected to share dtype and device.
+            out: Optional pre-allocated tensor to write the result into.
+                Must have shape ``(d,)`` and the correct ``dtype`` and
+                ``device``. Passed through to the underlying PyTorch
+                operation when supported.
             **specialized: Keyword-only arguments specific to each
                 aggregation rule (e.g. ``f``, ``n``, ``m``).
 

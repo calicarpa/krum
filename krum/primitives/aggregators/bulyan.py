@@ -9,7 +9,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, ones, sort, stack, topk
+from torch import Tensor, cdist, mean, ones, sort, stack, topk
 
 from . import Aggregator
 
@@ -36,6 +36,7 @@ class Bulyan(Aggregator):
             ``1 <= f <= (n - 3) // 4``.
         m: Number of gradients selected by MultiKrum at each iteration.
             Defaults to ``n - f - 2``.
+        out: Optional pre-allocated tensor to write the result into.
 
     Returns:
         Aggregated gradient of shape ``(d,)``.
@@ -49,6 +50,7 @@ class Bulyan(Aggregator):
         cls,
         gradients: Sequence[Tensor],
         /,
+        out: Tensor | None = None,
         *,
         n: int,
         f: int,
@@ -59,6 +61,7 @@ class Bulyan(Aggregator):
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
+            out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers. Must satisfy ``n >= 4f + 3``.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 4``.
@@ -72,6 +75,9 @@ class Bulyan(Aggregator):
         Raises:
             ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
+        grad_list = list(gradients)
+        num_grads = len(grad_list)
+
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -87,9 +93,10 @@ class Bulyan(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
-        if len(gradients) != n:
-            raise ValueError(f"Expected {n} gradients, got {len(gradients)}")
-        stacked = stack(list(gradients))
+        if num_grads != n:
+            raise ValueError(f"Expected {n} gradients, got {num_grads}")
+
+        stacked = stack(grad_list)
         distances = cdist(stacked, stacked, p=2.0)
         valid_mask = ones(n, dtype=bool, device=stacked.device)
         selected = []
@@ -120,4 +127,4 @@ class Bulyan(Aggregator):
 
         _, closests_indices = topk(distances_to_median, bulyan_m, dim=0, largest=False)
 
-        return selected_tensor.gather(0, closests_indices).mean(dim=0)
+        return mean(selected_tensor.gather(0, closests_indices), dim=0, out=out)
