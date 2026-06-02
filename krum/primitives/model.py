@@ -40,7 +40,7 @@ class Model:
     _flat_parameters: Tensor | None
     _flat_gradients: Tensor | None
 
-    __slots__ = annotations
+    __slots__ = __annotations__
 
     @classmethod
     def _relink(cls, tensors: tuple[Tensor, ...], common: Tensor) -> Tensor:
