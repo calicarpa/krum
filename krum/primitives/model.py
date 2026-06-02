@@ -9,6 +9,8 @@ Example:
     >>> model.gradients = flat         # writes aggregated gradients back
 """
 
+from __future__ import annotations
+
 from collections.abc import Iterator
 
 import torch
@@ -38,7 +40,7 @@ class Model:
     _flat_parameters: Tensor | None
     _flat_gradients: Tensor | None
 
-    __slots__ = ("_module", "_flat_parameters", "_flat_gradients")
+    __slots__ = annotations
 
     @classmethod
     def _relink(cls, tensors: tuple[Tensor, ...], common: Tensor) -> Tensor:
