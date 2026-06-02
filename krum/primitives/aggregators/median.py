@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor, stack
 
 from . import Aggregator
 
@@ -24,7 +24,7 @@ class Median(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, **specialized: Any) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[Tensor], /, **specialized: Any) -> Tensor:
         """Aggregate the gradients by computing the coordinate-wise median.
 
         Args:
@@ -34,4 +34,4 @@ class Median(Aggregator):
         Returns:
             Coordinate-wise median of the gradients, of shape ``(d,)``.
         """
-        return torch.stack(list(gradients)).median(dim=0).values
+        return stack(list(gradients)).median(dim=0).values

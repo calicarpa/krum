@@ -22,7 +22,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor
 
 
 class Aggregator(ABC):
@@ -34,7 +34,7 @@ class Aggregator(ABC):
 
     @classmethod
     @abstractmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, **specialized: Any) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[Tensor], /, **specialized: Any) -> Tensor:
         """Aggregate the gradients into a single tensor.
 
         Args:

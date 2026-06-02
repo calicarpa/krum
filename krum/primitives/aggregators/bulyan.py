@@ -9,7 +9,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor, cdist, ones, sort, stack, topk
 
 from . import Aggregator
 
@@ -47,14 +47,14 @@ class Bulyan(Aggregator):
     @classmethod
     def aggregate(
         cls,
-        gradients: Sequence[torch.Tensor],
+        gradients: Sequence[Tensor],
         /,
         *,
         n: int,
         f: int,
         m: int | None = None,
         **specialized: Any,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         """Aggregate the gradients using the Bulyan algorithm.
 
         Args:
@@ -89,9 +89,9 @@ class Bulyan(Aggregator):
             )
         if len(gradients) != n:
             raise ValueError(f"Expected {n} gradients, got {len(gradients)}")
-        stacked = torch.stack(list(gradients))
-        distances = torch.cdist(stacked, stacked, p=2.0)
-        valid_mask = torch.ones(n, dtype=torch.bool, device=stacked.device)
+        stacked = stack(list(gradients))
+        distances = cdist(stacked, stacked, p=2.0)
+        valid_mask = ones(n, dtype=bool, device=stacked.device)
         selected = []
 
         for i in range(n - 2 * f - 2):
@@ -102,22 +102,22 @@ class Bulyan(Aggregator):
             D[:, ~valid_mask] = float("inf")
             D.fill_diagonal_(float("inf"))
 
-            sorted_D, _ = torch.sort(D, dim=1)
+            sorted_D, _ = sort(D, dim=1)
             scores = sorted_D[:, :m_cur].sum(dim=1)
             scores[~valid_mask] = float("inf")
 
-            _, top_nodes = torch.topk(scores, m_cur, largest=False)
+            _, top_nodes = topk(scores, m_cur, largest=False)
             selected.append(stacked[top_nodes].mean(dim=0))
 
             best_node = top_nodes[0]
             valid_mask[best_node] = False
 
-        selected_tensor = torch.stack(selected)
+        selected_tensor = stack(selected)
 
         bulyan_m = selected_tensor.size(0) - 2 * f
         median = selected_tensor.median(dim=0).values
         distances_to_median = (selected_tensor - median).abs()
 
-        _, closests_indices = torch.topk(distances_to_median, bulyan_m, dim=0, largest=False)
+        _, closests_indices = topk(distances_to_median, bulyan_m, dim=0, largest=False)
 
         return selected_tensor.gather(0, closests_indices).mean(dim=0)

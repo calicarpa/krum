@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor
 
 from .multikrum import MultiKrum
 
@@ -36,7 +36,7 @@ class Krum(MultiKrum):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, **specialized: Any) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[Tensor], /, *, n: int, f: int, **specialized: Any) -> Tensor:
         """Aggregate gradients using Krum.
 
         Args:

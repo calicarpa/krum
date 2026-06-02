@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor, cdist, sort, stack, topk
 
 from . import Aggregator
 
@@ -37,9 +37,7 @@ class MultiKrum(Aggregator):
     """
 
     @classmethod
-    def aggregate(
-        cls, gradients: Sequence[torch.Tensor], /, *, n: int, f: int, m: int, **specialized: Any
-    ) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[Tensor], /, *, n: int, f: int, m: int, **specialized: Any) -> Tensor:
         """Aggregate gradients using MultiKrum.
 
         Args:
@@ -73,14 +71,14 @@ class MultiKrum(Aggregator):
             )
         if len(gradients) != n:
             raise ValueError(f"Expected {n} gradients, got {len(gradients)}")
-        stacked = torch.stack(list(gradients))
-        scores = cls._compute_scores(stacked, n=n, f=f)
-        _, top_indices = torch.topk(scores, m, largest=False)
+        stacked_tensors = stack(list(gradients))
+        scores = cls._compute_scores(stacked_tensors, n=n, f=f)
+        _, top_indices = topk(scores, m, largest=False)
 
-        return stacked[top_indices].mean(dim=0)
+        return stacked_tensors[top_indices].mean(dim=0)
 
     @staticmethod
-    def _compute_scores(stacked: torch.Tensor, *, n: int, f: int) -> torch.Tensor:
+    def _compute_scores(stacked: Tensor, *, n: int, f: int) -> Tensor:
         """Score every stacked gradient by its sum of distances to its ``n - f - 1`` closest peers.
 
         The ``n - f - 1`` closest distance sum approximates how surrounded a
@@ -95,7 +93,7 @@ class MultiKrum(Aggregator):
         Returns:
             Tensor of shape ``(n,)`` containing the Krum score of each worker.
         """
-        distances = torch.cdist(stacked, stacked, p=2.0)
+        distances = cdist(stacked, stacked, p=2.0)
         distances.fill_diagonal_(float("inf"))
-        sorted_distances, _ = torch.sort(distances, dim=1)
+        sorted_distances, _ = sort(distances, dim=1)
         return sorted_distances[:, : n - f - 1].sum(dim=1)

@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor, stack
 
 from . import Aggregator
 
@@ -36,7 +36,7 @@ class TrimmedMean(Aggregator):
     """
 
     @classmethod
-    def aggregate(cls, gradients: Sequence[torch.Tensor], /, *, f: int, **specialized: Any) -> torch.Tensor:
+    def aggregate(cls, gradients: Sequence[Tensor], /, *, f: int, **specialized: Any) -> Tensor:
         """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
@@ -56,5 +56,5 @@ class TrimmedMean(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
         if len(gradients) <= 2 * f:
             raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {len(gradients)}")
-        stacked = torch.stack(list(gradients))
+        stacked = stack(list(gradients))
         return stacked.sort(dim=0).values[f:-f].mean(dim=0)
