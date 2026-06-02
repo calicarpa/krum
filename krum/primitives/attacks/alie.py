@@ -11,7 +11,8 @@ from collections.abc import Sequence
 from enum import Enum
 from typing import Any
 
-import torch
+from torch import Tensor, is_floating_point, stack
+from torch.distributions import Normal
 
 from . import Attack
 
@@ -65,14 +66,14 @@ class ALIEAttack(Attack):
     @classmethod
     def generate(
         cls,
-        honest_gradients: Sequence[torch.Tensor],
+        honest_gradients: Sequence[Tensor],
         /,
         *,
         f: int,
         z: float | str = "max",
         direction: Direction = Direction.NEGATIVE,
         **specialized: Any,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         """Generate Byzantine gradients using ALIE-style statistics.
 
         Args:
@@ -112,8 +113,8 @@ class ALIEAttack(Attack):
             raise ValueError(msg)
         if len(honest_gradients) == 0:
             raise ValueError("Expected at least one honest gradient to compute ALIE statistics")
-        stacked = torch.stack(list(honest_gradients))
-        if not torch.is_floating_point(stacked):
+        stacked = stack(list(honest_gradients))
+        if not is_floating_point(stacked):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
 
         if f == 0:
@@ -137,7 +138,7 @@ class ALIEAttack(Attack):
         return malicious_gradient.repeat(f, 1)
 
     @staticmethod
-    def _max_z(honest_gradients: torch.Tensor, f: int) -> torch.Tensor:
+    def _max_z(honest_gradients: Tensor, f: int) -> Tensor:
         """Compute the maximal valid ALIE attack factor for the worker configuration.
 
         ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,
@@ -169,7 +170,7 @@ class ALIEAttack(Attack):
         if ratio >= 1:
             msg = f"Invalid worker configuration for ALIE, got normal CDF target = {ratio!r}, expected target < 1"
             raise ValueError(msg)
-        z_max = torch.distributions.Normal(
+        z_max = Normal(
             honest_gradients.new_tensor(0.0),
             honest_gradients.new_tensor(1.0),
         ).icdf(honest_gradients.new_tensor(ratio))

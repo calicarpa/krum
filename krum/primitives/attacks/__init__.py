@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor
 
 
 class Attack(ABC):
@@ -29,7 +29,7 @@ class Attack(ABC):
 
     @classmethod
     @abstractmethod
-    def generate(cls, honest_gradients: Sequence[torch.Tensor], /, *, f: int, **specialized: Any) -> torch.Tensor:
+    def generate(cls, honest_gradients: Sequence[Tensor], /, *, f: int, **specialized: Any) -> Tensor:
         """Generate Byzantine gradients from observed honest gradients.
 
         Args:

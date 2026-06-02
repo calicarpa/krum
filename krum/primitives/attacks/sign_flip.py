@@ -10,7 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-import torch
+from torch import Tensor, is_floating_point, stack
 
 from . import Attack
 
@@ -42,13 +42,13 @@ class SignFlipAttack(Attack):
     @classmethod
     def generate(
         cls,
-        honest_gradients: Sequence[torch.Tensor],
+        honest_gradients: Sequence[Tensor],
         /,
         *,
         f: int,
         scale: float = 1.0,
         **specialized: Any,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         """Generate sign-flipped Byzantine gradients.
 
         Args:
@@ -76,8 +76,8 @@ class SignFlipAttack(Attack):
         if len(honest_gradients) == 0:
             msg = "Expected at least one honest gradient to compute the honest mean"
             raise ValueError(msg)
-        stacked = torch.stack(list(honest_gradients))
-        if not torch.is_floating_point(stacked):
+        stacked = stack(list(honest_gradients))
+        if not is_floating_point(stacked):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
 
         malicious_gradient = -scale * stacked.mean(dim=0)
