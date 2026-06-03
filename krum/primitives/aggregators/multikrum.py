@@ -40,7 +40,7 @@ class MultiKrum(Aggregator):
     @classmethod
     def aggregate(
         cls,
-        gradients: Sequence[Tensor],
+        gradients: Sequence[Tensor] | Tensor,
         /,
         out: Tensor | None = None,
         *,

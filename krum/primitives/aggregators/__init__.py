@@ -36,7 +36,7 @@ class Aggregator(ABC):
     @abstractmethod
     def aggregate(
         cls,
-        gradients: Sequence[Tensor],
+        gradients: Sequence[Tensor] | Tensor,
         /,
         out: Tensor | None = None,
         **specialized: Any,
