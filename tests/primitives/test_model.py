@@ -111,6 +111,76 @@ class ModelTest(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.model.extra = 42
 
+    def _forward_backward(self) -> None:
+        x = torch.randn(1, 3)
+        loss = self.linear(x).sum()
+        loss.backward()
+
+    def test_relink_gradients_raises_when_not_initialized(self) -> None:
+        """relink_gradients raises RuntimeError when the flat gradient hasn't been built."""
+        with self.assertRaises(RuntimeError):
+            self.model.relink_gradients()
+
+    def test_relink_gradients_after_zero_grad_set_to_none(self) -> None:
+        """After zero_grad(set_to_none=True), relink_gradients restores zero-copy."""
+        self._forward_backward()
+        flat = self.model.gradients
+
+        self.linear.zero_grad(set_to_none=True)
+        self.assertIsNone(self.linear.weight.grad)
+        self.assertIsNone(self.linear.bias.grad)
+
+        self.model.relink_gradients()
+        self.assertIsNotNone(self.linear.weight.grad)
+        self.assertIsNotNone(self.linear.bias.grad)
+
+        flat[0] = 77.0
+        self.assertEqual(self.linear.weight.grad[0, 0].item(), 77.0)
+
+    def test_relink_gradients_preserves_grad_values(self) -> None:
+        """relink_gradients copies existing gradient values into the flat buffer."""
+        self._forward_backward()
+        _flat = self.model.gradients
+
+        replacement = self.linear.weight.grad.clone().add_(1.0)
+        self.linear.weight.grad = replacement
+        self.model.relink_gradients()
+
+        torch.testing.assert_close(self.linear.weight.grad, replacement)
+
+    def test_relink_gradients_preserves_tensor_instance(self) -> None:
+        """relink_gradients keeps the user's .grad Tensor instance after relinking."""
+        self._forward_backward()
+        _flat = self.model.gradients
+
+        new_grad = torch.randn_like(self.linear.weight)
+        self.linear.weight.grad = new_grad
+
+        self.model.relink_gradients()
+        self.assertIs(self.linear.weight.grad, new_grad)
+
+        flat = self.model.gradients
+        flat[0] = 99.0
+        self.assertEqual(new_grad[0, 0].item(), 99.0)
+
+    def test_relink_parameters_raises_when_not_initialized(self) -> None:
+        """relink_parameters raises RuntimeError when flat parameters haven't been built."""
+        with self.assertRaises(RuntimeError):
+            self.model.relink_parameters()
+
+    def test_relink_parameters_after_data_replacement(self) -> None:
+        """After replacing a parameter's .data, relink_parameters restores zero-copy."""
+        _flat = self.model.parameters
+
+        with torch.no_grad():
+            self.linear.weight.data = torch.randn_like(self.linear.weight)
+
+        self.model.relink_parameters()
+
+        flat = self.model.parameters
+        flat[0] = 55.0
+        self.assertEqual(self.linear.weight[0, 0].item(), 55.0)
+
 
 if __name__ == "__main__":
     unittest.main()

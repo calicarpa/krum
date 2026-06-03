@@ -12,6 +12,7 @@ Example:
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Self
 
 import torch
 from torch import Tensor
@@ -129,8 +130,10 @@ class Model:
         The returned tensor shares memory with the model's weights.
         Modifying it modifies the model directly. Clone before sending.
 
-        This method assumes the module parameters cannot change unless the
-        module itself is changed.
+        This is a simple, fast getter once the flat parameters have been
+        lazy-initialized on the first access.  If a parameter's ``.data``
+        has been replaced externally, call :meth:`relink_parameters` to
+        re-synchronise the flat view.
 
         Returns:
             Tensor of shape ``(d,)`` sharing memory with all module
@@ -171,6 +174,24 @@ class Model:
                 parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
             yield parameter.grad
 
+    def relink_parameters(self) -> Self:
+        """Re-synchronise the flat parameter view after an external ``.data`` replacement.
+
+        This method is necessary when a parameter's ``.data`` has been
+        replaced since the flat parameters were built, restoring the zero-copy
+        link between the cached flat tensor and every parameter so that the
+        fast ``.parameters`` getter yields a consistent view again.
+
+        Raises:
+            RuntimeError: If the flat parameters have not been built yet.
+        """
+        flat = self._flat_parameters
+        if flat is None:
+            raise RuntimeError("Flat parameters have not been built yet; access .parameters first.")
+
+        self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
+        return self
+
     @property
     def gradients(self) -> Tensor:
         """Zero-copy flat view of module gradients.
@@ -178,12 +199,10 @@ class Model:
         The returned tensor shares memory with each parameter's ``.grad``.
         If a parameter has no gradient yet, a zero-filled gradient is assigned.
 
-        This method assumes the module parameters' gradients may change.
-        If a parameter's ``.grad`` has been removed after the flat gradient has
-        been built, it is relinked to the flat gradient with its value set to 0.
-        If a parameter's ``.grad`` has been replaced and is using a different
-        buffer, the ``.grad`` is copied "back" to the flat gradient's buffer,
-        and then relinked to that already-existing, flat gradient's buffer.
+        This is a simple, fast getter once the flat gradient has been
+        lazy-initialized on the first access. If gradients are replaced or
+        removed externally (e.g. via ``module.zero_grad(set_to_none=True)``),
+        call :meth:`relink_gradients` to re-synchronise the flat view.
 
         Returns:
             Tensor of shape ``(d,)`` sharing memory with all module
@@ -191,21 +210,38 @@ class Model:
         """
         if self._flat_gradients is None:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
-        else:
-            flat = self._flat_gradients
-            storage = flat.untyped_storage()
-            offset = 0
-            with torch.no_grad():
-                for parameter in self._module.parameters():
-                    end = offset + parameter.numel()
-                    if parameter.grad is None:
-                        grad = flat[offset:end].view(*parameter.shape)
-                        parameter.grad = grad.zero_()
-                    elif parameter.grad.untyped_storage() is not storage:
-                        grad = flat[offset:end].view(*parameter.shape)
-                        parameter.grad = grad.copy_(parameter.grad)
-                    offset = end
         return self._flat_gradients
+
+    def relink_gradients(self) -> Self:
+        """Re-synchronise the flat gradient view after an external ``.grad`` replacement.
+
+        This method is necessary when a parameter's ``.grad`` attribute has
+        been replaced or removed since the flat gradient was built, for
+        instance after ``module.zero_grad(set_to_none=True)``. It restores the
+        zero-copy link between the cached flat tensor and every ``.grad``
+        so that the fast ``.gradients`` getter yields a consistent view again.
+
+        Raises:
+            RuntimeError: If the flat gradients have not been built yet.
+        """
+        flat = self._flat_gradients
+        if flat is None:
+            raise RuntimeError("Flat gradients have not been built yet; access .gradients first.")
+
+        storage = flat.untyped_storage()
+        offset = 0
+        with torch.no_grad():
+            for parameter in self._module.parameters():
+                end = offset + parameter.numel()
+                # The gradient was deleted
+                if parameter.grad is None:
+                    grad = flat[offset:end].view(*parameter.shape)
+                    parameter.grad = grad.zero_()
+                # The gradient was replaced by a tensor with a different storage
+                elif parameter.grad.untyped_storage() is not storage:
+                    parameter.grad.data = flat[offset:end].view(*parameter.shape).copy_(parameter.grad)
+                offset = end
+        return self
 
     @gradients.setter
     def gradients(self, flat: Tensor) -> None:
