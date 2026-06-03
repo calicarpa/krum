@@ -163,6 +163,16 @@ class ModelTest(unittest.TestCase):
         flat[0] = 99.0
         self.assertEqual(new_grad[0, 0].item(), 99.0)
 
+    def test_relink_gradients_noop_when_grads_already_linked(self) -> None:
+        """relink_gradients is a no-op when all grads already share the flat buffer."""
+        self._forward_backward()
+        flat = self.model.gradients
+
+        self.model.relink_gradients()
+
+        flat[0] = 88.0
+        self.assertEqual(self.linear.weight.grad[0, 0].item(), 88.0)
+
     def test_relink_parameters_raises_when_not_initialized(self) -> None:
         """relink_parameters raises RuntimeError when flat parameters haven't been built."""
         with self.assertRaises(RuntimeError):
@@ -180,6 +190,27 @@ class ModelTest(unittest.TestCase):
         flat = self.model.parameters
         flat[0] = 55.0
         self.assertEqual(self.linear.weight[0, 0].item(), 55.0)
+
+    def test_relink_chaining(self) -> None:
+        """relink_gradients().relink_parameters() chains correctly."""
+        self._forward_backward()
+        _flat_p = self.model.parameters
+        _flat_g = self.model.gradients
+
+        self.linear.zero_grad(set_to_none=True)
+        with torch.no_grad():
+            self.linear.weight.data = torch.randn_like(self.linear.weight)
+
+        result = self.model.relink_gradients().relink_parameters()
+        self.assertIs(result, self.model)
+
+        flat_g = self.model.gradients
+        flat_g[0] = 77.0
+        self.assertEqual(self.linear.weight.grad[0, 0].item(), 77.0)
+
+        flat_p = self.model.parameters
+        flat_p[0] = 33.0
+        self.assertEqual(self.linear.weight[0, 0].item(), 33.0)
 
 
 if __name__ == "__main__":
