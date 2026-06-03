@@ -109,7 +109,7 @@ class ModelTest(unittest.TestCase):
     def test_slots_prevent_arbitrary_attributes(self) -> None:
         """Cannot set arbitrary attributes on slotted instances."""
         with self.assertRaises(AttributeError):
-            self.model.extra = 42
+            self.model.extra = 42  # ty:ignore[unresolved-attribute]
 
     def _forward_backward(self) -> None:
         x = torch.randn(1, 3)
@@ -135,14 +135,18 @@ class ModelTest(unittest.TestCase):
         self.assertIsNotNone(self.linear.bias.grad)
 
         flat[0] = 77.0
-        self.assertEqual(self.linear.weight.grad[0, 0].item(), 77.0)
+        wg = self.linear.weight.grad
+        assert wg is not None
+        self.assertEqual(wg[0, 0].item(), 77.0)
 
     def test_relink_gradients_preserves_grad_values(self) -> None:
         """relink_gradients copies existing gradient values into the flat buffer."""
         self._forward_backward()
         _flat = self.model.gradients
 
-        replacement = self.linear.weight.grad.clone().add_(1.0)
+        wg = self.linear.weight.grad
+        assert wg is not None
+        replacement = wg.clone().add_(1.0)
         self.linear.weight.grad = replacement
         self.model.relink_gradients()
 
@@ -171,7 +175,9 @@ class ModelTest(unittest.TestCase):
         self.model.relink_gradients()
 
         flat[0] = 88.0
-        self.assertEqual(self.linear.weight.grad[0, 0].item(), 88.0)
+        wg = self.linear.weight.grad
+        assert wg is not None
+        self.assertEqual(wg[0, 0].item(), 88.0)
 
     def test_relink_parameters_raises_when_not_initialized(self) -> None:
         """relink_parameters raises RuntimeError when flat parameters haven't been built."""
@@ -206,7 +212,9 @@ class ModelTest(unittest.TestCase):
 
         flat_g = self.model.gradients
         flat_g[0] = 77.0
-        self.assertEqual(self.linear.weight.grad[0, 0].item(), 77.0)
+        wg = self.linear.weight.grad
+        assert wg is not None
+        self.assertEqual(wg[0, 0].item(), 77.0)
 
         flat_p = self.model.parameters
         flat_p[0] = 33.0
