@@ -12,11 +12,11 @@ Example:
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Self
 
 import torch
 from torch import Tensor
 from torch.nn import Module
+from typing_extensions import Self
 
 
 class Model:
