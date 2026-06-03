@@ -42,7 +42,7 @@ class SignFlipAttack(Attack):
     @classmethod
     def generate(
         cls,
-        honest_gradients: Sequence[Tensor],
+        honest_gradients: Sequence[Tensor] | Tensor,
         /,
         *,
         f: int,

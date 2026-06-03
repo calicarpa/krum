@@ -29,7 +29,7 @@ class Attack(ABC):
 
     @classmethod
     @abstractmethod
-    def generate(cls, honest_gradients: Sequence[Tensor], /, *, f: int, **specialized: Any) -> Tensor:
+    def generate(cls, honest_gradients: Sequence[Tensor] | Tensor, /, *, f: int, **specialized: Any) -> Tensor:
         """Generate Byzantine gradients from observed honest gradients.
 
         Args:
