@@ -81,14 +81,14 @@ class ALIEAttackTest(unittest.TestCase):
         honest_gradients = torch.zeros((26, 2), dtype=torch.float64)
 
         with self.assertRaises(TypeError):
-            ALIEAttack.generate(honest_gradients, f=24, direction="zero")  # type: ignore[arg-type]
+            ALIEAttack.generate(honest_gradients, f=24, direction="zero")  # ty:ignore[invalid-argument-type]
 
     def test_factor_is_keyword_only(self) -> None:
         """Attack factor cannot be passed positionally."""
         honest_gradients = torch.zeros((26, 2), dtype=torch.float64)
 
         with self.assertRaises(TypeError):
-            ALIEAttack.generate(honest_gradients, 1.0)  # type: ignore[misc]
+            ALIEAttack.generate(honest_gradients, 1.0)  # ty:ignore[too-many-positional-arguments, missing-argument]
 
     def test_returns_empty_tensor_when_no_byzantine_gradients_are_requested(self) -> None:
         """Attack returns an empty tensor when no Byzantine gradients are requested."""
