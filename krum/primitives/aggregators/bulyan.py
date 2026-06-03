@@ -75,9 +75,6 @@ class Bulyan(Aggregator):
         Raises:
             ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
-        grad_list = list(gradients)
-        num_grads = len(grad_list)
-
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -93,12 +90,15 @@ class Bulyan(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
-        if num_grads != n:
-            raise ValueError(f"Expected {n} gradients, got {num_grads}")
 
-        stacked = stack(grad_list)
-        distances = cdist(stacked, stacked, p=2.0)
-        valid_mask = ones(n, dtype=bool, device=stacked.device)
+        if not isinstance(gradients, Tensor):
+            gradients = stack(list(gradients))
+
+        if gradients.size(0) != n:
+            raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
+
+        distances = cdist(gradients, gradients, p=2.0)
+        valid_mask = ones(n, dtype=bool, device=gradients.device)
         selected = []
 
         for i in range(n - 2 * f - 2):
@@ -114,7 +114,7 @@ class Bulyan(Aggregator):
             scores[~valid_mask] = float("inf")
 
             _, top_nodes = topk(scores, m_cur, largest=False)
-            selected.append(stacked[top_nodes].mean(dim=0))
+            selected.append(gradients[top_nodes].mean(dim=0))
 
             best_node = top_nodes[0]
             valid_mask[best_node] = False

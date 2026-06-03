@@ -42,10 +42,11 @@ class Median(Aggregator):
         Returns:
             Coordinate-wise median of the gradients, of shape ``(d,)``.
         """
-        result = stack(list(gradients))
+        if not isinstance(gradients, Tensor):
+            gradients = stack(list(gradients))
+
         if out is not None:
             indices = out.new_empty(out.shape, dtype=long)
-
-            median(result, dim=0, out=(out, indices))
+            median(gradients, dim=0, out=(out, indices))
             return out
-        return result.median(dim=0).values
+        return gradients.median(dim=0).values

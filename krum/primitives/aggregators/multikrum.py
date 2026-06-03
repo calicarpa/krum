@@ -67,9 +67,6 @@ class MultiKrum(Aggregator):
         Raises:
             ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
         """
-        grad_list = list(gradients)
-        num_grads = len(grad_list)
-
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
         if f < 0:
@@ -85,14 +82,16 @@ class MultiKrum(Aggregator):
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
             )
 
-        if num_grads != n:
-            raise ValueError(f"Expected {n} gradients, got {num_grads}")
+        if not isinstance(gradients, Tensor):
+            gradients = stack(list(gradients))
 
-        stacked_tensors = stack(grad_list)
-        scores = cls._compute_scores(stacked_tensors, n=n, f=f)
+        if gradients.size(0) != n:
+            raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
+
+        scores = cls._compute_scores(gradients, n=n, f=f)
         _, top_indices = topk(scores, m, largest=False)
 
-        return mean(stacked_tensors[top_indices], dim=0, out=out)
+        return mean(gradients[top_indices], dim=0, out=out)
 
     @staticmethod
     def _compute_scores(stacked: Tensor, *, n: int, f: int) -> Tensor:

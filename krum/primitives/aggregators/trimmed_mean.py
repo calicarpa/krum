@@ -65,13 +65,12 @@ class TrimmedMean(Aggregator):
         if f < 0:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected 0 ≤ f")
 
-        grad_list = list(gradients)
-        num_grads = len(grad_list)
+        if not isinstance(gradients, Tensor):
+            gradients = stack(list(gradients))
 
-        if num_grads <= 2 * f:
-            raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {num_grads}")
+        if gradients.size(0) <= 2 * f:
+            raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {gradients.size(0)}")
 
-        stacked = stack(grad_list)
-        sorted_values = stacked.sort(dim=0).values
-        trimmed = sorted_values[f : num_grads - f]
+        sorted_values = gradients.sort(dim=0).values
+        trimmed = sorted_values[f : gradients.size(0) - f]
         return mean(trimmed, dim=0, out=out)
