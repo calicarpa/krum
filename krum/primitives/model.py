@@ -181,15 +181,16 @@ class Model:
         replaced since the flat parameters were built, restoring the zero-copy
         link between the cached flat tensor and every parameter so that the
         fast ``.parameters`` getter yields a consistent view again.
-
-        Raises:
-            RuntimeError: If the flat parameters have not been built yet.
         """
-        flat = self._flat_parameters
-        if flat is None:
-            raise RuntimeError("Flat parameters have not been built yet; access .parameters first.")
-
-        self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
+        flat = self.parameters
+        storage = flat.untyped_storage()
+        with torch.no_grad():
+            offset = 0
+            for parameter in self._module.parameters():
+                end = offset + parameter.numel()
+                if parameter.data.untyped_storage() is not storage:
+                    parameter.data = flat[offset:end].view(*parameter.shape).copy_(parameter.data)
+                offset = end
         return self
 
     @property
@@ -220,13 +221,8 @@ class Model:
         instance after ``module.zero_grad(set_to_none=True)``. It restores the
         zero-copy link between the cached flat tensor and every ``.grad``
         so that the fast ``.gradients`` getter yields a consistent view again.
-
-        Raises:
-            RuntimeError: If the flat gradients have not been built yet.
         """
-        flat = self._flat_gradients
-        if flat is None:
-            raise RuntimeError("Flat gradients have not been built yet; access .gradients first.")
+        flat = self.gradients
 
         storage = flat.untyped_storage()
         offset = 0

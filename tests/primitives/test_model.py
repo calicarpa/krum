@@ -116,10 +116,10 @@ class ModelTest(unittest.TestCase):
         loss = self.linear(x).sum()
         loss.backward()
 
-    def test_relink_gradients_raises_when_not_initialized(self) -> None:
-        """relink_gradients raises RuntimeError when the flat gradient hasn't been built."""
-        with self.assertRaises(RuntimeError):
-            self.model.relink_gradients()
+    def test_relink_gradients_before_first_access(self) -> None:
+        """relink_gradients works without prior access to .gradients (lazy init)."""
+        self.model.relink_gradients()
+        self.assertIsNotNone(self.model.gradients)
 
     def test_relink_gradients_after_zero_grad_set_to_none(self) -> None:
         """After zero_grad(set_to_none=True), relink_gradients restores zero-copy."""
@@ -179,10 +179,10 @@ class ModelTest(unittest.TestCase):
         assert wg is not None
         self.assertEqual(wg[0, 0].item(), 88.0)
 
-    def test_relink_parameters_raises_when_not_initialized(self) -> None:
-        """relink_parameters raises RuntimeError when flat parameters haven't been built."""
-        with self.assertRaises(RuntimeError):
-            self.model.relink_parameters()
+    def test_relink_parameters_before_first_access(self) -> None:
+        """relink_parameters works without prior access to .parameters (lazy init)."""
+        self.model.relink_parameters()
+        self.assertIsNotNone(self.model.parameters)
 
     def test_relink_parameters_after_data_replacement(self) -> None:
         """After replacing a parameter's .data, relink_parameters restores zero-copy."""
