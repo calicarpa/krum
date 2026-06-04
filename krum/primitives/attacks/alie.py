@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from enum import Enum
 from typing import Any
 
-from torch import Tensor, is_floating_point, stack
+from torch import Tensor, add, is_floating_point, mul, stack
 from torch.distributions import Normal
 
 from . import Attack
@@ -65,6 +65,7 @@ class ALIEAttack(Attack):
         cls,
         honest_gradients: Sequence[Tensor] | Tensor,
         /,
+        out: Tensor | None = None,
         *,
         f: int,
         z: float | str = "max",
@@ -76,6 +77,8 @@ class ALIEAttack(Attack):
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest
                 worker, each of shape ``(d,)``.
+            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+                result into and return.
             f: Number of Byzantine gradients to generate.
             z: Attack factor in standard-deviation units, or ``"max"`` for the
                 largest factor that keeps the Byzantine gradients within a
@@ -115,16 +118,17 @@ class ALIEAttack(Attack):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
 
         if f == 0:
-            return stacked.new_empty((0, stacked.shape[1]))
+            return mul(stacked.new_empty((0, stacked.shape[1])), 1, out=out)
 
         z_value = cls.max_z(stacked, f) if z == "max" else stacked.new_tensor(z)
 
         mean = stacked.mean(dim=0)
         std = stacked.std(dim=0, correction=0)
         perturbation = z_value * std
-        malicious_gradient = mean + perturbation if direction is Direction.POSITIVE else mean - perturbation
-
-        return malicious_gradient.repeat(f, 1)
+        # Tile ``mean ± perturbation`` to (f, d) through ``add``'s ``out=`` so the
+        # buffer-reuse and wrong-shape (resize) behavior matches the aggregators.
+        alpha = 1 if direction is Direction.POSITIVE else -1
+        return add(mean.unsqueeze(0).expand(f, -1), perturbation, alpha=alpha, out=out)
 
     @staticmethod
     def max_z(honest_gradients: Tensor, f: int) -> Tensor:

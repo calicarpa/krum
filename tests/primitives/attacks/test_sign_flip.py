@@ -43,7 +43,7 @@ class SignFlipAttackTest(unittest.TestCase):
         honest_gradients = torch.tensor([[1.0, 3.0], [5.0, 7.0]], dtype=torch.float64)
 
         with self.assertRaises(TypeError):
-            SignFlipAttack.generate(honest_gradients, 2.0)  # ty:ignore[missing-argument, too-many-positional-arguments]
+            SignFlipAttack.generate(honest_gradients, None, 2.0)  # ty:ignore[missing-argument, too-many-positional-arguments]
 
     def test_rejects_empty_honest_gradients(self) -> None:
         """Attack needs at least one honest gradient to compute the honest mean."""
@@ -62,6 +62,16 @@ class SignFlipAttackTest(unittest.TestCase):
         from_tensor = SignFlipAttack.generate(as_tensor, f=3)
 
         self.assertTrue(torch.equal(from_sequence, from_tensor))
+
+    def test_writes_into_out_buffer_and_returns_it(self) -> None:
+        """A provided out buffer receives the result and is returned."""
+        honest_gradients = torch.tensor([[1.0, 3.0], [5.0, 7.0]], dtype=torch.float64)
+        out = torch.empty((3, 2), dtype=torch.float64)
+
+        result = SignFlipAttack.generate(honest_gradients, out, f=3)
+
+        self.assertIs(result, out)
+        self.assertTrue(torch.equal(result, SignFlipAttack.generate(honest_gradients, f=3)))
 
 
 if __name__ == "__main__":

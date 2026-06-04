@@ -10,7 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, is_floating_point, stack
+from torch import Tensor, is_floating_point, mul, stack
 
 from . import Attack
 
@@ -44,6 +44,7 @@ class SignFlipAttack(Attack):
         cls,
         honest_gradients: Sequence[Tensor] | Tensor,
         /,
+        out: Tensor | None = None,
         *,
         f: int,
         scale: float = 1.0,
@@ -54,6 +55,8 @@ class SignFlipAttack(Attack):
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest
                 worker, each of shape ``(d,)``.
+            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+                result into and return.
             f: Number of Byzantine gradients to generate.
             scale: Non-negative scale applied to the sign-flipped honest mean.
             **specialized: Additional keyword arguments.
@@ -80,6 +83,7 @@ class SignFlipAttack(Attack):
         if not is_floating_point(stacked):
             raise TypeError("Expected honest gradients to use a floating-point dtype")
 
-        malicious_gradient = -scale * stacked.mean(dim=0)
-
-        return malicious_gradient.repeat(f, 1)
+        # Tile the sign-flipped mean to (f, d) through ``mul``'s ``out=`` so the
+        # buffer-reuse and wrong-shape (resize) behavior matches the aggregators.
+        honest_mean = stacked.mean(dim=0)
+        return mul(honest_mean.unsqueeze(0).expand(f, -1), -scale, out=out)

@@ -88,7 +88,7 @@ class ALIEAttackTest(unittest.TestCase):
         honest_gradients = torch.zeros((26, 2), dtype=torch.float64)
 
         with self.assertRaises(TypeError):
-            ALIEAttack.generate(honest_gradients, 1.0)  # ty:ignore[too-many-positional-arguments, missing-argument]
+            ALIEAttack.generate(honest_gradients, None, 1.0)  # ty:ignore[too-many-positional-arguments, missing-argument]
 
     def test_returns_empty_tensor_when_no_byzantine_gradients_are_requested(self) -> None:
         """Attack returns an empty tensor when no Byzantine gradients are requested."""
@@ -116,6 +116,16 @@ class ALIEAttackTest(unittest.TestCase):
         from_tensor = ALIEAttack.generate(as_tensor, f=24, z=1.0)
 
         self.assertTrue(torch.equal(from_sequence, from_tensor))
+
+    def test_writes_into_out_buffer_and_returns_it(self) -> None:
+        """A provided out buffer receives the result and is returned."""
+        honest_gradients = torch.arange(52, dtype=torch.float64).reshape(26, 2)
+        out = torch.empty((24, 2), dtype=torch.float64)
+
+        result = ALIEAttack.generate(honest_gradients, out, f=24, z=1.0)
+
+        self.assertIs(result, out)
+        self.assertTrue(torch.equal(result, ALIEAttack.generate(honest_gradients, f=24, z=1.0)))
 
 
 if __name__ == "__main__":
