@@ -197,6 +197,43 @@ class ModelTest(unittest.TestCase):
         flat[0] = 55.0
         self.assertEqual(self.linear.weight[0, 0].item(), 55.0)
 
+    def test_relink_parameters_preserves_param_values(self) -> None:
+        """relink_parameters copies existing parameter values into the flat buffer."""
+        _flat = self.model.parameters
+        w = self.linear.weight.data
+        replacement = w.clone().add_(1.0)
+
+        with torch.no_grad():
+            self.linear.weight.data = replacement
+
+        self.model.relink_parameters()
+        torch.testing.assert_close(self.linear.weight.data, replacement)
+
+    def test_relink_parameters_preserves_tensor_instance(self) -> None:
+        """relink_parameters preserves values but replaces the .data tensor instance."""
+        _flat = self.model.parameters
+        new_data = torch.randn_like(self.linear.weight)
+
+        with torch.no_grad():
+            self.linear.weight.data = new_data
+
+        self.model.relink_parameters()
+        self.assertIsNot(self.linear.weight.data, new_data)
+        torch.testing.assert_close(self.linear.weight.data, new_data)
+
+        flat = self.model.parameters
+        flat[0] = 99.0
+        self.assertEqual(self.linear.weight[0, 0].item(), 99.0)
+
+    def test_relink_parameters_noop_when_already_linked(self) -> None:
+        """relink_parameters is a no-op when all params already share the flat buffer."""
+        _flat = self.model.parameters
+        self.model.relink_parameters()
+
+        flat = self.model.parameters
+        flat[0] = 88.0
+        self.assertEqual(self.linear.weight[0, 0].item(), 88.0)
+
     def test_relink_chaining(self) -> None:
         """relink_gradients().relink_parameters() chains correctly."""
         self._forward_backward()
