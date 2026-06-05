@@ -61,6 +61,9 @@ Issues = "https://github.com/calicarpa/krum/issues"
 [tool.ty.rules]
 invalid-method-override = "ignore"
 
+[tool.ty.src]
+include = ["krum", "tests"]
+
 # ── Packaging
 [tool.setuptools.packages.find]
 where = ["."]
@@ -74,6 +77,7 @@ include = ["krum*"]
 [tool.ruff]
 target-version = "py310"
 line-length = 120
+include = ["krum/**", "tests/**"]
 exclude = [
     "repositories",
     ".venv",
