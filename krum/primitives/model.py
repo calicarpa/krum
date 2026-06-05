@@ -155,25 +155,6 @@ class Model:
         """
         self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
 
-    def _gradients(self, *, empty: bool) -> Iterator[Tensor]:
-        """Iterate over module parameter gradients, initializing missing ones.
-
-        Iterates in the same order as ``_module.parameters()``, and lazily
-        initializes gradients that have not been instantiated yet.
-
-        Args:
-            empty: If ``True``, allocate empty tensors instead of zero-filled
-                ones. Used by the gradients setter, which then overwrites them
-                with the caller's flat tensor.
-
-        Yields:
-            Gradient tensors of the module parameters.
-        """
-        for parameter in self._module.parameters():
-            if parameter.grad is None:
-                parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
-            yield parameter.grad
-
     def relink_parameters(self) -> Self:
         """Re-synchronise the flat parameter view after an external ``.data`` replacement.
 
@@ -192,6 +173,25 @@ class Model:
                     parameter.data = flat[offset:end].view(*parameter.shape).copy_(parameter.data)
                 offset = end
         return self
+
+    def _gradients(self, *, empty: bool) -> Iterator[Tensor]:
+        """Iterate over module parameter gradients, initializing missing ones.
+
+        Iterates in the same order as ``_module.parameters()``, and lazily
+        initializes gradients that have not been instantiated yet.
+
+        Args:
+            empty: If ``True``, allocate empty tensors instead of zero-filled
+                ones. Used by the gradients setter, which then overwrites them
+                with the caller's flat tensor.
+
+        Yields:
+            Gradient tensors of the module parameters.
+        """
+        for parameter in self._module.parameters():
+            if parameter.grad is None:
+                parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
+            yield parameter.grad
 
     @property
     def gradients(self) -> Tensor:
