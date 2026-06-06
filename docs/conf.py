@@ -1,5 +1,5 @@
-# Configuration file for the Sphinx documentation builder.
-#
+"""Configuration file for the Sphinx documentation builder."""
+
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
@@ -13,8 +13,12 @@ import sys
 sys.path.insert(0, os.path.abspath(".."))
 
 # Make krum submodules available as top-level imports for autodoc compatibility
-for _mod in ("aggregators", "attacks", "experiments", "native", "tools"):
-    sys.modules[_mod] = importlib.import_module(f"krum.{_mod}")
+for _mod, _pkg in (
+    ("primitives", "krum.primitives"),
+    ("aggregators", "krum.primitives.aggregators"),
+    ("attacks", "krum.primitives.attacks"),
+):
+    sys.modules[_mod] = importlib.import_module(_pkg)
 
 project = "Krum, the Library"
 copyright = "2026"
@@ -40,7 +44,24 @@ extensions = [
 
 
 def linkcode_resolve(domain, info):
-    """Return a URL to the source code on GitHub for the given object."""
+    """Resolve a documented object to a permalink to its source on GitHub.
+
+    Used by the ``sphinx.ext.linkcode`` extension to turn ``[source]`` links
+    in the rendered HTML into deep links to the corresponding file and line
+    on the project's GitHub ``main`` branch.
+
+    Args:
+        domain: Sphinx object domain. Only ``"py"`` is handled; any other
+            domain returns ``None``.
+        info: Dictionary provided by Sphinx with ``"module"`` (the fully
+            qualified module name) and ``"fullname"`` (the dotted
+            attribute path inside the module).
+
+    Returns:
+        A ``github.com/calicarpa/krum/blob/main/<path>`` URL optionally
+        anchored to a line (``#L<n>``), or ``None`` if the object cannot
+        be resolved to a source file inside the repository.
+    """
     if domain != "py":
         return None
 
@@ -150,19 +171,9 @@ html_theme_options = {
                     "summary": "What are attacks",
                 },
                 {
-                    "title": "Experiments",
-                    "url": "reference/experiments/index",
-                    "summary": "What define an experiment",
-                },
-                {
-                    "title": "Tools",
-                    "url": "reference/tools/index",
-                    "summary": "Which tools are available",
-                },
-                {
-                    "title": "Native",
-                    "url": "reference/native",
-                    "summary": "What is native",
+                    "title": "Primitives",
+                    "url": "reference/primitives",
+                    "summary": "Core abstractions",
                 },
             ],
         },

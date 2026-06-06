@@ -1,12 +1,12 @@
-Krum
-====
+MultiKrum
+=========
 
-.. automodule:: aggregators.krum
+.. automodule:: aggregators.multikrum
    :members:
    :undoc-members:
    :show-inheritance:
 
 .. seealso::
 
-   For multi-gradient averaging, see :doc:`multikrum`.
+   For single-gradient selection, see :doc:`krum`.
    For stronger two-stage resilience, see :doc:`bulyan`.

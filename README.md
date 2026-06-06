@@ -75,6 +75,22 @@ Install pre-commit hooks to block non-compliant commits:
 pre-commit install
 ```
 
+### Running tests
+
+Tests use [pytest](https://docs.pytest.org/) and are located under `tests/`. Run the full suite:
+
+```bash
+uv run pytest tests/ -v
+```
+
+Or a specific module:
+
+```bash
+uv run pytest tests/primitives/aggregators/ -v
+```
+
+Tests run automatically on every push and pull request via GitHub Actions (Python 3.10–3.14).
+
 ### Documentation
 
 Build the documentation locally:

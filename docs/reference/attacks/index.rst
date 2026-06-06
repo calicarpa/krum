@@ -1,52 +1,50 @@
 Attacks
 =======
 
-Krum provides several Byzantine attack strategies. Each attack follows a
-keyword-only contract and includes parameter validation.
+Krum provides gradient attacks that generate Byzantine gradients from honest
+worker gradients. Attacks are stateless: each one implements the
+:class:`attacks.Attack` contract as a classmethod, called directly on the class:
+
+.. code-block:: python
+
+   SomeAttack.generate(honest_gradients, f=...)
+
+where:
+
+- ``honest_gradients`` is a sequence of :math:`h` per-worker gradient vectors,
+  each of shape :math:`(d,)` (a stacked :math:`(h, d)` tensor also works)
+- ``f`` (:math:`b`) is the number of Byzantine gradients to generate
+- the returned tensor has shape :math:`(b, d)`
 
 Overview
 --------
 
 .. list-table:: Attacks
    :header-rows: 1
-   :widths: 20 42 20 18
+   :widths: 18 44 20 18
 
    * - Attack
      - Description
-     - Complexity
-     - Target
-   * - NaN
-     - Generates gradients with NaN values
-     - :math:`\mathcal{O}(d)`
-     - Simple aggregators
-   * - Identical (Bulyan)
-     - Uses ones vector as attack direction
-     - :math:`\mathcal{O}(nd)`
-     - Multi-Krum based
-   * - Identical (Empire)
-     - Uses negative average as direction
-     - :math:`\mathcal{O}(nd)`
-     - Inner product based
-   * - Identical (Little)
-     - Uses std dev as attack direction
-     - :math:`\mathcal{O}(nd)`
-     - Distance-based
-
-where:
-
-- :math:`n` = total number of workers
-- :math:`f` = number of Byzantine workers
-- :math:`d` = gradient dimension
+     - Parameters
+     - Output
+   * - SignFlip
+     - Sends scaled gradients in the opposite direction of the honest mean
+     - ``scale``
+     - :math:`b \times d`
+   * - ALIE
+     - Sends mean-shifted gradients using exact honest coordinate-wise statistics
+     - ``z``, ``direction`` (:class:`attacks.alie.Direction`)
+     - :math:`b \times d`
 
 Available Attacks
 -----------------
 
 .. toctree::
    :maxdepth: 1
-   :caption: Byzantine Attack Strategies:
+   :caption: Gradient Attacks:
 
-   classes/identical
-   classes/nan
+   classes/sign_flip
+   classes/alie
 
 API Reference
 -------------

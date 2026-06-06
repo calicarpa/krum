@@ -4,13 +4,14 @@ docs/_build
 # Python stuff
 .venv
 **/__pycache__
-krum.egg-info
-krum/native/**/*.ninja_deps
-krum/native/**/*.ninja_log
-krum/native/**/build.ninja
-krum/native/**/*.o
-krum/native/**/*.so
+*.egg-info/
 
 
 # IDE stuff
 .idea
+
+# Downloaded datasets
+data/
+
+
+.DS_Store
