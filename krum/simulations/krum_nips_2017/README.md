@@ -195,9 +195,9 @@ Saved as `{label}.pt` with a dictionary:
 
 ```python
 {
-    "traces": [(round, error, loss), ...],  # list of 3-tuples
-    "label": "Krum_f6",                      # human-readable label
-    "seed": 42                               # random seed used
+  "traces": [(round, error, loss), ...],  # list of 3-tuples
+  "label": "Krum_f6",                      # human-readable label
+  "seed": 42                               # random seed used
 }
 ```
 
