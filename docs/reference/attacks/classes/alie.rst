@@ -8,4 +8,5 @@ A Little Is Enough
 
 .. seealso::
 
-   For a simpler baseline attack, see :doc:`sign_flip`.
+   For a simple noise-based attack, see :doc:`gaussian`.
+   For a sign-reversal attack, see :doc:`sign_flip`.

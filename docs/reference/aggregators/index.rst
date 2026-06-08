@@ -2,7 +2,7 @@ Aggregators
 ===========
 
 Krum provides several Byzantine-resilient gradient aggregation rules (GARs).
-Aggregators are **stateless** — you call them as classmethods without
+Aggregators are **stateless** --- you call them as classmethods without
 instantiating any object. Specialized parameters (``f``, ``n``, ``m``) are
 keyword-only:
 
@@ -47,18 +47,18 @@ Overview
      - :math:`\mathcal{O}(n^2 d)`
      - :math:`2f + 3`
      - Moderate
-    * - Bulyan
-      - :math:`\mathcal{O}(n^2 d)`
-      - :math:`4f + 3`
-      - Strong
-    * - Brute
-      - :math:`\mathcal{O}\!\left(\binom{n}{n-f} \cdot (n-f)^2 d\right)`
-      - :math:`2f + 1`
-      - Strong (baseline)
-    * - GeoMed
-      - :math:`\mathcal{O}(n^2 d)`
-      - :math:`1`
-      - Moderate
+   * - Bulyan
+     - :math:`\mathcal{O}(n^2 d)`
+     - :math:`4af + 3`
+     - Strong
+   * - Brute
+     - :math:`\mathcal{O}\!\left(\binom{n}{n-f} \cdot (n-f)^2 d\right)`
+     - :math:`2f + 1`
+     - Strong (baseline)
+   * - GeoMed
+     - :math:`\mathcal{O}(n^2 d)`
+     - :math:`1`
+     - Moderate
 
 where:
 

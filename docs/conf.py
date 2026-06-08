@@ -117,8 +117,8 @@ intersphinx_mapping = {
 }
 
 
-# Use MathJax to render math in HTML
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+# Use MathJax v3 to render math in HTML
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
@@ -154,22 +154,36 @@ html_theme_options = {
     "nav_links_align": "center",
     "nav_links": [
         {
+            "title": "Quickstart",
+            "url": "quickstart",
+        },
+        {
             "title": "Reference",
             "children": [
                 {
-                    "title": "Primitives",
-                    "url": "reference/primitives",
-                    "summary": "Core abstractions",
+                    "title": "Architecture",
+                    "url": "reference/architecture",
+                    "summary": "Repository structure and design overview",
                 },
                 {
                     "title": "Aggregators",
                     "url": "reference/aggregators/index",
-                    "summary": "What are aggregators",
+                    "summary": "Byzantine-resilient gradient aggregation rules",
                 },
                 {
                     "title": "Attacks",
                     "url": "reference/attacks/index",
-                    "summary": "What are attacks",
+                    "summary": "Byzantine attack strategies for evaluation",
+                },
+                {
+                    "title": "Primitives",
+                    "url": "reference/primitives",
+                    "summary": "Core abstractions (Model, Attack base class)",
+                },
+                {
+                    "title": "Simulations",
+                    "url": "reference/simulations/index",
+                    "summary": "Full-paper reproduction suites",
                 },
             ],
         },
@@ -196,9 +210,9 @@ latex_elements = {
     """
 }
 
-mathjax_config = {
-    "TeX": {
-        "Macros": {
+mathjax3_config = {
+    "tex": {
+        "macros": {
             "argmin": r"\mathop{\mathrm{arg\,min}}",
         }
     }
