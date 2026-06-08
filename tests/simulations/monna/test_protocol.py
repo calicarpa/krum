@@ -1,7 +1,6 @@
 """Tests for the MoNNA simulation protocol."""
 
 import unittest
-from functools import partial
 
 import torch
 from torch import nn
@@ -86,7 +85,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=3,
             num_byzantine=1,
             learning_rate=0.1,
-            attack=SignFlipAttack.generate,
+            attack=SignFlipAttack,
             seed=0,
         )
 
@@ -129,18 +128,16 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
         """MoNNA owns the mixing rule: default NNA keeps num_honest - num_byzantine."""
         simulation = self.make_simulation(
-            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack.generate
+            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack
         )
 
-        self.assertIsInstance(simulation.aggregator, partial)
-        self.assertIs(simulation.aggregator.func.__self__, NearestNeighborAverage)
-        self.assertEqual(simulation.aggregator.keywords["num_closest"], 3)
+        self.assertIs(simulation.aggregator, NearestNeighborAverage)
+        self.assertEqual(simulation.aggregator_kwargs["num_closest"], 3)
 
     def test_accepts_aggregator_override(self) -> None:
         """A supplied aggregator replaces the default mixing rule."""
         module = nn.Linear(1, 1, bias=False)
         data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(3)]
-        custom = partial(NearestNeighborAverage.aggregate, num_closest=1)
 
         simulation = MonnaSimulation(
             model=Model(module),
@@ -149,10 +146,12 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=3,
             num_byzantine=0,
             learning_rate=0.1,
-            aggregator=custom,
+            aggregator=NearestNeighborAverage,
+            aggregator_kwargs={"num_closest": 1},
         )
 
-        self.assertIs(simulation.aggregator, custom)
+        self.assertIs(simulation.aggregator, NearestNeighborAverage)
+        self.assertEqual(simulation.aggregator_kwargs["num_closest"], 1)
 
     def test_simulation_requires_attack_when_byzantine_workers_are_configured(self) -> None:
         """Byzantine rounds need an explicit attack implementation."""
@@ -189,7 +188,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_byzantine=1,
             learning_rate=0.1,
             beta=0.0,
-            attack=SignFlipAttack.generate,
+            attack=SignFlipAttack,
         )
 
         result = simulation.step()
@@ -204,7 +203,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 num_honest=3,
                 num_byzantine=1,
                 learning_rate=0.1,
-                attack=SignFlipAttack.generate,
+                attack=SignFlipAttack,
                 byzantine_reach="everyone",
             )
 
@@ -219,7 +218,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 num_honest=5,
                 num_byzantine=2,
                 learning_rate=0.1,
-                attack=SignFlipAttack.generate,
+                attack=SignFlipAttack,
                 byzantine_reach=reach,
                 seed=0,
             )
@@ -236,7 +235,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=5,
             num_byzantine=2,
             learning_rate=0.1,
-            attack=SignFlipAttack.generate,
+            attack=SignFlipAttack,
             byzantine_reach="all",
             seed=0,
         )
@@ -254,7 +253,7 @@ class MonnaProtocolTest(unittest.TestCase):
             num_honest=5,
             num_byzantine=2,
             learning_rate=0.1,
-            attack=SignFlipAttack.generate,
+            attack=SignFlipAttack,
             byzantine_reach="sampled",
             seed=0,
         )
