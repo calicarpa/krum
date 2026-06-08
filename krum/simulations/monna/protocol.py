@@ -351,8 +351,8 @@ class MonnaSimulation:
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, self.num_honest, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
-        return other_indices[permutation[:num_responders]]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
+        return other_indices[permutation[:num_responders].to(device)]
 
     def select_received_model_indices(self, *, worker_index: int, device: torch.device) -> torch.Tensor:
         """Randomly select the ``n - f - 1`` nodes received by one honest worker.
@@ -374,8 +374,8 @@ class MonnaSimulation:
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, num_nodes, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
-        return other_indices[permutation[:num_received]]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
+        return other_indices[permutation[:num_received].to(device)]
 
     def aggregate_received_models(self, candidates: torch.Tensor, *, pivot: torch.Tensor) -> torch.Tensor:
         """Aggregate the set of models one worker received.
