@@ -9,6 +9,7 @@ from krum.primitives import Model
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.simulations.monna import MonnaSimulation
+from krum.simulations.monna.protocol import ByzantineReach
 
 
 class MonnaProtocolTest(unittest.TestCase):
@@ -22,7 +23,7 @@ class MonnaProtocolTest(unittest.TestCase):
         learning_rate: float,
         beta: float = 0.99,
         attack=None,
-        byzantine_reach: str = "all",
+        byzantine_reach: ByzantineReach = "all",
         seed: int | None = None,
     ) -> MonnaSimulation:
         """Create a tiny simulation for method-level tests."""
@@ -202,7 +203,7 @@ class MonnaProtocolTest(unittest.TestCase):
                 num_byzantine=1,
                 learning_rate=0.1,
                 attack=SignFlipAttack,
-                byzantine_reach="everyone",
+                byzantine_reach="everyone",  # ty: ignore[invalid-argument-type]
             )
 
     def test_gathered_set_keeps_n_minus_f_size_with_self_first_in_both_modes(self) -> None:

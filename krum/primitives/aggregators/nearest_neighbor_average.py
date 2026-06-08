@@ -37,7 +37,7 @@ class NearestNeighborAverage(Aggregator):
     @classmethod
     def aggregate(
         cls,
-        gradients: Sequence[Tensor],
+        gradients: Sequence[Tensor] | Tensor,
         /,
         *,
         num_closest: int,

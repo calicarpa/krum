@@ -65,12 +65,12 @@ class NearestNeighborAverageTest(unittest.TestCase):
     def test_requires_pivot_keyword(self) -> None:
         """The pivot is required for each aggregation call."""
         with self.assertRaises(TypeError):
-            NearestNeighborAverage.aggregate(torch.empty((3, 4)), num_closest=2)  # type: ignore[call-arg]
+            NearestNeighborAverage.aggregate(torch.empty((3, 4)), num_closest=2)  # ty: ignore[missing-argument]
 
     def test_parameters_are_keyword_only(self) -> None:
         """num_closest and pivot must be passed as keywords."""
         with self.assertRaises(TypeError):
-            NearestNeighborAverage.aggregate(torch.empty((3, 4)), 2)  # type: ignore[misc]
+            NearestNeighborAverage.aggregate(torch.empty((3, 4)), 2)  # ty: ignore[missing-argument, too-many-positional-arguments]
 
 
 if __name__ == "__main__":

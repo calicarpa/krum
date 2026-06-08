@@ -1,7 +1,7 @@
 """Class-based MoNNA simulation."""
 
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import torch
 
@@ -13,8 +13,20 @@ from krum.simulations.base import Simulation
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
-StepResult = dict[str, int | torch.Tensor]
 ByzantineReach = Literal["all", "sampled"]
+
+
+class StepResult(TypedDict):
+    """Snapshot returned by :meth:`MonnaSimulation.step` for one round."""
+
+    step: int
+    parameters: torch.Tensor
+    momentum: torch.Tensor
+    honest_gradients: torch.Tensor
+    local_parameters: torch.Tensor
+    byzantine_parameters: torch.Tensor
+    mixed_parameters: torch.Tensor
+    losses: torch.Tensor
 
 
 class MonnaSimulation(Simulation[StepResult]):
@@ -259,6 +271,7 @@ class MonnaSimulation(Simulation[StepResult]):
         """
         if self.num_byzantine == 0:
             return local_parameters.new_empty((0, local_parameters.shape[1]))
+        assert self.attack is not None  # guaranteed by __init__ when num_byzantine > 0
         return self.attack.generate(local_parameters, f=self.num_byzantine, **self.attack_kwargs)
 
     def aggregate_over_received_nodes(
