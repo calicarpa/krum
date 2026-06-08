@@ -11,14 +11,15 @@ from typing import Any
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-from datasets import mnist_dataset, spambase_dataset
-from models import MLPMnist, MLPSpambase
-from simulation import KrumSimulation
 from torch.utils.data import Dataset
 
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
-from krum.primitives.attacks import OmniscientAttack
+from krum.primitives.attacks.omniscient import OmniscientAttack
+
+from .datasets import mnist_dataset, spambase_dataset
+from .models import MLPMnist, MLPSpambase
+from .simulation import KrumSimulation
 
 
 def main() -> None:

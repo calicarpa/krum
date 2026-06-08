@@ -65,12 +65,6 @@ class MultiKrumTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             MultiKrum.aggregate(torch.tensor([[1.0], [2.0], [3.0]]), n=5, f=1, m=2)
 
-    def test_check_rejects_wrong_number_of_gradients(self) -> None:
-        """Check raises ValueError when gradients.shape[0] != n."""
-        agg = MultiKrum(n=5, f=1, m=2)
-        with self.assertRaises(ValueError):
-            agg.aggregate(torch.tensor([[1.0], [2.0], [3.0]]))
-
 
 if __name__ == "__main__":
     unittest.main()

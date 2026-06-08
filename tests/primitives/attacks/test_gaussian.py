@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.attacks import GaussianAttack
+from krum.primitives.attacks.gaussian import GaussianAttack
 
 
 class GaussianAttackTest(unittest.TestCase):
@@ -61,7 +61,7 @@ class GaussianAttackTest(unittest.TestCase):
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
         with self.assertRaises(TypeError):
-            GaussianAttack(200.0)
+            GaussianAttack(200.0)  # ty:ignore[too-many-positional-arguments]
 
     def test_rejects_negative_std(self) -> None:
         """Check raises ValueError when std < 0."""

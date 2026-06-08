@@ -16,7 +16,7 @@ to provide their own metric reporting.
 
 import csv
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Sized, cast
 
 import torch
 import torch.nn as nn
@@ -24,7 +24,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, Dataset, Subset
 
 from krum.primitives.aggregators import Aggregator
-from krum.primitives.attacks import Attack, OmniscientAttack
+from krum.primitives.attacks import Attack
+from krum.primitives.attacks.omniscient import OmniscientAttack
 from krum.primitives.model import Model
 
 
@@ -234,7 +235,7 @@ class CentralisedSimulation:
         else:
             self._scheduler = None
 
-        train_size = len(self.train_set)
+        train_size = len(cast(Sized, self.train_set))
         shard_size = train_size // self.n
         shard_indices = torch.randperm(train_size, generator=torch.Generator().manual_seed(self.seed))
 
@@ -247,8 +248,8 @@ class CentralisedSimulation:
                 DataLoader(worker_ds, batch_size=self.batch_size, shuffle=True, generator=worker_gen)
             )
 
-        self._full_loader = DataLoader(self.train_set, batch_size=len(self.train_set), shuffle=False)
-        self._test_loader = DataLoader(self.test_set, batch_size=len(self.test_set), shuffle=False)
+        self._full_loader = DataLoader(self.train_set, batch_size=len(cast(Sized, self.train_set)), shuffle=False)
+        self._test_loader = DataLoader(self.test_set, batch_size=len(cast(Sized, self.test_set)), shuffle=False)
         self._has_run = False
         self._current_round = 0
 
@@ -302,7 +303,7 @@ class CentralisedSimulation:
                     self._set_full_gradient_for_attack()
 
                 honest_gradients = torch.stack(worker_gradients)
-                byz_gradients = self.attack.generate(honest_gradients, self.f)
+                byz_gradients = self.attack.generate(honest_gradients, f=self.f)
                 for g in byz_gradients:
                     worker_gradients.append(g)
 
@@ -402,6 +403,29 @@ class CentralisedSimulation:
             preds = logits.argmax(dim=1)
             error = (preds != y).float().mean()
         return error.item()
+
+    def evaluate_test_error_and_loss(self) -> tuple[float, float]:
+        """Compute misclassification error rate and cross-entropy loss on the test set.
+
+        Returns:
+            Tuple of ``(error, loss)``. Error is the misclassification rate
+            in :math:`[0, 1]`; loss is the cross-entropy on the test set.
+
+        Raises:
+            RuntimeError: If :meth:`setup` has not been called.
+        """
+        if self._model is None or self._test_loader is None:
+            raise RuntimeError("Simulation not set up. Call setup() first.")
+
+        self._model.module.eval()
+        with torch.no_grad():
+            x, y = next(iter(self._test_loader))
+            x, y = x.to(self.device), y.to(self.device)
+            logits = self._model.module(x)
+            preds = logits.argmax(dim=1)
+            error = (preds != y).float().mean().item()
+            loss = self.loss_fn(logits, y).item()
+        return (error, loss)
 
     def evaluate_full(self) -> tuple[float, float, float]:
         """Compute training loss and test accuracy/loss on full datasets.

@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.attacks import OmniscientAttack
+from krum.primitives.attacks.omniscient import OmniscientAttack
 
 
 class OmniscientAttackTest(unittest.TestCase):
@@ -61,7 +61,7 @@ class OmniscientAttackTest(unittest.TestCase):
     def test_parameters_are_keyword_only(self) -> None:
         """Parameters must be passed as keywords."""
         with self.assertRaises(TypeError):
-            OmniscientAttack(100.0)
+            OmniscientAttack(100.0)  # ty:ignore[too-many-positional-arguments]
 
     def test_rejects_negative_kappa(self) -> None:
         """Check raises ValueError when kappa < 0."""

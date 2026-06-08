@@ -9,15 +9,16 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import torch
-from datasets import spambase_dataset
-from models import MLPSpambase
-from simulation import KrumSimulation
 
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
-from krum.primitives.attacks import GaussianAttack
+from krum.primitives.attacks.gaussian import GaussianAttack
+
+from .datasets import spambase_dataset
+from .models import MLPSpambase
+from .simulation import KrumSimulation
 
 
 def main() -> None:
