@@ -46,4 +46,4 @@ CentralisedSimulation
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: _detect_device, _set_seed, _train_one_worker, _apply_robbins_monro_lr, _xavier_init_, _set_full_gradient_for_attack, _save_pt, _save_csv
+   :exclude-members: _detect_device, _set_seed, _train_one_worker, _apply_robbins_monro_lr, _xavier_init_, _set_full_gradient_for_attack

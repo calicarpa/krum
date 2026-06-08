@@ -10,8 +10,6 @@ One ``KrumSimulation`` instance = one (aggregator, attack, dataset, model)
 configuration run over multiple synchronous rounds with no learning rate decay.
 """
 
-from typing import Any
-
 from ..centralised import CentralisedSimulation
 
 
@@ -19,7 +17,7 @@ class KrumSimulation(CentralisedSimulation):
     """Distributed SGD simulation with Byzantine workers — NIPS 2017 protocol.
 
     Compared to the ICML 2018
-    :class:`~krum.simulations.hidden-vulnerability-icml-2018.simulation.Simulation`,
+    :class:`~krum.simulations.hidden_vulnerability_icml_2018.simulation.Simulation`,
     this variant:
 
     - Uses a **fixed learning rate** (no scheduler; ``lr_decay=None``, the
@@ -40,12 +38,3 @@ class KrumSimulation(CentralisedSimulation):
             in :math:`[0, 1]`; loss is the cross-entropy on the test set.
         """
         return self.evaluate_test_error_and_loss()
-
-    def _log_round(self, t: int, result: tuple[float, float]) -> None:
-        error, loss = result
-        if self.label:
-            print(f"[{self.label}] round {t:3d}  error={error:.4f}  loss={loss:.4f}")
-
-    def _save_traces(self, traces: list[tuple[int, Any]]) -> None:
-        # traces are (round, error, loss)
-        self._save_pt({"traces": traces, "label": self.label, "seed": self.seed})

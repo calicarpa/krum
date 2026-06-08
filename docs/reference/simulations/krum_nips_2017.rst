@@ -162,30 +162,6 @@ Hyperparameters
    * - Random seed
      - 42
 
-Output Artifacts
-----------------
-
-Per simulation run, when ``results_dir`` is configured:
-
-PyTorch trace (``{label}.pt``):
-
-.. code-block:: python
-
-   {
-       "traces": [(round, error, loss), ...],
-       "label": "Krum_f6",
-       "seed": 42
-   }
-
-Figures:
-
-- **Figure 4** (``figure_4.png``): Two side-by-side subplots — 0% and 33% Byzantine,
-  error vs rounds, Average vs Krum.
-- **Figure 5** (``figure_5.png``): Two side-by-side subplots — Spambase and MNIST,
-  error at round 500 vs batch size (log₂ scale).
-- **Figure 6** (``figure_6.png``): Single plot — Average (0%), Krum (33%),
-  Multi-Krum (33%), error vs rounds.
-
 API Reference
 -------------
 

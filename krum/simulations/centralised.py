@@ -7,15 +7,13 @@ Each synchronous round:
     #. The aggregated update is applied via an SGD step.
 
 The :class:`CentralisedSimulation` base class implements the full lifecycle
-(model initialisation, data sharding, training loop, evaluation, persistence).
-Protocol-specific subclasses — :class:`~krum.simulations.krum-nips-2017.simulation.KrumSimulation`
-(Blanchard et al., NIPS 2017) and :class:`~krum.simulations.hidden-vulnerability-icml-2018.simulation.Simulation`
+(model initialisation, data sharding, training loop, evaluation).
+Protocol-specific subclasses — :class:`~krum.simulations.krum_nips_2017.simulation.KrumSimulation`
+(Blanchard et al., NIPS 2017) and :class:`~krum.simulations.hidden_vulnerability_icml_2018.simulation.Simulation`
 (El Mhamdi et al., ICML 2018) — override only :meth:`~CentralisedSimulation.evaluate`
 to provide their own metric reporting.
 """
 
-import csv
-from pathlib import Path
 from typing import Any, Callable, Literal, Sized, cast
 
 import torch
@@ -39,8 +37,7 @@ class CentralisedSimulation:
 
     Subclasses override :meth:`evaluate` to customise the evaluation protocol
     (e.g. NIPS 2017 reports a single error rate, ICML 2018 reports three
-    metrics).  The hooks :meth:`_log_round` and :meth:`_save_traces` control
-    per-round printing and persistence respectively.
+    metrics).
 
     Args:
         model_cls: ``nn.Module`` subclass to instantiate for training.
@@ -96,9 +93,6 @@ class CentralisedSimulation:
         seed: Random seed for reproducibility.
         eval_every: Evaluate on the test set every ``eval_every`` rounds
             (and always on the last round).
-        label: Human-readable name for logging and trace filenames.
-        results_dir: Directory to save per-run traces (``.pt`` and optionally
-            ``.csv``).  If ``None``, results are not saved to disk.
 
     Raises:
         RuntimeError: If :meth:`run` is called more than once on the same
@@ -131,8 +125,6 @@ class CentralisedSimulation:
         device: torch.device | None = None,
         seed: int = 42,
         eval_every: int = 10,
-        label: str = "",
-        results_dir: Path | str | None = None,
     ) -> None:
         """See the class docstring for the full parameter list."""
         if lr_schedule not in {"exponential", "robbins_monro", "none"}:
@@ -174,8 +166,6 @@ class CentralisedSimulation:
         self.device = device or self._detect_device()
         self.seed = seed
         self.eval_every = eval_every
-        self.label = label
-        self.results_dir = Path(results_dir) if results_dir is not None else None
 
         self._model: Model | None = None
         self._opt: torch.optim.Optimizer | None = None
@@ -336,9 +326,6 @@ class CentralisedSimulation:
 
         Calls :meth:`setup`, then loops over :meth:`step` and :meth:`evaluate`
         every ``eval_every`` rounds (always evaluating on the last round).
-        On each evaluation, :meth:`_log_round` prints progress and
-        :meth:`_save_traces` persists results to ``results_dir`` when
-        configured.
 
         Returns:
             List of ``(round, ...)`` tuples. The tail is the output of
@@ -362,26 +349,9 @@ class CentralisedSimulation:
 
             if t % self.eval_every == 0 or t == self.rounds - 1:
                 result = self.evaluate()
-                self._log_round(t, result)
                 traces.append(_pack(t, result))
 
-        self._save_traces(traces)
         return traces
-
-    def _log_round(self, t: int, result: Any) -> None:
-        """Log evaluation metrics for a round. Override in subclass.
-
-        Args:
-            t: Current round index (0-based).
-            result: The value returned by :meth:`evaluate`.
-        """
-
-    def _save_traces(self, traces: list[tuple[int, Any]]) -> None:
-        """Save traces to disk. Override in subclass.
-
-        Args:
-            traces: List of ``(round, ...)`` tuples as produced by :meth:`run`.
-        """
 
     def evaluate_test_error(self) -> float:
         """Compute misclassification error rate on the held-out test set.
@@ -455,35 +425,6 @@ class CentralisedSimulation:
             test_acc = (preds == y_test).float().mean().item()
 
         return (train_loss, test_acc, test_loss)
-
-    def _save_pt(self, data: dict[str, Any]) -> None:
-        """Persist per-run traces as a ``.pt`` file.
-
-        Args:
-            data: Dictionary to save via :func:`torch.save`. Must be a
-                serialisable ``dict`` (e.g. ``{"errors": traces, "label": label}``).
-        """
-        if self.results_dir is None:
-            return
-        self.results_dir.mkdir(parents=True, exist_ok=True)
-        torch.save(data, self.results_dir / f"{self.label}.pt")
-
-    def _save_csv(self, traces: list[tuple[Any, ...]]) -> None:
-        """Persist per-run traces as a ``.csv`` file.
-
-        Columns: ``round, train_loss, test_accuracy, test_loss``.
-
-        Args:
-            traces: List of ``(round, train_loss, test_accuracy, test_loss)`` tuples.
-        """
-        if self.results_dir is None:
-            return
-        self.results_dir.mkdir(parents=True, exist_ok=True)
-        with open(self.results_dir / f"{self.label}.csv", "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["round", "train_loss", "test_accuracy", "test_loss"])
-            for t, tr_loss, acc, te_loss in traces:
-                writer.writerow([t, tr_loss, acc, te_loss])
 
     @staticmethod
     def _detect_device() -> torch.device:
