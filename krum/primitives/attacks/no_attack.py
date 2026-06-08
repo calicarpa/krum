@@ -7,9 +7,10 @@ gradients in the aggregator input. It is used as the honest baseline in
 the experiments of El Mhamdi et al. (ICML 2018).
 """
 
-from __future__ import annotations
+from collections.abc import Sequence
+from typing import Any
 
-import torch
+from torch import Tensor, stack
 
 from . import Attack
 
@@ -25,29 +26,37 @@ class NoAttack(Attack):
 
     This corresponds to the "Average baseline" runs of El Mhamdi et al.
     (ICML 2018), where :math:`f = 0` and no defense is applied.
+
+    Args:
+        honest_gradients: Sequence of 1-D tensors, one per honest worker.
+        f: Number of Byzantine gradients to generate. Ignored.
+
+    Returns:
+        Empty tensor of shape ``(0, d)``.
     """
 
+    @classmethod
     def generate(
-        self,
-        honest_gradients: torch.Tensor,
-        num_byzantine: int,
-    ) -> torch.Tensor:
+        cls,
+        honest_gradients: Sequence[Tensor] | Tensor,
+        /,
+        out: Tensor | None = None,
+        *,
+        f: int,
+        **specialized: Any,
+    ) -> Tensor:
         """Return an empty Byzantine-gradient tensor of shape ``(0, d)``.
 
         Args:
-            honest_gradients: Honest gradient stack of shape ``(h, d)``.
-                Only the second dimension is used.
-            num_byzantine: Number of Byzantine gradients requested by the
-                caller. Ignored — the method always returns an empty
-                stack.
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``. Only the second dimension is used.
+            out: Optional pre-allocated tensor. Ignored.
+            f: Number of Byzantine gradients requested by the caller. Ignored.
+            **specialized: Additional keyword arguments.
 
         Returns:
             Empty tensor of shape ``(0, d)`` on the same device and dtype
             as ``honest_gradients``.
-
-        Raises:
-            ValueError: If ``honest_gradients`` is not 2-D.
         """
-        if honest_gradients.ndim != 2:
-            raise ValueError("Expected a 2D tensor of honest gradients")
-        return honest_gradients.new_empty((0, honest_gradients.shape[1]))
+        stacked = stack(list(honest_gradients))
+        return stacked.new_empty((0, stacked.shape[1]))

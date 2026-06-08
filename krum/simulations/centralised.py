@@ -49,10 +49,11 @@ class CentralisedSimulation:
         aggregator_kwargs: Extra keyword arguments forwarded to
             ``aggregator.aggregate`` (e.g. ``{"m": 12}`` for ``MultiKrum``).
             ``n`` and ``f`` are automatically injected by the simulation.
-        attack: Byzantine attack strategy (e.g. ``GaussianAttack``).
-            If the attack is an :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`,
-            the full-dataset gradient is computed and set before each attack
-            generation.
+        attack: Byzantine attack strategy class (e.g. ``GaussianAttack``).
+            Pass the class itself — :meth:`~CentralisedSimulation.step` calls
+            ``attack.generate(honest_gradients, f=f, **attack_kwargs)``.
+        attack_kwargs: Extra keyword arguments forwarded to
+            ``attack.generate`` (e.g. ``{"std": 200.0}`` for ``GaussianAttack``).
         n: Total number of workers.
         f: Number of Byzantine workers. Must be within the aggregator's
             Byzantine tolerance.
@@ -109,7 +110,8 @@ class CentralisedSimulation:
         test_set: Dataset[Any],
         aggregator: type[Aggregator],
         aggregator_kwargs: dict[str, Any] | None = None,
-        attack: Attack,
+        attack: type[Attack],
+        attack_kwargs: dict[str, Any] | None = None,
         n: int,
         f: int,
         rounds: int,
@@ -151,6 +153,7 @@ class CentralisedSimulation:
         self.aggregator = aggregator
         self._aggregator_kwargs = aggregator_kwargs or {}
         self.attack = attack
+        self._attack_kwargs = attack_kwargs or {}
         self.n = n
         self.f = f
         self.rounds = rounds
@@ -289,11 +292,12 @@ class CentralisedSimulation:
                 for _ in range(self.f):
                     worker_gradients.append(zero_grad.clone())
             else:
-                if isinstance(self.attack, OmniscientAttack):
-                    self._set_full_gradient_for_attack()
+                attack_kw = dict(self._attack_kwargs)
+                if issubclass(self.attack, OmniscientAttack):
+                    attack_kw["full_gradient"] = self._compute_full_gradient()
 
                 honest_gradients = torch.stack(worker_gradients)
-                byz_gradients = self.attack.generate(honest_gradients, f=self.f)
+                byz_gradients = self.attack.generate(honest_gradients, f=self.f, **attack_kw)
                 for g in byz_gradients:
                     worker_gradients.append(g)
 
@@ -506,25 +510,23 @@ class CentralisedSimulation:
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
 
-    def _set_full_gradient_for_attack(self) -> None:
-        """Compute the full-dataset honest gradient and pass it to an omniscient attack.
+    def _compute_full_gradient(self) -> torch.Tensor:
+        """Compute the full-dataset honest gradient for the omniscient attack.
 
         Called automatically by :meth:`step` before Byzantine gradient
         generation when ``self.attack`` is an
         :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`.
 
-        Raises:
-            TypeError: If ``self.attack`` is not an :class:`OmniscientAttack`.
+        Returns:
+            Full-dataset gradient of shape ``(d,)``.
         """
-        if not isinstance(self.attack, OmniscientAttack):
-            raise TypeError(f"Expected OmniscientAttack, got {type(self.attack).__name__}")
         assert self._model is not None and self._opt is not None and self._full_loader is not None
         x, y = next(iter(self._full_loader))
         x, y = x.to(self.device), y.to(self.device)
         self._opt.zero_grad()
         loss = self.loss_fn(self._model.module(x), y)
         loss.backward()
-        self.attack.set_full_gradient(self._model.gradients.clone())
+        return self._model.gradients.clone()
 
 
 def _pack(round: int, result: Any) -> tuple[int, Any]:

@@ -1,6 +1,9 @@
 """Gaussian attack."""
 
-import torch
+from collections.abc import Sequence
+from typing import Any
+
+from torch import Tensor, randn, stack
 
 from . import Attack
 
@@ -13,55 +16,72 @@ class GaussianAttack(Attack):
     This attack is independent of the honest gradients.
 
     Args:
+        honest_gradients: Sequence of 1-D tensors, one per honest worker.
+        f: Number of Byzantine gradients to generate.
         mu: Mean of the Gaussian noise. Default 0 as used in the
             Krum NIPS-2017 paper.
         std: Standard deviation of the Gaussian noise. Default 200
             as used in the Krum NIPS-2017 paper.
+
+    Returns:
+        Byzantine gradients of shape ``(f, d)``.
+
+    Raises:
+        ValueError: If ``std`` or ``f`` is negative, or there are no honest
+            gradients.
+        TypeError: If the honest gradients do not use a floating-point dtype.
     """
 
-    def __init__(self, *, mu: float = 0.0, std: float = 200.0) -> None:
-        """Initialize the Gaussian attack.
+    @classmethod
+    def generate(
+        cls,
+        honest_gradients: Sequence[Tensor] | Tensor,
+        /,
+        out: Tensor | None = None,
+        *,
+        f: int,
+        mu: float = 0.0,
+        std: float = 200.0,
+        **specialized: Any,
+    ) -> Tensor:
+        """Generate Gaussian Byzantine gradients.
 
         Args:
+            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
+                worker, each of shape ``(d,)``. Only the second dimension is used.
+            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+                result into and return.
+            f: Number of Byzantine gradients to generate.
             mu: Mean of the Gaussian noise.
             std: Standard deviation of the Gaussian noise.
+            **specialized: Additional keyword arguments.
+
+        Returns:
+            Byzantine gradients of shape ``(f, d)``. When ``f == 0``, returns an
+            empty tensor of shape ``(0, d)``.
+
+        Raises:
+            ValueError: If ``std`` or ``f`` is negative, or there are no honest
+                gradients.
+            TypeError: If the honest gradients do not use a floating-point dtype.
         """
         if std < 0:
             msg = f"Invalid standard deviation, got {std!r}, expected std >= 0"
             raise ValueError(msg)
-        self.mu = mu
-        self.std = std
-
-    def generate(
-        self,
-        honest_gradients: torch.Tensor,
-        num_byzantine: int,
-    ) -> torch.Tensor:
-        """Generate Gaussian Byzantine gradients.
-
-        Args:
-            honest_gradients: Tensor of shape (h, d) containing gradients from honest workers.
-                Not used by this attack, only needed for the output shape.
-            num_byzantine: Number of Byzantine gradients to generate.
-
-        Returns:
-            Byzantine gradients of shape (num_byzantine, d).
-        """
-        if honest_gradients.ndim != 2:
-            raise ValueError("Expected a 2D tensor of honest gradients")
-        if not torch.is_floating_point(honest_gradients):
-            raise TypeError("Expected honest gradients to use a floating-point dtype")
-        if num_byzantine < 0:
-            msg = (
-                f"Invalid number of Byzantine gradients to generate, got {num_byzantine!r}, expected 0 <= num_byzantine"
-            )
+        if f < 0:
+            msg = f"Invalid number of Byzantine gradients to generate, got {f!r}, expected 0 <= f"
+            raise ValueError(msg)
+        if len(honest_gradients) == 0:
+            msg = "Expected at least one honest gradient to determine output shape"
             raise ValueError(msg)
 
-        if num_byzantine == 0:
-            return honest_gradients.new_empty((0, honest_gradients.shape[1]))
+        stacked = stack(list(honest_gradients))
 
-        d = honest_gradients.shape[1]
-        return (
-            self.mu
-            + torch.randn(num_byzantine, d, device=honest_gradients.device, dtype=honest_gradients.dtype) * self.std
-        )
+        if f == 0:
+            return stacked.new_empty((0, stacked.shape[1]))
+
+        d = stacked.shape[1]
+        result = mu + randn(f, d, device=stacked.device, dtype=stacked.dtype) * std
+        if out is not None:
+            return out.copy_(result)
+        return result

@@ -44,7 +44,8 @@ def main() -> None:
                     (Average, "Average"),
                     (Krum, "Krum"),
                 ]:
-                    attack = OmniscientAttack(kappa=100.0)
+                    attack = OmniscientAttack
+                    attack_kw: dict[str, Any] = {"kappa": 100.0}
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
                     print(f"\n=== {label} ===")
 
@@ -54,6 +55,7 @@ def main() -> None:
                         test_set=test_set,
                         aggregator=agg,
                         attack=attack,
+                        attack_kwargs=attack_kw,
                         n=n,
                         f=f,
                         rounds=rounds,

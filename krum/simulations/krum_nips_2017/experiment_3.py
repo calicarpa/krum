@@ -32,7 +32,8 @@ def main() -> None:
     lr = 0.01
 
     train_set, test_set = spambase_dataset()
-    attack = GaussianAttack(std=200.0)
+    attack = GaussianAttack
+    attack_kw: dict[str, Any] = {"std": 200.0}
 
     configs: list[tuple[type[Aggregator], str, int, dict[str, Any] | None]] = [
         (Average, "Average_f0", 0, None),
@@ -49,6 +50,7 @@ def main() -> None:
             aggregator=agg,
             aggregator_kwargs=agg_kw,
             attack=attack,
+            attack_kwargs=attack_kw,
             n=n,
             f=f_val,
             rounds=rounds,

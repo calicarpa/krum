@@ -4,6 +4,8 @@ Reproduces Figure 4: compares Average and Krum under 0% and 33% Gaussian
 Byzantine workers on Spambase.
 """
 
+from typing import Any
+
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
@@ -27,7 +29,8 @@ def main() -> None:
     f_list = [0, int(n * 0.33)]
 
     train_set, test_set = spambase_dataset()
-    attack = GaussianAttack(std=200.0)
+    attack = GaussianAttack
+    attack_kw: dict[str, Any] = {"std": 200.0}
 
     for f in f_list:
         for agg, agg_label in [
@@ -43,6 +46,7 @@ def main() -> None:
                 test_set=test_set,
                 aggregator=agg,
                 attack=attack,
+                attack_kwargs=attack_kw,
                 n=n,
                 f=f,
                 rounds=rounds,
