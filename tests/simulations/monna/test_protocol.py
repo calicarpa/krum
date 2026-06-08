@@ -127,9 +127,7 @@ class MonnaProtocolTest(unittest.TestCase):
 
     def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
         """MoNNA owns the mixing rule: default NNA keeps num_honest - num_byzantine."""
-        simulation = self.make_simulation(
-            num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack
-        )
+        simulation = self.make_simulation(num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack)
 
         self.assertIs(simulation.aggregator, NearestNeighborAverage)
         self.assertEqual(simulation.aggregator_kwargs["num_closest"], 3)
