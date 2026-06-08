@@ -18,7 +18,6 @@ from typing import Any, Callable, Literal, Sized, cast
 
 import torch
 import torch.nn as nn
-from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, Dataset, Subset
 
 from krum.primitives.aggregators import Aggregator
@@ -62,9 +61,9 @@ class CentralisedSimulation:
         lr: Initial learning rate for SGD. Used as :math:`η_0` by every
             supported scheduler.
         lr_schedule: Learning-rate schedule applied after each round.
-            ``"exponential"`` uses :class:`ExponentialLR` with
-            multiplicative decay ``lr_decay`` per round (the default
-            for the ICML 2018 protocol). ``"robbins_monro"`` uses the
+            ``"exponential"`` uses multiplicative decay ``lr_decay``
+            per round (the default for the ICML 2018 protocol).
+            ``"robbins_monro"`` uses the
             :math:`η(t) = r_η · η_0 / (t + r_η)` schedule of El Mhamdi
             et al. (ICML 2018), with fading rate ``r_eta``. ``"none"``
             keeps a constant learning rate (the default for the NIPS
@@ -75,9 +74,9 @@ class CentralisedSimulation:
         r_eta: Fading rate for the Robbins-Monro schedule
             :math:`η(t) = r_η · η_0 / (t + r_η)`. Required when
             ``lr_schedule == "robbins_monro"``.
-        weight_decay: :math:`ℓ_2` regularization coefficient passed to
-            :class:`torch.optim.SGD`. Set to ``0.0`` (default) to
-            disable. Section 5.1 of El Mhamdi et al. (ICML 2018)
+        weight_decay: :math:`ℓ_2` regularization coefficient applied
+            directly on the flat parameter tensor. Set to ``0.0``
+            (default) to disable. Section 5.1 of El Mhamdi et al. (ICML 2018)
             recommends ``1e-4``.
         xavier_init: When ``True``, apply Glorot/Xavier uniform
             initialization to every weight tensor of the model after
@@ -171,8 +170,7 @@ class CentralisedSimulation:
         self.eval_every = eval_every
 
         self._model: Model | None = None
-        self._opt: torch.optim.Optimizer | None = None
-        self._scheduler: ExponentialLR | None = None
+        self._current_lr: float = self.lr
         self._worker_loaders: list[DataLoader[Any]] = []
         self._full_loader: DataLoader[Any] | None = None
         self._test_loader: DataLoader[Any] | None = None
@@ -194,18 +192,17 @@ class CentralisedSimulation:
         return self._model
 
     def setup(self) -> None:
-        """Initialise the model, SGD optimizer, IID data shards, and dataloaders.
+        """Initialise the model, learning rate, IID data shards, and dataloaders.
 
         The training set is evenly split into ``n`` shards (the remaining
         ``len(train_set) % n`` samples are dropped).  Each worker receives a
         dedicated :class:`~torch.utils.data.DataLoader` with its own RNG
         generator, so mini-batch sampling is reproducible across runs.
 
-        The SGD optimizer is created with the configured ``weight_decay``.
-        An :class:`~torch.optim.lr_scheduler.ExponentialLR` scheduler is
-        created when ``lr_schedule == "exponential"``; the Robbins-Monro
-        schedule is applied manually inside :meth:`step` (no scheduler
-        object is created).
+        The learning rate is initialised to ``self.lr``. The
+        Robbins-Monro schedule updates it each round inside
+        :meth:`step`; the exponential schedule decays it after every
+        round via ``self._current_lr *= lr_decay``.
 
         When ``xavier_init`` is enabled, every weight tensor of the
         instantiated model is re-initialized with the Glorot/Xavier
@@ -217,16 +214,7 @@ class CentralisedSimulation:
         self._model = Model(self.model_cls().to(self.device))
         if self.xavier_init:
             self._xavier_init_(self._model.module)
-        self._opt = torch.optim.SGD(
-            self._model.module.parameters(),
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-        )
-        if self.lr_schedule == "exponential":
-            assert self.lr_decay is not None
-            self._scheduler = ExponentialLR(self._opt, gamma=self.lr_decay)
-        else:
-            self._scheduler = None
+        self._current_lr = self.lr
 
         train_size = len(cast(Sized, self.train_set))
         shard_size = train_size // self.n
@@ -261,13 +249,14 @@ class CentralisedSimulation:
         #. The aggregator combines all ``n`` gradients into a single update
            via ``self.aggregator.aggregate(...)``.
         #. The aggregated gradient is written to
-           ``self._model.gradients`` and the optimizer takes an SGD step.
-        #. The learning rate scheduler (if enabled) is stepped.
+           ``self._model.gradients`` and applied via an in-place SGD
+           update on the flat parameter tensor.
+        #. The learning rate (if scheduled) is decayed.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
         """
-        if self._model is None or self._opt is None:
+        if self._model is None:
             raise RuntimeError("Simulation not set up. Call setup() first.")
 
         if self.lr_schedule == "robbins_monro":
@@ -304,9 +293,14 @@ class CentralisedSimulation:
         all_gradients = torch.stack(worker_gradients)
         aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.f, **self._aggregator_kwargs)
         self._model.gradients = aggregated
-        self._opt.step()
-        if self.lr_schedule == "exponential" and self._scheduler is not None:
-            self._scheduler.step()
+        with torch.no_grad():
+            params = self._model.parameters
+            if self.weight_decay > 0:
+                params.mul_(1 - self._current_lr * self.weight_decay)
+            params.add_(self._model.gradients, alpha=-self._current_lr)
+        if self.lr_schedule == "exponential":
+            assert self.lr_decay is not None
+            self._current_lr *= self.lr_decay
 
         self._current_round += 1
 
@@ -467,31 +461,28 @@ class CentralisedSimulation:
         Returns:
             Cloned flat gradient tensor of shape ``(d,)``.
         """
-        assert self._model is not None and self._opt is not None
+        assert self._model is not None
         self._model.module.train()
         x, y = next(iter(loader))
         x, y = x.to(self.device), y.to(self.device)
-        self._opt.zero_grad()
+        self._model.module.zero_grad()
         loss = self.loss_fn(self._model.module(x), y)
         loss.backward()
         return self._model.gradients.clone()
 
     def _apply_robbins_monro_lr(self, t: int) -> None:
-        """Set the SGD learning rate to the Robbins-Monro value for round ``t``.
+        """Set the learning rate to the Robbins-Monro value for round ``t``.
 
         The Robbins-Monro schedule of El Mhamdi et al. (ICML 2018, Section
-        5.1) is :math:`η(t) = r_η · η_0 / (t + r_η)`. This is applied
-        manually to the optimizer's parameter groups, because the
-        schedule depends on the round index and is not natively supported
-        by :class:`torch.optim.lr_scheduler`.
+        5.1) is :math:`η(t) = r_η · η_0 / (t + r_η)`. The computed rate
+        is stored in ``self._current_lr``, which is then used by the flat
+        SGD update in :meth:`step`.
 
         Args:
             t: Current round index (0-based).
         """
-        assert self.r_eta is not None and self._opt is not None
-        new_lr = self.r_eta * self.lr / (t + self.r_eta)
-        for param_group in self._opt.param_groups:
-            param_group["lr"] = new_lr
+        assert self.r_eta is not None
+        self._current_lr = self.r_eta * self.lr / (t + self.r_eta)
 
     @staticmethod
     def _xavier_init_(module: nn.Module) -> None:
@@ -520,10 +511,10 @@ class CentralisedSimulation:
         Returns:
             Full-dataset gradient of shape ``(d,)``.
         """
-        assert self._model is not None and self._opt is not None and self._full_loader is not None
+        assert self._model is not None and self._full_loader is not None
         x, y = next(iter(self._full_loader))
         x, y = x.to(self.device), y.to(self.device)
-        self._opt.zero_grad()
+        self._model.module.zero_grad()
         loss = self.loss_fn(self._model.module(x), y)
         loss.backward()
         return self._model.gradients.clone()

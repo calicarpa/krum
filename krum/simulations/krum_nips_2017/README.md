@@ -68,7 +68,7 @@ Gaussian Byzantine workers on Spambase (n=20, batch_size=3, 500 rounds).
 | Parameter | Value |
 |-----------|-------|
 | Learning rate | 0.01 (fixed, no decay) |
-| Optimizer | SGD (no momentum, no weight decay) |
+| Optimizer | Flat-tensor SGD (in-place, no momentum, no weight decay) |
 | Number of workers `n` | 20 |
 | Byzantine ratios `f/n` | 0%, 33% (f=6), 45% (f=9) |
 | Rounds `T` | 500 |
