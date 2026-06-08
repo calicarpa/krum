@@ -28,21 +28,21 @@ Overview
      - Parameters
      - Output
    * - SignFlip
-      - Sends scaled gradients in the opposite direction of the honest mean
-      - ``scale``
-      - :math:`b \times d`
+     - Sends scaled gradients in the opposite direction of the honest mean
+     - ``scale``
+     - :math:`b \times d`
    * - ALIE
      - Sends mean-shifted gradients using exact honest coordinate-wise statistics
      - ``z``, ``direction`` (:class:`attacks.alie.Direction`)
      - :math:`b \times d`
    * - Gaussian
-      - Sends random Gaussian vectors with zero mean and configurable standard deviation
-      - ``std``
-      - :math:`b \times d`
+     - Sends random Gaussian vectors with zero mean and configurable standard deviation
+     - ``std``
+     - :math:`b \times d`
    * - Omniscient
-      - Sends negated full-dataset gradient scaled by a factor kappa
-      - ``kappa``, full gradient via ``set_full_gradient()``
-      - :math:`b \times d`
+     - Sends negated full-dataset gradient scaled by a factor kappa
+     - ``kappa``, full gradient via ``set_full_gradient()``
+     - :math:`b \times d`
 
 Available Attacks
 -----------------
