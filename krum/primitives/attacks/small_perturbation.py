@@ -46,7 +46,8 @@ from typing import Any
 
 from torch import Tensor, allclose, argmax, cat, ones, stack, zeros
 
-from ..aggregators import Aggregator
+from krum.primitives.aggregators import Aggregator
+
 from . import Attack
 
 

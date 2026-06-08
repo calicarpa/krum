@@ -47,10 +47,18 @@ Overview
      - :math:`\mathcal{O}(n^2 d)`
      - :math:`2f + 3`
      - Moderate
-   * - Bulyan
-     - :math:`\mathcal{O}(n^2 d)`
-     - :math:`4f + 3`
-     - Strong
+    * - Bulyan
+      - :math:`\mathcal{O}(n^2 d)`
+      - :math:`4f + 3`
+      - Strong
+    * - Brute
+      - :math:`\mathcal{O}\!\left(\binom{n}{n-f} \cdot (n-f)^2 d\right)`
+      - :math:`2f + 1`
+      - Strong (baseline)
+    * - GeoMed
+      - :math:`\mathcal{O}(n^2 d)`
+      - :math:`1`
+      - Moderate
 
 where:
 
@@ -70,6 +78,8 @@ Available Aggregators
    classes/krum
    classes/multikrum
    classes/bulyan
+   classes/brute
+   classes/geomed
 
 API Reference
 -------------

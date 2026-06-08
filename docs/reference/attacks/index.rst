@@ -39,10 +39,18 @@ Overview
      - Sends random Gaussian vectors with zero mean and configurable standard deviation
      - ``std``
      - :math:`b \times d`
-   * - Omniscient
-     - Sends negated full-dataset gradient scaled by a factor kappa
-     - ``kappa``, full gradient via ``set_full_gradient()``
-     - :math:`b \times d`
+    * - Omniscient
+      - Sends negated full-dataset gradient scaled by a factor kappa
+      - ``kappa``, ``full_gradient``
+      - :math:`b \times d`
+    * - NoAttack
+      - No-op baseline that always returns an empty tensor
+      - —
+      - :math:`0 \times d`
+    * - SmallPerturbation
+      - Boundary search along a direction that exploits the curse of dimensionality
+      - ``aggregator``, ``n``, ``p``, ``coordinate``
+      - :math:`b \times d`
 
 Available Attacks
 -----------------
@@ -55,6 +63,8 @@ Available Attacks
    classes/alie
    classes/gaussian
    classes/omniscient
+   classes/no_attack
+   classes/small_perturbation
 
 API Reference
 -------------
