@@ -1,23 +1,19 @@
 """Class-based MoNNA simulation."""
 
 from collections.abc import Callable, Iterable, Sequence
-from functools import partial
-from typing import Literal
+from typing import Any, Literal
 
 import torch
 
 from krum.primitives import Model
+from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
+from krum.primitives.attacks import Attack
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
 StepResult = dict[str, int | torch.Tensor]
 ByzantineReach = Literal["all", "sampled"]
-# Attacks and aggregators are stateless callables: an attack maps the honest
-# models and ``f`` to the Byzantine models; an aggregator maps the received
-# models and a pivot to one mixed model.
-AttackFn = Callable[..., torch.Tensor]
-AggregatorFn = Callable[..., torch.Tensor]
 
 
 class MonnaSimulation:
@@ -59,8 +55,10 @@ class MonnaSimulation:
         num_byzantine: int,
         learning_rate: float,
         beta: float = 0.99,
-        attack: AttackFn | None = None,
-        aggregator: AggregatorFn | None = None,
+        attack: type[Attack] | None = None,
+        attack_kwargs: dict[str, Any] | None = None,
+        aggregator: type[Aggregator] | None = None,
+        aggregator_kwargs: dict[str, Any] | None = None,
         byzantine_reach: ByzantineReach = "all",
         seed: int | None = None,
     ) -> None:
@@ -76,10 +74,20 @@ class MonnaSimulation:
                 non-negative and smaller than ``num_honest``.
             learning_rate: Positive local step size.
             beta: Momentum coefficient in ``[0, 1)``.
-            attack: Callable mapping the honest models and ``f`` to the Byzantine
-                models. Required when ``num_byzantine > 0``.
-            aggregator: Optional model-mixing rule overriding the default
-                nearest-neighbor average over the ``n - 2f`` closest models.
+            attack: :class:`~krum.primitives.attacks.Attack` subclass whose
+                ``generate`` classmethod maps the honest models and ``f`` to the
+                Byzantine models. Required when ``num_byzantine > 0``.
+            attack_kwargs: Extra keyword arguments forwarded to
+                ``attack.generate`` (e.g. ``{"std": 200.0}``). ``f`` is injected
+                by the simulation.
+            aggregator: Optional :class:`~krum.primitives.aggregators.Aggregator`
+                subclass overriding the default nearest-neighbor average over the
+                ``n - 2f`` closest models. Its ``aggregate`` classmethod is
+                called with the received models and a ``pivot``.
+            aggregator_kwargs: Extra keyword arguments forwarded to
+                ``aggregator.aggregate`` (e.g. ``{"num_closest": ...}``). The
+                ``pivot`` is injected per worker; the default aggregator's
+                ``num_closest`` is injected automatically.
             byzantine_reach: ``"all"`` to inject every Byzantine model into every
                 worker's received set, or ``"sampled"`` to draw responders
                 uniformly from all other nodes.
@@ -89,8 +97,11 @@ class MonnaSimulation:
             ValueError: If a worker count, learning rate, beta, data length, or
                 ``byzantine_reach`` is out of range, or an attack is missing
                 while ``num_byzantine > 0``.
-            TypeError: If ``model``, ``loss_fn``, ``attack``, ``aggregator``, or
-                ``seed`` has the wrong type.
+            TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
+                is not an :class:`~krum.primitives.attacks.Attack` subclass,
+                ``aggregator`` is not an
+                :class:`~krum.primitives.aggregators.Aggregator` subclass, or
+                ``seed`` is not an int or ``None``.
         """
         if num_honest < 1:
             raise ValueError(f"Expected at least one honest worker, got {num_honest!r}")
@@ -113,10 +124,10 @@ class MonnaSimulation:
             raise ValueError(f"Expected {num_honest} data streams, got {len(data)!r}")
         if num_byzantine and attack is None:
             raise ValueError("An attack is required when num_byzantine > 0")
-        if attack is not None and not callable(attack):
-            raise TypeError("Expected attack to be callable")
-        if aggregator is not None and not callable(aggregator):
-            raise TypeError("Expected aggregator to be callable")
+        if attack is not None and not (isinstance(attack, type) and issubclass(attack, Attack)):
+            raise TypeError("Expected attack to be an Attack subclass")
+        if aggregator is not None and not (isinstance(aggregator, type) and issubclass(aggregator, Aggregator)):
+            raise TypeError("Expected aggregator to be an Aggregator subclass")
         if byzantine_reach not in ("all", "sampled"):
             raise ValueError(f"Expected byzantine_reach to be 'all' or 'sampled', got {byzantine_reach!r}")
         if seed is not None and not isinstance(seed, int):
@@ -130,12 +141,14 @@ class MonnaSimulation:
         self.learning_rate = learning_rate
         self.beta = beta
         self.attack = attack
+        self.attack_kwargs = attack_kwargs or {}
         self.byzantine_reach = byzantine_reach
-        # Each worker mixes over its n - f received models and keeps the
-        # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
-        self.aggregator = aggregator or partial(
-            NearestNeighborAverage.aggregate, num_closest=num_honest - num_byzantine
-        )
+        self.aggregator = aggregator or NearestNeighborAverage
+        self.aggregator_kwargs = dict(aggregator_kwargs or {})
+        if aggregator is None:
+            # Each worker mixes over its n - f received models and keeps the
+            # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
+            self.aggregator_kwargs.setdefault("num_closest", num_honest - num_byzantine)
         self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(num_honest, 1)
         self.momentum = torch.zeros_like(self.parameters)
@@ -261,7 +274,7 @@ class MonnaSimulation:
         """
         if self.num_byzantine == 0:
             return local_parameters.new_empty((0, local_parameters.shape[1]))
-        return self.attack(local_parameters, f=self.num_byzantine)
+        return self.attack.generate(local_parameters, f=self.num_byzantine, **self.attack_kwargs)
 
     def aggregate_over_received_nodes(
         self, local_parameters: torch.Tensor, byzantine_parameters: torch.Tensor
@@ -377,7 +390,7 @@ class MonnaSimulation:
         Returns:
             The single mixed model for the worker, shape ``(d,)``.
         """
-        return self.aggregator(candidates, pivot=pivot)
+        return self.aggregator.aggregate(candidates, pivot=pivot, **self.aggregator_kwargs)
 
     def commit_step(
         self,
