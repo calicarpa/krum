@@ -1,9 +1,10 @@
-"""Bulyan aggregation rule (Mhamdi et al., ICML 2018).
+"""Bulyan aggregation rule — two-stage Krum + trimmed mean.
 
 Reference:
-    El Mhamdi, El Mahdi, Rachid Guerraoui, and Sébastien Rouault. "The Hidden
-    Vulnerability of Distributed Learning in Byzantium." In Proceedings of
-    the 35th International Conference on Machine Learning (ICML 2018).
+    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
+    Hidden Vulnerability of Distributed Learning in Byzantium." In
+    Proceedings of the 35th International Conference on Machine
+    Learning (ICML 2018).
 """
 
 from collections.abc import Sequence
@@ -22,27 +23,6 @@ class Bulyan(Aggregator):
     coordinate-wise by trimming the ``f`` smallest and ``f`` largest values
     per coordinate and averaging what remains. It tolerates up to
     ``(n - 3) // 4`` Byzantine workers.
-
-    Reference:
-        El Mhamdi, El Mahdi, Rachid Guerraoui, and Sébastien Rouault. "The
-        Hidden Vulnerability of Distributed Learning in Byzantium." In
-        Proceedings of the 35th International Conference on Machine
-        Learning (ICML 2018).
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers. Must satisfy ``n >= 4f + 3``.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``1 <= f <= (n - 3) // 4``.
-        m: Number of gradients selected by MultiKrum at each iteration.
-            Defaults to ``n - f - 2``.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Aggregated gradient of shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
     """
 
     @classmethod
@@ -57,7 +37,7 @@ class Bulyan(Aggregator):
         m: int | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients using the Bulyan algorithm.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

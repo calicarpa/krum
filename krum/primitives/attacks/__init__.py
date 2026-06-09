@@ -1,13 +1,15 @@
-"""Gradient attacks that simulate Byzantine workers.
+r"""Gradient attacks that simulate Byzantine (adversarial) workers.
 
 An :class:`Attack` observes the gradients of honest workers and produces
-gradients that mimic what adversarial (Byzantine) workers would send. They are
-used to stress-test :mod:`~krum.primitives.aggregators` rules.
+gradients that mimic what adversarial (Byzantine) workers would send. They
+are used to stress-test :mod:`~krum.primitives.aggregators` rules by
+measuring whether the aggregated gradient still points in a useful
+direction under adversarial conditions.
 
-Concrete attacks live in their own submodules and are imported directly from
-them (e.g. ``from krum.primitives.attacks.sign_flip import SignFlipAttack``).
-The package root only exposes the :class:`Attack` base class, imported by
-submodules with ``from . import Attack``.
+All attacks are **stateless**: each attack is a ``@classmethod`` invoked
+directly on the class. The first positional argument is the honest
+gradients; ``f`` (the number of Byzantine gradients to generate) and any
+attack-specific hyperparameters are keyword-only.
 """
 
 from abc import ABC, abstractmethod
@@ -30,9 +32,15 @@ class Attack(ABC):
     @classmethod
     @abstractmethod
     def generate(
-        cls, honest_gradients: Sequence[Tensor] | Tensor, /, out: Tensor | None = None, *, f: int, **specialized: Any
+        cls,
+        honest_gradients: Sequence[Tensor] | Tensor,
+        /,
+        out: Tensor | None = None,
+        *,
+        f: int,
+        **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients from observed honest gradients.
+        r"""Generate Byzantine gradients from observed honest gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

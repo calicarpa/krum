@@ -1,4 +1,11 @@
-"""MultiKrum: multi-gradient averaging rule (Blanchard et al., NIPS 2017)."""
+"""MultiKrum aggregation rule — multi-gradient averaging.
+
+Reference:
+    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
+    Stainer. "Machine learning with adversaries: Byzantine tolerant
+    gradient descent." In Advances in Neural Information Processing
+    Systems 30 (NIPS 2017).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -14,27 +21,7 @@ class MultiKrum(Aggregator):
     Scores every worker gradient by the sum of its distances to its
     ``n - f - 1`` closest neighbors, picks the ``m`` gradients with the
     smallest scores, and returns their mean. With ``m = 1`` it reduces to
-    :class:`~krum.primitives.aggregators.krum.Krum`.
-
-    Reference:
-        Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-        Stainer. "Machine learning with adversaries: Byzantine tolerant
-        gradient descent." In Advances in Neural Information Processing
-        Systems 30 (NIPS 2017).
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``1 <= f <= (n - 3) // 2``.
-        m: Number of selected gradients to average.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Aggregated gradient of shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+    :class:`Krum`.
     """
 
     @classmethod
@@ -49,7 +36,7 @@ class MultiKrum(Aggregator):
         m: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate gradients using MultiKrum.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

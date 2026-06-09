@@ -1,7 +1,7 @@
 """A Little Is Enough (ALIE) gradient attack.
 
 Reference:
-    Baruch, Gilad, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
+    Gilad Baruch, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
     Is Enough: Circumventing Defenses For Distributed Learning." In
     Advances in Neural Information Processing Systems 32 (NeurIPS 2019).
 """
@@ -38,26 +38,6 @@ class ALIEAttack(Attack):
     This corresponds to a statistics-oracle variant of ALIE rather than the
     original paper's more restricted information setting: the attacker is assumed
     to know the full honest gradient distribution, not just a subset.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        z: Attack factor in standard-deviation units. Use the string ``"max"``
-            to compute the largest factor ``z_max`` that keeps the Byzantine
-            gradients within a majority of the honest gradient distribution.
-        direction: Direction of the perturbation relative to the honest mean.
-            Defaults to :attr:`Direction.NEGATIVE`.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        TypeError: If ``z`` is not a number or the string ``"max"``, if
-            ``direction`` is not a :class:`Direction`, or if the honest gradients
-            do not use a floating-point dtype.
-        ValueError: If ``z`` is negative, ``f`` is negative, there are no honest
-            gradients, or the worker configuration admits no non-negative ALIE
-            factor.
     """
 
     @classmethod
@@ -72,7 +52,7 @@ class ALIEAttack(Attack):
         direction: Direction = Direction.NEGATIVE,
         **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients using ALIE-style statistics.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

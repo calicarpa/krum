@@ -1,4 +1,11 @@
-"""Plain mean (arithmetic average) aggregation rule — non-robust baseline."""
+"""Plain mean (arithmetic average) aggregation rule — non-robust baseline.
+
+Reference:
+    Brendan McMahan, Eamonn Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
+    "Communication-Efficient Learning of Deep Networks from Decentralized Data."
+    In Proceedings of the 20th International Conference on Artificial Intelligence
+    and Statistics (AISTATS 2017).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -15,13 +22,6 @@ class Average(Aggregator):
     arbitrarily large gradient can drive the aggregated gradient arbitrarily
     far from the honest mean, so this rule has no Byzantine resilience
     guarantees.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Element-wise mean of the gradients, of shape ``(d,)``.
     """
 
     @classmethod
@@ -32,7 +32,7 @@ class Average(Aggregator):
         out: Tensor | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients by computing the element-wise mean.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers,

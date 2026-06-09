@@ -1,4 +1,11 @@
-"""Coordinate-wise trimmed mean aggregation rule."""
+"""Coordinate-wise trimmed mean aggregation rule.
+
+Reference:
+    Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
+    "Byzantine-Robust Distributed Learning: Towards Optimal Statistical
+    Rates." In Proceedings of the 35th International Conference on
+    Machine Learning (ICML 2018).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -15,25 +22,6 @@ class TrimmedMean(Aggregator):
     dropped, then the remaining values are averaged. This requires at least
     ``2f + 1`` workers and provides basic Byzantine resilience: adversarial
     workers can only shift at most ``f`` samples per coordinate.
-
-    Reference:
-        Yin, Dong, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
-        "Byzantine-Robust Distributed Learning: Towards Optimal Statistical
-        Rates." In Proceedings of the 35th International Conference on
-        Machine Learning (ICML 2018).
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``0 <= f`` and ``len(gradients) > 2f``.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``f`` is negative or if there are not enough gradients
-            to trim (``len(gradients) <= 2f``).
     """
 
     @classmethod
@@ -46,7 +34,7 @@ class TrimmedMean(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients by computing the coordinate-wise trimmed mean.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

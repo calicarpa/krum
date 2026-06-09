@@ -1,10 +1,10 @@
 """Sign-flip gradient attack.
 
 Reference:
-    Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-    Stainer. "Machine learning with adversaries: Byzantine tolerant
-    gradient descent." In Advances in Neural Information Processing
-    Systems 30 (NIPS 2017).
+    Cong Xie, Sanmi Koyejo, and Indranil Gupta.
+    "Fall of Empires: Breaking Byzantine-tolerant SGD by Tailored Attacks."
+    In Proceedings of the 22nd International Conference on Artificial Intelligence
+    and Statistics (AISTATS 2019).
 """
 
 from collections.abc import Sequence
@@ -16,27 +16,13 @@ from . import Attack
 
 
 class SignFlipAttack(Attack):
-    """Sign-flip attack.
+    """Sign-flip attack using the negated honest mean.
 
-    Generates Byzantine gradients from the negative honest mean, optionally
-    scaled by a positive factor. Intuitively, every Byzantine worker tries to
-    make the aggregated gradient point in the opposite direction of the honest
-    update.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        scale: Non-negative scale applied to the sign-flipped honest mean.
-            ``scale = 1`` sends the exact negative honest mean; larger values
-            amplify the attack.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        ValueError: If ``scale`` or ``f`` is negative, or there are no honest
-            gradients to average.
-        TypeError: If the honest gradients do not use a floating-point dtype.
+    Generates Byzantine gradients by flipping the sign of the coordinate-wise
+    honest mean and optionally scaling the result. Every Byzantine worker
+    sends the same vector, pointing in the opposite direction of the honest
+    update, which makes this one of the simplest yet effective baselines for
+    evaluating Byzantine-resilient aggregators.
     """
 
     @classmethod
@@ -50,7 +36,7 @@ class SignFlipAttack(Attack):
         scale: float = 1.0,
         **specialized: Any,
     ) -> Tensor:
-        """Generate sign-flipped Byzantine gradients.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest
