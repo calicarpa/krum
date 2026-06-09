@@ -1,4 +1,11 @@
-"""Plain mean (arithmetic average) aggregation rule — non-robust baseline."""
+"""Plain mean (arithmetic average) aggregation rule — non-robust baseline.
+
+Reference:
+    McMahan, Brendan, Eamonn Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
+    "Communication-Efficient Learning of Deep Networks from Decentralized Data."
+    In Proceedings of the 20th International Conference on Artificial Intelligence
+    and Statistics (AISTATS 2017).
+"""
 
 from collections.abc import Sequence
 from typing import Any

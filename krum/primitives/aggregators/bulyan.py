@@ -1,7 +1,7 @@
 """Bulyan aggregation rule (Mhamdi et al., ICML 2018).
 
 Reference:
-    El Mhamdi, El Mahdi, Rachid Guerraoui, and Sébastien Rouault. "The
+    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
     Hidden Vulnerability of Distributed Learning in Byzantium." In
     Proceedings of the 35th International Conference on Machine
     Learning (ICML 2018).

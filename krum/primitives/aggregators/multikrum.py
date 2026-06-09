@@ -1,7 +1,7 @@
 """MultiKrum: multi-gradient averaging rule (Blanchard et al., NIPS 2017).
 
 Reference:
-    Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
+    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
     Stainer. "Machine learning with adversaries: Byzantine tolerant
     gradient descent." In Advances in Neural Information Processing
     Systems 30 (NIPS 2017).
