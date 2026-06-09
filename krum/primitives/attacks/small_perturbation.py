@@ -1,37 +1,39 @@
-r"""Small-perturbation attack (El Mhamdi, Guerraoui, Rouault — ICML 2018).
+r"""Small-perturbation attack.
 
-The attack exploits the curse of dimensionality: in ``d ≫ 1``, two honest
-gradients naturally disagree by ``Θ(√d)`` in the ``ℓp`` norm even on a
-"good" coordinate, so an attacker can shift one coordinate by ``Ω(√d)``
-while still looking legitimate to a ``ℓp``-norm-based aggregator.
+The attack exploits the curse of dimensionality: in :math:`d \gg 1`, two honest
+gradients naturally disagree by :math:`\Theta(\sqrt{d})` in the :math:`\ell_p`
+norm even on a "good" coordinate, so an attacker can shift one coordinate by
+:math:`\Omega(\sqrt{d})` while still looking legitimate to a
+:math:`\ell_p`-norm-based aggregator.
 
 The attack builds a single malicious vector
 
 .. math::
 
-    B(γ) = \frac{1}{n - f} \sum_{i=1}^{n-f} V_i  +  γ \cdot E
+    B(\gamma) = \frac{1}{n - f} \sum_{i=1}^{n-f} V_i  +  \gamma \cdot E
 
-from the ``n − f`` honest gradients :math:`V_1, \dots, V_{n-f}` and the
+from the :math:`n - f` honest gradients :math:`V_1, \dots, V_{n-f}` and the
 direction :math:`E \in \mathbb{R}^d`. It then performs a boundary search
-for the largest ``γ = γ_m`` such that the target aggregator still
-"selects" ``B(γ_m)`` — i.e. ``B(γ_m)`` is in the aggregator's input
-subset. All ``f`` Byzantine workers send the same ``B(γ_m)`` vector.
+for the largest :math:`\gamma = \gamma_m` such that the target aggregator still
+"selects" :math:`B(\gamma_m)` — i.e. :math:`B(\gamma_m)` is in the aggregator's
+input subset. All :math:`f` Byzantine workers send the same
+:math:`B(\gamma_m)` vector.
 
-Two directions ``E`` are supported, depending on the target norm
-``p`` (Section 3.2 vs Section 3.3):
+Two directions :math:`E` are supported, depending on the target norm
+:math:`p`:
 
-* **finite norm** ``p ≥ 1`` (Section 3.2): ``E = e_e`` is a one-hot
+* **finite norm** :math:`p \ge 1`: :math:`E = e_e` is a one-hot
   vector at a single coordinate :math:`e \in \{1, \dots, d\}`. The
-  default choice :math:`e = \arg\max_j \mathrm{std}(V_{\cdot,j})` is
+  default choice :math:`e = \arg\max_j \operatorname{std}(V_{\cdot,j})` is
   the coordinate with the largest honest variance, which maximises
-  :math:`γ_m`.
-* **infinite norm** ``p = ∞`` (Section 3.3): ``E = (1, \dots, 1)``, the
+  :math:`\gamma_m`.
+* **infinite norm** :math:`p = \infty`: :math:`E = (1, \dots, 1)`, the
   all-ones vector. This is required because
   :math:`\lim_{p \to +\infty} \sqrt[p]{d} = 1`, so the finite-norm
-  attack loses its bite as ``p`` grows. Modifying non-maximal coordinates
+  attack loses its bite as :math:`p` grows. Modifying non-maximal coordinates
   does not substantially affect the infinite-norm distance to the honest
-  gradients, so :math:`B(γ)` stays in the aggregator's selection set for
-  :math:`γ = Θ(d)`.
+  gradients, so :math:`B(\gamma)` stays in the aggregator's selection set for
+  :math:`\gamma = \Theta(d)`.
 """
 
 import math
@@ -50,7 +52,8 @@ class SmallPerturbationAttack(Attack):
 
     The attack accepts a target aggregator and a target norm, builds the
     direction :math:`E` accordingly, and performs a boundary search for the
-    largest :math:`\gamma` such that the aggregator still "selects" :math:`B(\gamma)`.
+    largest :math:`\gamma` such that the aggregator still "selects"
+    :math:`B(\gamma)`.
 
     The aggregator is asked to "select" :math:`B(\gamma)` in the same way as the
     actual run: the test substitutes a placeholder for :math:`B(\gamma)` (the
@@ -76,31 +79,31 @@ class SmallPerturbationAttack(Attack):
         tol: float = 1e-3,
         **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients.
+        r"""Generate Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``. Must be a 2-D floating-point tensor.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`. Must be a 2-D floating-point tensor.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate. Must equal the configured
-                ``f`` (the attack is defined for a fixed worker configuration).
+                :math:`f` (the attack is defined for a fixed worker configuration).
             aggregator: Target aggregator class.
             n: Total number of workers.
             p: Target norm.
             coordinate: Index of the poisoned coordinate.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
-            gamma_max: Upper bound on the search for :math:`γ_m`.
+            gamma_max: Upper bound on the search for :math:`\gamma_m`.
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape ``(f, d)`` containing the same
-            ``B(γ_m)`` vector repeated ``f`` times.
+            Byzantine gradients of shape :math:`(f, d)` containing the same
+            :math:`B(\gamma_m)` vector repeated :math:`f` times.
 
         Raises:
-            ValueError: If the input shape is invalid or ``f`` does not match.
+            ValueError: If the input shape is invalid or :math:`f` does not match.
             TypeError: If the input is not floating-point.
         """
         if n < 1:
@@ -120,7 +123,7 @@ class SmallPerturbationAttack(Attack):
         if gamma_max <= 0 or gamma_init <= 0 or tol <= 0:
             raise ValueError("gamma_max, gamma_init, and tol must be positive")
         if coordinate == "all" and p != math.inf:
-            raise ValueError("coordinate='all' is only valid with p=math.inf (Section 3.3)")
+            raise ValueError("coordinate='all' is only valid with p=math.inf")
         if len(honest_gradients) == 0:
             raise ValueError("Expected at least one honest gradient")
         stacked = stack(list(honest_gradients))
@@ -152,13 +155,13 @@ class SmallPerturbationAttack(Attack):
     ) -> Tensor:
         r"""Build the attack direction :math:`E` for the configured norm.
 
-        For ``p == math.inf`` (Section 3.3), :math:`E = (1, \dots, 1)`.
-        Otherwise (Section 3.2, finite ``p ≥ 1``), :math:`E` is a one-hot
-        vector at the configured coordinate; the default is the coordinate
-        with the largest honest variance.
+        For :math:`p = \infty`, :math:`E = (1, \dots, 1)`.
+        Otherwise (finite :math:`p \ge 1`), :math:`E` is a
+        one-hot vector at the configured coordinate; the default is the
+        coordinate with the largest honest variance.
 
         Args:
-            honest_gradients: Honest gradient stack of shape ``(n-f, d)``.
+            honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
             d: Gradient dimension.
             device: Device of the output tensor.
             dtype: Dtype of the output tensor.
@@ -166,7 +169,7 @@ class SmallPerturbationAttack(Attack):
             coordinate: Index of the poisoned coordinate.
 
         Returns:
-            Direction tensor of shape ``(d,)``.
+            Direction tensor of shape :math:`(d,)`.
         """
         if p == math.inf or coordinate == "all":
             return ones(d, device=device, dtype=dtype)
@@ -193,23 +196,24 @@ class SmallPerturbationAttack(Attack):
         f: int,
         aggregator_kwargs: dict[str, Any],
     ) -> bool:
-        """Test whether the target aggregator "selects" ``B(γ)``.
+        r"""Test whether the target aggregator "selects" :math:`B(\gamma)`.
 
-        The test substitutes a placeholder for :math:`B(γ)` (the honest
+        The test substitutes a placeholder for :math:`B(\gamma)` (the honest
         mean) and checks whether the aggregator's output changes. This is
         a uniform test that works for any stateless aggregator: it does
         not depend on the aggregator's internal selection rule.
 
         Args:
-            honest_gradients: Honest gradient stack of shape ``(n-f, d)``.
-            b_gamma: Candidate :math:`B(γ)` of shape ``(d,)``.
+            honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
+            b_gamma: Candidate :math:`B(\gamma)` of shape :math:`(d,)`.
             aggregator: Target aggregator class.
             n: Total number of workers.
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
 
         Returns:
-            ``True`` if the aggregator's output is sensitive to :math:`B(γ)`.
+            :math:`\mathrm{True}` if the aggregator's output is sensitive to
+            :math:`B(\gamma)`.
         """
         honest_mean = honest_gradients.mean(dim=0)
         byz_with = b_gamma.unsqueeze(0).expand(f, -1)
@@ -233,26 +237,27 @@ class SmallPerturbationAttack(Attack):
         f: int,
         aggregator_kwargs: dict[str, Any],
     ) -> float:
-        """Find the largest :math:`γ` such that the aggregator selects :math:`B(γ)`.
+        r"""Find the largest :math:`\gamma` such that the aggregator selects :math:`B(\gamma)`.
 
         Uses an exponential search to bracket the boundary, then refines
-        it with binary search up to ``tol``. Returns ``gamma_max``
-        if the aggregator never rejects :math:`B(γ)` within the search
-        range (i.e. :math:`B(γ)` remains in the selection set for
-        arbitrarily large :math:`γ`).
+        it with binary search up to :math:`\varepsilon`. Returns
+        :math:`\gamma_{\max}` if the aggregator never rejects
+        :math:`B(\gamma)` within the search range (i.e. :math:`B(\gamma)`
+        remains in the selection set for arbitrarily large
+        :math:`\gamma`).
 
         Args:
-            honest_gradients: Honest gradient stack of shape ``(n-f, d)``.
-            honest_mean: Mean of the honest gradients, shape ``(d,)``.
-            direction: Attack direction :math:`E`, shape ``(d,)``.
+            honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
+            honest_mean: Mean of the honest gradients, shape :math:`(d,)`.
+            direction: Attack direction :math:`E`, shape :math:`(d,)`.
             aggregator: Target aggregator class.
             n: Total number of workers.
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
 
         Returns:
-            The largest :math:`γ` for which the aggregator selects
-            :math:`B(γ)`, as a Python float.
+            The largest :math:`\gamma` for which the aggregator selects
+            :math:`B(\gamma)`, as a Python float.
         """
         gamma_max = 1e6
         gamma_init = 1.0
