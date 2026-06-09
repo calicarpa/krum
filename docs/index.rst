@@ -37,23 +37,6 @@ Reference
    reference/aggregators/index
    reference/attacks/index
 
-Simulations
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/simulations/
-
-Project
--------
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Project
-
-   contributors
-
 
 License
 -------
