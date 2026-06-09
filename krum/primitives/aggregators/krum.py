@@ -22,25 +22,6 @@ class Krum(MultiKrum):
     its :math:`n - f - 2` closest neighbors, and returns the gradient with the
     smallest score — the one most consistent with the other honest workers.
     This is :class:`MultiKrum` with :math:`m = 1`.
-
-    Reference:
-        Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-        Stainer. "Machine learning with adversaries: Byzantine tolerant
-        gradient descent." In Advances in Neural Information Processing
-        Systems 30 (NIPS 2017).
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``1 <= f <= (n - 3) // 2``.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Aggregated gradient of shape :math:`(d,)`.
-
-    Raises:
-        ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
     """
 
     @classmethod
@@ -54,7 +35,7 @@ class Krum(MultiKrum):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
@@ -64,7 +45,7 @@ class Krum(MultiKrum):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Aggregated gradient of shape :math:`(d,)`.
+            Aggregated gradient of shape ``(d,)``.
 
         Raises:
             ValueError: If :math:`n < 1`, :math:`f < 0`, :math:`f > n`, :math:`n < 2f + 3`,

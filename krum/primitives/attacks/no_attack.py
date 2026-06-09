@@ -38,7 +38,7 @@ class NoAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Empty tensor of shape :math:`(0, d)` on the same device and dtype
+            Empty tensor of shape ``(0, d)`` on the same device and dtype
             as ``honest_gradients``.
         """
         stacked = stack(list(honest_gradients))

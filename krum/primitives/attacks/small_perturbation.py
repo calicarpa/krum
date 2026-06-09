@@ -99,8 +99,8 @@ class SmallPerturbationAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape :math:`(f, d)` containing the same
-            :math:`B(\gamma_m)` vector repeated :math:`f` times.
+            Byzantine gradients of shape ``(f, d)`` containing the same
+            ``B(\gamma_m)`` vector repeated ``f`` times.
 
         Raises:
             ValueError: If the input shape is invalid or :math:`f` does not match.
@@ -169,7 +169,7 @@ class SmallPerturbationAttack(Attack):
             coordinate: Index of the poisoned coordinate.
 
         Returns:
-            Direction tensor of shape :math:`(d,)`.
+            Direction tensor of shape ``(d,)``.
         """
         if p == math.inf or coordinate == "all":
             return ones(d, device=device, dtype=dtype)
@@ -212,8 +212,8 @@ class SmallPerturbationAttack(Attack):
             aggregator_kwargs: Extra keyword arguments for the aggregator.
 
         Returns:
-            :math:`\mathrm{True}` if the aggregator's output is sensitive to
-            :math:`B(\gamma)`.
+            ``True`` if the aggregator's output is sensitive to
+            ``B(\gamma)``.
         """
         honest_mean = honest_gradients.mean(dim=0)
         byz_with = b_gamma.unsqueeze(0).expand(f, -1)
@@ -256,8 +256,8 @@ class SmallPerturbationAttack(Attack):
             aggregator_kwargs: Extra keyword arguments for the aggregator.
 
         Returns:
-            The largest :math:`\gamma` for which the aggregator selects
-            :math:`B(\gamma)`, as a Python float.
+            The largest ``\gamma`` for which the aggregator selects
+            ``B(\gamma)``, as a Python float.
         """
         gamma_max = 1e6
         gamma_init = 1.0

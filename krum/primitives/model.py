@@ -154,7 +154,7 @@ class Model:
         re-synchronise the flat view.
 
         Returns:
-            Tensor of shape :math:`(d,)` sharing memory with all module
+            Tensor of shape ``(d,)`` sharing memory with all module
             parameters, in the iteration order of ``module.parameters()``.
         """
         if self._flat_parameters is None:
@@ -224,7 +224,7 @@ class Model:
         call :meth:`relink_gradients` to re-synchronise the flat view.
 
         Returns:
-            Tensor of shape :math:`(d,)` sharing memory with all module
+            Tensor of shape ``(d,)`` sharing memory with all module
             gradients, in the iteration order of ``module.parameters()``.
         """
         if self._flat_gradients is None:

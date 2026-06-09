@@ -42,8 +42,8 @@ class FullGradientNegationAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape :math:`(f, d)`. When :math:`f = 0`, returns an
-            empty tensor of shape :math:`(0, d)`.
+            Byzantine gradients of shape ``(f, d)``. When ``f = 0``, returns an
+            empty tensor of shape ``(0, d)``.
 
         Raises:
             ValueError: If :math:`\kappa` or :math:`f` is negative, there are no honest

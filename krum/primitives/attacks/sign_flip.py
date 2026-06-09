@@ -48,8 +48,8 @@ class SignFlipAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape :math:`(f, d)`. The same sign-flipped honest
-            mean is repeated :math:`f` times.
+            Byzantine gradients of shape ``(f, d)``. The same sign-flipped honest
+            mean is repeated ``f`` times.
 
         Raises:
             ValueError: If ``scale`` or :math:`f` is negative, or there are no honest

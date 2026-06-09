@@ -22,26 +22,6 @@ class MultiKrum(Aggregator):
     :math:`n - f - 1` closest neighbors, picks the :math:`m` gradients with the
     smallest scores, and returns their mean. With :math:`m = 1` it reduces to
     :class:`~krum.primitives.aggregators.krum.Krum`.
-
-    Reference:
-        Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-        Stainer. "Machine learning with adversaries: Byzantine tolerant
-        gradient descent." In Advances in Neural Information Processing
-        Systems 30 (NIPS 2017).
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``1 <= f <= (n - 3) // 2``.
-        m: Number of selected gradients to average.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Aggregated gradient of shape :math:`(d,)`.
-
-    Raises:
-        ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
     """
 
     @classmethod
@@ -69,7 +49,7 @@ class MultiKrum(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Aggregated gradient of shape :math:`(d,)`.
+            Aggregated gradient of shape ``(d,)``.
 
         Raises:
             ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
@@ -114,7 +94,7 @@ class MultiKrum(Aggregator):
             f: Number of Byzantine workers to tolerate.
 
         Returns:
-            Tensor of shape :math:`(n,)` containing the Krum score of each worker.
+            Tensor of shape ``(n,)`` containing the Krum score of each worker.
         """
         distances = cdist(stacked, stacked, p=2.0)
         sorted_distances, _ = sort(distances, dim=1)

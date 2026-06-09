@@ -49,7 +49,7 @@ class Aggregator(ABC):
                 aggregation rule (e.g. :math:`f`, :math:`n`, :math:`m`).
 
         Returns:
-            Aggregated gradient of shape :math:`(d,)`.
+            Aggregated gradient of shape ``(d,)``.
 
         Raises:
             NotImplementedError: If the subclass does not implement this method.

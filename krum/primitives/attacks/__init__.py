@@ -51,7 +51,7 @@ class Attack(ABC):
             **specialized: Keyword-only arguments specific to each attack.
 
         Returns:
-            Byzantine gradients of shape :math:`(f, d)`.
+            Byzantine gradients of shape ``(f, d)``.
 
         Raises:
             NotImplementedError: If the subclass does not implement this method.

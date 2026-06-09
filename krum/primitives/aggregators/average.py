@@ -41,7 +41,7 @@ class Average(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Element-wise mean of the gradients, of shape :math:`(d,)`.
+            Element-wise mean of the gradients, of shape ``(d,)``.
         """
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))

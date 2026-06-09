@@ -33,11 +33,6 @@ class Bulyan(Aggregator):
 
     Requires :math:`n \geq 4f + 3`.
 
-    Reference:
-        El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault.
-        "The Hidden Vulnerability of Distributed Learning in
-        Byzantium." ICML 2018, Section 4.
-
     Args:
         gradients: Sequence of 1-D tensors, one per worker.
         n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
@@ -48,7 +43,7 @@ class Bulyan(Aggregator):
         out: Optional pre-allocated tensor to write the result into.
 
     Returns:
-        Aggregated gradient of shape :math:`(d,)`.
+        Aggregated gradient of shape ``(d,)``.
 
     Raises:
         ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
@@ -79,7 +74,7 @@ class Bulyan(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Aggregated gradient of shape :math:`(d,)`.
+            Aggregated gradient of shape ``(d,)``.
 
         Raises:
             ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.

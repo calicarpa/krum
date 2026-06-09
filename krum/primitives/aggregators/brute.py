@@ -49,7 +49,7 @@ class Brute(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Mean of the selected :math:`n - f` subset, of shape :math:`(d,)`.
+            Mean of the selected ``n - f`` subset, of shape ``(d,)``.
 
         Raises:
             ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.

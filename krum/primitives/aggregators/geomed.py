@@ -47,7 +47,7 @@ class GeoMed(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Selected worker gradient of shape :math:`(d,)`.
+            Selected worker gradient of shape ``(d,)``.
 
         Raises:
             ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
