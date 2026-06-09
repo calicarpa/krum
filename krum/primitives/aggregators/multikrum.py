@@ -21,7 +21,7 @@ class MultiKrum(Aggregator):
     Scores every worker gradient by the sum of its distances to its
     ``n - f - 1`` closest neighbors, picks the ``m`` gradients with the
     smallest scores, and returns their mean. With ``m = 1`` it reduces to
-    :class:`~krum.primitives.aggregators.krum.Krum`.
+    :class:`Krum`.
     """
 
     @classmethod

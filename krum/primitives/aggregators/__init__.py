@@ -29,7 +29,9 @@ class Aggregator(ABC):
     """Abstract base class for stateless gradient aggregation rules.
 
     Subclasses implement :meth:`aggregate` as a ``@classmethod`` — no instance
-    state is required.
+    state is required, and the caller invokes the rule directly on the class.
+    The first positional argument is the worker gradients; rule-specific
+    hyperparameters (``f``, ``n``, ``m``) are keyword-only.
     """
 
     @classmethod
