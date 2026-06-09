@@ -6,4 +6,6 @@ SignFlip
    :undoc-members:
    :show-inheritance:
 
+.. seealso::
+
    For a statistic-based attack, see :doc:`alie`.
