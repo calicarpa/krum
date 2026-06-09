@@ -12,7 +12,7 @@ from torch.utils.data import Dataset
 
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
-from krum.primitives.attacks.omniscient import OmniscientAttack
+from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 
 from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPMnist, MLPSpambase
@@ -44,7 +44,7 @@ def main() -> None:
                     (Average, "Average"),
                     (Krum, "Krum"),
                 ]:
-                    attack = OmniscientAttack
+                    attack = FullGradientNegationAttack
                     attack_kw: dict[str, Any] = {"kappa": 100.0}
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
                     print(f"\n=== {label} ===")

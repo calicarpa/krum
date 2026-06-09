@@ -1,7 +1,7 @@
-Omniscient
-==========
+Full Gradient Negation
+======================
 
-.. automodule:: attacks.omniscient
+.. automodule:: attacks.full_gradient_negation
    :members:
    :undoc-members:
    :show-inheritance:
@@ -14,8 +14,8 @@ Omniscient
 .. note::
 
    The full-dataset gradient is passed as a keyword argument to
-   :meth:`~attacks.omniscient.OmniscientAttack.generate`:
+   :meth:`~attacks.full_gradient_negation.FullGradientNegationAttack.generate`:
 
    .. code-block:: python
 
-      OmniscientAttack.generate(honest_gradients, f=..., full_gradient=full_grad, kappa=100.0)
+      FullGradientNegationAttack.generate(honest_gradients, f=..., full_gradient=full_grad, kappa=100.0)

@@ -76,7 +76,7 @@ class SmallPerturbationAttack(Attack):
         tol: float = 1e-3,
         **specialized: Any,
     ) -> Tensor:
-        """Generate the small-perturbation Byzantine gradients.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

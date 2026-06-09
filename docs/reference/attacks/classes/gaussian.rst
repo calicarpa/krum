@@ -9,4 +9,4 @@ Gaussian
 .. seealso::
 
    For a statistic-based attack, see :doc:`alie`.
-   For a full-dataset attack, see :doc:`omniscient`.
+   For a full-dataset attack, see :doc:`full_gradient_negation`.

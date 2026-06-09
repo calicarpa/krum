@@ -28,7 +28,7 @@ class NoAttack(Attack):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Return an empty Byzantine-gradient tensor of shape ``(0, d)``.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

@@ -1,4 +1,4 @@
-"""Omniscient gradient attack."""
+"""Full-gradient negation attack."""
 
 from collections.abc import Sequence
 from typing import Any
@@ -8,12 +8,12 @@ from torch import Tensor, stack
 from . import Attack
 
 
-class OmniscientAttack(Attack):
-    r"""Omniscient Byzantine attack.
+class FullGradientNegationAttack(Attack):
+    r"""Full-gradient negation Byzantine attack.
 
     Each Byzantine worker sends the negation of the full-dataset gradient
     scaled by a factor :math:`\kappa`. The attack assumes knowledge of the
-    true gradient over the entire dataset, hence the name.
+    true gradient over the entire dataset.
     """
 
     @classmethod
@@ -28,7 +28,7 @@ class OmniscientAttack(Attack):
         kappa: float = 100.0,
         **specialized: Any,
     ) -> Tensor:
-        """Generate omniscient Byzantine gradients.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

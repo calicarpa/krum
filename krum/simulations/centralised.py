@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
-from krum.primitives.attacks.omniscient import OmniscientAttack
+from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 from krum.primitives.model import Model
 
 
@@ -244,7 +244,7 @@ class CentralisedSimulation:
            local data shard via :meth:`_train_one_worker`.
         #. If :math:`f > 0` and the attack has not been stopped, Byzantine
            workers generate attack gradients. For
-           :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`,
+            :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`,
            the full-dataset honest gradient is computed first.
         #. The aggregator combines all ``n`` gradients into a single update
            via ``self.aggregator.aggregate(...)``.
@@ -282,7 +282,7 @@ class CentralisedSimulation:
                     worker_gradients.append(zero_grad.clone())
             else:
                 attack_kw = dict(self._attack_kwargs)
-                if issubclass(self.attack, OmniscientAttack):
+                if issubclass(self.attack, FullGradientNegationAttack):
                     attack_kw["full_gradient"] = self._compute_full_gradient()
 
                 honest_gradients = torch.stack(worker_gradients)
@@ -502,11 +502,11 @@ class CentralisedSimulation:
                     nn.init.zeros_(m.bias)
 
     def _compute_full_gradient(self) -> torch.Tensor:
-        """Compute the full-dataset honest gradient for the omniscient attack.
+        """Compute the full-dataset honest gradient for the full-gradient negation attack.
 
         Called automatically by :meth:`step` before Byzantine gradient
         generation when ``self.attack`` is an
-        :class:`~krum.primitives.attacks.omniscient.OmniscientAttack`.
+        :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`.
 
         Returns:
             Full-dataset gradient of shape ``(d,)``.
