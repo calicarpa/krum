@@ -190,4 +190,3 @@ Next Steps
 - Browse the :doc:`reference/aggregators/index` for all available aggregation rules
 - Browse the :doc:`reference/attacks/index` for all available attack strategies
 - See :doc:`reference/simulations/index` for reproducing published experiments
-- Read :doc:`reference/architecture` to understand the codebase structure
