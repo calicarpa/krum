@@ -1,23 +1,10 @@
 Aggregators
 ===========
 
-Krum provides several Byzantine-resilient gradient aggregation rules (GARs).
-Aggregators are **stateless** — you call them as classmethods without
-instantiating any object. Specialized parameters (``f``, ``n``, ``m``) are
-keyword-only:
-
-.. code-block:: python
-
-    from krum.primitives.aggregators import Average, Krum, TrimmedMean
-
-    result = Average.aggregate(gradients)
-    result = Krum.aggregate(gradients, n=5, f=1)
-    result = TrimmedMean.aggregate(gradients, f=2)
-
-All aggregators validate their parameters and raise ``ValueError`` on misuse.
-
-Available Aggregators
----------------------
+.. automodule:: krum.primitives.aggregators
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. toctree::
    :maxdepth: 1
