@@ -1,4 +1,4 @@
-"""Gradient attacks that simulate Byzantine workers.
+r"""Gradient attacks that simulate Byzantine (adversarial) workers.
 
 An :class:`Attack` observes the gradients of honest workers and produces
 gradients that mimic what adversarial (Byzantine) workers would send. They are
@@ -6,8 +6,8 @@ used to stress-test :mod:`~krum.primitives.aggregators` rules.
 
 Available attacks:
 
-* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` — scaled opposite of the honest mean.
-* :class:`~krum.primitives.attacks.alie.ALIEAttack` — mean-shifted using coordinate-wise statistics (Baruch et al., ICML 2019).
+* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` — scaled opposite of the honest mean :math:`-\lambda \bar{g}`.
+* :class:`~krum.primitives.attacks.alie.ALIEAttack` — mean-shifted using coordinate-wise statistics :math:`\bar{g} \pm z \cdot \sigma` (Baruch et al., NeurIPS 2019).
 """
 
 from abc import ABC, abstractmethod
