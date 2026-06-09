@@ -32,7 +32,7 @@ class Average(Aggregator):
         out: Tensor | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients by computing the element-wise mean.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers,

@@ -36,7 +36,7 @@ class SignFlipAttack(Attack):
         scale: float = 1.0,
         **specialized: Any,
     ) -> Tensor:
-        """Generate sign-flipped Byzantine gradients.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

@@ -37,7 +37,7 @@ class Bulyan(Aggregator):
         m: int | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients using the Bulyan algorithm.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

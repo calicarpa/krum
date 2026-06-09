@@ -36,7 +36,7 @@ class MultiKrum(Aggregator):
         m: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate gradients using MultiKrum.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

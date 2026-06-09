@@ -34,7 +34,7 @@ class TrimmedMean(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients by computing the coordinate-wise trimmed mean.
+        """Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

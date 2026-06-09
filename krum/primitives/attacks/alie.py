@@ -52,7 +52,7 @@ class ALIEAttack(Attack):
         direction: Direction = Direction.NEGATIVE,
         **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients using ALIE-style statistics.
+        """Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest
