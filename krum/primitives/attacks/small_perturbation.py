@@ -32,12 +32,6 @@ Two directions ``E`` are supported, depending on the target norm
   does not substantially affect the infinite-norm distance to the honest
   gradients, so :math:`B(γ)` stays in the aggregator's selection set for
   :math:`γ = Θ(d)`.
-
-Reference:
-    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
-    Hidden Vulnerability of Distributed Learning in Byzantium." In
-    Proceedings of the 35th International Conference on Machine Learning
-    (ICML 2018), Section 3.
 """
 
 import math
@@ -52,7 +46,7 @@ from . import Attack
 
 
 class SmallPerturbationAttack(Attack):
-    r"""Small-perturbation attack — Section 3 of El Mhamdi et al. (ICML 2018).
+    r"""Small-perturbation attack.
 
     The attack accepts a target aggregator and a target norm, builds the
     direction :math:`E` accordingly, and performs a boundary search for the

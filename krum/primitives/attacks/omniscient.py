@@ -1,11 +1,4 @@
-"""Omniscient gradient attack.
-
-Reference:
-    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-    Stainer. "Machine Learning with Adversaries: Byzantine Tolerant
-    Gradient Descent." In Advances in Neural Information Processing
-    Systems 30 (NeurIPS 2017), Section 5 (Cost of Resilience).
-"""
+"""Omniscient gradient attack."""
 
 from collections.abc import Sequence
 from typing import Any
