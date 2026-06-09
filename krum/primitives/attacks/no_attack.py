@@ -1,17 +1,4 @@
-"""No-op attack — honest baseline with no Byzantine gradients.
-
-A :class:`NoAttack` is the canonical placeholder for the "no adversary"
-configuration of a distributed-SGD run: it returns an empty tensor for
-every call to :meth:`generate`, so the simulation includes no Byzantine
-gradients in the aggregator input. It is used as the honest baseline in
-the experiments of El Mhamdi et al. (ICML 2018).
-
-Reference:
-    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
-    Hidden Vulnerability of Distributed Learning in Byzantium." In
-    Proceedings of the 35th International Conference on Machine
-    Learning (ICML 2018).
-"""
+"""No-op attack — honest baseline with no Byzantine gradients."""
 
 from collections.abc import Sequence
 from typing import Any
