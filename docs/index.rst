@@ -10,9 +10,9 @@ and analyzing results.
    :maxdepth: 2
    :caption: Reference
 
+   reference/primitives
    reference/aggregators/index
    reference/attacks/index
-   reference/primitives
 
 .. toctree::
    :maxdepth: 1
