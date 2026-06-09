@@ -1,4 +1,4 @@
-"""No-op attack — honest baseline with no Byzantine gradients."""
+r"""No-op attack — honest baseline with no Byzantine gradients."""
 
 from collections.abc import Sequence
 from typing import Any
@@ -31,14 +31,14 @@ class NoAttack(Attack):
         """Generate Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``. Only the second dimension is used.
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`. Only the second dimension is used.
             out: Optional pre-allocated tensor. Ignored.
             f: Number of Byzantine gradients requested by the caller. Ignored.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Empty tensor of shape ``(0, d)`` on the same device and dtype
+            Empty tensor of shape :math:`(0, d)` on the same device and dtype
             as ``honest_gradients``.
         """
         stacked = stack(list(honest_gradients))

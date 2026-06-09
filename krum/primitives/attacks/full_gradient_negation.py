@@ -1,4 +1,4 @@
-"""Full-gradient negation attack."""
+r"""Full-gradient negation attack."""
 
 from collections.abc import Sequence
 from typing import Any
@@ -28,25 +28,25 @@ class FullGradientNegationAttack(Attack):
         kappa: float = 100.0,
         **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients.
+        r"""Generate Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate.
-            full_gradient: Tensor of shape ``(d,)`` containing the gradient
+            full_gradient: Tensor of shape :math:`(d,)` containing the gradient
                 computed over the entire dataset.
             kappa: Scale factor applied to the negated full gradient.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape ``(f, d)``. When ``f == 0``, returns an
-            empty tensor of shape ``(0, d)``.
+            Byzantine gradients of shape :math:`(f, d)`. When :math:`f = 0`, returns an
+            empty tensor of shape :math:`(0, d)`.
 
         Raises:
-            ValueError: If ``kappa`` or ``f`` is negative, there are no honest
+            ValueError: If :math:`\kappa` or :math:`f` is negative, there are no honest
                 gradients, or ``full_gradient`` is not 1-D.
             TypeError: If the honest gradients do not use a floating-point dtype.
         """

@@ -1,9 +1,9 @@
-"""Parameter-server distributed SGD simulation confronting Byzantine workers.
+r"""Parameter-server distributed SGD simulation confronting Byzantine workers.
 
 Each synchronous round:
     #. Honest workers compute a gradient on their local data shard.
     #. Byzantine workers craft adversarial gradients.
-    #. The aggregator combines all ``n`` gradients into a single update.
+    #. The aggregator combines all :math:`n` gradients into a single update.
     #. The aggregated update is applied via an SGD step.
 
 The :class:`CentralisedSimulation` base class implements the full lifecycle
@@ -27,11 +27,11 @@ from krum.primitives.model import Model
 
 
 class CentralisedSimulation:
-    """Parameter-server distributed SGD simulation with Byzantine workers.
+    r"""Parameter-server distributed SGD simulation with Byzantine workers.
 
     One instance = one (aggregator, attack, dataset, model) configuration run
     over ``rounds`` synchronous rounds. The training set is IID-sharded across
-    ``n`` workers, of which ``f`` are Byzantine (up to the tolerance of the
+    :math:`n` workers, of which :math:`f` are Byzantine (up to the tolerance of the
     chosen aggregator).
 
     Subclasses override :meth:`evaluate` to customise the evaluation protocol
@@ -98,7 +98,7 @@ class CentralisedSimulation:
         RuntimeError: If :meth:`run` is called more than once on the same
             instance.
         ValueError: If ``lr_schedule`` is invalid or required
-            hyperparameters (``r_eta``) are missing.
+            hyperparameters (:math:`r_eta`) are missing.
     """
 
     def __init__(
@@ -235,18 +235,18 @@ class CentralisedSimulation:
         self._current_round = 0
 
     def step(self) -> None:
-        """Advance the simulation by one synchronous round.
+        r"""Advance the simulation by one synchronous round.
 
         #. The learning rate is updated to the value of the current round
            (only for the Robbins-Monro schedule; the exponential schedule
            updates the rate after the optimizer step instead).
-        #. Each of the ``n - f`` honest workers computes a gradient on its
+        #. Each of the :math:`n - f` honest workers computes a gradient on its
            local data shard via :meth:`_train_one_worker`.
         #. If :math:`f > 0` and the attack has not been stopped, Byzantine
            workers generate attack gradients. For
             :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`,
            the full-dataset honest gradient is computed first.
-        #. The aggregator combines all ``n`` gradients into a single update
+        #. The aggregator combines all :math:`n` gradients into a single update
            via ``self.aggregator.aggregate(...)``.
         #. The aggregated gradient is written to
            ``self._model.gradients`` and applied via an in-place SGD
@@ -449,7 +449,7 @@ class CentralisedSimulation:
             torch.mps.manual_seed(self.seed)
 
     def _train_one_worker(self, loader: DataLoader[Any]) -> torch.Tensor:
-        """Compute the gradient on one worker's data shard.
+        r"""Compute the gradient on one worker's data shard.
 
         The worker calls ``loss.backward()`` on a single mini-batch drawn from
         its dedicated :class:`~torch.utils.data.DataLoader`, then clones the
@@ -459,7 +459,7 @@ class CentralisedSimulation:
             loader: DataLoader yielding mini-batches from the worker's IID shard.
 
         Returns:
-            Cloned flat gradient tensor of shape ``(d,)``.
+            Cloned flat gradient tensor of shape :math:`(d,)`.
         """
         assert self._model is not None
         self._model.module.train()
@@ -502,14 +502,14 @@ class CentralisedSimulation:
                     nn.init.zeros_(m.bias)
 
     def _compute_full_gradient(self) -> torch.Tensor:
-        """Compute the full-dataset honest gradient for the full-gradient negation attack.
+        r"""Compute the full-dataset honest gradient for the full-gradient negation attack.
 
         Called automatically by :meth:`step` before Byzantine gradient
         generation when ``self.attack`` is an
         :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`.
 
         Returns:
-            Full-dataset gradient of shape ``(d,)``.
+            Full-dataset gradient of shape :math:`(d,)`.
         """
         assert self._model is not None and self._full_loader is not None
         x, y = next(iter(self._full_loader))

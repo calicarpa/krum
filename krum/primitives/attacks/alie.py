@@ -1,4 +1,4 @@
-"""A Little Is Enough (ALIE) gradient attack.
+r"""A Little Is Enough (ALIE) gradient attack.
 
 Reference:
     Gilad Baruch, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
@@ -17,9 +17,9 @@ from . import Attack
 
 
 class Direction(str, Enum):
-    """Sign of the perturbation applied by ALIE relative to the honest mean.
+    r"""Sign of the perturbation applied by ALIE relative to the honest mean.
 
-    Chooses whether the perturbation ``z * std`` is added to (``POSITIVE``) or
+    Chooses whether the perturbation :math:`z \sigma` is added to (``POSITIVE``) or
     subtracted from (``NEGATIVE``) the honest coordinate-wise mean.
     """
 
@@ -28,12 +28,12 @@ class Direction(str, Enum):
 
 
 class ALIEAttack(Attack):
-    """ALIE-style attack using exact honest gradient statistics.
+    r"""ALIE-style attack using exact honest gradient statistics.
 
     Generates Byzantine gradients from the exact coordinate-wise mean and
     standard deviation of the honest gradients passed to the attack. The attack
-    perturbs the honest mean by ``z * std`` along the chosen :class:`Direction`,
-    where ``z`` is the attack factor.
+    perturbs the honest mean by :math:`z \sigma` along the chosen :class:`Direction`,
+    where :math:`z` is the attack factor.
 
     This corresponds to a statistics-oracle variant of ALIE rather than the
     original paper's more restricted information setting: the attacker is assumed
@@ -55,9 +55,9 @@ class ALIEAttack(Attack):
         """Generate Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate.
             z: Attack factor in standard-deviation units, or ``"max"`` for the
@@ -67,14 +67,14 @@ class ALIEAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape ``(f, d)``. When ``f == 0``, returns an
-            empty tensor of shape ``(0, d)``.
+            Byzantine gradients of shape :math:`(f, d)`. When :math:`f = 0`, returns an
+            empty tensor of shape :math:`(0, d)`.
 
         Raises:
-            TypeError: If ``z`` is not a number or ``"max"``, ``direction`` is
+            TypeError: If :math:`z` is not a number or ``"max"``, ``direction`` is
                 not a :class:`Direction`, or the honest gradients are not
                 floating-point.
-            ValueError: If ``z`` is negative, ``f`` is negative, there are no
+            ValueError: If :math:`z` is negative, :math:`f` is negative, there are no
                 honest gradients, or the worker configuration admits no
                 non-negative ALIE factor.
         """
@@ -112,16 +112,17 @@ class ALIEAttack(Attack):
 
     @staticmethod
     def max_z(honest_gradients: Tensor, f: int) -> Tensor:
-        """Compute the maximal valid ALIE attack factor for the worker configuration.
+        r"""Compute the maximal valid ALIE attack factor for the worker configuration.
 
-        ``z_max`` is the largest ``z`` such that ``Phi(z) < (h - s) / h``,
-        where ``h`` is the number of honest workers and ``s`` is the number of
-        honest workers needed to form a majority among the ``n = h + f``
-        workers: ``s = floor(n / 2) + 1 - f``.
+        :math:`z_{\max}` is the largest :math:`z` such that
+        :math:`\Phi(z) < (h - s) / h`, where :math:`h` is the number of honest
+        workers and :math:`s` is the number of honest workers needed to form a
+        majority among the :math:`n = h + f` workers:
+        :math:`s = \lfloor n / 2 \rfloor + 1 - f`.
 
         Args:
-            honest_gradients: Tensor of shape ``(h, d)`` containing gradients
-                from the ``h`` honest workers.
+            honest_gradients: Tensor of shape :math:`(h, d)` containing gradients
+                from the :math:`h` honest workers.
             f: Number of Byzantine gradients to generate.
 
         Returns:

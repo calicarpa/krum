@@ -8,7 +8,7 @@ direction under adversarial conditions.
 
 All attacks are **stateless**: each attack is a ``@classmethod`` invoked
 directly on the class. The first positional argument is the honest
-gradients; ``f`` (the number of Byzantine gradients to generate) and any
+gradients; :math:`f` (the number of Byzantine gradients to generate) and any
 attack-specific hyperparameters are keyword-only.
 """
 
@@ -24,7 +24,7 @@ class Attack(ABC):
 
     Subclasses implement :meth:`generate` as a ``@classmethod`` — no instance
     state is required, and the caller invokes the attack directly on the class.
-    The first positional argument is the honest gradients; ``f`` (the number of
+    The first positional argument is the honest gradients; :math:`f` (the number of
     Byzantine gradients to generate) and any attack-specific hyperparameters are
     keyword-only.
     """
@@ -43,15 +43,15 @@ class Attack(ABC):
         r"""Generate Byzantine gradients from observed honest gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return, reusing its storage.
             f: Number of Byzantine gradients to generate.
             **specialized: Keyword-only arguments specific to each attack.
 
         Returns:
-            Byzantine gradients of shape ``(f, d)``.
+            Byzantine gradients of shape :math:`(f, d)`.
 
         Raises:
             NotImplementedError: If the subclass does not implement this method.

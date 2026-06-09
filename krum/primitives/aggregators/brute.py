@@ -49,10 +49,10 @@ class Brute(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Mean of the selected :math:`n - f` subset, of shape ``(d,)``.
+            Mean of the selected :math:`n - f` subset, of shape :math:`(d,)`.
 
         Raises:
-            ValueError: If ``n``, ``f``, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")

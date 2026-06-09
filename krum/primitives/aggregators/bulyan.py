@@ -40,18 +40,18 @@ class Bulyan(Aggregator):
 
     Args:
         gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers. Must satisfy ``n >= 4f + 3``.
+        n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
         f: Number of Byzantine workers to tolerate. Must satisfy
             ``1 <= f <= (n - 3) // 4``.
         m: Number of gradients selected by MultiKrum at each iteration.
-            Defaults to ``n - f - 2``.
+            Defaults to :math:`n - f - 2`.
         out: Optional pre-allocated tensor to write the result into.
 
     Returns:
-        Aggregated gradient of shape ``(d,)``.
+        Aggregated gradient of shape :math:`(d,)`.
 
     Raises:
-        ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+        ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
     """
 
     @classmethod
@@ -66,23 +66,23 @@ class Bulyan(Aggregator):
         m: int | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             out: Optional pre-allocated tensor to write the result into.
-            n: Total number of workers. Must satisfy ``n >= 4f + 3``.
+            n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 4``.
             m: Number of gradients selected by MultiKrum at each iteration.
-                Defaults to ``n - f - 2``.
+                Defaults to :math:`n - f - 2`.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Aggregated gradient of shape ``(d,)``.
+            Aggregated gradient of shape :math:`(d,)`.
 
         Raises:
-            ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")

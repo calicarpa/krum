@@ -16,11 +16,11 @@ from . import Aggregator
 
 
 class MultiKrum(Aggregator):
-    """MultiKrum aggregation rule.
+    r"""MultiKrum aggregation rule.
 
     Scores every worker gradient by the sum of its distances to its
-    ``n - f - 1`` closest neighbors, picks the ``m`` gradients with the
-    smallest scores, and returns their mean. With ``m = 1`` it reduces to
+    :math:`n - f - 1` closest neighbors, picks the :math:`m` gradients with the
+    smallest scores, and returns their mean. With :math:`m = 1` it reduces to
     :class:`~krum.primitives.aggregators.krum.Krum`.
 
     Reference:
@@ -38,10 +38,10 @@ class MultiKrum(Aggregator):
         out: Optional pre-allocated tensor to write the result into.
 
     Returns:
-        Aggregated gradient of shape ``(d,)``.
+        Aggregated gradient of shape :math:`(d,)`.
 
     Raises:
-        ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+        ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
     """
 
     @classmethod
@@ -56,7 +56,7 @@ class MultiKrum(Aggregator):
         m: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
@@ -65,14 +65,14 @@ class MultiKrum(Aggregator):
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 2``.
             m: Number of selected gradients to average. Must satisfy
-                ``1 <= m <= n - f - 2``.
+                :math:`1 \le m \le n - f - 2`.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Aggregated gradient of shape ``(d,)``.
+            Aggregated gradient of shape :math:`(d,)`.
 
         Raises:
-            ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
@@ -102,19 +102,19 @@ class MultiKrum(Aggregator):
 
     @staticmethod
     def _compute_scores(stacked: Tensor, *, n: int, f: int) -> Tensor:
-        """Score every stacked gradient by its sum of distances to its ``n - f - 1`` closest peers.
+        """Score every stacked gradient by its sum of distances to its :math:`n - f - 1` closest peers.
 
-        The ``n - f - 1`` closest distance sum approximates how surrounded a
+        The :math:`n - f - 1` closest distance sum approximates how surrounded a
         gradient is by the (presumed honest) majority; lower scores are
         better.
 
         Args:
-            stacked: Tensor of shape ``(n, d)`` containing the stacked worker gradients.
+            stacked: Tensor of shape :math:`(n, d)` containing the stacked worker gradients.
             n: Total number of workers (rows of ``stacked``).
             f: Number of Byzantine workers to tolerate.
 
         Returns:
-            Tensor of shape ``(n,)`` containing the Krum score of each worker.
+            Tensor of shape :math:`(n,)` containing the Krum score of each worker.
         """
         distances = cdist(stacked, stacked, p=2.0)
         sorted_distances, _ = sort(distances, dim=1)

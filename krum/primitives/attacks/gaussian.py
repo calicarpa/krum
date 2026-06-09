@@ -1,4 +1,4 @@
-"""Gaussian noise gradient attack."""
+r"""Gaussian noise gradient attack."""
 
 from collections.abc import Sequence
 from typing import Any
@@ -28,12 +28,12 @@ class GaussianAttack(Attack):
         std: float = 200.0,
         **specialized: Any,
     ) -> Tensor:
-        """Generate Gaussian Byzantine gradients.
+        r"""Generate Gaussian Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``. Only the second dimension is used.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`. Only the second dimension is used.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate.
             mu: Mean of the Gaussian noise.
@@ -41,11 +41,11 @@ class GaussianAttack(Attack):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Byzantine gradients of shape ``(f, d)``. When ``f == 0``, returns an
-            empty tensor of shape ``(0, d)``.
+            Byzantine gradients of shape :math:`(f, d)`. When :math:`f = 0`, returns an
+            empty tensor of shape :math:`(0, d)`.
 
         Raises:
-            ValueError: If ``std`` or ``f`` is negative, or there are no honest
+            ValueError: If :math:`\sigma` or :math:`f` is negative, or there are no honest
                 gradients.
             TypeError: If the honest gradients do not use a floating-point dtype.
         """

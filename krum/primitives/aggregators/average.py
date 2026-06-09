@@ -36,12 +36,12 @@ class Average(Aggregator):
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers,
-                or a pre-stacked 2-D tensor of shape ``(n, d)``.
+                or a pre-stacked 2-D tensor of shape :math:`(n, d)`.
             out: Optional pre-allocated tensor to write the result into.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Element-wise mean of the gradients, of shape ``(d,)``.
+            Element-wise mean of the gradients, of shape :math:`(d,)`.
         """
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))

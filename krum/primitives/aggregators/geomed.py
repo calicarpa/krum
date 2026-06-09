@@ -35,22 +35,22 @@ class GeoMed(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate gradients by selecting the geometric median.
+        r"""Aggregate gradients by selecting the geometric median.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers.
-            f: Number of Byzantine workers to tolerate. ``f`` is accepted for
+            f: Number of Byzantine workers to tolerate. :math:`f` is accepted for
                 API uniformity with other aggregators but is not consulted
-                here (the geometric median is defined for any ``n ≥ 1``).
+                here (the geometric median is defined for any :math:`n \ge 1`).
             **specialized: Additional keyword arguments.
 
         Returns:
-            Selected worker gradient of shape ``(d,)``.
+            Selected worker gradient of shape :math:`(d,)`.
 
         Raises:
-            ValueError: If ``n``, ``f``, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")

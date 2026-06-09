@@ -40,7 +40,7 @@ class Median(Aggregator):
             **specialized: Additional keyword arguments.
 
         Returns:
-            Coordinate-wise median of the gradients, of shape ``(d,)``.
+            Coordinate-wise median of the gradients, of shape :math:`(d,)`.
         """
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))
