@@ -1,66 +1,16 @@
 Attacks
 =======
 
-Krum provides gradient attacks that generate Byzantine gradients from honest
-worker gradients. Attacks are stateless: each one implements the
-:class:`attacks.Attack` contract as a classmethod, called directly on the class:
+.. automodule:: krum.primitives.attacks
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-.. code-block:: python
-
-   SomeAttack.generate(honest_gradients, f=...)
-
-where:
-
-- :math:`h` = number of honest workers
-- :math:`f` = number of Byzantine gradients to generate
-- :math:`d` = gradient dimension
-- output shape: :math:`f \times d`
-
-The ``honest_gradients`` parameter is a sequence of :math:`h` per-worker gradient
-vectors, each of shape :math:`(d,)` (a stacked :math:`(h, d)` tensor also works).
-
-Overview
---------
-
-.. list-table:: Attacks
-   :header-rows: 1
-   :widths: 18 44 20 18
-
-   * - Attack
-     - Description
-     - Parameters
-     - Output
-   * - SignFlip
-     - Sends scaled gradients in the opposite direction of the honest mean
-     - ``scale``
-     - :math:`f \times d`
-   * - ALIE
-     - Sends mean-shifted gradients using exact honest coordinate-wise statistics
-     - ``z``, ``direction`` (:class:`attacks.alie.Direction`)
-     - :math:`f \times d`
-   * - Gaussian
-     - Sends random Gaussian vectors with zero mean and configurable standard deviation
-     - ``std``
-     - :math:`f \times d`
-   * - Omniscient
-     - Sends negated full-dataset gradient scaled by a factor kappa
-     - ``kappa``, ``full_gradient``
-     - :math:`f \times d`
-   * - NoAttack
-     - No-op baseline that always returns an empty tensor
-     - —
-     - :math:`0 \times d`
-   * - SmallPerturbation
-     - Boundary search along a direction that exploits the curse of dimensionality
-     - ``aggregator``, ``n``, ``p``, ``coordinate``
-     - :math:`f \times d`
-
-Available Attacks
------------------
-
+Available Attacks:
+------------------
+   
 .. toctree::
    :maxdepth: 1
-   :caption: Gradient Attacks:
 
    classes/sign_flip
    classes/alie
@@ -68,11 +18,3 @@ Available Attacks
    classes/omniscient
    classes/no_attack
    classes/small_perturbation
-
-API Reference
--------------
-
-.. automodule:: krum.primitives.attacks
-   :members:
-   :undoc-members:
-   :show-inheritance:

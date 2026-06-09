@@ -36,7 +36,14 @@ Reference
    reference/primitives
    reference/aggregators/index
    reference/attacks/index
-    reference/simulations/index
+
+Simulations
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   reference/simulations/
 
 Project
 -------
