@@ -10,11 +10,6 @@ All attacks are **stateless**: each attack is a ``@classmethod`` invoked
 directly on the class. The first positional argument is the honest
 gradients; ``f`` (the number of Byzantine gradients to generate) and any
 attack-specific hyperparameters are keyword-only.
-
-Available attacks:
-
-* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` — scaled opposite of the honest mean :math:`-\lambda \bar{g}`.
-* :class:`~krum.primitives.attacks.alie.ALIEAttack` — mean-shifted using coordinate-wise statistics :math:`\bar{g} \pm z \cdot \sigma` (Baruch et al., NeurIPS 2019).
 """
 
 from abc import ABC, abstractmethod

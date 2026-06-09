@@ -1,14 +1,9 @@
 Aggregators
 ===========
 
-.. automodule:: krum.primitives.aggregators
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. toctree::
    :maxdepth: 1
-   :caption: Robust Aggregation Rules:
+   :caption: Available Robust Aggregation Rules:
 
    classes/average
    classes/median
@@ -16,3 +11,8 @@ Aggregators
    classes/krum
    classes/multikrum
    classes/bulyan
+
+.. automodule:: krum.primitives.aggregators
+   :members:
+   :undoc-members:
+   :show-inheritance:
