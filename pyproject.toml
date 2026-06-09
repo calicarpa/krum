@@ -110,10 +110,6 @@ ignore = [
     "UP031", # percent format (legacy codebase, too noisy to fix now)
 ]
 
-# Re-exports in __init__.py are intentional — don't flag them as unused
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]
-
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
