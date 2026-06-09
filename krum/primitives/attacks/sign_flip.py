@@ -1,10 +1,10 @@
 """Sign-flip gradient attack.
 
 Reference:
-    Blanchard, Peva, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-    Stainer. "Machine learning with adversaries: Byzantine tolerant
-    gradient descent." In Advances in Neural Information Processing
-    Systems 30 (NIPS 2017).
+    Cong Xie, Sanmi Koyejo, and Indranil Gupta.
+    "Fall of Empires: Breaking Byzantine-tolerant SGD by Tailored Attacks."
+    In Proceedings of the 22nd International Conference on Artificial Intelligence
+    and Statistics (AISTATS 2019).
 """
 
 from collections.abc import Sequence

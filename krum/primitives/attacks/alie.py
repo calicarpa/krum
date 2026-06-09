@@ -1,7 +1,7 @@
 """A Little Is Enough (ALIE) gradient attack.
 
 Reference:
-    Baruch, Gilad, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
+    Gilad Baruch, Moriah Baruch, Yoav Goldberg, and Kfir Y. Levy. "A Little
     Is Enough: Circumventing Defenses For Distributed Learning." In
     Advances in Neural Information Processing Systems 32 (NeurIPS 2019).
 """
