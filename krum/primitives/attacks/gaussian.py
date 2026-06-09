@@ -1,4 +1,11 @@
-"""Gaussian attack."""
+"""Gaussian noise gradient attack.
+
+Reference:
+    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
+    Stainer. "Machine Learning with Adversaries: Byzantine Tolerant
+    Gradient Descent." In Advances in Neural Information Processing
+    Systems 30 (NeurIPS 2017), Section 5 (Cost of Resilience).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -14,22 +21,6 @@ class GaussianAttack(Attack):
     Byzantine workers send vectors drawn from an isotropic Gaussian
     distribution with configurable mean and standard deviation.
     This attack is independent of the honest gradients.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        mu: Mean of the Gaussian noise. Default 0 as used in the
-            Krum NIPS-2017 paper.
-        std: Standard deviation of the Gaussian noise. Default 200
-            as used in the Krum NIPS-2017 paper.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        ValueError: If ``std`` or ``f`` is negative, or there are no honest
-            gradients.
-        TypeError: If the honest gradients do not use a floating-point dtype.
     """
 
     @classmethod

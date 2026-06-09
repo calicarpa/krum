@@ -56,44 +56,12 @@ class SmallPerturbationAttack(Attack):
 
     The attack accepts a target aggregator and a target norm, builds the
     direction :math:`E` accordingly, and performs a boundary search for the
-    largest :math:`γ` such that the aggregator still "selects" :math:`B(γ)`.
+    largest :math:`\gamma` such that the aggregator still "selects" :math:`B(\gamma)`.
 
-    The aggregator is asked to "select" :math:`B(γ)` in the same way as the
-    actual run: the test substitutes a placeholder for :math:`B(γ)` (the
+    The aggregator is asked to "select" :math:`B(\gamma)` in the same way as the
+    actual run: the test substitutes a placeholder for :math:`B(\gamma)` (the
     honest mean) and checks whether the aggregator's output changes. This
     works uniformly for any stateless aggregator class.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        aggregator: Target aggregator class (e.g. ``Krum``, ``GeoMed``,
-            ``Brute``, ``Bulyan``). Used both as the actual aggregator in
-            the simulation and as the reference rule during the boundary
-            search.
-        n: Total number of workers. Must satisfy :math:`n \geq 2f + 1`.
-        p: Target norm. ``2`` for the finite-norm attack of Section 3.2;
-            ``math.inf`` for the Section 3.3 variant. The default is ``2``
-            (the most common case, matching the paper's analysis).
-        coordinate: Index of the poisoned coordinate (one-hot direction)
-            for ``p < ∞``. Accepts an integer index, the string
-            ``"max"`` to pick the coordinate with the largest honest
-            variance (the default), or the string ``"all"`` to use the
-            all-ones direction (forced when ``p == ∞``).
-        aggregator_kwargs: Extra keyword arguments forwarded to
-            ``aggregator.aggregate`` during the boundary search (e.g.
-            ``{"m": 1}`` for ``Bulyan`` with Krum).
-        gamma_max: Upper bound on the search for :math:`γ_m`. If the
-            aggregator never rejects :math:`B(γ)` up to this value, the
-            search returns ``gamma_max`` (a "no-break" outcome).
-        gamma_init: Initial step used during the exponential search for
-            the upper bound of the boundary.
-        tol: Tolerance of the binary refinement of the boundary.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        ValueError: If ``n``, ``f``, ``p``, or ``coordinate`` is invalid.
     """
 
     @classmethod
@@ -148,7 +116,7 @@ class SmallPerturbationAttack(Attack):
         if f > n:
             raise ValueError(f"Invalid Byzantine workers, got f = {f!r}, expected f <= n = {n!r}")
         if n < 2 * f + 1:
-            raise ValueError(f"Invalid worker configuration, got (n={n}, f={f}); Brute requires n >= 2f + 1")
+            raise ValueError(f"Invalid worker configuration, got (n={n}, f={f}); expected n >= 2f + 1")
         if p != 2 and p != math.inf:
             raise ValueError(f"Invalid target norm, got p = {p!r}, expected 2 or math.inf")
         if coordinate is not None and not isinstance(coordinate, int | str):

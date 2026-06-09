@@ -9,23 +9,6 @@ robust to the ``f`` worst outliers.
 All aggregators are **stateless**: each rule is a ``@classmethod`` invoked
 directly on the class. Specialized parameters (``f``, ``n``, ``m``) are
 keyword-only.
-
-Available rules:
-
- * :class:`~krum.primitives.aggregators.average.Average` — plain mean (no robustness, baseline).
-* :class:`~krum.primitives.aggregators.median.Median` — coordinate-wise median.
- * :class:`~krum.primitives.aggregators.trimmed_mean.TrimmedMean` — coordinate-wise
-  trimmed mean.
-* :class:`~krum.primitives.aggregators.krum.Krum` — single-gradient selection
-  (Blanchard et al., NIPS 2017).
-* :class:`~krum.primitives.aggregators.multikrum.MultiKrum` — multi-gradient
-  averaging variant of Krum (Blanchard et al., NIPS 2017).
-* :class:`~krum.primitives.aggregators.bulyan.Bulyan` — two-stage Krum +
-  trimmed mean (Mhamdi et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.brute.Brute` — most-clumped-subset
-  baseline (Mhamdi et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.geomed.GeoMed` — vector-level medoid
-  (Mhamdi et al., ICML 2018).
 """
 
 from abc import ABC, abstractmethod

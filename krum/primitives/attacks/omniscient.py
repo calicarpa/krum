@@ -1,4 +1,11 @@
-"""Omniscient attack."""
+"""Omniscient gradient attack.
+
+Reference:
+    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
+    Stainer. "Machine Learning with Adversaries: Byzantine Tolerant
+    Gradient Descent." In Advances in Neural Information Processing
+    Systems 30 (NeurIPS 2017), Section 5 (Cost of Resilience).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -9,27 +16,11 @@ from . import Attack
 
 
 class OmniscientAttack(Attack):
-    """Omniscient Byzantine attack.
+    r"""Omniscient Byzantine attack.
 
-    Each Byzantine worker computes the gradient on the full dataset,
-    then sends the opposite vector scaled by a factor kappa.
-    As used in the Krum NIPS-2017 paper, Section 5 (Cost of Resilience).
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        full_gradient: Tensor of shape ``(d,)`` containing the gradient
-            computed over the entire dataset.
-        kappa: Scale factor applied to the negated full gradient.
-            Should be large enough to dominate the aggregation.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        ValueError: If ``kappa`` or ``f`` is negative, there are no honest
-            gradients, or ``full_gradient`` is not 1-D.
-        TypeError: If the honest gradients do not use a floating-point dtype.
+    Each Byzantine worker sends the negation of the full-dataset gradient
+    scaled by a factor :math:`\kappa`. The attack assumes knowledge of the
+    true gradient over the entire dataset, hence the name.
     """
 
     @classmethod

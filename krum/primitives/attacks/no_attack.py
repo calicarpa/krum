@@ -5,6 +5,12 @@ configuration of a distributed-SGD run: it returns an empty tensor for
 every call to :meth:`generate`, so the simulation includes no Byzantine
 gradients in the aggregator input. It is used as the honest baseline in
 the experiments of El Mhamdi et al. (ICML 2018).
+
+Reference:
+    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
+    Hidden Vulnerability of Distributed Learning in Byzantium." In
+    Proceedings of the 35th International Conference on Machine
+    Learning (ICML 2018).
 """
 
 from collections.abc import Sequence
@@ -19,20 +25,10 @@ class NoAttack(Attack):
     """Attack stub that always returns an empty Byzantine-gradient tensor.
 
     A no-op attack is required by the simulation loop (which expects an
-    :class:`~krum.primitives.attacks.attack.Attack` instance even when
+    :class:`~krum.primitives.attacks.Attack` instance even when
     :math:`f = 0`). It produces zero malicious gradients regardless of
     the honest gradients, so the aggregator only ever sees honest
     inputs.
-
-    This corresponds to the "Average baseline" runs of El Mhamdi et al.
-    (ICML 2018), where :math:`f = 0` and no defense is applied.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate. Ignored.
-
-    Returns:
-        Empty tensor of shape ``(0, d)``.
     """
 
     @classmethod

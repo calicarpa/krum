@@ -1,4 +1,11 @@
-"""Brute: most-clumped-subset aggregation rule (El Mhamdi et al., ICML 2018)."""
+"""Brute aggregation rule — most-clumped-subset baseline.
+
+Reference:
+    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
+    Hidden Vulnerability of Distributed Learning in Byzantium." In
+    Proceedings of the 35th International Conference on Machine
+    Learning (ICML 2018).
+"""
 
 from collections.abc import Sequence
 from itertools import combinations
@@ -19,24 +26,6 @@ class Brute(Aggregator):
     enumerates :math:`\binom{n}{n-f}` subsets, so it is only feasible when
     that count is small (the paper uses :math:`6` honest + :math:`5`
     Byzantine workers, giving :math:`\binom{11}{6} = 462` subsets).
-
-    Reference:
-        El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault.
-        "The Hidden Vulnerability of Distributed Learning in Byzantium."
-        ICML 2018.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers. Must satisfy :math:`n \geq 2f + 1`.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            :math:`1 \leq f \leq (n - 1) // 2`.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Mean of the most-clumped :math:`n - f` subset, of shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``n``, ``f``, or the gradients count is invalid.
     """
 
     @classmethod

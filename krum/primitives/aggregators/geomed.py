@@ -1,4 +1,10 @@
-"""GeoMed: geometric median (vector-level medoid) aggregation rule (El Mhamdi et al., ICML 2018)."""
+"""GeoMed: geometric median (vector-level medoid) aggregation rule (El Mhamdi et al., ICML 2018).
+
+Reference:
+    Dong Yin, Yudong Chen, Ramchandran Kannan, and Peter Bartlett.
+    "Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates."
+    In Proceedings of the 35th International Conference on Machine Learning (ICML 2018).
+"""
 
 from collections.abc import Sequence
 from typing import Any
@@ -16,24 +22,6 @@ class GeoMed(Aggregator):
     This is a vector-level operator (one of the submitted vectors is
     selected as-is) — distinct from the coordinate-wise median, which
     computes a median per coordinate.
-
-    Reference:
-        El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault.
-        "The Hidden Vulnerability of Distributed Learning in Byzantium."
-        ICML 2018.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers. Must satisfy :math:`n \geq 2f + 1`.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            :math:`0 \leq f \leq (n - 1) // 2`.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Selected worker gradient of shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``n``, ``f``, or the gradients count is invalid.
     """
 
     @classmethod
