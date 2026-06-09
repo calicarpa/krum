@@ -22,21 +22,6 @@ class SignFlipAttack(Attack):
     scaled by a positive factor. Intuitively, every Byzantine worker tries to
     make the aggregated gradient point in the opposite direction of the honest
     update.
-
-    Args:
-        honest_gradients: Sequence of 1-D tensors, one per honest worker.
-        f: Number of Byzantine gradients to generate.
-        scale: Non-negative scale applied to the sign-flipped honest mean.
-            ``scale = 1`` sends the exact negative honest mean; larger values
-            amplify the attack.
-
-    Returns:
-        Byzantine gradients of shape ``(f, d)``.
-
-    Raises:
-        ValueError: If ``scale`` or ``f`` is negative, or there are no honest
-            gradients to average.
-        TypeError: If the honest gradients do not use a floating-point dtype.
     """
 
     @classmethod

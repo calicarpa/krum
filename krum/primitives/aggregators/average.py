@@ -15,13 +15,6 @@ class Average(Aggregator):
     arbitrarily large gradient can drive the aggregated gradient arbitrarily
     far from the honest mean, so this rule has no Byzantine resilience
     guarantees.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Element-wise mean of the gradients, of shape ``(d,)``.
     """
 
     @classmethod

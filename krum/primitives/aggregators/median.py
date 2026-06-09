@@ -9,19 +9,12 @@ from . import Aggregator
 
 
 class Median(Aggregator):
-    """Coordinate-wise geometric median of the worker gradients.
+    r"""Coordinate-wise geometric median of the worker gradients.
 
     The aggregated gradient is the coordinate-wise median of the worker
     gradients. This provides basic Byzantine resilience: a single
     adversarial worker can shift at most one sample per coordinate away
     from the true median.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Coordinate-wise median of the gradients, of shape ``(d,)``.
     """
 
     @classmethod
@@ -32,7 +25,7 @@ class Median(Aggregator):
         out: Tensor | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients by computing the coordinate-wise median.
+        r"""Aggregate the gradients by computing the coordinate-wise median.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

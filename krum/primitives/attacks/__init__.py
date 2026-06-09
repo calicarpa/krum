@@ -4,10 +4,10 @@ An :class:`Attack` observes the gradients of honest workers and produces
 gradients that mimic what adversarial (Byzantine) workers would send. They are
 used to stress-test :mod:`~krum.primitives.aggregators` rules.
 
-Concrete attacks live in their own submodules and are imported directly from
-them (e.g. ``from krum.primitives.attacks.sign_flip import SignFlipAttack``).
-The package root only exposes the :class:`Attack` base class, imported by
-submodules with ``from . import Attack``.
+Available attacks:
+
+* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` — scaled opposite of the honest mean.
+* :class:`~krum.primitives.attacks.alie.ALIEAttack` — mean-shifted using coordinate-wise statistics (Baruch et al., ICML 2019).
 """
 
 from abc import ABC, abstractmethod
@@ -30,9 +30,15 @@ class Attack(ABC):
     @classmethod
     @abstractmethod
     def generate(
-        cls, honest_gradients: Sequence[Tensor] | Tensor, /, out: Tensor | None = None, *, f: int, **specialized: Any
+        cls,
+        honest_gradients: Sequence[Tensor] | Tensor,
+        /,
+        out: Tensor | None = None,
+        *,
+        f: int,
+        **specialized: Any,
     ) -> Tensor:
-        """Generate Byzantine gradients from observed honest gradients.
+        r"""Generate Byzantine gradients from observed honest gradients.
 
         Args:
             honest_gradients: Sequence of ``h`` gradient vectors, one per honest

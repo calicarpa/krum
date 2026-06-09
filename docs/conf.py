@@ -156,9 +156,9 @@ html_theme_options = {
             "title": "Reference",
             "children": [
                 {
-                    "title": "Architecture",
-                    "url": "reference/architecture",
-                    "summary": "Understanding the architecture of Krum",
+                    "title": "Primitives",
+                    "url": "reference/primitives",
+                    "summary": "Core abstractions",
                 },
                 {
                     "title": "Aggregators",
@@ -169,11 +169,6 @@ html_theme_options = {
                     "title": "Attacks",
                     "url": "reference/attacks/index",
                     "summary": "What are attacks",
-                },
-                {
-                    "title": "Primitives",
-                    "url": "reference/primitives",
-                    "summary": "Core abstractions",
                 },
             ],
         },
