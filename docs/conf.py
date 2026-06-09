@@ -161,9 +161,9 @@ html_theme_options = {
             "title": "Reference",
             "children": [
                 {
-                    "title": "Architecture",
-                    "url": "reference/architecture",
-                    "summary": "Repository structure and design overview",
+                    "title": "Primitives",
+                    "url": "reference/primitives",
+                    "summary": "Core abstractions",
                 },
                 {
                     "title": "Aggregators",
@@ -174,11 +174,6 @@ html_theme_options = {
                     "title": "Attacks",
                     "url": "reference/attacks/index",
                     "summary": "Byzantine attack strategies for evaluation",
-                },
-                {
-                    "title": "Primitives",
-                    "url": "reference/primitives",
-                    "summary": "Core abstractions (Model, Attack base class)",
                 },
                 {
                     "title": "Simulations",
