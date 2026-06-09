@@ -351,9 +351,14 @@ class CentralisedSimulation:
         for t in range(self.rounds):
             self.step()
 
+            if t % 50 == 0 or t == self.rounds - 1:
+                print(f"epoch {t + 1}/{self.rounds} done", flush=True)
+
             if t % self.eval_every == 0 or t == self.rounds - 1:
                 result = self.evaluate()
                 traces.append(_pack(t, result))
+                if t % 50 == 0 or t == self.rounds - 1:
+                    print(f"  metrics: {result}", flush=True)
 
         return traces
 
