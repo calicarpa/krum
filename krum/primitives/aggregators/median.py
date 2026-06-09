@@ -1,7 +1,7 @@
 """Coordinate-wise median aggregation rule.
 
 Reference:
-    Yin, Dong, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
+    Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
     "Byzantine-Robust Distributed Learning: Towards Optimal Statistical
     Rates." In Proceedings of the 35th International Conference on
     Machine Learning (ICML 2018).
