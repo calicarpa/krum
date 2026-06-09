@@ -263,9 +263,6 @@ class SmallPerturbationAttack(Attack):
         gamma_init = 1.0
         tol = 1e-3
 
-        if not cls._is_selected(honest_gradients, honest_mean, aggregator, n, f, aggregator_kwargs):
-            return 0.0
-
         low = 0.0
         high = gamma_init
         while high < gamma_max:

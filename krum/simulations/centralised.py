@@ -332,10 +332,8 @@ class CentralisedSimulation:
         every ``eval_every`` rounds (always evaluating on the last round).
 
         Returns:
-            List of ``(round, ...)`` tuples. The tail is the output of
-            :meth:`evaluate`: a scalar value appended directly (e.g.
-            ``(42, 0.05)``) or a tuple unpacked (e.g.
-            ``(42, 0.1, 0.95, 0.2)``).
+            List of ``(round, ...)`` tuples where each tail is the return value
+            of :meth:`evaluate` (a scalar, tuple, or dict).
 
         Raises:
             RuntimeError: If :meth:`run` has already been called.
@@ -358,7 +356,7 @@ class CentralisedSimulation:
                 result = self.evaluate()
                 traces.append(_pack(t, result))
                 if t % 50 == 0 or t == self.rounds - 1:
-                    print(f"  metrics: {result}", flush=True)
+                    print(f"  {result}", flush=True)
 
         return traces
 
@@ -383,12 +381,11 @@ class CentralisedSimulation:
             error = (preds != y).float().mean()
         return error.item()
 
-    def evaluate_test_error_and_loss(self) -> tuple[float, float]:
+    def evaluate_test_error_and_loss(self) -> dict[str, float]:
         """Compute misclassification error rate and cross-entropy loss on the test set.
 
         Returns:
-            Tuple of ``(error, loss)``. Error is the misclassification rate
-            in ``[0, 1]``; loss is the cross-entropy on the test set.
+            Dict with ``"test_error"`` and ``"test_loss"``.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
@@ -404,14 +401,13 @@ class CentralisedSimulation:
             preds = logits.argmax(dim=1)
             error = (preds != y).float().mean().item()
             loss = self.loss_fn(logits, y).item()
-        return (error, loss)
+        return {"test_error": error, "test_loss": loss}
 
-    def evaluate_full(self) -> tuple[float, float, float]:
+    def evaluate_full(self) -> dict[str, float]:
         """Compute training loss and test accuracy/loss on full datasets.
 
         Returns:
-            Tuple of ``(train_loss, test_accuracy, test_loss)``.
-            Accuracy is the fraction of correct predictions in ``[0, 1]``.
+            Dict with ``"train_loss"``, ``"test_accuracy"``, ``"test_loss"``.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
@@ -433,7 +429,7 @@ class CentralisedSimulation:
             preds = logits_test.argmax(dim=1)
             test_acc = (preds == y_test).float().mean().item()
 
-        return (train_loss, test_acc, test_loss)
+        return {"train_loss": train_loss, "test_accuracy": test_acc, "test_loss": test_loss}
 
     @staticmethod
     def _detect_device() -> torch.device:
@@ -534,7 +530,11 @@ class CentralisedSimulation:
 def _pack(round: int, result: Any) -> tuple[int, Any]:
     """Pack a round number and an evaluation result into a trace tuple.
 
-    If *result* is already a tuple it is unpacked::
+    If *result* is a dict it is appended directly (unchanged)::
+
+        _pack(3, {"train_loss": 0.1}) → (3, {"train_loss": 0.1})
+
+    If *result* is a tuple it is unpacked::
 
         _pack(3, (0.1, 0.9)) → (3, 0.1, 0.9)
 

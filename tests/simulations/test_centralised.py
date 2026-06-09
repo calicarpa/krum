@@ -368,27 +368,25 @@ class CentralisedSimulationEvaluateHelpersTest(unittest.TestCase):
         self.assertGreaterEqual(err, 0.0)
         self.assertLessEqual(err, 1.0)
 
-    def test_evaluate_test_error_and_loss_returns_tuple(self) -> None:
-        """:meth:`evaluate_test_error_and_loss` should return ``(error, loss)``."""
+    def test_evaluate_test_error_and_loss_returns_dict(self) -> None:
+        """:meth:`evaluate_test_error_and_loss` should return a dict."""
         result = self.sim.evaluate_test_error_and_loss()
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        err, loss = result
-        self.assertIsInstance(err, float)
-        self.assertIsInstance(loss, float)
-        self.assertGreaterEqual(err, 0.0)
-        self.assertLessEqual(err, 1.0)
+        self.assertIsInstance(result, dict)
+        self.assertSetEqual(set(result.keys()), {"test_error", "test_loss"})
+        self.assertIsInstance(result["test_error"], float)
+        self.assertIsInstance(result["test_loss"], float)
+        self.assertGreaterEqual(result["test_error"], 0.0)
+        self.assertLessEqual(result["test_error"], 1.0)
 
-    def test_evaluate_full_returns_triple(self) -> None:
-        """:meth:`evaluate_full` should return ``(train_loss, test_acc, test_loss)``."""
+    def test_evaluate_full_returns_dict(self) -> None:
+        """:meth:`evaluate_full` should return a dict."""
         result = self.sim.evaluate_full()
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 3)
-        train_loss, test_acc, test_loss = result
-        for v in (train_loss, test_acc, test_loss):
+        self.assertIsInstance(result, dict)
+        self.assertSetEqual(set(result.keys()), {"train_loss", "test_accuracy", "test_loss"})
+        for v in result.values():
             self.assertIsInstance(v, float)
-        self.assertGreaterEqual(test_acc, 0.0)
-        self.assertLessEqual(test_acc, 1.0)
+        self.assertGreaterEqual(result["test_accuracy"], 0.0)
+        self.assertLessEqual(result["test_accuracy"], 1.0)
 
 
 class CentralisedSimulationCompositionTest(unittest.TestCase):
@@ -456,7 +454,7 @@ class CentralisedSimulationCompositionTest(unittest.TestCase):
         )
         sim.setup()
         result = sim.evaluate()
-        self.assertIsInstance(result, tuple)
+        self.assertIsInstance(result, dict)
         self.assertEqual(len(result), 3)
 
 
