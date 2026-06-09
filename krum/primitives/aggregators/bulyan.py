@@ -1,4 +1,4 @@
-"""Bulyan aggregation rule (Mhamdi et al., ICML 2018).
+"""Bulyan aggregation rule — two-stage Krum + trimmed mean.
 
 Reference:
     El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The

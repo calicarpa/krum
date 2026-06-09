@@ -1,4 +1,4 @@
-"""MultiKrum: multi-gradient averaging rule (Blanchard et al., NIPS 2017).
+"""MultiKrum aggregation rule — multi-gradient averaging.
 
 Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien

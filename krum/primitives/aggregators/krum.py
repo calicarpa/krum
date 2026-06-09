@@ -1,4 +1,4 @@
-"""Krum: single-gradient selection rule (Blanchard et al., NIPS 2017).
+"""Krum aggregation rule — single-gradient selection.
 
 Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
