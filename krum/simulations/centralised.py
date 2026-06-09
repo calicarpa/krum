@@ -6,12 +6,11 @@ Each synchronous round:
     #. The aggregator combines all :math:`n` gradients into a single update.
     #. The aggregated update is applied via an SGD step.
 
-The :class:`CentralisedSimulation` base class implements the full lifecycle
-(model initialisation, data sharding, training loop, evaluation).
-Protocol-specific subclasses — :class:`~krum.simulations.krum_nips_2017.simulation.KrumSimulation`
-(Blanchard et al., NIPS 2017) and :class:`~krum.simulations.hidden_vulnerability_icml_2018.simulation.Simulation`
-(El Mhamdi et al., ICML 2018) — override only :meth:`~CentralisedSimulation.evaluate`
-to provide their own metric reporting.
+The :class:`CentralisedSimulation` implements the full lifecycle (model
+initialisation, data sharding, training loop, evaluation). Protocol-specific
+metric reporting is configured via the ``evaluate_fn`` constructor parameter
+rather than subclassing — evaluation is delegated to a caller-supplied
+callable, following composition over inheritance.
 """
 
 from typing import Any, Callable, Literal, Sized, cast
@@ -34,9 +33,10 @@ class CentralisedSimulation:
     :math:`n` workers, of which :math:`f` are Byzantine (up to the tolerance of the
     chosen aggregator).
 
-    Subclasses override :meth:`evaluate` to customise the evaluation protocol
-    (e.g. NIPS 2017 reports a single error rate, ICML 2018 reports three
-    metrics).
+    Evaluation follows composition over inheritance: the caller supplies
+    an ``evaluate_fn`` callable (e.g. one of the built-in
+    :meth:`evaluate_test_error_and_loss` or :meth:`evaluate_full`) that
+    receives the simulation instance and returns protocol-specific metrics.
 
     Args:
         model_cls: ``nn.Module`` subclass to instantiate for training.
@@ -93,6 +93,11 @@ class CentralisedSimulation:
         seed: Random seed for reproducibility.
         eval_every: Evaluate on the test set every ``eval_every`` rounds
             (and always on the last round).
+        evaluate_fn: Callable that receives the simulation instance
+            and returns evaluation metrics. Built-in options include
+            :meth:`evaluate_test_error`, :meth:`evaluate_test_error_and_loss`,
+            and :meth:`evaluate_full`. Custom evaluators must accept a
+            single ``CentralisedSimulation`` argument.
 
     Raises:
         RuntimeError: If :meth:`run` is called more than once on the same
@@ -126,8 +131,11 @@ class CentralisedSimulation:
         device: torch.device | None = None,
         seed: int = 42,
         eval_every: int = 10,
+        evaluate_fn: Callable[["CentralisedSimulation"], Any] | None = None,
     ) -> None:
         """See the class docstring for the full parameter list."""
+        if evaluate_fn is None:
+            raise TypeError("CentralisedSimulation.__init__() missing required argument: 'evaluate_fn'")
         if lr_schedule not in {"exponential", "robbins_monro", "none"}:
             raise ValueError(
                 f"Invalid lr_schedule, got {lr_schedule!r}, expected 'exponential', 'robbins_monro', or 'none'"
@@ -168,6 +176,7 @@ class CentralisedSimulation:
         self.device = device or self._detect_device()
         self.seed = seed
         self.eval_every = eval_every
+        self._evaluate_fn = evaluate_fn
 
         self._model: Model | None = None
         self._current_lr: float = self.lr
@@ -305,19 +314,16 @@ class CentralisedSimulation:
         self._current_round += 1
 
     def evaluate(self) -> Any:
-        """Compute evaluation metrics after a training round.
+        """Compute evaluation metrics by delegating to ``evaluate_fn``.
 
-        Subclasses must override this to return protocol-specific metrics
-        (e.g. a single error rate for NIPS 2017, or
-        ``(train_loss, test_accuracy, test_loss)`` for ICML 2018).
+        The evaluator callable was supplied at construction time. Built-in
+        options include :meth:`evaluate_test_error`,
+        :meth:`evaluate_test_error_and_loss`, and :meth:`evaluate_full`.
 
         Returns:
-            Scalar or tuple of evaluation metrics.
-
-        Raises:
-            NotImplementedError: If the subclass does not override this method.
+            Scalar or tuple of evaluation metrics, as defined by the evaluator.
         """
-        raise NotImplementedError
+        return self._evaluate_fn(self)
 
     def run(self) -> list[tuple[int, Any]]:
         """Run the simulation to completion.
@@ -355,7 +361,7 @@ class CentralisedSimulation:
         """Compute misclassification error rate on the held-out test set.
 
         Returns:
-            Error rate in :math:`[0, 1]`.
+            Error rate in ``[0, 1]``.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
@@ -377,7 +383,7 @@ class CentralisedSimulation:
 
         Returns:
             Tuple of ``(error, loss)``. Error is the misclassification rate
-            in :math:`[0, 1]`; loss is the cross-entropy on the test set.
+            in ``[0, 1]``; loss is the cross-entropy on the test set.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
@@ -400,7 +406,7 @@ class CentralisedSimulation:
 
         Returns:
             Tuple of ``(train_loss, test_accuracy, test_loss)``.
-            Accuracy is the fraction of correct predictions in :math:`[0, 1]`.
+            Accuracy is the fraction of correct predictions in ``[0, 1]``.
 
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
@@ -459,7 +465,7 @@ class CentralisedSimulation:
             loader: DataLoader yielding mini-batches from the worker's IID shard.
 
         Returns:
-            Cloned flat gradient tensor of shape :math:`(d,)`.
+            Cloned flat gradient tensor of shape ``(d,)``.
         """
         assert self._model is not None
         self._model.module.train()
@@ -509,7 +515,7 @@ class CentralisedSimulation:
         :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`.
 
         Returns:
-            Full-dataset gradient of shape :math:`(d,)`.
+            Full-dataset gradient of shape ``(d,)``.
         """
         assert self._model is not None and self._full_loader is not None
         x, y = next(iter(self._full_loader))
@@ -533,7 +539,8 @@ def _pack(round: int, result: Any) -> tuple[int, Any]:
 
     Args:
         round: Current round index (0-based).
-        result: The value returned by :meth:`CentralisedSimulation.evaluate`.
+        result: The value returned by :meth:`CentralisedSimulation.evaluate`
+            (i.e. by the ``evaluate_fn`` callable).
 
     Returns:
         A trace tuple ``(round, ...)`` suitable for insertion into the trace list.

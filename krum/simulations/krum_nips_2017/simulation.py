@@ -10,6 +10,8 @@ One ``KrumSimulation`` instance = one (aggregator, attack, dataset, model)
 configuration run over multiple synchronous rounds with no learning rate decay.
 """
 
+from typing import Any
+
 from ..centralised import CentralisedSimulation
 
 
@@ -22,19 +24,16 @@ class KrumSimulation(CentralisedSimulation):
 
     - Uses a **fixed learning rate** (no scheduler; ``lr_decay=None``, the
       default inherited from :class:`~krum.simulations.centralised.CentralisedSimulation`).
-    - Reports a single **misclassification error rate** on the test set
-      instead of the full ``(train_loss, test_accuracy, test_loss)`` triple.
+    - Reports misclassification error and cross-entropy loss on the test set.
 
     See Also:
         :class:`~krum.simulations.centralised.CentralisedSimulation`
             for the full constructor parameter list.
     """
 
-    def evaluate(self) -> tuple[float, float]:
-        """Compute misclassification error and cross-entropy loss on the test set.
-
-        Returns:
-            Tuple of ``(error, loss)``. Error is the misclassification rate
-            in :math:`[0, 1]`; loss is the cross-entropy on the test set.
-        """
-        return self.evaluate_test_error_and_loss()
+    def __init__(self, **kwargs: Any) -> None:
+        """See :class:`~krum.simulations.centralised.CentralisedSimulation`."""
+        super().__init__(
+            evaluate_fn=CentralisedSimulation.evaluate_test_error_and_loss,
+            **kwargs,
+        )
