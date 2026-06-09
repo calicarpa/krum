@@ -1,12 +1,30 @@
 """Zero-copy flat-tensor view of a ``torch.nn.Module``.
 
 The :class:`Model` wrapper relinks a module's parameters and gradients to
-contiguous flat tensors, so that aggregators and attacks can operate on a
-single 1-D view of the model state without copying data on every access.
+contiguous flat 1-D tensors, so that aggregators and attacks can operate on
+a single vector representation of the model state without copying data on
+every access. Reading :attr:`Model.parameters` or :attr:`Model.gradients`
+returns a view sharing the underlying buffer; writing to
+``model.gradients = flat`` unpacks the flat vector back into each
+parameter's ``.grad`` in place.
 
-Example:
-    >>> model.parameters[0] = 1.0      # mutates the model weight in place
-    >>> model.gradients = flat         # writes aggregated gradients back
+Example::
+
+    from torch.nn import Linear
+    from krum.primitives import Model
+
+    model = Model(Linear(4, 2))
+
+    # Read the flat parameter vector (shares memory with the module)
+    params = model.parameters          # shape (d,)
+
+    # Simulate a backward pass, then read gradients
+    loss = model.module(torch.randn(3, 4)).sum()
+    loss.backward()
+    grads = model.gradients            # shape (d,), lazy-initializes .grad
+
+    # Write aggregated gradients back (zero-copy relink)
+    model.gradients = grads.clone()
 """
 
 from __future__ import annotations

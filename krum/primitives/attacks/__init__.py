@@ -1,8 +1,15 @@
 r"""Gradient attacks that simulate Byzantine (adversarial) workers.
 
 An :class:`Attack` observes the gradients of honest workers and produces
-gradients that mimic what adversarial (Byzantine) workers would send. They are
-used to stress-test :mod:`~krum.primitives.aggregators` rules.
+gradients that mimic what adversarial (Byzantine) workers would send. They
+are used to stress-test :mod:`~krum.primitives.aggregators` rules by
+measuring whether the aggregated gradient still points in a useful
+direction under adversarial conditions.
+
+All attacks are **stateless**: each attack is a ``@classmethod`` invoked
+directly on the class. The first positional argument is the honest
+gradients; ``f`` (the number of Byzantine gradients to generate) and any
+attack-specific hyperparameters are keyword-only.
 
 Available attacks:
 

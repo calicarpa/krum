@@ -1,8 +1,14 @@
 """Byzantine-resilient gradient aggregation rules.
 
-All aggregators are **stateless**: each rule is a classmethod.
+In distributed learning with ``n`` workers of which up to ``f`` may be
+Byzantine (adversarial or faulty), the aggregator is the single point that
+determines whether the training converges. Each rule in this module accepts
+one gradient per worker and produces a single aggregated gradient that is
+robust to the ``f`` worst outliers.
 
-Specialized parameters (``f``, ``n``, ``m``) are keyword-only.
+All aggregators are **stateless**: each rule is a ``@classmethod`` invoked
+directly on the class. Specialized parameters (``f``, ``n``, ``m``) are
+keyword-only.
 
 Available rules:
 
