@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class TrimmedMean(Aggregator):
-    r"""Coordinate-wise trimmed mean aggregation rule.
+    """Coordinate-wise trimmed mean aggregation rule.
 
     For every coordinate, the ``f`` smallest and ``f`` largest values are
     dropped, then the remaining values are averaged. This requires at least
@@ -34,7 +34,7 @@ class TrimmedMean(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        r"""Aggregate the gradients by computing the coordinate-wise trimmed mean.
+        """Aggregate the gradients by computing the coordinate-wise trimmed mean.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

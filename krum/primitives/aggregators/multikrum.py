@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class MultiKrum(Aggregator):
-    r"""MultiKrum aggregation rule.
+    """MultiKrum aggregation rule.
 
     Scores every worker gradient by the sum of its distances to its
     ``n - f - 1`` closest neighbors, picks the ``m`` gradients with the
@@ -36,7 +36,7 @@ class MultiKrum(Aggregator):
         m: int,
         **specialized: Any,
     ) -> Tensor:
-        r"""Aggregate gradients using MultiKrum.
+        """Aggregate gradients using MultiKrum.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
