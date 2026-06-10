@@ -30,23 +30,6 @@ class Bulyan(Aggregator):
     in all figures; this implementation follows that choice. A
     different base rule A could be plugged in by overriding
     :meth:`_select_one`.
-
-    Requires :math:`n \geq 4f + 3`.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
-        f: Number of Byzantine workers to tolerate. Must satisfy
-            ``1 <= f <= (n - 3) // 4``.
-        m: Number of gradients selected by MultiKrum at each iteration.
-            Defaults to :math:`n - f - 2`.
-        out: Optional pre-allocated tensor to write the result into.
-
-    Returns:
-        Aggregated gradient of shape ``(d,)``.
-
-    Raises:
-        ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
     """
 
     @classmethod
