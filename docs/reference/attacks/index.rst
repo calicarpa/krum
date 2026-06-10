@@ -16,5 +16,4 @@ Available Attacks:
    classes/alie
    classes/gaussian
    classes/full_gradient_negation
-   classes/no_attack
    classes/small_perturbation

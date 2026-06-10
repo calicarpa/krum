@@ -112,9 +112,9 @@ class CentralisedSimulation:
         model_cls: type[nn.Module],
         train_set: Dataset[Any],
         test_set: Dataset[Any],
-        aggregator: type[Aggregator],
+        aggregator: type[Aggregator] | None = None,
         aggregator_kwargs: dict[str, Any] | None = None,
-        attack: type[Attack],
+        attack: type[Attack] | None = None,
         attack_kwargs: dict[str, Any] | None = None,
         n: int,
         f: int,
@@ -284,28 +284,34 @@ class CentralisedSimulation:
 
         if self.f > 0:
             attack_stopped = self.stop_attack_at is not None and self._current_round >= self.stop_attack_at
-            if attack_stopped:
-                d = worker_gradients[0].numel()
-                zero_grad = torch.zeros(
-                    d,
-                    device=worker_gradients[0].device,
-                    dtype=worker_gradients[0].dtype,
-                )
-                for _ in range(self.f):
-                    worker_gradients.append(zero_grad.clone())
-            else:
-                attack_kw = dict(self._attack_kwargs)
-                if issubclass(self.attack, FullGradientNegationAttack):
-                    attack_kw["full_gradient"] = self._compute_full_gradient()
+            if self.attack is not None:
+                if attack_stopped:
+                    d = worker_gradients[0].numel()
+                    zero_grad = torch.zeros(
+                        d,
+                        device=worker_gradients[0].device,
+                        dtype=worker_gradients[0].dtype,
+                    )
+                    for _ in range(self.f):
+                        worker_gradients.append(zero_grad.clone())
+                else:
+                    attack_kw = dict(self._attack_kwargs)
+                    if issubclass(self.attack, FullGradientNegationAttack):
+                        attack_kw["full_gradient"] = self._compute_full_gradient()
 
-                honest_gradients = torch.stack(worker_gradients)
-                byz_gradients = self.attack.generate(honest_gradients, f=self.f, **attack_kw)
-                for g in byz_gradients:
-                    worker_gradients.append(g)
+                    honest_gradients = torch.stack(worker_gradients)
+                    byz_gradients = self.attack.generate(honest_gradients, f=self.f, **attack_kw)
+                    for g in byz_gradients:
+                        worker_gradients.append(g)
 
         all_gradients = torch.stack(worker_gradients)
-        aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.aggregator_f, **self._aggregator_kwargs)
-        self._model.gradients = aggregated
+        if self.aggregator is not None:
+            aggregated = self.aggregator.aggregate(
+                all_gradients, n=self.n, f=self.aggregator_f, **self._aggregator_kwargs
+            )
+            self._model.gradients = aggregated
+        else:
+            self._model.gradients = all_gradients
         with torch.no_grad():
             params = self._model.parameters
             if self.weight_decay > 0:

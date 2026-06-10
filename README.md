@@ -78,8 +78,7 @@ This installs all linting, type-checking, and documentation tools.
 
 - **8 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
   Bulyan, Brute, GeoMed
-- **6 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoAttack,
-  SmallPerturbation
+- **5 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoSmallPerturbation
 - **2 paper reproduction suites**: Krum (NIPS 2017) and Hidden Vulnerability
   (ICML 2018) — each with 3 experiments
 - **Zero-copy model wrapper**: Flat parameter/gradient views via

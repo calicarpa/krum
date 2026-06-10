@@ -143,7 +143,7 @@ Attacks generate Byzantine gradients from honest worker gradients:
 
 .. code-block:: python
 
-   from krum.primitives.attacks import SignFlip, ALIE, Gaussian, Omniscient, NoAttack, SmallPerturbation
+   from krum.primitives.attacks import SignFlip, ALIE, Gaussian, Omniscient, SmallPerturbation
 
    # Sign flip attack
    byzantine = SignFlip.generate(honest_gradients, f=2, scale=1.5)
