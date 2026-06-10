@@ -8,7 +8,7 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 from krum.simulations.common.models import MLP as MLPMnist
 
-from ._common import run_one
+from ._common import run_one_simulation
 from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase
 
@@ -51,7 +51,7 @@ def main() -> None:
             for bs in BATCH_SIZES:
                 for agg, agg_label in AGGREGATORS:
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
-                    run_one(
+                    run_one_simulation(
                         label=label,
                         model_cls=model_cls,
                         train_set=train_set,

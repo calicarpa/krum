@@ -12,7 +12,7 @@ from krum.primitives.aggregators import Aggregator
 from .simulation import KrumSimulation
 
 
-def run_one(
+def run_one_simulation(
     *,
     label: str,
     model_cls: type[nn.Module],

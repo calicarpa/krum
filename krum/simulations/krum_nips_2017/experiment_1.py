@@ -7,7 +7,7 @@ from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from ._common import run_one
+from ._common import run_one_simulation
 from .datasets import spambase_dataset
 from .models import MLPSpambase
 
@@ -41,7 +41,7 @@ def main() -> None:
         f = int(N * fraction)
         for agg, agg_label in AGGREGATORS:
             label = f"{agg_label}_f{f}"
-            run_one(
+            run_one_simulation(
                 label=label,
                 model_cls=MLPSpambase,
                 train_set=train_set,

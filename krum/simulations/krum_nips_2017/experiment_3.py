@@ -8,7 +8,7 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from ._common import run_one
+from ._common import run_one_simulation
 from .datasets import spambase_dataset
 from .models import MLPSpambase
 
@@ -52,7 +52,7 @@ def main() -> None:
     ]
 
     for agg, label, f_val, agg_kw in configs:
-        run_one(
+        run_one_simulation(
             label=label,
             model_cls=MLPSpambase,
             train_set=train_set,
