@@ -1,12 +1,8 @@
-"""Third Experiment for the Krum-NIPS-2017 simulation (Multi-Krum).
+"""Experiment 3 — NIPS 2017 (Blanchard et al.).
 
-Reproduces Figure 6: compares Average (0% Byzantine), Krum (33%),
-and Multi-Krum (33%) under Gaussian Byzantine workers on Spambase.
+Multi-Krum vs Krum and Average under Gaussian attack on Spambase.
 """
 
-from typing import Any
-
-from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
@@ -16,29 +12,43 @@ from ._common import run_one
 from .datasets import spambase_dataset
 from .models import MLPSpambase
 
+# --- Configurable parameters ---
+ROUNDS = 500
+N = 20
+BATCH_SIZE = 3
+LR = 0.01
+SEED = 42
+
+# Byzantine fraction (33%)
+BYZ_FRACTION = 0.33
+
+# Attack configuration
+ATTACK_STD = 200.0
+
+# MultiKrum parameter
+MULTIKRUM_M = None  # None = auto (N - F - 2)
+
+# Configurations to run
+CONFIGS = [
+    (Average, "Average_f0", 0, None),
+    (Krum, "Krum_f6", None, None),  # f computed from fraction
+    (MultiKrum, "MultiKrum_f6", None, None),  # f and m computed
+]
+# --------------------------------------------
+
 
 def main() -> None:
-    """Run Experiment 3: Multi-Krum (Figure 6).
-
-    Compares Average (0%), Krum (33%), and Multi-Krum with m=n-f (33%)
-    under Gaussian Byzantine workers on Spambase (n=20, batch_size=3,
-    500 rounds).
-    """
-    seed = 42
-    rounds = 500
-    n = 20
-    f = int(n * 0.33)
-    batch_size = 3
-    lr = 0.01
-
+    """Run Experiment 3."""
     train_set, test_set = spambase_dataset()
-    attack = GaussianAttack
-    attack_kw: dict[str, Any] = {"std": 200.0}
+    attack_kw = {"std": ATTACK_STD}
 
-    configs: list[tuple[type[Aggregator], str, int, dict[str, Any] | None]] = [
+    f = int(N * BYZ_FRACTION)
+    m = MULTIKRUM_M if MULTIKRUM_M is not None else (N - f - 2)
+
+    configs = [
         (Average, "Average_f0", 0, None),
-        (Krum, "Krum_f6", f, None),
-        (MultiKrum, "MultiKrum_f6", f, {"m": n - f - 2}),
+        (Krum, f"Krum_f{f}", f, None),
+        (MultiKrum, f"MultiKrum_f{f}", f, {"m": m}),
     ]
 
     for agg, label, f_val, agg_kw in configs:
@@ -49,14 +59,14 @@ def main() -> None:
             test_set=test_set,
             aggregator=agg,
             aggregator_kwargs=agg_kw,
-            attack=attack,
+            attack=GaussianAttack,
             attack_kwargs=attack_kw,
-            n=n,
+            n=N,
             f=f_val,
-            rounds=rounds,
-            batch_size=batch_size,
-            lr=lr,
-            seed=seed,
+            rounds=ROUNDS,
+            batch_size=BATCH_SIZE,
+            lr=LR,
+            seed=SEED,
         )
 
     print("\nExperiment 3 done.")

@@ -1,14 +1,7 @@
-"""Second Experiment for the Krum-NIPS-2017 simulation (Cost of Resilience).
+"""Experiment 2 — NIPS 2017 (Blanchard et al.).
 
-Reproduces Figure 5: compares cross-validation error at round 500 for
-Average and Krum under 0% and 45% Byzantine workers across different
-mini-batch sizes on both Spambase and MNIST.
+Cost of Resilience: sweep batch sizes on Spambase and MNIST.
 """
-
-from typing import Any
-
-import torch.nn as nn
-from torch.utils.data import Dataset
 
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
@@ -19,34 +12,44 @@ from ._common import run_one
 from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase
 
+# --- Configurable parameters ---
+ROUNDS = 500
+N = 20
+LR = 0.01
+SEED = 42
+
+# Attack configuration
+ATTACK_KAPPA = 100.0
+
+# Batch sizes to sweep
+BATCH_SIZES = [3, 5, 10, 20, 40, 80, 160]
+
+# Byzantine worker counts to test
+F_VALUES = [0, 9]  # 0% and 45%
+
+# Aggregators to compare
+AGGREGATORS = [
+    (Average, "Average"),
+    (Krum, "Krum"),
+]
+
+# Datasets to test
+DATASETS = [
+    ("spambase", spambase_dataset, MLPSpambase),
+    ("mnist", mnist_dataset, MLPMnist),
+]
+# --------------------------------------------
+
 
 def main() -> None:
-    """Run Experiment 2: Cost of Resilience (Figure 5).
+    """Run Experiment 2."""
+    attack_kw = {"kappa": ATTACK_KAPPA}
 
-    Sweeps mini-batch sizes from 3 to 160 on both Spambase and MNIST,
-    comparing Average and Krum under 0% and 45% Byzantine workers.
-    """
-    rounds = 500
-    n = 20
-    f_list = [0, 9]
-    batch_sizes = [3, 5, 10, 20, 40, 80, 160]
-    lr = 0.01
-    seed = 42
-
-    datasets: list[tuple[str, tuple[Dataset[Any], Dataset[Any]], type[nn.Module]]] = [
-        ("spambase", spambase_dataset(), MLPSpambase),
-        ("mnist", mnist_dataset(), MLPMnist),
-    ]
-
-    for ds_name, (train_set, test_set), model_cls in datasets:
-        for f in f_list:
-            for bs in batch_sizes:
-                for agg, agg_label in [
-                    (Average, "Average"),
-                    (Krum, "Krum"),
-                ]:
-                    attack = FullGradientNegationAttack
-                    attack_kw: dict[str, Any] = {"kappa": 100.0}
+    for ds_name, ds_fn, model_cls in DATASETS:
+        train_set, test_set = ds_fn()
+        for f in F_VALUES:
+            for bs in BATCH_SIZES:
+                for agg, agg_label in AGGREGATORS:
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
                     run_one(
                         label=label,
@@ -54,14 +57,14 @@ def main() -> None:
                         train_set=train_set,
                         test_set=test_set,
                         aggregator=agg,
-                        attack=attack,
+                        attack=FullGradientNegationAttack,
                         attack_kwargs=attack_kw,
-                        n=n,
+                        n=N,
                         f=f,
-                        rounds=rounds,
+                        rounds=ROUNDS,
                         batch_size=bs,
-                        lr=lr,
-                        seed=seed,
+                        lr=LR,
+                        seed=SEED,
                     )
 
     print("\nExperiment 2 done.")
