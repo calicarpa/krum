@@ -74,16 +74,20 @@ class SmallPerturbationAttack(Attack):
         p: int | float = 2,
         coordinate: int | str | None = None,
         aggregator_kwargs: dict[str, Any] | None = None,
+        gamma: float | None = None,
         gamma_max: float = 1e6,
         gamma_init: float = 1.0,
         tol: float = 1e-3,
+        atol: float = 1e-6,
+        rtol: float = 1e-5,
         **specialized: Any,
     ) -> Tensor:
         r"""Generate Byzantine gradients.
 
         Args:
             honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
-                worker, each of shape :math:`(d,)`. Must be a 2-D floating-point tensor.
+                worker, each of shape :math:`(d,)`. May also be a 2-D tensor of shape
+                :math:`(n-f, d)`.
             out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate. Must equal the configured
@@ -93,9 +97,16 @@ class SmallPerturbationAttack(Attack):
             p: Target norm.
             coordinate: Index of the poisoned coordinate.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
+            gamma: If provided, use this exact value for :math:`\gamma` instead of
+                running the boundary search. This is useful when the caller knows
+                the desired perturbation magnitude or wants to compare aggregators
+                at a fixed attack strength.
             gamma_max: Upper bound on the search for :math:`\gamma_m`.
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
+            atol: Absolute tolerance for the aggregator selection test
+                (see :meth:`_is_selected`).
+            rtol: Relative tolerance for the aggregator selection test.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -126,7 +137,11 @@ class SmallPerturbationAttack(Attack):
             raise ValueError("coordinate='all' is only valid with p=math.inf")
         if len(honest_gradients) == 0:
             raise ValueError("Expected at least one honest gradient")
-        stacked = stack(list(honest_gradients))
+
+        if isinstance(honest_gradients, Tensor):
+            stacked = honest_gradients
+        else:
+            stacked = stack(list(honest_gradients))
         if stacked.shape[0] != n - f:
             raise ValueError(f"Expected {n - f} honest gradients, got {stacked.shape[0]}")
 
@@ -137,7 +152,23 @@ class SmallPerturbationAttack(Attack):
 
         honest_mean = stacked.mean(dim=0)
         direction = cls._build_direction(stacked, d, device, dtype, p, coordinate)
-        gamma_m = cls._find_gamma_max(stacked, honest_mean, direction, aggregator, n, f, aggregator_kwargs)
+        if gamma is not None:
+            gamma_m = gamma
+        else:
+            gamma_m = cls._find_gamma_max(
+                stacked,
+                honest_mean,
+                direction,
+                aggregator,
+                n,
+                f,
+                aggregator_kwargs,
+                gamma_max=gamma_max,
+                gamma_init=gamma_init,
+                tol=tol,
+                atol=atol,
+                rtol=rtol,
+            )
         b_gamma = honest_mean + gamma_m * direction
         result = b_gamma.unsqueeze(0).expand(f, -1).contiguous()
         if out is not None:
@@ -175,6 +206,8 @@ class SmallPerturbationAttack(Attack):
             return ones(d, device=device, dtype=dtype)
 
         if coordinate is None or coordinate in {"max", "largest"}:
+            # correction=0 → population std (matches the paper's reference
+            # implementation from the LPD-EPFL lab).
             std = honest_gradients.std(dim=0, correction=0)
             idx = int(argmax(std).item())
         else:
@@ -195,13 +228,18 @@ class SmallPerturbationAttack(Attack):
         n: int,
         f: int,
         aggregator_kwargs: dict[str, Any],
+        *,
+        out_without: Tensor | None = None,
+        atol: float = 1e-6,
+        rtol: float = 1e-5,
     ) -> bool:
         r"""Test whether the target aggregator "selects" :math:`B(\gamma)`.
 
-        The test substitutes a placeholder for :math:`B(\gamma)` (the honest
-        mean) and checks whether the aggregator's output changes. This is
-        a uniform test that works for any stateless aggregator: it does
-        not depend on the aggregator's internal selection rule.
+        This is a heuristic: it substitutes a placeholder for :math:`B(\gamma)`
+        (the honest mean) and checks whether the aggregator's output changes
+        within the given tolerances. It works uniformly for any stateless
+        aggregator, but the absolute/relative tolerances may need tuning
+        depending on the gradient scale.
 
         Args:
             honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
@@ -210,21 +248,26 @@ class SmallPerturbationAttack(Attack):
             n: Total number of workers.
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
+            out_without: Pre-computed aggregator output when the Byzantine
+                gradients are replaced by the honest mean. If ``None``, it is
+                computed on the fly.
+            atol: Absolute tolerance for the output comparison.
+            rtol: Relative tolerance for the output comparison.
 
         Returns:
             ``True`` if the aggregator's output is sensitive to
             ``B(\gamma)``.
         """
-        honest_mean = honest_gradients.mean(dim=0)
+        if out_without is None:
+            honest_mean = honest_gradients.mean(dim=0)
+            byz_without = honest_mean.unsqueeze(0).expand(f, -1)
+            stacked_without = cat([honest_gradients, byz_without], dim=0)
+            out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
+
         byz_with = b_gamma.unsqueeze(0).expand(f, -1)
-        byz_without = honest_mean.unsqueeze(0).expand(f, -1)
-
         stacked_with = cat([honest_gradients, byz_with], dim=0)
-        stacked_without = cat([honest_gradients, byz_without], dim=0)
-
         out_with = aggregator.aggregate(stacked_with, n=n, f=f, **aggregator_kwargs)
-        out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
-        return not allclose(out_with, out_without, atol=1e-6, rtol=1e-5)
+        return not allclose(out_with, out_without, atol=atol, rtol=rtol)
 
     @classmethod
     def _find_gamma_max(
@@ -236,6 +279,12 @@ class SmallPerturbationAttack(Attack):
         n: int,
         f: int,
         aggregator_kwargs: dict[str, Any],
+        *,
+        gamma_max: float = 1e6,
+        gamma_init: float = 1.0,
+        tol: float = 1e-3,
+        atol: float = 1e-6,
+        rtol: float = 1e-5,
     ) -> float:
         r"""Find the largest :math:`\gamma` such that the aggregator selects :math:`B(\gamma)`.
 
@@ -254,20 +303,37 @@ class SmallPerturbationAttack(Attack):
             n: Total number of workers.
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
+            gamma_max: Upper bound on the search.
+            gamma_init: Initial step used during the exponential search.
+            tol: Tolerance of the binary refinement.
+            atol: Absolute tolerance for the aggregator selection test.
+            rtol: Relative tolerance for the aggregator selection test.
 
         Returns:
             The largest ``\gamma`` for which the aggregator selects
             ``B(\gamma)``, as a Python float.
         """
-        gamma_max = 1e6
-        gamma_init = 1.0
-        tol = 1e-3
+        # Pre-compute the aggregator output with the honest mean as placeholder.
+        # This avoids calling aggregate() twice per selection test.
+        byz_placeholder = honest_mean.unsqueeze(0).expand(f, -1)
+        stacked_without = cat([honest_gradients, byz_placeholder], dim=0)
+        out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
 
         low = 0.0
         high = gamma_init
         while high < gamma_max:
             b_gamma = honest_mean + high * direction
-            if not cls._is_selected(honest_gradients, b_gamma, aggregator, n, f, aggregator_kwargs):
+            if not cls._is_selected(
+                honest_gradients,
+                b_gamma,
+                aggregator,
+                n,
+                f,
+                aggregator_kwargs,
+                out_without=out_without,
+                atol=atol,
+                rtol=rtol,
+            ):
                 break
             low = high
             high *= 2.0
@@ -277,7 +343,17 @@ class SmallPerturbationAttack(Attack):
         while high - low > tol:
             mid = 0.5 * (low + high)
             b_gamma = honest_mean + mid * direction
-            if cls._is_selected(honest_gradients, b_gamma, aggregator, n, f, aggregator_kwargs):
+            if cls._is_selected(
+                honest_gradients,
+                b_gamma,
+                aggregator,
+                n,
+                f,
+                aggregator_kwargs,
+                out_without=out_without,
+                atol=atol,
+                rtol=rtol,
+            ):
                 low = mid
             else:
                 high = mid

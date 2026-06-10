@@ -31,9 +31,10 @@ class KrumSimulation(CentralisedSimulation):
             for the full constructor parameter list.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, *, aggregator_f: int | None = None, **kwargs: Any) -> None:
         """See :class:`~krum.simulations.centralised.CentralisedSimulation`."""
         super().__init__(
+            aggregator_f=aggregator_f,
             evaluate_fn=CentralisedSimulation.evaluate_test_error_and_loss,
             **kwargs,
         )

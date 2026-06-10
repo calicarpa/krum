@@ -4,33 +4,6 @@ import torch
 import torch.nn as nn
 
 
-class MLPMnist(nn.Module):
-    """MLP for MNIST in the Krum-NIPS-2017 simulation.
-
-    Architecture: 784 inputs, 1 hidden layer of size 100 (ReLU),
-    10 outputs. Total ≈ 8 × 10⁴ parameters.
-    """
-
-    def __init__(self):
-        """Initialize the MLP model."""
-        super().__init__()
-        self.fc1 = nn.Linear(784, 100)
-        self.fc2 = nn.Linear(100, 10)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through the MLP model.
-
-        Args:
-            x: Input tensor of shape (batch_size, 784).
-
-        Returns:
-            Output tensor of shape (batch_size, 10).
-        """
-        x = x.view(x.size(0), -1)
-        x = torch.relu(self.fc1(x))
-        return self.fc2(x)
-
-
 class MLPSpambase(nn.Module):
     """MLP with two hidden layers for Spambase in the Krum-NIPS-2017 simulation.
 
@@ -48,7 +21,7 @@ class MLPSpambase(nn.Module):
         self.fc2 = nn.Linear(20, 20)
         self.fc3 = nn.Linear(20, 2)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x):
         """Forward pass through the Spambase MLP model.
 
         Args:

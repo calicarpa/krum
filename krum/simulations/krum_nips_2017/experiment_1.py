@@ -10,9 +10,9 @@ from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
+from ._common import run_one
 from .datasets import spambase_dataset
 from .models import MLPSpambase
-from .simulation import KrumSimulation
 
 
 def main() -> None:
@@ -38,9 +38,8 @@ def main() -> None:
             (Krum, "Krum"),
         ]:
             label = f"{agg_label}_f{f}"
-            print(f"\n=== {label} ===")
-
-            sim = KrumSimulation(
+            run_one(
+                label=label,
                 model_cls=MLPSpambase,
                 train_set=train_set,
                 test_set=test_set,
@@ -54,7 +53,6 @@ def main() -> None:
                 lr=lr,
                 seed=seed,
             )
-            sim.run()
 
     print("\nExperiment 1 done.")
 

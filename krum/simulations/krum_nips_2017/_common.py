@@ -1,4 +1,4 @@
-"""Shared utilities for the ICML 2018 experiments."""
+"""Shared utilities for the NIPS 2017 experiments."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from torch.utils.data import Dataset as TorchDataset
 
 from krum.primitives.aggregators import Aggregator
 
-from .simulation import Simulation
+from .simulation import KrumSimulation
 
 
 def run_one(
@@ -26,20 +26,18 @@ def run_one(
     rounds: int,
     batch_size: int,
     lr: float,
-    r_eta: float,
     seed: int,
-    eval_every: int,
-    stop_attack_at: int | None = None,
+    eval_every: int = 10,
     aggregator_kwargs: dict[str, Any] | None = None,
     aggregator_f: int | None = None,
 ) -> list[tuple[int, Any]]:
-    """Build and run one :class:`Simulation` instance.
+    """Build and run one :class:`KrumSimulation` instance.
 
     Returns:
         List of ``(round, ...)`` tuples containing evaluation results.
     """
     print(f"\n=== {label} ===")
-    sim = Simulation(
+    sim = KrumSimulation(
         model_cls=model_cls,
         train_set=train_set,
         test_set=test_set,
@@ -53,8 +51,6 @@ def run_one(
         rounds=rounds,
         batch_size=batch_size,
         lr=lr,
-        r_eta=r_eta,
-        stop_attack_at=stop_attack_at,
         seed=seed,
         eval_every=eval_every,
     )

@@ -6,29 +6,8 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
-from torchvision import datasets, transforms
 
-
-def mnist_dataset():
-    """Download and return the MNIST dataset.
-
-    Returns:
-    -------
-        tuple: (train, test) datasets.
-    """
-    train = datasets.MNIST(
-        "data",
-        train=True,
-        download=True,
-        transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]),
-    )
-    test = datasets.MNIST(
-        "data",
-        train=False,
-        download=True,
-        transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]),
-    )
-    return train, test
+from krum.simulations.common.datasets import mnist_dataset as mnist_dataset
 
 
 def spambase_dataset(*, test_size: float = 0.2, seed: int = 42) -> tuple[TensorDataset, TensorDataset]:

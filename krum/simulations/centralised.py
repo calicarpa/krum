@@ -127,6 +127,7 @@ class CentralisedSimulation:
         weight_decay: float = 0.0,
         xavier_init: bool = False,
         stop_attack_at: int | None = None,
+        aggregator_f: int | None = None,
         loss_fn: Callable[..., torch.Tensor] = nn.functional.cross_entropy,
         device: torch.device | None = None,
         seed: int = 42,
@@ -153,6 +154,8 @@ class CentralisedSimulation:
             raise ValueError(f"Invalid weight_decay, got {weight_decay!r}, expected weight_decay >= 0")
         if stop_attack_at is not None and stop_attack_at < 0:
             raise ValueError(f"Invalid stop_attack_at, got {stop_attack_at!r}, expected stop_attack_at >= 0")
+        if aggregator_f is not None and aggregator_f < 0:
+            raise ValueError(f"Invalid aggregator_f, got {aggregator_f!r}, expected aggregator_f >= 0")
 
         self.model_cls = model_cls
         self.train_set = train_set
@@ -163,6 +166,7 @@ class CentralisedSimulation:
         self._attack_kwargs = attack_kwargs or {}
         self.n = n
         self.f = f
+        self.aggregator_f = aggregator_f if aggregator_f is not None else f
         self.rounds = rounds
         self.batch_size = batch_size
         self.lr = lr
@@ -300,7 +304,7 @@ class CentralisedSimulation:
                     worker_gradients.append(g)
 
         all_gradients = torch.stack(worker_gradients)
-        aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.f, **self._aggregator_kwargs)
+        aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.aggregator_f, **self._aggregator_kwargs)
         self._model.gradients = aggregated
         with torch.no_grad():
             params = self._model.parameters
@@ -346,19 +350,41 @@ class CentralisedSimulation:
         self._has_run = True
 
         traces: list[tuple[int, Any]] = []
+        log_every = max(1, self.rounds // 20)
         for t in range(self.rounds):
             self.step()
 
-            if t % 50 == 0 or t == self.rounds - 1:
-                print(f"epoch {t + 1}/{self.rounds} done", flush=True)
+            if t % log_every == 0 or t == self.rounds - 1:
+                print(f"round {t + 1}/{self.rounds} done", flush=True)
 
             if t % self.eval_every == 0 or t == self.rounds - 1:
                 result = self.evaluate()
-                traces.append(_pack(t, result))
-                if t % 50 == 0 or t == self.rounds - 1:
+                traces.append(_format_trace(t, result))
+                if t % log_every == 0 or t == self.rounds - 1:
                     print(f"  {result}", flush=True)
 
         return traces
+
+    def _evaluate_batch(self, loader: DataLoader[Any]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Run one full-batch inference pass and return logits and labels.
+
+        Args:
+            loader: DataLoader with ``batch_size == len(dataset)``.
+
+        Returns:
+            Tuple of (logits, labels) on :attr:`device`.
+
+        Raises:
+            RuntimeError: If :meth:`setup` has not been called.
+        """
+        if self._model is None:
+            raise RuntimeError("Simulation not set up. Call setup() first.")
+        self._model.module.eval()
+        with torch.no_grad():
+            x, y = next(iter(loader))
+            x, y = x.to(self.device), y.to(self.device)
+            logits = self._model.module(x)
+        return logits, y
 
     def evaluate_test_error(self) -> float:
         """Compute misclassification error rate on the held-out test set.
@@ -369,16 +395,11 @@ class CentralisedSimulation:
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
         """
-        if self._model is None or self._test_loader is None:
+        if self._test_loader is None:
             raise RuntimeError("Simulation not set up. Call setup() first.")
-
-        self._model.module.eval()
-        with torch.no_grad():
-            x, y = next(iter(self._test_loader))
-            x, y = x.to(self.device), y.to(self.device)
-            logits = self._model.module(x)
-            preds = logits.argmax(dim=1)
-            error = (preds != y).float().mean()
+        logits, y = self._evaluate_batch(self._test_loader)
+        preds = logits.argmax(dim=1)
+        error = (preds != y).float().mean()
         return error.item()
 
     def evaluate_test_error_and_loss(self) -> dict[str, float]:
@@ -390,17 +411,12 @@ class CentralisedSimulation:
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
         """
-        if self._model is None or self._test_loader is None:
+        if self._test_loader is None:
             raise RuntimeError("Simulation not set up. Call setup() first.")
-
-        self._model.module.eval()
-        with torch.no_grad():
-            x, y = next(iter(self._test_loader))
-            x, y = x.to(self.device), y.to(self.device)
-            logits = self._model.module(x)
-            preds = logits.argmax(dim=1)
-            error = (preds != y).float().mean().item()
-            loss = self.loss_fn(logits, y).item()
+        logits, y = self._evaluate_batch(self._test_loader)
+        preds = logits.argmax(dim=1)
+        error = (preds != y).float().mean().item()
+        loss = self.loss_fn(logits, y).item()
         return {"test_error": error, "test_loss": loss}
 
     def evaluate_full(self) -> dict[str, float]:
@@ -412,22 +428,16 @@ class CentralisedSimulation:
         Raises:
             RuntimeError: If :meth:`setup` has not been called.
         """
-        if self._model is None or self._full_loader is None or self._test_loader is None:
+        if self._full_loader is None or self._test_loader is None:
             raise RuntimeError("Simulation not set up. Call setup() first.")
 
-        self._model.module.eval()
-        with torch.no_grad():
-            x_train, y_train = next(iter(self._full_loader))
-            x_train, y_train = x_train.to(self.device), y_train.to(self.device)
-            logits_train = self._model.module(x_train)
-            train_loss = self.loss_fn(logits_train, y_train).item()
+        logits_train, y_train = self._evaluate_batch(self._full_loader)
+        train_loss = self.loss_fn(logits_train, y_train).item()
 
-            x_test, y_test = next(iter(self._test_loader))
-            x_test, y_test = x_test.to(self.device), y_test.to(self.device)
-            logits_test = self._model.module(x_test)
-            test_loss = self.loss_fn(logits_test, y_test).item()
-            preds = logits_test.argmax(dim=1)
-            test_acc = (preds == y_test).float().mean().item()
+        logits_test, y_test = self._evaluate_batch(self._test_loader)
+        test_loss = self.loss_fn(logits_test, y_test).item()
+        preds = logits_test.argmax(dim=1)
+        test_acc = (preds == y_test).float().mean().item()
 
         return {"train_loss": train_loss, "test_accuracy": test_acc, "test_loss": test_loss}
 
@@ -458,9 +468,11 @@ class CentralisedSimulation:
     def _train_one_worker(self, loader: DataLoader[Any]) -> torch.Tensor:
         r"""Compute the gradient on one worker's data shard.
 
-        The worker calls ``loss.backward()`` on a single mini-batch drawn from
-        its dedicated :class:`~torch.utils.data.DataLoader`, then clones the
-        flat gradient tensor from the :class:`~krum.primitives.model.Model`.
+        In the distributed-SGD protocol reproduced by the papers, each worker
+        performs **a single mini-batch SGD step per round**. The worker calls
+        ``loss.backward()`` on one mini-batch drawn from its dedicated
+        :class:`~torch.utils.data.DataLoader`, then clones the flat gradient
+        tensor from the :class:`~krum.primitives.model.Model`.
 
         Args:
             loader: DataLoader yielding mini-batches from the worker's IID shard.
@@ -527,20 +539,20 @@ class CentralisedSimulation:
         return self._model.gradients.clone()
 
 
-def _pack(round: int, result: Any) -> tuple[int, Any]:
+def _format_trace(round: int, result: Any) -> tuple[int, Any]:
     """Pack a round number and an evaluation result into a trace tuple.
 
     If *result* is a dict it is appended directly (unchanged)::
 
-        _pack(3, {"train_loss": 0.1}) → (3, {"train_loss": 0.1})
+        _format_trace(3, {"train_loss": 0.1}) → (3, {"train_loss": 0.1})
 
     If *result* is a tuple it is unpacked::
 
-        _pack(3, (0.1, 0.9)) → (3, 0.1, 0.9)
+        _format_trace(3, (0.1, 0.9)) → (3, 0.1, 0.9)
 
     Scalars are appended directly::
 
-        _pack(3, 0.05) → (3, 0.05)
+        _format_trace(3, 0.05) → (3, 0.05)
 
     Args:
         round: Current round index (0-based).

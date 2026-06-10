@@ -12,9 +12,9 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
+from ._common import run_one
 from .datasets import spambase_dataset
 from .models import MLPSpambase
-from .simulation import KrumSimulation
 
 
 def main() -> None:
@@ -42,8 +42,8 @@ def main() -> None:
     ]
 
     for agg, label, f_val, agg_kw in configs:
-        print(f"\n=== {label} ===")
-        sim = KrumSimulation(
+        run_one(
+            label=label,
             model_cls=MLPSpambase,
             train_set=train_set,
             test_set=test_set,
@@ -58,7 +58,6 @@ def main() -> None:
             lr=lr,
             seed=seed,
         )
-        sim.run()
 
     print("\nExperiment 3 done.")
 

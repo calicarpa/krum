@@ -13,10 +13,11 @@ from torch.utils.data import Dataset
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
+from krum.simulations.common.models import MLP as MLPMnist
 
+from ._common import run_one
 from .datasets import mnist_dataset, spambase_dataset
-from .models import MLPMnist, MLPSpambase
-from .simulation import KrumSimulation
+from .models import MLPSpambase
 
 
 def main() -> None:
@@ -47,9 +48,8 @@ def main() -> None:
                     attack = FullGradientNegationAttack
                     attack_kw: dict[str, Any] = {"kappa": 100.0}
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
-                    print(f"\n=== {label} ===")
-
-                    sim = KrumSimulation(
+                    run_one(
+                        label=label,
                         model_cls=model_cls,
                         train_set=train_set,
                         test_set=test_set,
@@ -63,7 +63,6 @@ def main() -> None:
                         lr=lr,
                         seed=seed,
                     )
-                    sim.run()
 
     print("\nExperiment 2 done.")
 
