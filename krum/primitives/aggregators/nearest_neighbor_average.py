@@ -20,18 +20,6 @@ class NearestNeighborAverage(Aggregator):
     How many vectors to keep is a caller policy (e.g. ``n - f`` for plain
     nearest-neighbor averaging, ``n - 2f`` for MoNNA-style model mixing); this
     rule only needs the resulting count, not ``n`` or ``f``.
-
-    Args:
-        gradients: Sequence of 1-D tensors, one per worker.
-        num_closest: Number of nearest vectors to average.
-        pivot: Tensor of shape ``(d,)`` used as the distance reference.
-
-    Returns:
-        Mean of the ``num_closest`` closest vectors, shape ``(d,)``.
-
-    Raises:
-        ValueError: If ``num_closest`` is not positive, fewer than
-            ``num_closest`` candidates are supplied, or the pivot shape is wrong.
     """
 
     @classmethod
@@ -39,19 +27,19 @@ class NearestNeighborAverage(Aggregator):
         cls,
         gradients: Sequence[Tensor] | Tensor,
         /,
+        out: Tensor | None = None,
         *,
         num_closest: int,
         pivot: Tensor,
-        out: Tensor | None = None,
         **specialized: Any,
     ) -> Tensor:
         """Average the ``num_closest`` vectors nearest to the pivot.
 
         Args:
             gradients: Sequence of ``m`` candidate vectors, each of shape ``(d,)``.
+            out: Optional pre-allocated tensor to write the result into.
             num_closest: Number of nearest vectors to average.
             pivot: Tensor of shape ``(d,)`` used as the distance reference.
-            out: Optional pre-allocated tensor to write the result into.
             **specialized: Additional keyword arguments.
 
         Returns:

@@ -68,9 +68,10 @@ class NearestNeighborAverageTest(unittest.TestCase):
             NearestNeighborAverage.aggregate(torch.empty((3, 4)), num_closest=2)  # ty: ignore[missing-argument]
 
     def test_parameters_are_keyword_only(self) -> None:
-        """num_closest and pivot must be passed as keywords."""
+        """num_closest and pivot must be passed as keywords, not positionally."""
         with self.assertRaises(TypeError):
-            NearestNeighborAverage.aggregate(torch.empty((3, 4)), 2)  # ty: ignore[missing-argument, too-many-positional-arguments]
+            # gradients and out fill the only positional slots; num_closest cannot follow.
+            NearestNeighborAverage.aggregate(torch.empty((3, 4)), torch.empty(4), 2)  # ty: ignore[too-many-positional-arguments, missing-argument]
 
 
 if __name__ == "__main__":
