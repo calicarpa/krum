@@ -277,6 +277,41 @@ class MonnaProtocolTest(unittest.TestCase):
         self.assertEqual(received.shape, (4, 1))
         self.assertEqual(received[0].item(), 1.0)
 
+    def test_run_executes_one_step_per_round_in_order(self) -> None:
+        """``run`` drives ``step`` once per round and collects the snapshots."""
+        module = nn.Linear(1, 1, bias=False)
+        batch = (torch.tensor([[1.0]]), torch.tensor([[1.0]]))
+        data = [[batch, batch, batch] for _ in range(2)]
+        simulation = MonnaSimulation(
+            model=Model(module),
+            data=data,
+            loss_fn=nn.MSELoss(),
+            num_honest=2,
+            num_byzantine=0,
+            learning_rate=0.1,
+        )
+
+        results = simulation.run(3)
+
+        self.assertEqual([result["step"] for result in results], [1, 2, 3])
+        self.assertEqual(simulation.step_index, 3)
+
+    def test_run_with_zero_rounds_returns_empty_and_leaves_state(self) -> None:
+        """``run(0)`` is a no-op that returns no snapshots."""
+        simulation = self.make_simulation(num_honest=2, num_byzantine=0, learning_rate=0.1)
+
+        results = simulation.run(0)
+
+        self.assertEqual(results, [])
+        self.assertEqual(simulation.step_index, 0)
+
+    def test_run_rejects_negative_rounds(self) -> None:
+        """A negative round count is a usage error."""
+        simulation = self.make_simulation(num_honest=2, num_byzantine=0, learning_rate=0.1)
+
+        with self.assertRaises(ValueError):
+            simulation.run(-1)
+
 
 if __name__ == "__main__":
     unittest.main()
