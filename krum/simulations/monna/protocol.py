@@ -9,7 +9,6 @@ from krum.primitives import Model
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks import Attack
-from krum.simulations.base import Simulation
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
@@ -29,7 +28,7 @@ class StepResult(TypedDict):
     losses: torch.Tensor
 
 
-class MonnaSimulation(Simulation[StepResult]):
+class MonnaSimulation:
     """MoNNA simulation runner.
 
     The object owns configuration, state, data streams, attack, and aggregator.
@@ -191,6 +190,22 @@ class MonnaSimulation(Simulation[StepResult]):
             mixed_parameters=mixed_parameters,
             losses=losses,
         )
+
+    def run(self, rounds: int) -> list[StepResult]:
+        """Execute several MoNNA rounds and collect their snapshots.
+
+        Args:
+            rounds: Number of rounds to run; must be non-negative.
+
+        Returns:
+            One snapshot per round, in execution order.
+
+        Raises:
+            ValueError: If ``rounds`` is negative.
+        """
+        if rounds < 0:
+            raise ValueError(f"Expected non-negative rounds, got {rounds!r}")
+        return [self.step() for _ in range(rounds)]
 
     def collect_worker_batches(self) -> list[Batch]:
         """Pull one local batch from every honest worker stream.
