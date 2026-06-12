@@ -6,8 +6,8 @@ Cost of Resilience: sweep batch sizes on Spambase and MNIST.
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
-from krum.simulations.common.models import MLP as MLPMnist
 
+from ..models import MLP as MLPMnist
 from ._common import run_one_simulation
 from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase

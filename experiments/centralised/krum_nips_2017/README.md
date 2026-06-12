@@ -16,16 +16,15 @@ and MNIST datasets.
 ## Usage
 
 ```bash
-uv run python -m krum.simulations.krum_nips_2017.experiment_1
-uv run python -m krum.simulations.krum_nips_2017.experiment_2
-uv run python -m krum.simulations.krum_nips_2017.experiment_3
+uv run python -m experiments.centralised.krum_nips_2017.experiment_1
+uv run python -m experiments.centralised.krum_nips_2017.experiment_2
+uv run python -m experiments.centralised.krum_nips_2017.experiment_3
 ```
 
 ## Code Structure
 
 ```
-krum/simulations/krum_nips_2017/
-├── simulation.py      # KrumSimulation class (fixed LR, error+loss reporting)
+experiments/centralised/krum_nips_2017/
 ├── models.py          # MLPMnist, MLPSpambase
 ├── datasets.py        # MNIST and Spambase loaders
 ├── experiment_1.py    # Figure 4 — Resilience to Byzantine processes
@@ -37,7 +36,7 @@ krum/simulations/krum_nips_2017/
 
 | Model | Architecture | Parameters | Dataset |
 |-------|-------------|------------|---------|
-| `MLPMnist` | 784 → 100 (ReLU) → 10 | ≈ 8×10⁴ | MNIST |
+| `MLP` (from :file:`centralised/models.py`) | 784 → 100 (ReLU) → 10 | ≈ 8×10⁴ | MNIST |
 | `MLPSpambase` | 57 → 20 (ReLU) → 20 (ReLU) → 2 | ≈ 1.6×10³ | Spambase |
 
 ## Experiments
@@ -82,5 +81,5 @@ Gaussian Byzantine workers on Spambase (n=20, batch_size=3, 500 rounds).
   `evaluate_test_error_and_loss` from `CentralisedSimulation`).
 - Simulation results are returned in-memory via `sim.run()`; no files are
   written to disk.
-- `MLPMnist` and `MLPSpambase` are defined locally in `models.py`, not in the
-  library core.
+- `MLPSpambase` is defined in `models.py`; `MLP` (MNIST) is shared in
+  :file:`centralised/models.py`.

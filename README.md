@@ -4,8 +4,7 @@
 
 Krum provides a modular framework for implementing, comparing, and evaluating
 Byzantine-resilient Gradient Aggregation Rules (GARs) for distributed learning.
-It ships with state-of-the-art aggregation rules and attack strategies, along
-with full simulation packages that reproduce key experiments from the literature.
+It ships with state-of-the-art aggregation rules and attack strategies.
 
 ## Documentation
 
@@ -79,41 +78,10 @@ This installs all linting, type-checking, and documentation tools.
 - **8 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
   Bulyan, Brute, GeoMed
 - **5 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoSmallPerturbation
-- **2 paper reproduction suites**: Krum (NIPS 2017) and Hidden Vulnerability
-  (ICML 2018) — each with 3 experiments
 - **Zero-copy model wrapper**: Flat parameter/gradient views via
   `krum.primitives.Model`
 - **Stateless design**: Aggregators and attacks are classmethods, no
   instantiation needed
-
-## Aggregators at a glance
-
-| Aggregator   | Complexity                   | Min. Workers    | Byzantine Res. |
-| ------------ | ---------------------------- | --------------- | -------------- |
-| Average      | 𝒪(nd)                        | 1               | None (baseline)|
-| Median       | 𝒪(nd)                        | 1               | Basic          |
-| Trimmed Mean | 𝒪(nd log n)                  | 2f + 1          | Basic          |
-| Krum         | 𝒪(n²d)                       | 2f + 3          | Moderate       |
-| MultiKrum    | 𝒪(n²d)                       | 2f + 3          | Moderate       |
-| Bulyan       | 𝒪(n²d)                       | 4f + 3          | Strong         |
-| Brute        | 𝒪(C(n,n-f)·(n-f)²·d)        | 2f + 1          | Strong (baseline)|
-| GeoMed       | 𝒪(n²d)                       | 1               | Moderate       |
-
-Where `n` = total workers, `f` = Byzantine workers, `d` = gradient dimension.
-
-## Running simulations
-
-```bash
-# Krum NIPS 2017 experiments
-uv run python -m krum.simulations.krum_nips_2017.experiment_1
-uv run python -m krum.simulations.krum_nips_2017.experiment_2
-uv run python -m krum.simulations.krum_nips_2017.experiment_3
-
-# Hidden Vulnerability ICML 2018 experiments
-uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_1
-uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_2
-uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_3
-```
 
 ## Contributing
 

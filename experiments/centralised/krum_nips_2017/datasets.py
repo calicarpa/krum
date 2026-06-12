@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from krum.simulations.common.datasets import mnist_dataset as mnist_dataset
+from ..datasets import mnist_dataset as mnist_dataset
 
 
 def spambase_dataset(*, test_size: float = 0.2, seed: int = 42) -> tuple[TensorDataset, TensorDataset]:

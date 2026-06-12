@@ -89,23 +89,6 @@ Here's a minimal example showing how to use Krum's aggregators and attacks:
    print(f"Krum result norm: {robust_result.norm().item():.4f}")
    print(f"Average result norm: {naive_result.norm().item():.4f}")
 
-Running a Simulation
---------------------
-
-Krum includes full simulation packages that reproduce published experiments:
-
-.. code-block:: bash
-
-   # Run Krum NIPS 2017 experiments (3 experiments)
-   uv run python -m krum.simulations.krum_nips_2017.experiment_1
-   uv run python -m krum.simulations.krum_nips_2017.experiment_2
-   uv run python -m krum.simulations.krum_nips_2017.experiment_3
-
-   # Run Hidden Vulnerability ICML 2018 experiments (3 experiments)
-   uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_1
-   uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_2
-   uv run python -m krum.simulations.hidden_vulnerability_icml_2018.experiment_3
-
 Key Concepts
 ------------
 

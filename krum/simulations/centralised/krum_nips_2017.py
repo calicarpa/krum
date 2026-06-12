@@ -12,14 +12,14 @@ configuration run over multiple synchronous rounds with no learning rate decay.
 
 from typing import Any
 
-from ..centralised import CentralisedSimulation
+from .centralised import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):
     """Distributed SGD simulation with Byzantine workers — NIPS 2017 protocol.
 
     Compared to the ICML 2018
-    :class:`~krum.simulations.hidden_vulnerability_icml_2018.simulation.Simulation`,
+    :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`,
     this variant:
 
     - Uses a **fixed learning rate** (no scheduler; ``lr_decay=None``, the

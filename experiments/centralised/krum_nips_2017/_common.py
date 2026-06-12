@@ -8,8 +8,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset as TorchDataset
 
 from krum.primitives.aggregators import Aggregator
-
-from .simulation import KrumSimulation
+from krum.simulations.centralised import KrumSimulation
 
 
 def run_one_simulation(
