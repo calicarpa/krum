@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import random
 from collections.abc import Iterator
-from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -222,7 +221,8 @@ def main() -> None:
     module = SmallMnistNet()
     model = Model(module)
     loss_fn = nn.CrossEntropyLoss()
-    attack = None if args.attack == "none" else partial(SignFlipAttack.generate, scale=args.sign_flip_scale)
+    attack = None if args.attack == "none" else SignFlipAttack
+    attack_kwargs = None if args.attack == "none" else {"scale": args.sign_flip_scale}
 
     simulation = MonnaSimulation(
         model=model,
@@ -233,6 +233,7 @@ def main() -> None:
         learning_rate=args.learning_rate,
         beta=args.beta,
         attack=attack,
+        attack_kwargs=attack_kwargs,
         seed=args.seed,
     )
 
