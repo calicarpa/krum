@@ -1,44 +1,37 @@
-"""Shared utilities for the ICML 2018 experiments."""
-
-from __future__ import annotations
+"""Shared helper to build and run one KrumSimulation instance."""
 
 from typing import Any
 
 import torch.nn as nn
-from torch.utils.data import Dataset as TorchDataset
+from torch.utils.data import Dataset
 
 from krum.primitives.aggregators import Aggregator
-from krum.simulations.centralised import HiddenVulnerabilitySimulation
+from krum.primitives.attacks import Attack
+from krum.simulations.centralised import KrumSimulation
 
 
 def run_one_simulation(
     *,
     label: str,
     model_cls: type[nn.Module],
-    train_set: TorchDataset[Any],
-    test_set: TorchDataset[Any],
+    train_set: Dataset[Any],
+    test_set: Dataset[Any],
     aggregator: type[Aggregator],
-    attack: Any | None = None,
+    attack: type[Attack],
     attack_kwargs: dict[str, Any] | None = None,
     n: int,
     f: int,
     rounds: int,
     batch_size: int,
     lr: float,
-    r_eta: float,
     seed: int,
-    eval_every: int,
-    stop_attack_at: int | None = None,
+    eval_every: int = 10,
     aggregator_kwargs: dict[str, Any] | None = None,
     aggregator_f: int | None = None,
 ) -> list[tuple[int, Any]]:
-    """Build and run one :class:`Simulation` instance.
-
-    Returns:
-        List of ``(round, ...)`` tuples containing evaluation results.
-    """
+    """Build and run one KrumSimulation instance."""
     print(f"\n=== {label} ===")
-    sim = HiddenVulnerabilitySimulation(
+    sim = KrumSimulation(
         model_cls=model_cls,
         train_set=train_set,
         test_set=test_set,
@@ -52,8 +45,6 @@ def run_one_simulation(
         rounds=rounds,
         batch_size=batch_size,
         lr=lr,
-        r_eta=r_eta,
-        stop_attack_at=stop_attack_at,
         seed=seed,
         eval_every=eval_every,
     )

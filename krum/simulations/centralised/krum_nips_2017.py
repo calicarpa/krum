@@ -25,10 +25,6 @@ class KrumSimulation(CentralisedSimulation):
     - Uses a **fixed learning rate** (no scheduler; ``lr_decay=None``, the
       default inherited from :class:`~krum.simulations.centralised.CentralisedSimulation`).
     - Reports misclassification error and cross-entropy loss on the test set.
-
-    See Also:
-        :class:`~krum.simulations.centralised.CentralisedSimulation`
-            for the full constructor parameter list.
     """
 
     def __init__(self, *, aggregator_f: int | None = None, **kwargs: Any) -> None:
