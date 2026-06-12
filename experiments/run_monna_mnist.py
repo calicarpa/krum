@@ -20,7 +20,7 @@ from torchvision import datasets, transforms
 
 from krum.primitives import Model
 from krum.primitives.attacks.sign_flip import SignFlipAttack
-from krum.simulations.monna import MonnaSimulation
+from krum.simulations.decentralised import MonnaSimulation
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 
