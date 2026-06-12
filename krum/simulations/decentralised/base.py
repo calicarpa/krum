@@ -54,13 +54,13 @@ class DecentralisedSimulation(ABC):
         model: Model,
         data: Sequence[Iterable[Batch]],
         loss_fn: LossFn,
-        num_honest: int,
-        num_byzantine: int,
+        n: int,
+        f: int,
         learning_rate: float,
-        aggregator: type[Aggregator],
         beta: float = 0.99,
         attack: type[Attack] | None = None,
         attack_kwargs: dict[str, Any] | None = None,
+        aggregator: type[Aggregator],
         aggregator_kwargs: dict[str, Any] | None = None,
         seed: int | None = None,
     ) -> None:
@@ -69,24 +69,24 @@ class DecentralisedSimulation(ABC):
         Args:
             model: Model wrapper whose flat parameters seed every worker.
             data: One batch stream per honest worker; ``len(data)`` must equal
-                ``num_honest``.
+                ``n - f``.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.
-            num_honest: Number of honest workers ``n - f``; must be at least 1.
-            num_byzantine: Number of Byzantine workers ``f``; must be
-                non-negative and smaller than ``num_honest``.
+            n: Total number of workers; must exceed ``2 * f`` so that honest
+                workers outnumber Byzantine ones.
+            f: Number of Byzantine workers; must be non-negative.
             learning_rate: Positive local step size.
-            aggregator: :class:`~krum.primitives.aggregators.Aggregator` subclass
-                whose ``aggregate`` classmethod mixes each worker's received
-                models. Subclasses typically resolve a protocol default before
-                passing it here.
             beta: Momentum coefficient in ``[0, 1)``. ``0`` reduces the local
                 update to plain SGD.
             attack: :class:`~krum.primitives.attacks.Attack` subclass whose
                 ``generate`` classmethod maps the honest models and ``f`` to the
-                Byzantine models. Required when ``num_byzantine > 0``.
+                Byzantine models. Required when ``f > 0``.
             attack_kwargs: Extra keyword arguments forwarded to
                 ``attack.generate`` (e.g. ``{"std": 200.0}``). ``f`` is injected
                 by the simulation.
+            aggregator: :class:`~krum.primitives.aggregators.Aggregator` subclass
+                whose ``aggregate`` classmethod mixes each worker's received
+                models. Subclasses typically resolve a protocol default before
+                passing it here.
             aggregator_kwargs: Extra keyword arguments forwarded to
                 ``aggregator.aggregate`` (e.g. ``{"num_closest": ...}``). The
                 ``pivot`` is injected per worker.
@@ -94,22 +94,19 @@ class DecentralisedSimulation(ABC):
 
         Raises:
             ValueError: If a worker count, learning rate, beta, or data length is
-                out of range, or an attack is missing while ``num_byzantine > 0``.
+                out of range, or an attack is missing while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
                 :class:`~krum.primitives.aggregators.Aggregator` subclass, or
                 ``seed`` is not an int or ``None``.
         """
-        if num_honest < 1:
-            raise ValueError(f"Expected at least one honest worker, got {num_honest!r}")
-        if num_byzantine < 0:
-            raise ValueError(f"Expected non-negative Byzantine worker count, got {num_byzantine!r}")
-        if num_honest <= num_byzantine:
-            raise ValueError(
-                "Expected enough honest workers for decentralised model mixing, "
-                f"got num_honest={num_honest!r} and num_byzantine={num_byzantine!r}"
-            )
+        if f < 0:
+            raise ValueError(f"Expected non-negative Byzantine worker count, got f={f!r}")
+        if n - f < 1:
+            raise ValueError(f"Expected at least one honest worker, got n={n!r} and f={f!r}")
+        if n - f <= f:
+            raise ValueError(f"Expected enough honest workers for decentralised model mixing, got n={n!r} and f={f!r}")
         if learning_rate <= 0:
             raise ValueError(f"Expected positive learning rate, got {learning_rate!r}")
         if beta < 0 or beta >= 1:
@@ -118,10 +115,10 @@ class DecentralisedSimulation(ABC):
             raise TypeError(f"Expected model to be a Model, got {type(model).__name__}")
         if not callable(loss_fn):
             raise TypeError("Expected loss_fn to be callable")
-        if len(data) != num_honest:
-            raise ValueError(f"Expected {num_honest} data streams, got {len(data)!r}")
-        if num_byzantine and attack is None:
-            raise ValueError("An attack is required when num_byzantine > 0")
+        if len(data) != n - f:
+            raise ValueError(f"Expected {n - f} data streams, got {len(data)!r}")
+        if f and attack is None:
+            raise ValueError("An attack is required when f > 0")
         if attack is not None and not (isinstance(attack, type) and issubclass(attack, Attack)):
             raise TypeError("Expected attack to be an Attack subclass")
         if not (isinstance(aggregator, type) and issubclass(aggregator, Aggregator)):
@@ -132,8 +129,9 @@ class DecentralisedSimulation(ABC):
         self.model = model
         self.worker_data_iterators = [iter(worker_data) for worker_data in data]
         self.loss_fn = loss_fn
-        self.num_honest = num_honest
-        self.num_byzantine = num_byzantine
+        self.n = n
+        self.f = f
+        self.num_honest = n - f
         self.learning_rate = learning_rate
         self.beta = beta
         self.attack = attack
@@ -141,7 +139,7 @@ class DecentralisedSimulation(ABC):
         self.aggregator = aggregator
         self.aggregator_kwargs = dict(aggregator_kwargs or {})
         self.generator = None if seed is None else torch.Generator().manual_seed(seed)
-        self.parameters = model.parameters.detach().clone().repeat(num_honest, 1)
+        self.parameters = model.parameters.detach().clone().repeat(self.num_honest, 1)
         self.momentum = torch.zeros_like(self.parameters)
         self.step_index = 0
 
@@ -269,13 +267,12 @@ class DecentralisedSimulation(ABC):
                 worker, passed to the attack.
 
         Returns:
-            The Byzantine models, shape ``(f, d)``; empty when
-            ``num_byzantine == 0``.
+            The Byzantine models, shape ``(f, d)``; empty when ``f == 0``.
         """
-        if self.num_byzantine == 0:
+        if self.f == 0:
             return local_parameters.new_empty((0, local_parameters.shape[1]))
-        assert self.attack is not None  # guaranteed by __init__ when num_byzantine > 0
-        return self.attack.generate(local_parameters, f=self.num_byzantine, **self.attack_kwargs)
+        assert self.attack is not None  # guaranteed by __init__ when f > 0
+        return self.attack.generate(local_parameters, f=self.f, **self.attack_kwargs)
 
     def aggregate_over_received_nodes(
         self, local_parameters: torch.Tensor, byzantine_parameters: torch.Tensor

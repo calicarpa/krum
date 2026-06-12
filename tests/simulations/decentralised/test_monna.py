@@ -18,8 +18,8 @@ class MonnaProtocolTest(unittest.TestCase):
     def make_simulation(
         self,
         *,
-        num_honest: int,
-        num_byzantine: int,
+        n: int,
+        f: int,
         learning_rate: float,
         beta: float = 0.99,
         attack=None,
@@ -28,13 +28,13 @@ class MonnaProtocolTest(unittest.TestCase):
     ) -> MonnaSimulation:
         """Create a tiny simulation for method-level tests."""
         module = nn.Linear(1, 1, bias=False)
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(num_honest)]
+        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(n - f)]
         return MonnaSimulation(
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=num_honest,
-            num_byzantine=num_byzantine,
+            n=n,
+            f=f,
             learning_rate=learning_rate,
             beta=beta,
             attack=attack,
@@ -57,8 +57,8 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=3,
-            num_byzantine=0,
+            n=3,
+            f=0,
             learning_rate=0.1,
         )
 
@@ -69,7 +69,7 @@ class MonnaProtocolTest(unittest.TestCase):
 
     def test_update_local_momentum_returns_worker_side_formula(self) -> None:
         """Momentum is updated independently for each worker."""
-        simulation = self.make_simulation(num_honest=2, num_byzantine=0, learning_rate=0.1, beta=0.5)
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1, beta=0.5)
         simulation.momentum = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
         gradients = torch.tensor([[10.0, 20.0], [30.0, 40.0]])
 
@@ -83,8 +83,8 @@ class MonnaProtocolTest(unittest.TestCase):
         honest = torch.tensor([[0.0], [10.0], [20.0]])
         byzantine = torch.tensor([[100.0]])
         simulation = self.make_simulation(
-            num_honest=3,
-            num_byzantine=1,
+            n=4,
+            f=1,
             learning_rate=0.1,
             attack=SignFlipAttack,
             seed=0,
@@ -109,8 +109,8 @@ class MonnaProtocolTest(unittest.TestCase):
             model=model,
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=2,
-            num_byzantine=0,
+            n=2,
+            f=0,
             learning_rate=0.1,
             beta=0.0,
         )
@@ -127,8 +127,8 @@ class MonnaProtocolTest(unittest.TestCase):
         self.assertTrue(torch.allclose(simulation.parameters, expected_mixed_parameters))
 
     def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
-        """MoNNA owns the mixing rule: default NNA keeps num_honest - num_byzantine."""
-        simulation = self.make_simulation(num_honest=5, num_byzantine=2, learning_rate=0.1, attack=SignFlipAttack)
+        """MoNNA owns the mixing rule: default NNA keeps n - 2f."""
+        simulation = self.make_simulation(n=7, f=2, learning_rate=0.1, attack=SignFlipAttack)
 
         self.assertIs(simulation.aggregator, NearestNeighborAverage)
         self.assertEqual(simulation.aggregator_kwargs["num_closest"], 3)
@@ -142,8 +142,8 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=3,
-            num_byzantine=0,
+            n=3,
+            f=0,
             learning_rate=0.1,
             aggregator=NearestNeighborAverage,
             aggregator_kwargs={"num_closest": 1},
@@ -165,8 +165,8 @@ class MonnaProtocolTest(unittest.TestCase):
                 model=Model(module),
                 data=data,
                 loss_fn=nn.MSELoss(),
-                num_honest=2,
-                num_byzantine=1,
+                n=3,
+                f=1,
                 learning_rate=0.1,
             )
 
@@ -183,8 +183,8 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=2,
-            num_byzantine=1,
+            n=3,
+            f=1,
             learning_rate=0.1,
             beta=0.0,
             attack=SignFlipAttack,
@@ -199,8 +199,8 @@ class MonnaProtocolTest(unittest.TestCase):
         """Only the two documented reach modes are accepted."""
         with self.assertRaises(ValueError):
             self.make_simulation(
-                num_honest=3,
-                num_byzantine=1,
+                n=4,
+                f=1,
                 learning_rate=0.1,
                 attack=SignFlipAttack,
                 byzantine_reach="everyone",  # ty: ignore[invalid-argument-type]
@@ -214,8 +214,8 @@ class MonnaProtocolTest(unittest.TestCase):
 
         for reach in ("all", "sampled"):
             simulation = self.make_simulation(
-                num_honest=5,
-                num_byzantine=2,
+                n=7,
+                f=2,
                 learning_rate=0.1,
                 attack=SignFlipAttack,
                 byzantine_reach=reach,
@@ -231,8 +231,8 @@ class MonnaProtocolTest(unittest.TestCase):
         honest = torch.arange(5.0).unsqueeze(1)
         byzantine = torch.tensor([[100.0], [101.0]])
         simulation = self.make_simulation(
-            num_honest=5,
-            num_byzantine=2,
+            n=7,
+            f=2,
             learning_rate=0.1,
             attack=SignFlipAttack,
             byzantine_reach="all",
@@ -249,8 +249,8 @@ class MonnaProtocolTest(unittest.TestCase):
         honest = torch.arange(5.0).unsqueeze(1)
         byzantine = torch.tensor([[100.0], [101.0]])
         simulation = self.make_simulation(
-            num_honest=5,
-            num_byzantine=2,
+            n=7,
+            f=2,
             learning_rate=0.1,
             attack=SignFlipAttack,
             byzantine_reach="sampled",
@@ -270,7 +270,7 @@ class MonnaProtocolTest(unittest.TestCase):
         """With f = 0 the received set is purely honest and still sized n."""
         honest = torch.arange(4.0).unsqueeze(1)
         byzantine = honest.new_empty((0, 1))
-        simulation = self.make_simulation(num_honest=4, num_byzantine=0, learning_rate=0.1, seed=0)
+        simulation = self.make_simulation(n=4, f=0, learning_rate=0.1, seed=0)
 
         received = simulation.gather_received_models(honest, byzantine, worker_index=1)
 
@@ -286,8 +286,8 @@ class MonnaProtocolTest(unittest.TestCase):
             model=Model(module),
             data=data,
             loss_fn=nn.MSELoss(),
-            num_honest=2,
-            num_byzantine=0,
+            n=2,
+            f=0,
             learning_rate=0.1,
         )
 
@@ -298,7 +298,7 @@ class MonnaProtocolTest(unittest.TestCase):
 
     def test_run_with_zero_rounds_returns_empty_and_leaves_state(self) -> None:
         """``run(0)`` is a no-op that returns no snapshots."""
-        simulation = self.make_simulation(num_honest=2, num_byzantine=0, learning_rate=0.1)
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1)
 
         results = simulation.run(0)
 
@@ -307,7 +307,7 @@ class MonnaProtocolTest(unittest.TestCase):
 
     def test_run_rejects_negative_rounds(self) -> None:
         """A negative round count is a usage error."""
-        simulation = self.make_simulation(num_honest=2, num_byzantine=0, learning_rate=0.1)
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1)
 
         with self.assertRaises(ValueError):
             simulation.run(-1)

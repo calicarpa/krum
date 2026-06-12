@@ -42,8 +42,8 @@ class MonnaSimulation(DecentralisedSimulation):
         model: Model,
         data: Sequence[Iterable[Batch]],
         loss_fn: LossFn,
-        num_honest: int,
-        num_byzantine: int,
+        n: int,
+        f: int,
         learning_rate: float,
         beta: float = 0.99,
         attack: type[Attack] | None = None,
@@ -58,16 +58,15 @@ class MonnaSimulation(DecentralisedSimulation):
         Args:
             model: Model wrapper whose flat parameters seed every worker.
             data: One batch stream per honest worker; ``len(data)`` must equal
-                ``num_honest``.
+                ``n - f``.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.
-            num_honest: Number of honest workers ``n - f``; must be at least 1.
-            num_byzantine: Number of Byzantine workers ``f``; must be
-                non-negative and smaller than ``num_honest``.
+            n: Total number of workers; must exceed ``2 * f``.
+            f: Number of Byzantine workers; must be non-negative.
             learning_rate: Positive local step size.
             beta: Momentum coefficient in ``[0, 1)``.
             attack: :class:`~krum.primitives.attacks.Attack` subclass whose
                 ``generate`` classmethod maps the honest models and ``f`` to the
-                Byzantine models. Required when ``num_byzantine > 0``.
+                Byzantine models. Required when ``f > 0``.
             attack_kwargs: Extra keyword arguments forwarded to
                 ``attack.generate`` (e.g. ``{"std": 200.0}``). ``f`` is injected
                 by the simulation.
@@ -87,7 +86,7 @@ class MonnaSimulation(DecentralisedSimulation):
         Raises:
             ValueError: If a worker count, learning rate, beta, data length, or
                 ``byzantine_reach`` is out of range, or an attack is missing
-                while ``num_byzantine > 0``.
+                while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
@@ -101,20 +100,20 @@ class MonnaSimulation(DecentralisedSimulation):
         resolved_kwargs = dict(aggregator_kwargs or {})
         if aggregator is None:
             # Each worker mixes over its n - f received models and keeps the
-            # n - 2f closest to its own; num_honest - num_byzantine == n - 2f.
-            resolved_kwargs.setdefault("num_closest", num_honest - num_byzantine)
+            # n - 2f closest to its own.
+            resolved_kwargs.setdefault("num_closest", n - 2 * f)
 
         super().__init__(
             model=model,
             data=data,
             loss_fn=loss_fn,
-            num_honest=num_honest,
-            num_byzantine=num_byzantine,
+            n=n,
+            f=f,
             learning_rate=learning_rate,
-            aggregator=resolved_aggregator,
             beta=beta,
             attack=attack,
             attack_kwargs=attack_kwargs,
+            aggregator=resolved_aggregator,
             aggregator_kwargs=resolved_kwargs,
             seed=seed,
         )
@@ -167,7 +166,7 @@ class MonnaSimulation(DecentralisedSimulation):
         Returns:
             The selected honest responder indices, shape ``(n - 2f - 1,)``.
         """
-        num_responders = self.num_honest - self.num_byzantine - 1
+        num_responders = self.num_honest - self.f - 1
         other_indices = torch.cat([
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, self.num_honest, device=device),
@@ -189,8 +188,8 @@ class MonnaSimulation(DecentralisedSimulation):
         Returns:
             The selected node indices, shape ``(n - f - 1,)``.
         """
-        num_nodes = self.num_honest + self.num_byzantine
-        num_received = num_nodes - self.num_byzantine - 1
+        num_nodes = self.n
+        num_received = self.n - self.f - 1
         other_indices = torch.cat([
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, num_nodes, device=device),
