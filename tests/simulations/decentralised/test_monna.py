@@ -8,8 +8,8 @@ from torch import nn
 from krum.primitives import Model
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
-from krum.simulations.monna import MonnaSimulation
-from krum.simulations.monna.protocol import ByzantineReach
+from krum.simulations.decentralised import MonnaSimulation
+from krum.simulations.decentralised.monna import ByzantineReach
 
 
 class MonnaProtocolTest(unittest.TestCase):
