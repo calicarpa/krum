@@ -8,7 +8,7 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from ._run import run_one_simulation
+from .run import run_one_simulation
 from .datasets import spambase_dataset
 from .models import MLPSpambase
 

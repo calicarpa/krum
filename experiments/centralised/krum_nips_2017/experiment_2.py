@@ -8,7 +8,7 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 
 from ..models import MLP as MLPMnist
-from ._run import run_one_simulation
+from .run import run_one_simulation
 from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase
 
