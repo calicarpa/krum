@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, TypedDict
+from typing import Any, Generic, TypedDict, TypeVar
 
 import torch
 
@@ -15,11 +15,15 @@ LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
 
 
 class StepResult(TypedDict):
-    """Snapshot returned by :meth:`DecentralisedSimulation.step` for one round."""
+    """Snapshot returned by :meth:`DecentralisedSimulation.step` for one round.
+
+    Holds only the fields common to every decentralised protocol. Subclasses
+    whose local step keeps extra state (e.g. momentum) extend this TypedDict and
+    bind it as the simulation's ``StepResultT``.
+    """
 
     step: int
     parameters: torch.Tensor
-    momentum: torch.Tensor
     honest_gradients: torch.Tensor
     local_parameters: torch.Tensor
     byzantine_parameters: torch.Tensor
@@ -27,25 +31,37 @@ class StepResult(TypedDict):
     losses: torch.Tensor
 
 
-class DecentralisedSimulation(ABC):
-    """Base for decentralised momentum-SGD simulations with per-worker model mixing.
+StepResultT = TypeVar("StepResultT", bound=StepResult)
+
+
+class DecentralisedSimulation(ABC, Generic[StepResultT]):
+    """Base for decentralised simulations with per-worker model mixing.
 
     Each honest worker holds its own flat parameter vector — one row of
-    :attr:`parameters`. A round runs a local momentum-SGD step, then a mixing
+    :attr:`parameters`. A round runs a local optimisation step, then a mixing
     phase in which every worker replaces its model with an aggregate of the
     models it *received* this round.
 
-    What varies between decentralised protocols is **which models a worker
-    receives** — the communication topology. That is the single abstract seam:
-    subclasses implement :meth:`gather_received_models` to build each worker's
-    received set (e.g. MoNNA's reach modes, or a pull-based sampling rule),
-    while this base owns the local update, the mixing loop, the Byzantine
-    generation hook, state, snapshots, and the multi-round :meth:`run` driver.
+    Two things vary between protocols, and each is an abstract seam:
+
+    * **how a worker updates locally** — :meth:`local_update` maps the worker
+      gradients to the post-local parameters ``theta_{t+1/2}``. The base is
+      agnostic to the rule and its state, so a momentum-free or optimiser-based
+      protocol keeps none of MoNNA's momentum machinery.
+    * **which models a worker receives** — :meth:`gather_received_models` builds
+      each worker's received set (the communication topology).
+
+    The base owns everything else: gradient computation, the Byzantine
+    generation hook, the mixing loop, the generic state commit, and the
+    multi-round :meth:`run` driver. Subclasses also implement
+    :meth:`build_step_result` so each protocol's snapshot can carry its own
+    fields (the base ``StepResult`` plus, e.g., momentum).
 
     :meth:`run` may be called repeatedly to continue training: all state
-    (:attr:`parameters`, :attr:`momentum`, :attr:`step_index`, and the worker
-    data streams) lives on the instance and persists across calls. Callers that
-    run more rounds than a finite stream provides should cycle their streams.
+    (:attr:`parameters`, :attr:`step_index`, subclass optimiser state, and the
+    worker data streams) lives on the instance and persists across calls.
+    Callers that run more rounds than a finite stream provides should cycle
+    their streams.
     """
 
     def __init__(
@@ -56,8 +72,6 @@ class DecentralisedSimulation(ABC):
         loss_fn: LossFn,
         n: int,
         f: int,
-        learning_rate: float,
-        beta: float = 0.99,
         attack: type[Attack] | None = None,
         attack_kwargs: dict[str, Any] | None = None,
         aggregator: type[Aggregator],
@@ -74,9 +88,6 @@ class DecentralisedSimulation(ABC):
             n: Total number of workers; must exceed ``2 * f`` so that honest
                 workers outnumber Byzantine ones.
             f: Number of Byzantine workers; must be non-negative.
-            learning_rate: Positive local step size.
-            beta: Momentum coefficient in ``[0, 1)``. ``0`` reduces the local
-                update to plain SGD.
             attack: :class:`~krum.primitives.attacks.Attack` subclass whose
                 ``generate`` classmethod maps the honest models and ``f`` to the
                 Byzantine models. Required when ``f > 0``.
@@ -93,8 +104,8 @@ class DecentralisedSimulation(ABC):
             seed: Optional integer seed for responder sampling.
 
         Raises:
-            ValueError: If a worker count, learning rate, beta, or data length is
-                out of range, or an attack is missing while ``f > 0``.
+            ValueError: If a worker count or data length is out of range, or an
+                attack is missing while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
@@ -107,10 +118,6 @@ class DecentralisedSimulation(ABC):
             raise ValueError(f"Expected at least one honest worker, got n={n!r} and f={f!r}")
         if n - f <= f:
             raise ValueError(f"Expected enough honest workers for decentralised model mixing, got n={n!r} and f={f!r}")
-        if learning_rate <= 0:
-            raise ValueError(f"Expected positive learning rate, got {learning_rate!r}")
-        if beta < 0 or beta >= 1:
-            raise ValueError(f"Expected beta in [0, 1), got {beta!r}")
         if not isinstance(model, Model):
             raise TypeError(f"Expected model to be a Model, got {type(model).__name__}")
         if not callable(loss_fn):
@@ -132,35 +139,31 @@ class DecentralisedSimulation(ABC):
         self.n = n
         self.f = f
         self.num_honest = n - f
-        self.learning_rate = learning_rate
-        self.beta = beta
         self.attack = attack
         self.attack_kwargs = attack_kwargs or {}
         self.aggregator = aggregator
         self.aggregator_kwargs = dict(aggregator_kwargs or {})
         self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(self.num_honest, 1)
-        self.momentum = torch.zeros_like(self.parameters)
         self.step_index = 0
 
-    def step(self) -> StepResult:
+    def step(self) -> StepResultT:
         """Execute one decentralised training round.
 
-        Runs one local momentum-SGD phase followed by one model-mixing phase
-        over the per-worker received sets, then commits the resulting state.
+        Runs one local optimisation phase (:meth:`local_update`) followed by one
+        model-mixing phase over the per-worker received sets, then commits the
+        resulting state and builds the snapshot.
 
         Returns:
-            A snapshot dict of the round, as built by :meth:`commit_step`.
+            A snapshot dict of the round, as built by :meth:`build_step_result`.
         """
         batches = self.collect_worker_batches()
         gradients, losses = self.compute_honest_worker_gradients(batches)
-        next_momentum = self.update_local_momentum(gradients)
-        local_parameters = self.compute_local_parameter_updates(next_momentum)
+        local_parameters = self.local_update(gradients)
         byzantine_parameters = self.generate_byzantine_models(local_parameters)
         mixed_parameters = self.aggregate_over_received_nodes(local_parameters, byzantine_parameters)
-        return self.commit_step(
-            momentum=next_momentum,
-            parameters=mixed_parameters,
+        self.commit_state(mixed_parameters)
+        return self.build_step_result(
             honest_gradients=gradients,
             local_parameters=local_parameters,
             byzantine_parameters=byzantine_parameters,
@@ -168,7 +171,7 @@ class DecentralisedSimulation(ABC):
             losses=losses,
         )
 
-    def run(self, rounds: int) -> list[StepResult]:
+    def run(self, rounds: int) -> list[StepResultT]:
         """Execute several rounds and collect their snapshots.
 
         State persists on the instance, so successive calls continue training
@@ -231,27 +234,21 @@ class DecentralisedSimulation(ABC):
         with torch.no_grad():
             self.model.parameters.copy_(parameters)
 
-    def update_local_momentum(self, gradients: torch.Tensor) -> torch.Tensor:
-        """Update each honest worker's local momentum vector.
+    @abstractmethod
+    def local_update(self, gradients: torch.Tensor) -> torch.Tensor:
+        """Compute the post-local-update parameters ``theta_{t+1/2}``.
+
+        This is the optimisation seam: each protocol defines how a worker turns
+        its gradient into its pre-mixing parameters, and owns any optimiser
+        state (momentum, moments, ...). Implementations should update that state
+        in place so :meth:`build_step_result` can snapshot it.
 
         Args:
             gradients: Stacked honest gradients, one row per worker.
 
         Returns:
-            The next momentum, with one row per honest worker.
-        """
-        return self.momentum.mul(self.beta).add(gradients, alpha=1.0 - self.beta)
-
-    def compute_local_parameter_updates(self, momentum: torch.Tensor) -> torch.Tensor:
-        """Compute ``theta_{t+1/2}`` before the model-mixing phase.
-
-        Args:
-            momentum: The next momentum, one row per honest worker.
-
-        Returns:
             The post-local-update parameters, one row per honest worker.
         """
-        return self.parameters - self.learning_rate * momentum
 
     def generate_byzantine_models(self, local_parameters: torch.Tensor) -> torch.Tensor:
         """Generate the Byzantine model vectors injected into the mixing phase.
@@ -341,42 +338,41 @@ class DecentralisedSimulation(ABC):
         """
         return self.aggregator.aggregate(candidates, pivot=pivot, **self.aggregator_kwargs)
 
-    def commit_step(
+    def commit_state(self, parameters: torch.Tensor) -> None:
+        """Persist the next parameters and advance the round counter.
+
+        Subclasses commit their own optimiser state inside :meth:`local_update`;
+        this only handles the parameter state shared by every protocol.
+
+        Args:
+            parameters: The mixed models to persist as the next parameters.
+        """
+        self.step_index += 1
+        self.parameters = parameters.detach().clone()
+
+    @abstractmethod
+    def build_step_result(
         self,
         *,
-        momentum: torch.Tensor,
-        parameters: torch.Tensor,
         honest_gradients: torch.Tensor,
         local_parameters: torch.Tensor,
         byzantine_parameters: torch.Tensor,
         mixed_parameters: torch.Tensor,
         losses: torch.Tensor,
-    ) -> StepResult:
-        """Store the next simulation state and return a plain snapshot dict.
+    ) -> StepResultT:
+        """Build the round snapshot, called after the state has been committed.
+
+        Implementations return the protocol's :class:`StepResult` subtype,
+        adding any optimiser-state fields (e.g. momentum). The committed
+        :attr:`step_index` and :attr:`parameters` are available via ``self``.
 
         Args:
-            momentum: The next momentum to persist as state.
-            parameters: The mixed models to persist as the next parameters.
-            honest_gradients: Stacked honest gradients for the snapshot.
-            local_parameters: Post-local-update honest models for the snapshot.
-            byzantine_parameters: Byzantine models for the snapshot.
-            mixed_parameters: Mixed models for the snapshot.
-            losses: Per-worker losses for the snapshot.
+            honest_gradients: Stacked honest gradients this round.
+            local_parameters: Post-local-update honest models.
+            byzantine_parameters: Byzantine models injected this round.
+            mixed_parameters: Mixed models (equal to the committed parameters).
+            losses: Per-worker losses.
 
         Returns:
-            A snapshot dict with the step index and a detached clone of each
-            tensor produced this step.
+            The protocol snapshot, with a detached clone of each tensor.
         """
-        self.step_index += 1
-        self.momentum = momentum.detach().clone()
-        self.parameters = parameters.detach().clone()
-        return {
-            "step": self.step_index,
-            "parameters": self.parameters.detach().clone(),
-            "momentum": self.momentum.detach().clone(),
-            "honest_gradients": honest_gradients.detach().clone(),
-            "local_parameters": local_parameters.detach().clone(),
-            "byzantine_parameters": byzantine_parameters.detach().clone(),
-            "mixed_parameters": mixed_parameters.detach().clone(),
-            "losses": losses.detach().clone(),
-        }

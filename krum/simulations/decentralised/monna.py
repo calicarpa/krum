@@ -9,18 +9,27 @@ from krum.primitives import Model
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks import Attack
-from krum.simulations.decentralised.base import Batch, DecentralisedSimulation, LossFn
+from krum.simulations.decentralised.base import Batch, DecentralisedSimulation, LossFn, StepResult
 
 ByzantineReach = Literal["all", "sampled"]
 
 
-class MonnaSimulation(DecentralisedSimulation):
+class MonnaStepResult(StepResult):
+    """MoNNA snapshot — the base fields plus the per-worker momentum."""
+
+    momentum: torch.Tensor
+
+
+class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
     """MoNNA simulation runner.
 
     Each round, every honest worker runs one local momentum-SGD step and then
     replaces its model with a nearest-neighbor average over the ``n - 2f``
     models closest to its own, drawn from the ``n - f`` models it received that
     round (its own plus a set of responders).
+
+    MoNNA owns the local optimisation rule (momentum-SGD) and its state, so the
+    momentum lives here rather than in :class:`~krum.simulations.decentralised.base.DecentralisedSimulation`.
 
     ``byzantine_reach`` selects the adversary model used when forming those
     received sets in :meth:`gather_received_models`:
@@ -95,6 +104,10 @@ class MonnaSimulation(DecentralisedSimulation):
         """
         if byzantine_reach not in ("all", "sampled"):
             raise ValueError(f"Expected byzantine_reach to be 'all' or 'sampled', got {byzantine_reach!r}")
+        if learning_rate <= 0:
+            raise ValueError(f"Expected positive learning rate, got {learning_rate!r}")
+        if beta < 0 or beta >= 1:
+            raise ValueError(f"Expected beta in [0, 1), got {beta!r}")
 
         resolved_aggregator = aggregator or NearestNeighborAverage
         resolved_kwargs = dict(aggregator_kwargs or {})
@@ -109,15 +122,85 @@ class MonnaSimulation(DecentralisedSimulation):
             loss_fn=loss_fn,
             n=n,
             f=f,
-            learning_rate=learning_rate,
-            beta=beta,
             attack=attack,
             attack_kwargs=attack_kwargs,
             aggregator=resolved_aggregator,
             aggregator_kwargs=resolved_kwargs,
             seed=seed,
         )
+        self.learning_rate = learning_rate
+        self.beta = beta
         self.byzantine_reach = byzantine_reach
+        self.momentum = torch.zeros_like(self.parameters)
+
+    def local_update(self, gradients: torch.Tensor) -> torch.Tensor:
+        """Run MoNNA's momentum-SGD local step and commit the new momentum.
+
+        Args:
+            gradients: Stacked honest gradients, one row per worker.
+
+        Returns:
+            The post-local-update parameters ``theta_{t+1/2}``, one row per
+            honest worker.
+        """
+        next_momentum = self.update_local_momentum(gradients)
+        self.momentum = next_momentum
+        return self.compute_local_parameter_updates(next_momentum)
+
+    def update_local_momentum(self, gradients: torch.Tensor) -> torch.Tensor:
+        """Update each honest worker's local momentum vector.
+
+        Args:
+            gradients: Stacked honest gradients, one row per worker.
+
+        Returns:
+            The next momentum, with one row per honest worker.
+        """
+        return self.momentum.mul(self.beta).add(gradients, alpha=1.0 - self.beta)
+
+    def compute_local_parameter_updates(self, momentum: torch.Tensor) -> torch.Tensor:
+        """Compute ``theta_{t+1/2}`` before the model-mixing phase.
+
+        Args:
+            momentum: The next momentum, one row per honest worker.
+
+        Returns:
+            The post-local-update parameters, one row per honest worker.
+        """
+        return self.parameters - self.learning_rate * momentum
+
+    def build_step_result(
+        self,
+        *,
+        honest_gradients: torch.Tensor,
+        local_parameters: torch.Tensor,
+        byzantine_parameters: torch.Tensor,
+        mixed_parameters: torch.Tensor,
+        losses: torch.Tensor,
+    ) -> MonnaStepResult:
+        """Build the MoNNA snapshot, including the committed momentum.
+
+        Args:
+            honest_gradients: Stacked honest gradients this round.
+            local_parameters: Post-local-update honest models.
+            byzantine_parameters: Byzantine models injected this round.
+            mixed_parameters: Mixed models (equal to the committed parameters).
+            losses: Per-worker losses.
+
+        Returns:
+            A snapshot dict with the step index and a detached clone of each
+            tensor produced this step.
+        """
+        return {
+            "step": self.step_index,
+            "parameters": self.parameters.detach().clone(),
+            "momentum": self.momentum.detach().clone(),
+            "honest_gradients": honest_gradients.detach().clone(),
+            "local_parameters": local_parameters.detach().clone(),
+            "byzantine_parameters": byzantine_parameters.detach().clone(),
+            "mixed_parameters": mixed_parameters.detach().clone(),
+            "losses": losses.detach().clone(),
+        }
 
     def gather_received_models(
         self,
