@@ -1,4 +1,4 @@
-"""Coordinate-wise trimmed mean aggregation rule.
+"""Trimmed mean aggregation rule, coordinate-wise.
 
 Reference:
     Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class TrimmedMean(Aggregator):
-    r"""Coordinate-wise trimmed mean aggregation rule.
+    r"""Trimmed mean aggregation rule, coordinate-wise.
 
     For every coordinate, the :math:`f` smallest and :math:`f` largest values are
     dropped, then the remaining values are averaged. This requires at least

@@ -1,4 +1,4 @@
-"""KrumSimulation — NIPS 2017 protocol.
+"""KrumSimulation.
 
 Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien Stainer.
@@ -15,7 +15,7 @@ from .base import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):
-    """Distributed SGD simulation with Byzantine workers — NIPS 2017 protocol.
+    """Distributed SGD simulation.
 
     Compared to the ICML 2018
     :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`,

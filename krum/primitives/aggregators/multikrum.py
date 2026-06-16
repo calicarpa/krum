@@ -1,4 +1,4 @@
-"""MultiKrum aggregation rule — multi-gradient averaging.
+"""MultiKrum aggregation rule, multi-gradient averaging.
 
 Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class MultiKrum(Aggregator):
-    r"""MultiKrum aggregation rule.
+    r"""MultiKrum aggregation rule, multi-gradient averaging.
 
     Scores every worker gradient by the sum of its distances to its
     :math:`n - f - 1` closest neighbors, picks the :math:`m` gradients with the

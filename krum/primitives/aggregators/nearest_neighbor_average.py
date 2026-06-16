@@ -1,4 +1,4 @@
-"""Nearest-neighbor averaging aggregator — MoNNA (Farhadkhani et al., ICML 2023).
+"""Nearest-neighbor averaging aggregation rule.
 
 Reference:
     Sadegh Farhadkhani, Rachid Guerraoui, Nirupam Gupta, Lê Nguyên Hoang,
@@ -17,7 +17,7 @@ from . import Aggregator
 
 
 class NearestNeighborAverage(Aggregator):
-    """Average the ``num_closest`` vectors nearest to a call-specific pivot.
+    """Nearest-neighbor averaging aggregation rule.
 
     The rule keeps the ``num_closest`` vectors with smallest Euclidean distance
     to the pivot, then returns their mean. Both ``num_closest`` and the pivot

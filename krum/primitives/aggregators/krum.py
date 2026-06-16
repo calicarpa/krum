@@ -1,4 +1,4 @@
-"""Krum aggregation rule — single-gradient selection.
+"""Krum aggregation rule, single-gradient selection.
 
 Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
@@ -16,7 +16,7 @@ from .multikrum import MultiKrum
 
 
 class Krum(MultiKrum):
-    r"""Krum aggregation rule.
+    r"""Krum aggregation rule, single-gradient selection.
 
     For each worker gradient, Krum scores it by the sum of its distances to
     its :math:`n - f - 2` closest neighbors, and returns the gradient with the

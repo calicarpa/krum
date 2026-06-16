@@ -9,7 +9,7 @@ from . import Attack
 
 
 class GaussianAttack(Attack):
-    """Gaussian Byzantine attack.
+    """Gaussian attack, isotropic noise baseline.
 
     Byzantine workers send vectors drawn from an isotropic Gaussian
     distribution with configurable mean and standard deviation.

@@ -22,13 +22,13 @@ ByzantineReach = Literal["all", "sampled"]
 
 
 class MonnaStepResult(StepResult):
-    """MoNNA snapshot — the base fields plus the per-worker momentum."""
+    """MoNNA snapshot, base fields plus per-worker momentum."""
 
     momentum: torch.Tensor
 
 
 class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
-    """MoNNA simulation runner — Farhadkhani et al. (ICML 2023).
+    """MoNNA simulation runner.
 
     Each round, every honest worker runs one local momentum-SGD step and then
     replaces its model with a nearest-neighbor average over the ``n - 2f``

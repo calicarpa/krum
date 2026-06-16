@@ -1,4 +1,4 @@
-"""GeoMed: geometric median (vector-level medoid) aggregation rule.
+"""GeoMed aggregation rule, vector-level medoid.
 
 Reference:
     Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
@@ -15,7 +15,7 @@ from . import Aggregator
 
 
 class GeoMed(Aggregator):
-    r"""Geometric median (vector-level medoid) of the worker gradients.
+    r"""GeoMed aggregation rule, vector-level medoid.
 
     The geometric median is the gradient :math:`V_i` that minimises
     :math:`\sum_j \|V_i - V_j\|`. Ties are broken by the smallest index.

@@ -16,7 +16,7 @@ from . import Attack
 
 
 class SignFlipAttack(Attack):
-    """Sign-flip attack using the negated honest mean.
+    """Sign-flip attack.
 
     Generates Byzantine gradients by flipping the sign of the coordinate-wise
     honest mean and optionally scaling the result. Every Byzantine worker
