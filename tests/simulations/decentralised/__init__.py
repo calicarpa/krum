@@ -1,1 +1,1 @@
-"""MoNNA simulation tests."""
+"""Tests for decentralised simulations."""
