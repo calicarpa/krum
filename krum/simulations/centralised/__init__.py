@@ -6,7 +6,7 @@ subclasses: :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`
 (NIPS 2017).
 """
 
-from krum.simulations.centralised.centralised import CentralisedSimulation as CentralisedSimulation
+from krum.simulations.centralised.base import CentralisedSimulation as CentralisedSimulation
 from krum.simulations.centralised.hidden_vulnerability_icml_2018 import (
     HiddenVulnerabilitySimulation as HiddenVulnerabilitySimulation,
 )

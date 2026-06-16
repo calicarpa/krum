@@ -12,7 +12,7 @@ configuration run over multiple synchronous rounds with no learning rate decay.
 
 from typing import Any
 
-from .centralised import CentralisedSimulation
+from .base import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):
