@@ -2,8 +2,7 @@ Centralised simulations
 =======================
 
 .. automodule:: krum.simulations.centralised
-   :undoc-members:
-   :show-inheritance:
+   :no-members:
 
 Base simulation class
 ---------------------

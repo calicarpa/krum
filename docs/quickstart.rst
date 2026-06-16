@@ -172,4 +172,4 @@ Next Steps
 
 - Browse the :doc:`reference/aggregators/index` for all available aggregation rules
 - Browse the :doc:`reference/attacks/index` for all available attack strategies
-- See :doc:`reference/simulations/index` for reproducing published experiments
+- See :doc:`reference/simulations/index` for reproducing published experiments in distributed settings

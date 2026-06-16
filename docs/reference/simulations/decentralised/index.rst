@@ -2,8 +2,7 @@ Decentralised simulations
 =======================
 
 .. automodule:: krum.simulations.decentralised
-   :undoc-members:
-   :show-inheritance:
+   :no-members:
 
 Base simulation class
 ---------------------
