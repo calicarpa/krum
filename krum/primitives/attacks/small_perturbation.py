@@ -1,4 +1,4 @@
-r"""Small-perturbation gradient attack (El Mhamdi et al., ICML 2018).
+r"""Small-perturbation gradient attack.
 
 Reference:
     El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
