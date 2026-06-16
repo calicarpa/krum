@@ -6,7 +6,7 @@ Attacks
    :undoc-members:
    :show-inheritance:
 
-Available Attacks:
+Available attacks:
 ------------------
    
 .. toctree::

@@ -36,7 +36,8 @@ Reference
    reference/primitives
    reference/aggregators/index
    reference/attacks/index
-   reference/simulations/index
+   reference/simulations/centralised/index
+   reference/simulations/decentralised/index
 
 
 License
