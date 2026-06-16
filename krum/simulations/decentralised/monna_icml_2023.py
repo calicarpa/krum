@@ -1,4 +1,11 @@
-"""Class-based MoNNA decentralised simulation."""
+"""MoNNA decentralised simulation.
+
+Reference:
+    Sadegh Farhadkhani, Rachid Guerraoui, Nirupam Gupta, Lê Nguyên Hoang,
+    Rafael Pinot, and John Stephan. "Robust Collaborative Learning with
+    Linear Gradient Overhead." In Proceedings of the 40th International
+    Conference on Machine Learning (ICML 2023).
+"""
 
 from collections.abc import Iterable, Sequence
 from typing import Any, Literal
@@ -21,7 +28,7 @@ class MonnaStepResult(StepResult):
 
 
 class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
-    """MoNNA simulation runner.
+    """MoNNA simulation runner — Farhadkhani et al. (ICML 2023).
 
     Each round, every honest worker runs one local momentum-SGD step and then
     replaces its model with a nearest-neighbor average over the ``n - 2f``

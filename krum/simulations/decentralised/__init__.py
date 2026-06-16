@@ -12,6 +12,6 @@ and the communication topology (which models each worker receives).
 """
 
 from krum.simulations.decentralised.base import DecentralisedSimulation, StepResult
-from krum.simulations.decentralised.monna import ByzantineReach, MonnaSimulation
+from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach, MonnaSimulation
 
 __all__ = ["ByzantineReach", "DecentralisedSimulation", "MonnaSimulation", "StepResult"]

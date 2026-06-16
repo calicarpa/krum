@@ -19,4 +19,4 @@ Available simulations
 .. toctree::
    :maxdepth: 1
 
-   monna
+   monna_icml_2023

@@ -118,12 +118,10 @@ def run_monna_simulation(
         if step == 1 or step % eval_every == 0 or step == rounds:
             test_loss, test_accuracy = evaluate_workers(model, simulation.parameters, test_loader, loss_fn)
             train_loss = result["losses"].mean().item()
-            metrics.append(
-                {
-                    "round": step,
-                    "train_loss": train_loss,
-                    "test_loss": test_loss,
-                    "test_accuracy": test_accuracy,
-                }
-            )
+            metrics.append({
+                "round": step,
+                "train_loss": train_loss,
+                "test_loss": test_loss,
+                "test_accuracy": test_accuracy,
+            })
     return metrics

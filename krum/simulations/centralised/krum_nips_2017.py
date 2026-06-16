@@ -1,7 +1,6 @@
-"""KrumSimulation — NIPS 2017 protocol (Blanchard et al.).
+"""KrumSimulation — NIPS 2017 protocol.
 
-Reproduces the parameter-server distributed SGD experiments from:
-
+Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien Stainer.
     "Machine learning with adversaries: Byzantine tolerant gradient descent."
     In Advances in Neural Information Processing Systems 30 (NIPS 2017).

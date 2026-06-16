@@ -9,7 +9,7 @@ from krum.primitives import Model
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.simulations.decentralised import MonnaSimulation
-from krum.simulations.decentralised.monna import ByzantineReach
+from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach
 
 
 class MonnaProtocolTest(unittest.TestCase):

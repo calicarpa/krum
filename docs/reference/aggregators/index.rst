@@ -20,3 +20,4 @@ Available rules:
    classes/bulyan
    classes/brute
    classes/geomed
+   classes/nearest_neighbor_average
