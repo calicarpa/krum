@@ -1,4 +1,11 @@
-"""Class-based MoNNA decentralised simulation."""
+"""MoNNA decentralised simulation.
+
+Reference:
+    Sadegh Farhadkhani, Rachid Guerraoui, Nirupam Gupta, Lê Nguyên Hoang,
+    Rafael Pinot, and John Stephan. "Robust Collaborative Learning with
+    Linear Gradient Overhead." In Proceedings of the 40th International
+    Conference on Machine Learning (ICML 2023).
+"""
 
 from collections.abc import Iterable, Sequence
 from typing import Any, Literal
@@ -15,7 +22,7 @@ ByzantineReach = Literal["all", "sampled"]
 
 
 class MonnaStepResult(StepResult):
-    """MoNNA snapshot — the base fields plus the per-worker momentum."""
+    """MoNNA snapshot, base fields plus per-worker momentum."""
 
     momentum: torch.Tensor
 

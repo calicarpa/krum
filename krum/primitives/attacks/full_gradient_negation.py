@@ -9,7 +9,7 @@ from . import Attack
 
 
 class FullGradientNegationAttack(Attack):
-    r"""Full-gradient negation Byzantine attack.
+    r"""Full-gradient negation attack.
 
     Each Byzantine worker sends the negation of the full-dataset gradient
     scaled by a factor :math:`\kappa`. The attack assumes knowledge of the

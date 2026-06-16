@@ -1,4 +1,4 @@
-"""Brute aggregation rule — most-clumped-subset baseline.
+"""Brute aggregation rule, most-clumped-subset baseline.
 
 Reference:
     El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
@@ -17,7 +17,7 @@ from . import Aggregator
 
 
 class Brute(Aggregator):
-    r"""Brute aggregation rule — pick the most-clumped :math:`n - f` subset.
+    r"""Brute aggregation rule, most-clumped subset selection.
 
     For every subset :math:`R` of size :math:`n - f` from the submitted
     gradients, define its clumping score as

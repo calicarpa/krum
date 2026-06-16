@@ -1,4 +1,4 @@
-"""Bulyan aggregation rule — two-stage Krum + trimmed mean.
+"""Bulyan aggregation rule, two-stage Krum + trimmed mean.
 
 Reference:
     El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class Bulyan(Aggregator):
-    r"""Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
+    r"""Bulyan aggregation rule, two-stage Krum + trimmed mean.
 
     Bulyan first iteratively applies a Krum-style scoring rule to
     select a set S of θ = n − 2f gradients (one per iteration — the

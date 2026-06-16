@@ -67,10 +67,7 @@ def main() -> None:
 
     print("round,train_loss_mean,test_loss_mean,test_accuracy_mean")
     for row in metrics:
-        print(
-            f"{int(row['round'])},{row['train_loss']:.6f},"
-            f"{row['test_loss']:.6f},{row['test_accuracy']:.4f}"
-        )
+        print(f"{int(row['round'])},{row['train_loss']:.6f},{row['test_loss']:.6f},{row['test_accuracy']:.4f}")
 
     print("\nExperiment 1 done.")
 

@@ -175,6 +175,11 @@ html_theme_options = {
                     "url": "reference/attacks/index",
                     "summary": "Byzantine attack strategies for evaluation",
                 },
+                {
+                    "title": "Simulations",
+                    "url": "reference/simulations/index",
+                    "summary": "Reproducing published experiments in centralised or decentralised settings",
+                },
             ],
         },
         {

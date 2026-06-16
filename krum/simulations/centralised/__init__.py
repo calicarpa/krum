@@ -1,12 +1,14 @@
-"""Centralised parameter-server simulation classes.
+"""Parameter-server distributed SGD simulation.
 
-Provides the base :class:`CentralisedSimulation` and two paper-specific
-subclasses: :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`
-(ICML 2018) and :class:`~krum.simulations.centralised.KrumSimulation`
-(NIPS 2017).
+Each synchronous round follows the same pattern:
+
+#. Honest workers compute a gradient on their local data shard.
+#. Byzantine workers craft adversarial gradients.
+#. The aggregator combines all :math:`n` gradients into a single update.
+#. The aggregated update is applied via an SGD step.
 """
 
-from krum.simulations.centralised.centralised import CentralisedSimulation as CentralisedSimulation
+from krum.simulations.centralised.base import CentralisedSimulation as CentralisedSimulation
 from krum.simulations.centralised.hidden_vulnerability_icml_2018 import (
     HiddenVulnerabilitySimulation as HiddenVulnerabilitySimulation,
 )

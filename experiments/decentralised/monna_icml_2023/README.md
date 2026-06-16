@@ -9,7 +9,7 @@ sign-flip attack.
 ## Usage
 
 ```bash
-uv run python -m experiments.decentralised.monna.experiment_1
+uv run python -m experiments.decentralised.monna_icml_2023.experiment_1
 ```
 
 Configuration lives as constants at the top of `experiment_1.py` — edit them in

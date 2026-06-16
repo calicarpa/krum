@@ -1,7 +1,7 @@
-"""Plain mean (arithmetic average) aggregation rule — non-robust baseline.
+"""Average aggregation rule, non-robust baseline.
 
 Reference:
-    Brendan McMahan, Eamonn Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
+    Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
     "Communication-Efficient Learning of Deep Networks from Decentralized Data."
     In Proceedings of the 20th International Conference on Artificial Intelligence
     and Statistics (AISTATS 2017).
@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class Average(Aggregator):
-    """Plain mean of all worker gradients (no Byzantine resilience).
+    """Average aggregation rule, non-robust baseline.
 
     Included as a non-robust baseline. A single adversarial worker with an
     arbitrarily large gradient can drive the aggregated gradient arbitrarily

@@ -28,7 +28,7 @@ class Direction(str, Enum):
 
 
 class ALIEAttack(Attack):
-    r"""ALIE-style attack using exact honest gradient statistics.
+    r"""ALIE attack.
 
     Generates Byzantine gradients from the exact coordinate-wise mean and
     standard deviation of the honest gradients passed to the attack. The attack

@@ -2,5 +2,5 @@
 
 Sub-packages:
 
-* :mod:`~experiments.decentralised.monna` — MoNNA decentralised simulation.
+* :mod:`~experiments.decentralised.monna_icml_2023` — MoNNA decentralised simulation.
 """

@@ -2,11 +2,9 @@ Attacks
 =======
 
 .. automodule:: krum.primitives.attacks
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-members:
 
-Available Attacks:
+Available attacks:
 ------------------
    
 .. toctree::

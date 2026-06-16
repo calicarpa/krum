@@ -1,7 +1,6 @@
-"""KrumSimulation — NIPS 2017 protocol (Blanchard et al.).
+"""KrumSimulation.
 
-Reproduces the parameter-server distributed SGD experiments from:
-
+Reference:
     Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien Stainer.
     "Machine learning with adversaries: Byzantine tolerant gradient descent."
     In Advances in Neural Information Processing Systems 30 (NIPS 2017).
@@ -12,11 +11,11 @@ configuration run over multiple synchronous rounds with no learning rate decay.
 
 from typing import Any
 
-from .centralised import CentralisedSimulation
+from .base import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):
-    """Distributed SGD simulation with Byzantine workers — NIPS 2017 protocol.
+    """Distributed SGD simulation.
 
     Compared to the ICML 2018
     :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`,

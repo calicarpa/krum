@@ -1,4 +1,4 @@
-"""Coordinate-wise median aggregation rule.
+"""Median aggregation rule, coordinate-wise.
 
 Reference:
     Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
@@ -16,7 +16,7 @@ from . import Aggregator
 
 
 class Median(Aggregator):
-    """Coordinate-wise median of the worker gradients.
+    """Median aggregation rule, coordinate-wise.
 
     The aggregated gradient is the coordinate-wise median of the worker
     gradients. This provides basic Byzantine resilience: a single

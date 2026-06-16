@@ -2,9 +2,7 @@ Aggregators
 ===========
 
 .. automodule:: krum.primitives.aggregators
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-members:
 
 Available rules:
 ---------------
@@ -20,3 +18,4 @@ Available rules:
    classes/bulyan
    classes/brute
    classes/geomed
+   classes/nearest_neighbor_average

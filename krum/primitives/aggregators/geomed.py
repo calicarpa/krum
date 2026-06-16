@@ -1,7 +1,7 @@
-"""GeoMed: geometric median (vector-level medoid) aggregation rule (El Mhamdi et al., ICML 2018).
+"""GeoMed aggregation rule, vector-level medoid.
 
 Reference:
-    Dong Yin, Yudong Chen, Ramchandran Kannan, and Peter Bartlett.
+    Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
     "Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates."
     In Proceedings of the 35th International Conference on Machine Learning (ICML 2018).
 """
@@ -15,7 +15,7 @@ from . import Aggregator
 
 
 class GeoMed(Aggregator):
-    r"""Geometric median (vector-level medoid) of the worker gradients.
+    r"""GeoMed aggregation rule, vector-level medoid.
 
     The geometric median is the gradient :math:`V_i` that minimises
     :math:`\sum_j \|V_i - V_j\|`. Ties are broken by the smallest index.

@@ -1,4 +1,10 @@
-r"""Small-perturbation attack.
+r"""Small-perturbation gradient attack.
+
+Reference:
+    El Mahdi El Mhamdi, Rachid Guerraoui, and Sébastien Rouault. "The
+    Hidden Vulnerability of Distributed Learning in Byzantium." In
+    Proceedings of the 35th International Conference on Machine
+    Learning (ICML 2018).
 
 The attack exploits the curse of dimensionality: in :math:`d \gg 1`, two honest
 gradients naturally disagree by :math:`\Theta(\sqrt{d})` in the :math:`\ell_p`
