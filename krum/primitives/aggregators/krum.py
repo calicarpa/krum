@@ -16,12 +16,12 @@ from .multikrum import MultiKrum
 
 
 class Krum(MultiKrum):
-    """Krum aggregation rule.
+    r"""Krum aggregation rule.
 
     For each worker gradient, Krum scores it by the sum of its distances to
-    its ``n - f - 1`` closest neighbors, and returns the gradient with the
+    its :math:`n - f - 2` closest neighbors, and returns the gradient with the
     smallest score — the one most consistent with the other honest workers.
-    This is :class:`MultiKrum` with ``m = 1``.
+    This is :class:`MultiKrum` with :math:`m = 1`.
     """
 
     @classmethod
@@ -35,7 +35,7 @@ class Krum(MultiKrum):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
@@ -48,7 +48,7 @@ class Krum(MultiKrum):
             Aggregated gradient of shape ``(d,)``.
 
         Raises:
-            ValueError: If ``n < 1``, ``f < 0``, ``f > n``, ``n < 2f + 3``,
+            ValueError: If :math:`n < 1`, :math:`f < 0`, :math:`f > n`, :math:`n < 2f + 3`,
                 or ``len(gradients) != n``.
         """
         return MultiKrum.aggregate(gradients, out=out, n=n, f=f, m=1)

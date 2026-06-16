@@ -12,5 +12,6 @@ docs/_build
 
 # Downloaded datasets
 data/
+results/
 
 .DS_Store

@@ -16,13 +16,20 @@ from . import Aggregator
 
 
 class Bulyan(Aggregator):
-    """Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
+    r"""Bulyan: two-stage "trim around the trimmed mean" aggregation rule.
 
-    Bulyan first iteratively applies :class:`~krum.primitives.aggregators.multikrum.MultiKrum`
-    to select a small set of consistent gradients, then aggregates that set
-    coordinate-wise by trimming the ``f`` smallest and ``f`` largest values
-    per coordinate and averaging what remains. It tolerates up to
-    ``(n - 3) // 4`` Byzantine workers.
+    Bulyan first iteratively applies a Krum-style scoring rule to
+    select a set S of θ = n − 2f gradients (one per iteration — the
+    gradient with the lowest Krum score among the still-unselected
+    gradients, then removed from the candidate pool). It then
+    aggregates that set coordinate-wise by taking the median over S
+    and averaging the β = θ − 2f = n − 4f closest values to the
+    median per coordinate.
+
+    The paper studies ``Bulyan(A)`` with ``A = Krum`` (``Bulyan(Krum)``)
+    in all figures; this implementation follows that choice. A
+    different base rule A could be plugged in by overriding
+    :meth:`_select_one`.
     """
 
     @classmethod
@@ -37,23 +44,23 @@ class Bulyan(Aggregator):
         m: int | None = None,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             out: Optional pre-allocated tensor to write the result into.
-            n: Total number of workers. Must satisfy ``n >= 4f + 3``.
+            n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 4``.
             m: Number of gradients selected by MultiKrum at each iteration.
-                Defaults to ``n - f - 2``.
+                Defaults to :math:`n - f - 2`.
             **specialized: Additional keyword arguments.
 
         Returns:
             Aggregated gradient of shape ``(d,)``.
 
         Raises:
-            ValueError: If ``n``, ``f``, ``m``, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")

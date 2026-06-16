@@ -16,12 +16,12 @@ from . import Aggregator
 
 
 class TrimmedMean(Aggregator):
-    """Coordinate-wise trimmed mean aggregation rule.
+    r"""Coordinate-wise trimmed mean aggregation rule.
 
-    For every coordinate, the ``f`` smallest and ``f`` largest values are
+    For every coordinate, the :math:`f` smallest and :math:`f` largest values are
     dropped, then the remaining values are averaged. This requires at least
-    ``2f + 1`` workers and provides basic Byzantine resilience: adversarial
-    workers can only shift at most ``f`` samples per coordinate.
+    :math:`2f + 1` workers and provides basic Byzantine resilience: adversarial
+    workers can only shift at most :math:`f` samples per coordinate.
     """
 
     @classmethod
@@ -34,20 +34,20 @@ class TrimmedMean(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate the gradients.
+        r"""Aggregate the gradients.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             out: Optional pre-allocated tensor to write the result into.
             f: Number of Byzantine workers to tolerate. Must satisfy
-                ``0 <= f`` and ``len(gradients) > 2f``.
+                :math:`0 \le f` and ``len(gradients) > 2f``.
             **specialized: Additional keyword arguments.
 
         Returns:
             Coordinate-wise trimmed mean of the gradients, of shape ``(d,)``.
 
         Raises:
-            ValueError: If ``f`` is negative or if there are not enough gradients
+            ValueError: If :math:`f` is negative or if there are not enough gradients
                 to trim (``len(gradients) <= 2f``).
         """
         if f < 0:

@@ -143,7 +143,7 @@ class Model:
 
     @property
     def parameters(self) -> Tensor:
-        """Zero-copy flat view of module parameters.
+        r"""Zero-copy flat view of module parameters.
 
         The returned tensor shares memory with the model's weights.
         Modifying it modifies the model directly. Clone before sending.
@@ -163,12 +163,12 @@ class Model:
 
     @parameters.setter
     def parameters(self, flat: Tensor) -> None:
-        """Zero-copy relink of the module parameters to the given flat tensor.
+        r"""Zero-copy relink of the module parameters to the given flat tensor.
 
         Relinking the module parameters does not affect their gradients.
 
         Args:
-            flat: Tensor of shape ``(d,)`` containing the module parameters,
+            flat: Tensor of shape :math:`(d,)` containing the module parameters,
                 in the same flattening order as :attr:`parameters`.
         """
         self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
@@ -213,7 +213,7 @@ class Model:
 
     @property
     def gradients(self) -> Tensor:
-        """Zero-copy flat view of module gradients.
+        r"""Zero-copy flat view of module gradients.
 
         The returned tensor shares memory with each parameter's ``.grad``.
         If a parameter has no gradient yet, a zero-filled gradient is assigned.
@@ -259,14 +259,14 @@ class Model:
 
     @gradients.setter
     def gradients(self, flat: Tensor) -> None:
-        """Zero-copy relink of the module parameters' gradients.
+        r"""Zero-copy relink of the module parameters' gradients.
 
         Relinks every ``.grad`` to share the ``flat`` buffer, so that accessing
         :attr:`gradients` afterwards returns a view of that same memory.
         Relinking the gradients does not affect the module parameters.
 
         Args:
-            flat: Tensor of shape ``(d,)`` containing the gradients to set,
+            flat: Tensor of shape :math:`(d,)` containing the gradients to set,
                 in the same flattening order as :attr:`gradients`.
         """
         self._flat_gradients = self._relink(tuple(self._gradients(empty=True)), flat)

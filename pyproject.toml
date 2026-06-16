@@ -42,8 +42,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit>=4.0.0",
-    "ruff>=0.9.0",
-    "ty>=0.0.34",
+    "ruff>=0.15.16",
+    "ty>=0.0.44",
     "sphinx>=8.1.3",
     "sphinx-copybutton>=0.5.2",
     "sphinx-favicon>=1.0.1",
@@ -109,10 +109,6 @@ ignore = [
     "E501",  # line too long (handled by formatter)
     "UP031", # percent format (legacy codebase, too noisy to fix now)
 ]
-
-# Re-exports in __init__.py are intentional — don't flag them as unused
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

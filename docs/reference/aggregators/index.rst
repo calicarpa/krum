@@ -18,3 +18,5 @@ Available rules:
    classes/krum
    classes/multikrum
    classes/bulyan
+   classes/brute
+   classes/geomed

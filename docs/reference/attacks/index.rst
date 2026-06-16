@@ -14,3 +14,6 @@ Available Attacks:
 
    classes/sign_flip
    classes/alie
+   classes/gaussian
+   classes/full_gradient_negation
+   classes/small_perturbation

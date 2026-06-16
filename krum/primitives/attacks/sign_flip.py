@@ -1,4 +1,4 @@
-"""Sign-flip gradient attack.
+r"""Sign-flip gradient attack.
 
 Reference:
     Cong Xie, Sanmi Koyejo, and Indranil Gupta.
@@ -39,9 +39,9 @@ class SignFlipAttack(Attack):
         """Generate Byzantine gradients.
 
         Args:
-            honest_gradients: Sequence of ``h`` gradient vectors, one per honest
-                worker, each of shape ``(d,)``.
-            out: Optional pre-allocated tensor of shape ``(f, d)`` to write the
+            honest_gradients: Sequence of :math:`h` gradient vectors, one per honest
+                worker, each of shape :math:`(d,)`.
+            out: Optional pre-allocated tensor of shape :math:`(f, d)` to write the
                 result into and return.
             f: Number of Byzantine gradients to generate.
             scale: Non-negative scale applied to the sign-flipped honest mean.
@@ -52,7 +52,7 @@ class SignFlipAttack(Attack):
             mean is repeated ``f`` times.
 
         Raises:
-            ValueError: If ``scale`` or ``f`` is negative, or there are no honest
+            ValueError: If ``scale`` or :math:`f` is negative, or there are no honest
                 gradients to average.
             TypeError: If the honest gradients do not use a floating-point dtype.
         """

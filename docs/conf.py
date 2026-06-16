@@ -17,6 +17,7 @@ for _mod, _pkg in (
     ("primitives", "krum.primitives"),
     ("aggregators", "krum.primitives.aggregators"),
     ("attacks", "krum.primitives.attacks"),
+    ("simulations", "krum.simulations"),
 ):
     sys.modules[_mod] = importlib.import_module(_pkg)
 
@@ -116,8 +117,8 @@ intersphinx_mapping = {
 }
 
 
-# Use MathJax to render math in HTML
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+# Use MathJax v3 to render math in HTML
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
@@ -153,6 +154,10 @@ html_theme_options = {
     "nav_links_align": "center",
     "nav_links": [
         {
+            "title": "Quickstart",
+            "url": "quickstart",
+        },
+        {
             "title": "Reference",
             "children": [
                 {
@@ -163,12 +168,12 @@ html_theme_options = {
                 {
                     "title": "Aggregators",
                     "url": "reference/aggregators/index",
-                    "summary": "What are aggregators",
+                    "summary": "Byzantine-resilient gradient aggregation rules",
                 },
                 {
                     "title": "Attacks",
                     "url": "reference/attacks/index",
-                    "summary": "What are attacks",
+                    "summary": "Byzantine attack strategies for evaluation",
                 },
             ],
         },
@@ -195,9 +200,9 @@ latex_elements = {
     """
 }
 
-mathjax_config = {
-    "TeX": {
-        "Macros": {
+mathjax3_config = {
+    "tex": {
+        "macros": {
             "argmin": r"\mathop{\mathrm{arg\,min}}",
         }
     }
