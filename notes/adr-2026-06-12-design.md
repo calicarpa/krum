@@ -285,8 +285,14 @@ for n in range(10, 100):
     for f in range(2, 5):
         for agg in [Average, Krum, Bulyan]:
             for atk in [Alie, SignFlip]:
-                orchestrator.run(my_experiment, n=n, f=f,
-                                 aggregator=agg, attack=atk, n_steps=1000)
+                orchestrator.run(
+                    my_experiment, 
+                    n=n, 
+                    f=f,
+                    aggregator=agg, 
+                    attack=atk, 
+                    n_steps=1000
+                )
 
 loss_data = orchestrator.get("loss")
 slice = loss_data[loss_data['n'] == 13]
