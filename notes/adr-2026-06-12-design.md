@@ -7,6 +7,7 @@ Tout le reste est interne au package.
 
 ```python
 orchestrator = Orchestrator("my_orchestrator")
+
 # Ces appels sont valides uniquement à l'intérieur d'un orchestrator.run()
 loss = Metric("loss")      # trouve l'orchestrateur actif tout seul
 loss.push(step, valeur)    # taggé avec les paramètres du run en cours
@@ -73,6 +74,16 @@ Exemple :
 | 0 | 2.34 | 10 | 3 | Krum | Alie |
 | 1 | 2.10 | 10 | 3 | Krum | Alie |
 | 0 | 3.00 | 11 | 2 | Average | SignFlip |
+
+### Pourquoi pas `with` ?
+
+Un `with orchestrator.context(n=10, ...)` pourrait sembler plus idiomatique, mais `orchestrator.run(fn, **params)` est préféré pour deux raisons :
+
+1. **Encapsulation de l'exécution** : `run()` contrôle *quand* et *où* l'expérience s'exécute. Le jour où une queue multi-thread est ajoutée, l'API utilisateur ne change pas. Avec `with`, la ContextVar est posée dans le thread appelant — incompatible avec un worker thread qui doit voir son propre contexte.
+
+2. **L'utilisateur n'a pas à gérer le scope** : avec `with`, l'utilisateur doit appeler son expérience dans le bloc, ce qui est plus verbeux et expose le risque d'oublier l'appel ou de pousser des métriques hors-bloc.
+
+Le `with` serait pertinent si l'utilisateur avait besoin d'interagir directement avec le contexte (ex: lire des params, modifier le run en cours). Ici, le contexte est un détail interne — `run()` le masque correctement.
 
 ### Questions laissées ouvertes
 
@@ -230,7 +241,7 @@ class Orchestrator:
         """Exécute une expérience dans un contexte."""
         self._contexts.enter(**params)
         try:
-            experiment(**params)
+            experiment(**params) # In a future work, the experiment will be pushed to the run_queue which is read by the devices
         finally:
             self._contexts.exit()
 
@@ -243,60 +254,85 @@ class Orchestrator:
 
 ## Flux complet
 
-```
-orchestrator.run(my_experiment, n=10, f=3, aggregator=Krum)
-  1. ContextManager.enter(n=10, f=3, aggregator=Krum)
-     → crée RunContext(params={n:10, f:3, aggregator:Krum})
-     → _run_context.set(ctx)
-  2. my_experiment(n=10, f=3, aggregator=Krum, n_steps=1000)
-      a. loss = Metric("loss", float)
-         → _current_orchestrator → MetricManager.create("loss", float)
-         → stocke (name="loss", dtype=float)
-      b. loss.push(step=0, value=2.34)
-         → vérifie que 2.34 est un float
-         → _run_context → RunContext.params
-         → stocke (step=0, value=2.34, n=10, f=3, aggregator=Krum)
-  3. ContextManager.exit()
-     → _run_context.reset(token) et dépile le contexte parent s'il existe
+```python
+orchestrator = Orchestrator("byzantine_study")
+# → instancie ContextManager (pile vide) + MetricManager (registre vide)
+# → _current_orchestrator n'est PAS encore posé (pas de run actif)
 
-orchestrator.get("loss")
-  → MetricManager.get("loss")
-  → assemble toutes les lignes taggées "loss"
-  → pd.DataFrame avec colonnes [step, value, n, f, aggregator, attack]
+
+orchestrator.run(my_experiment, n=10, f=3, aggregator=Krum, attack=Alie, n_steps=100)
+```
+
+Détail interne de `orchestrator.run()` :
+
+```
+1a. ContextManager.enter(n=10, f=3, aggregator=Krum, attack=Alie, n_steps=100)
+    → crée RunContext(params={"n": 10, "f": 3, "aggregator": Krum, ...})
+    → _run_context.set(ctx)          # ContextVar : tout code dans ce thread
+                                     # voit maintenant ce contexte via Metric.push()
+    → empile le token pour restauration future
+
+1b. _current_orchestrator.set(self)  # l'orchestrateur se rend visible
+                                     # pour les Metric() créées dans l'expérience
+
+1c. my_experiment(n=10, f=3, aggregator=Krum, attack=Alie, n_steps=100)
+    est appelée avec les paramètres déballés.
+
+    ┌─ À l'intérieur de my_experiment : ─────────────────────────────────────┐
+    │                                                                         │
+    │  loss = Metric("loss", float)                                           │
+    │    → lit _current_orchestrator → trouve orchestrator                    │
+    │    → orchestrator._metrics.create("loss", float)                        │
+    │      • valide le nom (pas d'espace)                                     │
+    │      • si "loss" existe déjà avec un autre dtype → ValueError           │
+    │      • sinon enregistre ("loss", float) dans le registre                │
+    │                                                                         │
+    │  for step in range(n_steps):                                            │
+    │      loss.push(step, sim.loss, skip_if_exists=True)                     │
+    │        → vérifie isinstance(sim.loss, float) sinon TypeError            │
+    │        → lit _run_context.get() → RunContext.params                     │
+    │        → calcule run_key = tuple(sorted(params.items()))                │
+    │        → si skip_if_exists et (run_key, step) déjà vu → no-op           │
+    │        → sinon stocke la ligne :                                        │
+    │            {step: 0, value: 2.34, n: 10, f: 3,                          │
+    │             aggregator: Krum, attack: Alie}                             │
+    │                                                                         │
+    └─────────────────────────────────────────────────────────────────────────┘
+
+1d. ContextManager.exit()  (dans le bloc finally)
+    → _run_context.reset(token)   # restaure le contexte parent (ou None)
+    → _current_orchestrator.reset(token)  # l'orchestrateur n'est plus actif
+    → dépile les structures internes
+```
+
+```python
+for n in [10, 20]:
+    for f in [2, 3]:
+        for agg in [Krum, Bulyan, Average]:
+            for atk in [Alie, SignFlip]:
+                orchestrator.run(my_experiment, n=n, f=f, aggregator=agg,
+                                 attack=atk, n_steps=100)
+# Chaque itération répète le cycle 1a→1d.
+# Le MetricManager accumule les lignes de tous les runs dans le même registre.
+# La métrique "loss" n'est créée qu'une fois (premier run), réutilisée ensuite.
+
+
+loss_df = orchestrator.get("loss")
+```
+
+```
+3a. MetricManager.get("loss")
+    → lit toutes les lignes stockées pour "loss"
+    → assemble un pd.DataFrame :
+        colonnes = [step, value] + clés des params dans l'ordre d'insertion
+                   = [step, value, n, f, aggregator, attack]
+        types    = step:int, value:float (dtype déclaré), params:object
+    → retourne le DataFrame (copie, pas de vue mutable sur le store interne)
 ```
 
 ## Exemple utilisateur complet
 
-```python
-from krum.orchestration import Orchestrator, Metric
-from krum.simulations import MySimulation
-
-def my_experiment(n, f, aggregator, attack, n_steps):
-    sim = MySimulation(n=n, f=f, aggregator=aggregator, attack=attack)
-    loss = Metric("loss", float)  # dtype = float
-    for step in range(n_steps):
-        sim.step()
-        # skip_if_exists permet d'éviter d'insérer deux fois le même step
-        loss.push(step, sim.loss, skip_if_exists=True)
-
-orchestrator = Orchestrator("my_orchestrator")
-
-for n in range(10, 100):
-    for f in range(2, 5):
-        for agg in [Average, Krum, Bulyan]:
-            for atk in [Alie, SignFlip]:
-                orchestrator.run(
-                    my_experiment, 
-                    n=n, 
-                    f=f,
-                    aggregator=agg, 
-                    attack=atk, 
-                    n_steps=1000
-                )
-
-loss_data = orchestrator.get("loss")
-slice = loss_data[loss_data['n'] == 13]
-```
+cf [orchestration_example.py/](orchestration_example.py)
 
 ---
 
@@ -307,6 +343,6 @@ slice = loss_data[loss_data['n'] == 13]
 - `Metric("loss", float)` puis `Metric("loss", int)` lève une erreur de `dtype` mismatch.
 - Pousser une valeur de type incompatible avec le `dtype` lève une `TypeError`.
 - `orchestrator.get("loss")` contient exactement une ligne par `push` réussi.
-- Les colonnes du DataFrame suivent l’ordre d’insertion des paramètres.
+- Les colonnes du DataFrame suivent l'ordre d'insertion des paramètres.
 - `skip_if_exists=True` évite les doublons pour un même `(run_key, step)`.
 - `ContextManager.exit()` restaure correctement le contexte parent en cas de runs imbriqués.
