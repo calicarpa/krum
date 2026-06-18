@@ -9,9 +9,9 @@ Tout le reste est interne au package.
 orchestrator = Orchestrator("my_orchestrator")
 
 # Ces appels sont valides uniquement à l'intérieur d'un orchestrator.run()
-loss = Metric("loss")      # trouve l'orchestrateur actif tout seul
-loss.push(step, valeur)    # taggé avec les paramètres du run en cours
-df = orchestrator.get("loss")  # → pd.DataFrame
+loss = Metric("loss")           # trouve l'orchestrateur actif tout seul
+loss.push(step, valeur)         # taggé avec les paramètres du run en cours
+df = orchestrator.get("loss")   # → pd.DataFrame
 ```
 
 ## Choix de `pandas.DataFrame`
@@ -265,15 +265,13 @@ orchestrator.run(my_experiment, n=10, f=3, aggregator=Krum, attack=Alie, n_steps
 
 Détail interne de `orchestrator.run()` :
 
-```
+```txt
 1a. ContextManager.enter(n=10, f=3, aggregator=Krum, attack=Alie, n_steps=100)
     → crée RunContext(params={"n": 10, "f": 3, "aggregator": Krum, ...})
-    → _run_context.set(ctx)          # ContextVar : tout code dans ce thread
-                                     # voit maintenant ce contexte via Metric.push()
+    → _run_context.set(ctx)          # ContextVar : tout code dans ce thread voit maintenant ce contexte via Metric.push()
     → empile le token pour restauration future
 
-1b. _current_orchestrator.set(self)  # l'orchestrateur se rend visible
-                                     # pour les Metric() créées dans l'expérience
+1b. _current_orchestrator.set(self)  # l'orchestrateur se rend visible pour les Metric() créées dans l'expérience
 
 1c. my_experiment(n=10, f=3, aggregator=Krum, attack=Alie, n_steps=100)
     est appelée avec les paramètres déballés.
@@ -300,7 +298,7 @@ Détail interne de `orchestrator.run()` :
     └─────────────────────────────────────────────────────────────────────────┘
 
 1d. ContextManager.exit()  (dans le bloc finally)
-    → _run_context.reset(token)   # restaure le contexte parent (ou None)
+    → _run_context.reset(token)           # restaure le contexte parent (ou None)
     → _current_orchestrator.reset(token)  # l'orchestrateur n'est plus actif
     → dépile les structures internes
 ```
