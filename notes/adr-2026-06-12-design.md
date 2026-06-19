@@ -144,6 +144,8 @@ class ContextManager:
             self._contexts.pop()
 ```
 
+`ContextVar` est une variable de contexte isolée par tâche asynchrone ; `Token` est le ticket qui permet de la restaurer à sa valeur antérieure ; `ContextManager` encapsule cette mécanique de pile pour que `enter()` pousse un `RunContext` et `exit()` le dépile proprement, même en cas d'imbrication.
+
 ---
 
 ## `metric.py`
