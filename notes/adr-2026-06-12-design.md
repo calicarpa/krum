@@ -310,8 +310,14 @@ for n in [10, 20]:
     for f in [2, 3]:
         for agg in [Krum, Bulyan, Average]:
             for atk in [Alie, SignFlip]:
-                orchestrator.run(my_experiment, n=n, f=f, aggregator=agg,
-                                 attack=atk, n_steps=100)
+                orchestrator.run(
+                    my_experiment,
+                    n=n,
+                    f=f,
+                    aggregator=agg,
+                    attack=atk,
+                    n_steps=100
+                )
 # Chaque itération répète le cycle 1a→1d.
 # Le MetricManager accumule les lignes de tous les runs dans le même registre.
 # La métrique "loss" n'est créée qu'une fois (premier run), réutilisée ensuite.

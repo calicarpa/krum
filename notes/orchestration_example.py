@@ -1,9 +1,9 @@
 """Exemple complet d'utilisation de krum.orchestration."""
 
+from krum.orchestration import Metric, Orchestrator
 from krum.simulation import KrumSimulation
 from torch import float
 
-from krum.orchestration import Metric, Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.bulyan import Bulyan
 from krum.primitives.aggregators.krum import Krum
