@@ -35,10 +35,13 @@ class MetricDataFrame:
                 type is enforced by :class:`~krum.orchestration.metric.Metric`).
         """
         self._dtype = dtype
-        # run identity (sorted param items) -> that run's parameters, once.
-        self._params: dict[tuple[Any, ...], dict[str, Any]] = {}
-        # run identity -> {step: value}.
+        # run identity (sorted param items) -> {step: value}. The parameters are
+        # not stored separately: they are recoverable from each key via
+        # ``dict(run_key)``.
         self._samples: dict[tuple[Any, ...], dict[int, Any]] = {}
+        # parameter names in the order first seen, used for column ordering only
+        # (run keys are sorted by name, so they cannot preserve the user's order).
+        self._param_order: list[str] = []
 
     @property
     def dtype(self) -> type:
@@ -55,17 +58,18 @@ class MetricDataFrame:
         """Store one sample for the run identified by ``params``.
 
         Args:
-            params: The run's parameter values. Stored once per distinct run.
+            params: The run's parameter values. Encoded into the run's key, so
+                they are not duplicated across the run's samples.
             step: The step the value belongs to.
             value: The recorded value.
             skip_if_exists: If ``True``, ignore the sample when this run already
                 has a value for ``step``.
         """
+        for name in params:
+            if name not in self._param_order:
+                self._param_order.append(name)
         run_key = tuple(sorted(params.items()))
-        if run_key not in self._params:
-            self._params[run_key] = dict(params)
-            self._samples[run_key] = {}
-        steps = self._samples[run_key]
+        steps = self._samples.setdefault(run_key, {})
         if skip_if_exists and step in steps:
             return
         steps[step] = value
@@ -78,30 +82,20 @@ class MetricDataFrame:
             parameters (a :class:`pandas.MultiIndex` when there is more than one
             parameter). Empty when nothing has been recorded.
         """
-        param_names = self._param_names()
         rows: list[dict[str, Any]] = []
         index: list[tuple[Any, ...]] = []
         for run_key, steps in self._samples.items():
-            params = self._params[run_key]
+            params = dict(run_key)
             for step in sorted(steps):
                 rows.append({"step": step, "value": steps[step]})
-                index.append(tuple(params[name] for name in param_names))
+                index.append(tuple(params[name] for name in self._param_order))
         if not rows:
             return pd.DataFrame(columns=["step", "value"])
-        if not param_names:
+        if not self._param_order:
             return pd.DataFrame(rows)
         return pd.DataFrame(
-            rows, index=pd.MultiIndex.from_tuples(index, names=param_names)
+            rows, index=pd.MultiIndex.from_tuples(index, names=self._param_order)
         )
-
-    def _param_names(self) -> list[str]:
-        """Return parameter names in the order first seen across runs."""
-        names: list[str] = []
-        for params in self._params.values():
-            for name in params:
-                if name not in names:
-                    names.append(name)
-        return names
 
     def __call__(self, **filters: Any) -> pd.DataFrame:
         """Return the samples whose run parameters match ``filters``.
