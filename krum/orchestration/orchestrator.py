@@ -1,0 +1,170 @@
+"""The :class:`Orchestrator`: drives runs and owns the collected metric data.
+
+The orchestrator is the entry point of an experiment campaign. The user creates
+one, then calls :meth:`Orchestrator.run` once per parameter point -- writing the
+parameter sweep as ordinary Python loops::
+
+    orch = Orchestrator("byzantine_study")
+    for n in [10, 20]:
+        for f in [2, 3]:
+            for aggregator in [Average, Krum, Bulyan]:
+                for attack in [ALIEAttack, SignFlipAttack, None]:
+                    orch.run(
+                        my_experiment,
+                        n=n, f=f, aggregator=aggregator, attack=attack,
+                        n_steps=100,
+                    )
+    loss = orch.get("loss")   # -> MetricDataFrame
+
+The orchestrator registers channels and owns their data, but the data itself
+lives in a :class:`~krum.orchestration.dataframe.MetricDataFrame` per channel;
+the orchestrator does not build pandas frames itself. Data is held in memory and
+never persisted; create a new orchestrator to start fresh. Execution is
+**fail-fast**: if an experiment raises, the exception propagates and the
+campaign stops.
+
+This is the synchronous draft. The near-term plan (multi-process, one process
+per run, plus PRNG seed handling) will change *how* :meth:`run` dispatches work,
+but not the :class:`~krum.orchestration.metric.Metric` / :meth:`get` contract.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from ._context import begin_run, end_run
+from .dataframe import MetricDataFrame
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+
+# Column names reserved for the sample itself; a run parameter may not reuse
+# them, otherwise it would collide with a metric column in the result frame.
+_RESERVED_COLUMNS = ("step", "value")
+
+
+class Orchestrator:
+    """Runs experiments and owns the metric data they produce.
+
+    A channel is identified by its name, unique within the orchestrator. Each
+    channel's samples are stored in a
+    :class:`~krum.orchestration.dataframe.MetricDataFrame`, returned by
+    :meth:`get`.
+    """
+
+    def __init__(self, name: str) -> None:
+        """Create an empty campaign.
+
+        Args:
+            name: A unique identifier for this orchestrator. Used to tell
+                orchestrators apart when debugging; not used as a metric prefix
+                or namespace in this version.
+        """
+        self.name = name
+        # Channel name -> its storage.
+        self._frames: dict[str, MetricDataFrame] = {}
+
+    # -- public API -------------------------------------------------------
+
+    def run(self, experiment: Callable[..., Any], **params: Any) -> None:
+        """Run ``experiment`` once at a single parameter point.
+
+        The orchestrator publishes ``params`` as the current run context,
+        invokes ``experiment(**params)``, and clears the context afterwards.
+        Any :class:`~krum.orchestration.metric.Metric` pushed during the call is
+        tagged with ``params``.
+
+        Args:
+            experiment: The experiment function, called as
+                ``experiment(**params)``.
+            **params: The parameter values of this run. Names must not include
+                the reserved column names ``step`` or ``value``.
+
+        Raises:
+            ValueError: If a parameter name collides with a reserved column.
+            Exception: Anything raised by ``experiment`` propagates unchanged
+                (fail-fast); the run context is still cleared.
+        """
+        conflicts = sorted(set(params) & set(_RESERVED_COLUMNS))
+        if conflicts:
+            raise ValueError(
+                f"Parameter name(s) {conflicts} are reserved for metric columns."
+            )
+        begin_run(self, params)
+        try:
+            # Future work: dispatch to a worker process (one per run) instead
+            # of calling inline; the orchestrator will also handle the PRNG seed.
+            experiment(**params)
+        finally:
+            end_run()
+
+    def get(self, name: str) -> MetricDataFrame:
+        """Return the storage for channel ``name``.
+
+        Args:
+            name: The channel name.
+
+        Returns:
+            The channel's :class:`~krum.orchestration.dataframe.MetricDataFrame`,
+            which exposes the samples as a pandas frame and can be sliced by
+            parameter values.
+
+        Raises:
+            KeyError: If no channel called ``name`` was ever declared.
+        """
+        if name not in self._frames:
+            raise KeyError(f"No metric named {name!r} was declared.")
+        return self._frames[name]
+
+    def metrics(self) -> list[str]:
+        """Return the names of all declared channels."""
+        return list(self._frames)
+
+    # -- internals used by Metric -----------------------------------------
+
+    def register_metric(self, name: str, dtype: type) -> None:
+        """Declare a channel, enforcing per-orchestrator name/dtype uniqueness.
+
+        Idempotent: re-declaring an existing name with the same ``dtype`` is a
+        no-op (this happens once per run of a sweep, since the metric is created
+        inside the experiment function).
+
+        Args:
+            name: Channel name.
+            dtype: Declared value type.
+
+        Raises:
+            ValueError: If ``name`` was already declared with a different
+                ``dtype``.
+        """
+        existing = self._frames.get(name)
+        if existing is not None:
+            if existing.dtype != dtype:
+                raise ValueError(
+                    f"Metric {name!r} already declared with dtype "
+                    f"{existing.dtype.__name__}; cannot redeclare with "
+                    f"{dtype.__name__}."
+                )
+            return
+        self._frames[name] = MetricDataFrame(dtype)
+
+    def record(
+        self,
+        name: str,
+        params: dict[str, Any],
+        step: int,
+        value: Any,
+        skip_if_exists: bool,
+    ) -> None:
+        """Store one sample of channel ``name`` for the given run parameters.
+
+        Args:
+            name: Channel name (already registered).
+            params: The current run's parameter values.
+            step: The step the value belongs to.
+            value: The recorded value.
+            skip_if_exists: If ``True`` and a sample for the same run and
+                ``step`` already exists, do nothing.
+        """
+        self._frames[name].record(params, step, value, skip_if_exists)
