@@ -83,8 +83,9 @@ class Orchestrator:
 
         Raises:
             ValueError: If a parameter name collides with a reserved column.
-            Exception: Anything raised by ``experiment`` propagates unchanged
-                (fail-fast); the run context is still cleared.
+            RuntimeError: If ``experiment`` raises. The error names the failing
+                run's parameters and chains the original exception (fail-fast:
+                the sweep stops). The run context is cleared either way.
         """
         conflicts = sorted(set(params) & set(_RESERVED_COLUMNS))
         if conflicts:
@@ -96,6 +97,10 @@ class Orchestrator:
             # Future work: dispatch to a worker process (one per run) instead
             # of calling inline; the orchestrator will also handle the PRNG seed.
             experiment(**params)
+        except Exception as error:
+            # Fail-fast: re-raise so the sweep stops, but name the failing run
+            # so it can be diagnosed. The original exception is chained.
+            raise RuntimeError(f"Run failed for params {params}.") from error
         finally:
             end_run()
 
