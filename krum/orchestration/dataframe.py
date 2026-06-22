@@ -80,7 +80,8 @@ class MetricDataFrame:
         Returns:
             A frame with columns ``step`` and ``value``, indexed by the run
             parameters (a :class:`pandas.MultiIndex` when there is more than one
-            parameter). Empty when nothing has been recorded.
+            parameter). A run missing a parameter that other runs have shows
+            ``NaN`` for it. Empty when nothing has been recorded.
         """
         rows: list[dict[str, Any]] = []
         index: list[tuple[Any, ...]] = []
@@ -88,7 +89,9 @@ class MetricDataFrame:
             params = dict(run_key)
             for step in sorted(steps):
                 rows.append({"step": step, "value": steps[step]})
-                index.append(tuple(params[name] for name in self._param_order))
+                # ``get`` (not ``[]``) so a run missing a parameter another run
+                # has yields ``None`` (NaN in the frame) instead of a KeyError.
+                index.append(tuple(params.get(name) for name in self._param_order))
         if not rows:
             return pd.DataFrame(columns=["step", "value"])
         if not self._param_order:

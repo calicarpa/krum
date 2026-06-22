@@ -30,6 +30,7 @@ but not the :class:`~krum.orchestration.metric.Metric` / :meth:`get` contract.
 
 from __future__ import annotations
 
+import inspect
 from typing import TYPE_CHECKING, Any
 
 from ._context import begin_run, end_run
@@ -70,16 +71,21 @@ class Orchestrator:
     def run(self, experiment: Callable[..., Any], **params: Any) -> None:
         """Run ``experiment`` once at a single parameter point.
 
-        The orchestrator publishes ``params`` as the current run context,
-        invokes ``experiment(**params)``, and clears the context afterwards.
-        Any :class:`~krum.orchestration.metric.Metric` pushed during the call is
-        tagged with ``params``.
+        The parameters are first enriched with the experiment's default
+        arguments (see :meth:`_resolve_params`), so two runs of the same
+        experiment are tagged with the same parameter set whether or not a
+        defaulted argument was passed explicitly. The orchestrator publishes the
+        resolved parameters as the current run context, invokes
+        ``experiment(**params)``, and clears the context afterwards. Any
+        :class:`~krum.orchestration.metric.Metric` pushed during the call is
+        tagged with those parameters.
 
         Args:
             experiment: The experiment function, called as
                 ``experiment(**params)``.
-            **params: The parameter values of this run. Names must not include
-                the reserved column names ``step`` or ``value``.
+            **params: The parameter values of this run. Names (including the
+                experiment's defaulted arguments) must not include the reserved
+                column names ``step`` or ``value``.
 
         Raises:
             ValueError: If a parameter name collides with a reserved column.
@@ -87,12 +93,13 @@ class Orchestrator:
                 run's parameters and chains the original exception (fail-fast:
                 the sweep stops). The run context is cleared either way.
         """
-        conflicts = sorted(set(params) & set(_RESERVED_COLUMNS))
+        resolved = self._resolve_params(experiment, params)
+        conflicts = sorted(set(resolved) & set(_RESERVED_COLUMNS))
         if conflicts:
             raise ValueError(
                 f"Parameter name(s) {conflicts} are reserved for metric columns."
             )
-        begin_run(self, params)
+        begin_run(self, resolved)
         try:
             # Future work: dispatch to a worker process (one per run) instead
             # of calling inline; the orchestrator will also handle the PRNG seed.
@@ -100,9 +107,36 @@ class Orchestrator:
         except Exception as error:
             # Fail-fast: re-raise so the sweep stops, but name the failing run
             # so it can be diagnosed. The original exception is chained.
-            raise RuntimeError(f"Run failed for params {params}.") from error
+            raise RuntimeError(f"Run failed for params {resolved}.") from error
         finally:
             end_run()
+
+    @staticmethod
+    def _resolve_params(
+        experiment: Callable[..., Any], params: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Enrich ``params`` with ``experiment``'s default arguments.
+
+        Binding the call against the experiment's signature and applying its
+        defaults means a defaulted argument is recorded the same way whether the
+        caller passed it explicitly or relied on the default -- so runs that
+        differ only in that respect share one parameter set (and one identity).
+
+        Args:
+            experiment: The experiment function whose signature is inspected.
+            params: The parameter values passed to :meth:`run`.
+
+        Returns:
+            ``params`` plus any defaulted arguments. Returned unchanged if the
+            signature cannot be inspected or bound (e.g. a built-in, or a
+            mismatched call -- in which case the call itself surfaces the error).
+        """
+        try:
+            bound = inspect.signature(experiment).bind(**params)
+        except (TypeError, ValueError):
+            return params
+        bound.apply_defaults()
+        return dict(bound.arguments)
 
     def get(self, name: str) -> MetricDataFrame:
         """Return the storage for channel ``name``.
