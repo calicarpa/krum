@@ -49,6 +49,31 @@ class OrchestratorTest(unittest.TestCase):
             orchestrator.run(experiment, n=n, n_steps=3)
         self.assertEqual(len(orchestrator.get("loss")), 6)
 
+    def test_same_experiment_across_runs_is_allowed(self) -> None:
+        """Running the same experiment many times is fine."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(n: int, n_steps: int) -> None:
+            Metric("loss", float).push(0, float(n))
+
+        orchestrator.run(experiment, n=10, n_steps=1)
+        orchestrator.run(experiment, n=20, n_steps=1)  # must not raise
+        self.assertEqual(len(orchestrator.get("loss")), 2)
+
+    def test_different_experiment_raises(self) -> None:
+        """Running a different experiment on the same orchestrator raises ValueError."""
+        orchestrator = Orchestrator("t")
+
+        def experiment_a(n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        def experiment_b(n_steps: int) -> None:
+            Metric("loss", float).push(0, 2.0)
+
+        orchestrator.run(experiment_a, n_steps=1)
+        with self.assertRaises(ValueError):
+            orchestrator.run(experiment_b, n_steps=1)
+
     def test_explicit_reserved_param_name_raises(self) -> None:
         """A parameter named like a reserved column raises ValueError."""
 
