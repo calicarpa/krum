@@ -48,6 +48,12 @@ _RESERVED_COLUMNS = ("step", "value")
 class Orchestrator:
     """Runs experiments and owns the metric data they produce.
 
+    An orchestrator drives a single experiment over a parameter sweep: the
+    experiment is bound on the first :meth:`run` and every later call must use
+    the same one. This keeps the metric data unambiguous, since a run is
+    identified only by its parameters; use a separate orchestrator per
+    experiment.
+
     A channel is identified by its name, unique within the orchestrator. Each
     channel's samples are stored in a
     :class:`~krum.orchestration.dataframe.MetricDataFrame`, returned by
@@ -63,6 +69,8 @@ class Orchestrator:
                 or namespace in this version.
         """
         self.name = name
+        # The single experiment this orchestrator runs, bound on the first run.
+        self._experiment: Callable[..., Any] | None = None
         # Channel name -> its storage.
         self._frames: dict[str, MetricDataFrame] = {}
 
@@ -88,11 +96,23 @@ class Orchestrator:
                 column names ``step`` or ``value``.
 
         Raises:
-            ValueError: If a parameter name collides with a reserved column.
+            ValueError: If ``experiment`` differs from the one this orchestrator
+                is already bound to, or if a parameter name collides with a
+                reserved column.
             RuntimeError: If ``experiment`` raises. The error names the failing
                 run's parameters and chains the original exception (fail-fast:
                 the sweep stops). The run context is cleared either way.
         """
+        if self._experiment is None:
+            self._experiment = experiment
+        elif experiment is not self._experiment:
+            raise ValueError(
+                f"Orchestrator {self.name!r} is bound to experiment "
+                f"{getattr(self._experiment, '__name__', self._experiment)!r}; "
+                f"it cannot also run "
+                f"{getattr(experiment, '__name__', experiment)!r}. Use a "
+                f"separate orchestrator per experiment."
+            )
         resolved = self._resolve_params(experiment, params)
         conflicts = sorted(set(resolved) & set(_RESERVED_COLUMNS))
         if conflicts:
