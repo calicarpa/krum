@@ -1,14 +1,9 @@
 """Per-metric storage and pandas view of collected samples.
 
 A :class:`MetricDataFrame` holds the samples of a single metric. Run parameters
-are stored **once per run** -- not repeated on every sample -- and the data is
-exposed on demand as a :class:`pandas.DataFrame` indexed by the run parameters,
-with ``step`` and ``value`` columns. Calling the instance with keyword filters
-returns the matching rows::
-
-    loss_data = orchestrator.get("loss")        # -> MetricDataFrame
-    loss_data()                                 # full frame
-    curve = loss_data(n=13, aggregator=Krum)    # sliced frame
+are stored once per run, and :meth:`to_pandas` materialises them as flat columns
+alongside ``step`` and ``value``. Calling the instance with keyword filters
+returns a narrowed :class:`MetricDataFrame`.
 """
 
 from __future__ import annotations
@@ -17,15 +12,15 @@ from typing import Any
 
 import pandas as pd
 
+from ._frozendict import FrozenDict
+
+# Sentinel used by filtering to distinguish an absent parameter from a
+# parameter explicitly set to ``None``.
+_MISSING = object()
+
 
 class MetricDataFrame:
-    """Storage and sliceable pandas view for one metric's samples.
-
-    The samples are kept compactly: each distinct run's parameters are stored
-    once, alongside a ``step -> value`` mapping. The
-    :class:`pandas.DataFrame` is materialised from that representation only when
-    requested, so parameter values are never duplicated in the store.
-    """
+    """Compact storage and filtering for one metric's samples."""
 
     def __init__(self, dtype: type = float) -> None:
         """Create an empty store.
@@ -35,13 +30,9 @@ class MetricDataFrame:
                 type is enforced by :class:`~krum.orchestration.metric.Metric`).
         """
         self._dtype = dtype
-        # run identity (sorted param items) -> {step: value}. The parameters are
-        # not stored separately: they are recoverable from each key via
-        # ``dict(run_key)``.
-        self._samples: dict[tuple[Any, ...], dict[int, Any]] = {}
-        # parameter names in the order first seen, used for column ordering only
-        # (run keys are sorted by name, so they cannot preserve the user's order).
-        self._param_order: list[str] = []
+        # Immutable run parameters identify a run and are stored once; each
+        # value maps to that run's step-to-metric-value samples.
+        self._samples: dict[FrozenDict[str, Any], dict[int, Any]] = {}
 
     @property
     def dtype(self) -> type:
@@ -58,72 +49,68 @@ class MetricDataFrame:
         """Store one sample for the run identified by ``params``.
 
         Args:
-            params: The run's parameter values. Encoded into the run's key, so
-                they are not duplicated across the run's samples.
+            params: The run's parameter values. Stored once as an immutable key.
             step: The step the value belongs to.
             value: The recorded value.
             skip_if_exists: If ``True``, ignore the sample when this run already
                 has a value for ``step``.
         """
-        for name in params:
-            if name not in self._param_order:
-                self._param_order.append(name)
-        run_key = tuple(sorted(params.items()))
+        run_key = FrozenDict(params)
         steps = self._samples.setdefault(run_key, {})
         if skip_if_exists and step in steps:
             return
         steps[step] = value
 
-    def dataframe(self) -> pd.DataFrame:
-        """Materialise all samples as a :class:`pandas.DataFrame`.
+    def to_pandas(self) -> pd.DataFrame:
+        """Materialise all samples as a flat :class:`pandas.DataFrame`.
+
+        Parameter columns are the ordered union of parameter names across runs.
+        A run missing a parameter receives :data:`pandas.NA` in that column. The final
+        columns are always ``step`` and ``value``.
 
         Returns:
-            A frame with columns ``step`` and ``value``, indexed by the run
-            parameters (a :class:`pandas.MultiIndex` when there is more than one
-            parameter). A run missing a parameter that other runs have shows
-            ``NaN`` for it. Empty when nothing has been recorded.
+            A fresh frame with parameter, ``step``, and ``value`` columns.
         """
+        param_names = list(dict.fromkeys(name for params in self._samples for name in params))
+        columns = [*param_names, "step", "value"]
         rows: list[dict[str, Any]] = []
-        index: list[tuple[Any, ...]] = []
-        for run_key, steps in self._samples.items():
-            params = dict(run_key)
+        for params, steps in self._samples.items():
             for step in sorted(steps):
-                rows.append({"step": step, "value": steps[step]})
-                # ``get`` (not ``[]``) so a run missing a parameter another run
-                # has yields ``None`` (NaN in the frame) instead of a KeyError.
-                index.append(tuple(params.get(name) for name in self._param_order))
-        if not rows:
-            return pd.DataFrame(columns=["step", "value"])
-        if not self._param_order:
-            return pd.DataFrame(rows)
-        return pd.DataFrame(
-            rows, index=pd.MultiIndex.from_tuples(index, names=self._param_order)
-        )
+                rows.append({
+                    # ``pd.NA`` marks a parameter absent from this run, unlike
+                    # an explicit parameter whose value is Python ``None``.
+                    **{name: params.get(name, pd.NA) for name in param_names},
+                    "step": step,
+                    "value": steps[step],
+                })
+        frame = pd.DataFrame(rows, columns=columns)
+        for name in param_names:
+            # Object dtype preserves ``pd.NA`` while retaining dtype inference
+            # for the step and value columns.
+            frame[name] = pd.Series([row[name] for row in rows], dtype=object)
+        return frame
 
-    def __call__(self, **filters: Any) -> pd.DataFrame:
-        """Return the samples whose run parameters match ``filters``.
+    def __call__(self, **filters: Any) -> MetricDataFrame:
+        """Return a narrowed store whose run parameters match ``filters``.
 
         Args:
-            **filters: Parameter-name/value pairs all returned rows must match
-                (e.g. ``n=13, aggregator=Krum``). With no filters the full
-                frame is returned.
+            **filters: Parameter-name/value pairs that every selected run must
+                match. Unknown names produce an empty store.
 
         Returns:
-            A :class:`pandas.DataFrame` of the matching rows.
+            An independent :class:`MetricDataFrame` containing matching runs.
         """
-        frame = self.dataframe()
-        if not filters or frame.empty:
-            return frame
-        mask = pd.Series(True, index=frame.index)
-        for name, value in filters.items():
-            mask &= frame.index.get_level_values(name) == value
-        return frame[mask]
+        narrowed = type(self)(self._dtype)
+        for params, steps in self._samples.items():
+            matches = all(params.get(name, _MISSING) == value for name, value in filters.items())
+            if matches:
+                narrowed._samples[params] = dict(steps)
+        return narrowed
 
     def __len__(self) -> int:
+        """Return the number of samples across all stored runs."""
         return sum(len(steps) for steps in self._samples.values())
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({len(self)} samples, "
-            f"dtype={self._dtype.__name__})"
-        )
+        """Return a concise summary of this metric store."""
+        return f"{type(self).__name__}({len(self)} samples, dtype={self._dtype.__name__})"

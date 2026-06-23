@@ -59,7 +59,7 @@ class MetricTest(unittest.TestCase):
         """A pushed value is stored against the metric's channel."""
         orchestrator = self._activate({"n": 5})
         Metric("loss", float).push(0, 2.5)
-        self.assertEqual(orchestrator.get("loss").dataframe().iloc[0]["value"], 2.5)
+        self.assertEqual(orchestrator.get("loss").to_pandas().iloc[0]["value"], 2.5)
 
     def test_redeclare_same_dtype_is_noop(self) -> None:
         """Re-declaring a channel with the same dtype is allowed."""

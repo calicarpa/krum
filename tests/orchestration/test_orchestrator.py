@@ -136,7 +136,7 @@ class OrchestratorTest(unittest.TestCase):
             Metric("loss", float).push(0, float(n))
 
         orchestrator.run(experiment, n=10, n_steps=1)  # lr left to default
-        self.assertIn("lr", orchestrator.get("loss").dataframe().index.names)
+        self.assertIn("lr", orchestrator.get("loss").to_pandas().columns)
 
     def test_explicit_and_defaulted_value_collapse_to_one_run(self) -> None:
         """Passing a default explicitly yields the same run identity as omitting it."""
