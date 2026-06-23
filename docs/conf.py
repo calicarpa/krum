@@ -161,6 +161,11 @@ html_theme_options = {
             "title": "Reference",
             "children": [
                 {
+                    "title": "Orchestration",
+                    "url": "reference/orchestration",
+                    "summary": "Running and managing simulations and metrics",
+                },
+                {
                     "title": "Primitives",
                     "url": "reference/primitives",
                     "summary": "Core abstractions",
