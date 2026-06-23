@@ -1,10 +1,15 @@
 """Tests for the FrozenDict immutable mapping."""
 
+import builtins
 import copy
 import pickle
 import unittest
 
 from krum.orchestration._frozendict import FrozenDict
+
+# The internal-state probes below apply only to the pure-Python backport; on
+# Python 3.15+ FrozenDict aliases the builtin, which exposes no such internals.
+_USES_BUILTIN = FrozenDict is getattr(builtins, "frozendict", None)
 
 
 class FrozenDictTest(unittest.TestCase):
@@ -60,17 +65,21 @@ class FrozenDictTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             frozen["n"] = 2  # type: ignore[index]
         with self.assertRaises(AttributeError):
-            frozen._FrozenDict__data = {"n": 2}  # type: ignore[attr-defined]
-        with self.assertRaises(AttributeError):
             frozen.extra = "value"  # type: ignore[attr-defined]
         self.assertFalse(hasattr(frozen, "_data"))
+        if not _USES_BUILTIN:
+            with self.assertRaises(AttributeError):
+                frozen._FrozenDict__data = {"n": 2}  # type: ignore[attr-defined]
 
     def test_hash_remains_consistent_with_equality(self) -> None:
-        """The stored mapping cannot be changed after its hash is cached."""
+        """The cached hash stays consistent with equality."""
         frozen = FrozenDict(n=1)
         original_hash = hash(frozen)
-        with self.assertRaises(TypeError):
-            frozen._FrozenDict__data["n"] = 2  # type: ignore[attr-defined,index]
+        if not _USES_BUILTIN:
+            # The backport caches its hash behind a read-only proxy, so the
+            # underlying store cannot be mutated after the fact.
+            with self.assertRaises(TypeError):
+                frozen._FrozenDict__data["n"] = 2  # type: ignore[attr-defined,index]
         self.assertEqual(frozen, FrozenDict(n=1))
         self.assertEqual(hash(frozen), original_hash)
         self.assertEqual(hash(frozen), hash(FrozenDict(n=1)))
