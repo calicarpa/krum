@@ -30,6 +30,7 @@ but not the :class:`~krum.orchestration.metric.Metric` / :meth:`get` contract.
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 from typing import TYPE_CHECKING, Any
 
@@ -40,19 +41,17 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# Column names reserved for the sample itself; a run parameter may not reuse
-# them, otherwise it would collide with a metric column in the result frame.
-_RESERVED_COLUMNS = ("step", "value")
+# Column names reserved for sample values and orchestrator-provided metadata; a
+# run parameter may not reuse them because it would collide in the result frame.
+_RESERVED_COLUMNS = ("step", "value", "experiment", "experiment_hash")
 
 
 class Orchestrator:
     """Runs experiments and owns the metric data they produce.
 
-    An orchestrator drives a single experiment over a parameter sweep: the
-    experiment is bound on the first :meth:`run` and every later call must use
-    the same one. This keeps the metric data unambiguous, since a run is
-    identified only by its parameters; use a separate orchestrator per
-    experiment.
+    An orchestrator can drive multiple experiments and parameter sweeps. Every
+    run is tagged with the experiment's module-qualified name and a short hash
+    of its source, keeping otherwise identical parameter sets distinct.
 
     A channel is identified by its name, unique within the orchestrator. Each
     channel's samples are stored in a
@@ -69,8 +68,6 @@ class Orchestrator:
                 or namespace in this version.
         """
         self.name = name
-        # The single experiment this orchestrator runs, bound on the first run.
-        self._experiment: Callable[..., Any] | None = None
         # Channel name -> its storage.
         self._frames: dict[str, MetricDataFrame] = {}
 
@@ -82,44 +79,31 @@ class Orchestrator:
         The parameters are first enriched with the experiment's default
         arguments (see :meth:`_resolve_params`), so two runs of the same
         experiment are tagged with the same parameter set whether or not a
-        defaulted argument was passed explicitly. The orchestrator publishes the
-        resolved parameters as the current run context, invokes
-        ``experiment(**params)``, and clears the context afterwards. Any
-        :class:`~krum.orchestration.metric.Metric` pushed during the call is
-        tagged with those parameters.
+        defaulted argument was passed explicitly. The resolved parameters are
+        then tagged with the experiment's module-qualified name and source hash.
+        The orchestrator publishes that enriched context, invokes
+        ``experiment(**params)``, and clears the context afterwards.
 
         Args:
             experiment: The experiment function, called as
                 ``experiment(**params)``.
             **params: The parameter values of this run. Names (including the
                 experiment's defaulted arguments) must not include the reserved
-                column names ``step`` or ``value``.
+                column names ``step``, ``value``, ``experiment``, or
+                ``experiment_hash``.
 
         Raises:
-            ValueError: If ``experiment`` differs from the one this orchestrator
-                is already bound to, or if a parameter name collides with a
-                reserved column.
+            ValueError: If a parameter name collides with a reserved column.
             RuntimeError: If ``experiment`` raises. The error names the failing
                 run's parameters and chains the original exception (fail-fast:
                 the sweep stops). The run context is cleared either way.
         """
-        if self._experiment is None:
-            self._experiment = experiment
-        elif experiment is not self._experiment:
-            raise ValueError(
-                f"Orchestrator {self.name!r} is bound to experiment "
-                f"{getattr(self._experiment, '__name__', self._experiment)!r}; "
-                f"it cannot also run "
-                f"{getattr(experiment, '__name__', experiment)!r}. Use a "
-                f"separate orchestrator per experiment."
-            )
         resolved = self._resolve_params(experiment, params)
         conflicts = sorted(set(resolved) & set(_RESERVED_COLUMNS))
         if conflicts:
-            raise ValueError(
-                f"Parameter name(s) {conflicts} are reserved for metric columns."
-            )
-        begin_run(self, resolved)
+            raise ValueError(f"Parameter name(s) {conflicts} are reserved for metric columns.")
+        run_params = {**resolved, **self._experiment_params(experiment)}
+        begin_run(self, run_params)
         try:
             # Future work: dispatch to a worker process (one per run) instead
             # of calling inline; the orchestrator will also handle the PRNG seed.
@@ -127,14 +111,39 @@ class Orchestrator:
         except Exception as error:
             # Fail-fast: re-raise so the sweep stops, but name the failing run
             # so it can be diagnosed. The original exception is chained.
-            raise RuntimeError(f"Run failed for params {resolved}.") from error
+            raise RuntimeError(f"Run failed for params {run_params}.") from error
         finally:
             end_run()
 
     @staticmethod
-    def _resolve_params(
-        experiment: Callable[..., Any], params: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _experiment_params(experiment: Callable[..., Any]) -> dict[str, str]:
+        """Return stable identifying metadata for ``experiment``.
+
+        The human-readable identity includes the module because qualified names
+        alone can collide across modules. The short hash tracks the exact source
+        text when inspection is available; otherwise it hashes that identity.
+
+        Args:
+            experiment: The callable being run.
+
+        Returns:
+            The ``experiment`` name and 12-character ``experiment_hash``.
+        """
+        module = getattr(experiment, "__module__", type(experiment).__module__)
+        qualname = getattr(experiment, "__qualname__", type(experiment).__qualname__)
+        experiment_name = f"{module}.{qualname}"
+        try:
+            hash_input = inspect.getsource(experiment)
+        except (OSError, TypeError):
+            hash_input = experiment_name
+        experiment_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:12]
+        return {
+            "experiment": experiment_name,
+            "experiment_hash": experiment_hash,
+        }
+
+    @staticmethod
+    def _resolve_params(experiment: Callable[..., Any], params: dict[str, Any]) -> dict[str, Any]:
         """Enrich ``params`` with ``experiment``'s default arguments.
 
         Binding the call against the experiment's signature and applying its

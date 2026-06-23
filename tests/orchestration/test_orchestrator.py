@@ -1,6 +1,8 @@
 """Tests for the Orchestrator."""
 
+import hashlib
 import unittest
+from unittest.mock import patch
 
 from krum.orchestration.dataframe import MetricDataFrame
 from krum.orchestration.metric import Metric
@@ -49,19 +51,8 @@ class OrchestratorTest(unittest.TestCase):
             orchestrator.run(experiment, n=n, n_steps=3)
         self.assertEqual(len(orchestrator.get("loss")), 6)
 
-    def test_same_experiment_across_runs_is_allowed(self) -> None:
-        """Running the same experiment many times is fine."""
-        orchestrator = Orchestrator("t")
-
-        def experiment(n: int, n_steps: int) -> None:
-            Metric("loss", float).push(0, float(n))
-
-        orchestrator.run(experiment, n=10, n_steps=1)
-        orchestrator.run(experiment, n=20, n_steps=1)  # must not raise
-        self.assertEqual(len(orchestrator.get("loss")), 2)
-
-    def test_different_experiment_raises(self) -> None:
-        """Running a different experiment on the same orchestrator raises ValueError."""
+    def test_multiple_experiments_do_not_collide(self) -> None:
+        """Different experiments keep samples with identical user parameters."""
         orchestrator = Orchestrator("t")
 
         def experiment_a(n_steps: int) -> None:
@@ -71,8 +62,62 @@ class OrchestratorTest(unittest.TestCase):
             Metric("loss", float).push(0, 2.0)
 
         orchestrator.run(experiment_a, n_steps=1)
-        with self.assertRaises(ValueError):
-            orchestrator.run(experiment_b, n_steps=1)
+        orchestrator.run(experiment_b, n_steps=1)
+        frame = orchestrator.get("loss").to_pandas()
+        self.assertEqual(len(frame), 2)
+        self.assertEqual(set(frame["value"]), {1.0, 2.0})
+        self.assertEqual(len(set(frame["experiment"])), 2)
+
+    def test_experiment_metadata_columns_are_recorded(self) -> None:
+        """Each sample records the module-qualified experiment and source hash."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        orchestrator.run(experiment, n_steps=1)
+        row = orchestrator.get("loss").to_pandas().iloc[0]
+        expected_name = f"{experiment.__module__}.{experiment.__qualname__}"
+        self.assertEqual(row["experiment"], expected_name)
+        self.assertEqual(len(row["experiment_hash"]), 12)
+
+    def test_changed_experiment_source_produces_new_hash(self) -> None:
+        """Source changes create a distinct run identity for the same callable."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        sources = ["source version 1", "source version 2"]
+        getsource = "krum.orchestration.orchestrator.inspect.getsource"
+        with patch(getsource, side_effect=sources):
+            orchestrator.run(experiment, n_steps=1)
+            orchestrator.run(experiment, n_steps=1)
+
+        frame = orchestrator.get("loss").to_pandas()
+        self.assertEqual(len(frame), 2)
+        expected_hashes = {hashlib.sha256(source.encode()).hexdigest()[:12] for source in sources}
+        self.assertEqual(set(frame["experiment_hash"]), expected_hashes)
+
+    def test_source_hash_falls_back_to_experiment_identity(self) -> None:
+        """Uninspectable callables hash their module-qualified identity."""
+
+        def experiment(n_steps: int) -> None:
+            pass
+
+        name = f"{experiment.__module__}.{experiment.__qualname__}"
+        getsource = "krum.orchestration.orchestrator.inspect.getsource"
+        with patch(getsource, side_effect=OSError):
+            metadata = Orchestrator._experiment_params(experiment)
+
+        expected_hash = hashlib.sha256(name.encode()).hexdigest()[:12]
+        self.assertEqual(
+            metadata,
+            {
+                "experiment": name,
+                "experiment_hash": expected_hash,
+            },
+        )
 
     def test_explicit_reserved_param_name_raises(self) -> None:
         """A parameter named like a reserved column raises ValueError."""
@@ -91,6 +136,20 @@ class OrchestratorTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             Orchestrator("t").run(experiment, n_steps=1)
+
+    def test_experiment_metadata_param_names_are_reserved(self) -> None:
+        """User parameters cannot overwrite orchestrator experiment metadata."""
+
+        def explicit(experiment_hash: str, n_steps: int) -> None:
+            pass
+
+        def defaulted(n_steps: int, experiment: str = "custom") -> None:
+            pass
+
+        with self.assertRaises(ValueError):
+            Orchestrator("t").run(explicit, experiment_hash="custom", n_steps=1)
+        with self.assertRaises(ValueError):
+            Orchestrator("t").run(defaulted, n_steps=1)
 
     def test_failure_wraps_in_runtime_error_naming_the_run(self) -> None:
         """An experiment error becomes a RuntimeError naming the run, chaining the cause."""
