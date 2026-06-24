@@ -7,10 +7,9 @@ Each synchronous round:
     #. The aggregated update is applied via an SGD step.
 
 The :class:`CentralisedSimulation` implements the full lifecycle (model
-initialisation, data sharding, training loop, evaluation). Protocol-specific
-metric reporting is configured via the ``evaluate_fn`` constructor parameter
-rather than subclassing — evaluation is delegated to a caller-supplied
-callable, following composition over inheritance.
+initialisation, data sharding, training loop). Evaluation is defined by
+subclasses overriding :meth:`evaluate` — each protocol reports its own
+set of metrics.
 """
 
 from typing import Any, Callable, Literal, Sized, cast
@@ -33,10 +32,12 @@ class CentralisedSimulation:
     :math:`n` workers, of which :math:`f` are Byzantine (up to the tolerance of the
     chosen aggregator).
 
-    Evaluation follows composition over inheritance: the caller supplies
-    an ``evaluate_fn`` callable (e.g. one of the built-in
-    :meth:`evaluate_test_error_and_loss` or :meth:`evaluate_full`) that
-    receives the simulation instance and returns protocol-specific metrics.
+    Evaluation is defined by subclasses overriding :meth:`evaluate`. Each
+    protocol reports its own set of metrics — e.g.
+    :class:`~krum.simulations.centralised.KrumSimulation` returns
+    ``(test_loss, test_error)`` and
+    :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`
+    returns ``(test_loss, test_error, test_accuracy)``.
 
     Args:
         model_cls: ``nn.Module`` subclass to instantiate for training.
@@ -91,17 +92,10 @@ class CentralisedSimulation:
         device: Device for training and evaluation. Auto-detected if ``None``
             (CUDA → MPS → CPU).
         seed: Random seed for reproducibility.
-        eval_every: Evaluate on the test set every ``eval_every`` rounds
-            (and always on the last round).
-        evaluate_fn: Callable that receives the simulation instance
-            and returns evaluation metrics. Built-in options include
-            :meth:`evaluate_test_error`, :meth:`evaluate_test_error_and_loss`,
-            and :meth:`evaluate_full`. Custom evaluators must accept a
-            single ``CentralisedSimulation`` argument.
+        eval_every: Hint for how often evaluation should occur (used by
+            experiment scripts, not enforced by the simulation).
 
     Raises:
-        RuntimeError: If :meth:`run` is called more than once on the same
-            instance.
         ValueError: If ``lr_schedule`` is invalid or required
             hyperparameters (:math:`r_eta`) are missing.
     """

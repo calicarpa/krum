@@ -33,7 +33,11 @@ class KrumSimulation(CentralisedSimulation):
         super().__init__(**kwargs)
 
     def evaluate(self) -> tuple[float, float]:
-        """Evaluate the model on the test set and return test loss and error."""
+        """Evaluate the model on the test set.
+
+        Returns:
+            Tuple of ``(test_loss, test_error)``.
+        """
         assert self._model is not None and self._test_loader is not None
         self._model.module.eval()
         with torch.no_grad():
