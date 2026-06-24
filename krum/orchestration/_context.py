@@ -63,8 +63,7 @@ def active_orchestrator() -> Orchestrator:
     """
     if _active_orchestrator is None:
         raise RuntimeError(
-            "No active orchestrator. A Metric may only be created inside a "
-            "function executed by Orchestrator.run(...)."
+            "No active orchestrator. A Metric may only be created inside a function executed by Orchestrator.run(...)."
         )
     return _active_orchestrator
 
@@ -82,7 +81,6 @@ def current_params() -> dict[str, Any]:
     """
     if _current_params is None:
         raise RuntimeError(
-            "No active run. Metric.push(...) may only be called inside a "
-            "function executed by Orchestrator.run(...)."
+            "No active run. Metric.push(...) may only be called inside a function executed by Orchestrator.run(...)."
         )
     return _current_params

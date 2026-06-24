@@ -88,10 +88,5 @@ class Metric:
             RuntimeError: If called outside of an active run.
         """
         if not isinstance(value, self._dtype):
-            raise TypeError(
-                f"Metric {self._name!r} expects dtype {self._dtype.__name__}, "
-                f"got {type(value).__name__}."
-            )
-        self._orchestrator.record(
-            self._name, current_params(), step, value, skip_if_exists
-        )
+            raise TypeError(f"Metric {self._name!r} expects dtype {self._dtype.__name__}, got {type(value).__name__}.")
+        self._orchestrator.record(self._name, current_params(), step, value, skip_if_exists)

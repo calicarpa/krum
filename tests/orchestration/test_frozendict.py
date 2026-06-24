@@ -63,7 +63,7 @@ class FrozenDictTest(unittest.TestCase):
         """Item and attribute assignment cannot mutate the mapping."""
         frozen = FrozenDict(n=1)
         with self.assertRaises(TypeError):
-            frozen["n"] = 2  # type: ignore[index]
+            frozen["n"] = 2  # ty: ignore[invalid-assignment]
         with self.assertRaises(AttributeError):
             frozen.extra = "value"  # type: ignore[attr-defined]
         self.assertFalse(hasattr(frozen, "_data"))
@@ -79,7 +79,7 @@ class FrozenDictTest(unittest.TestCase):
             # The backport caches its hash behind a read-only proxy, so the
             # underlying store cannot be mutated after the fact.
             with self.assertRaises(TypeError):
-                frozen._FrozenDict__data["n"] = 2  # type: ignore[attr-defined,index]
+                frozen._FrozenDict__data["n"] = 2  # ty: ignore[unresolved-attribute]
         self.assertEqual(frozen, FrozenDict(n=1))
         self.assertEqual(hash(frozen), original_hash)
         self.assertEqual(hash(frozen), hash(FrozenDict(n=1)))

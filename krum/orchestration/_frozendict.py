@@ -30,6 +30,8 @@ class FrozenDict(Mapping[_Key, _Value]):
     """An immutable, hashable mapping; see the module docstring."""
 
     __slots__ = ("__data", "__hash")
+    __data: MappingProxyType[_Key, _Value]
+    __hash: int | None
 
     def __init__(
         self,
@@ -43,7 +45,7 @@ class FrozenDict(Mapping[_Key, _Value]):
             mapping: Initial mapping or iterable of key/value pairs, in order.
             **kwargs: Additional items, applied after ``mapping``.
         """
-        data = dict(mapping)
+        data: dict[Any, Any] = dict(mapping)
         data.update(kwargs)
         object.__setattr__(self, "_FrozenDict__data", MappingProxyType(data))
         object.__setattr__(self, "_FrozenDict__hash", None)
