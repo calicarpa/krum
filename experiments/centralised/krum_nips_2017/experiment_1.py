@@ -3,13 +3,14 @@
 Resilience to Gaussian Byzantine workers on Spambase.
 """
 
+from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from .run import run_one_simulation
 from .datasets import spambase_dataset
 from .models import MLPSpambase
+from .run import krum_experiment
 
 # --- Configurable parameters ---
 ROUNDS = 500
@@ -37,11 +38,15 @@ def main() -> None:
     train_set, test_set = spambase_dataset()
     attack_kw = {"std": ATTACK_STD}
 
+    orchestrator = Orchestrator("krum_nips_2017_experiment_1")
+
     for fraction in BYZ_FRACTIONS:
         f = int(N * fraction)
         for agg, agg_label in AGGREGATORS:
             label = f"{agg_label}_f{f}"
-            run_one_simulation(
+
+            orchestrator.run(
+                krum_experiment,
                 label=label,
                 model_cls=MLPSpambase,
                 train_set=train_set,
@@ -58,6 +63,10 @@ def main() -> None:
             )
 
     print("\nExperiment 1 done.")
+    loss_data = orchestrator.get("loss")
+    error_data = orchestrator.get("error")
+    print(len(loss_data))
+    print(len(error_data))
 
 
 if __name__ == "__main__":

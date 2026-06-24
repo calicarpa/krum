@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 
 from krum.primitives.aggregators.average import Average
-from krum.simulations.centralised import CentralisedSimulation, KrumSimulation
+from krum.simulations.centralised import KrumSimulation
 
 
 class _DummyModel(nn.Module):
@@ -56,7 +56,6 @@ class KrumSimulationConstructionTest(unittest.TestCase):
         """Construction with default parameters should apply NIPS 2017 values."""
         sim = self._make_sim()
         self.assertEqual(sim.lr_schedule, "exponential")
-        self.assertEqual(sim._evaluate_fn, CentralisedSimulation.evaluate_test_error_and_loss)
 
     def test_construction_happy(self) -> None:
         """Construction with default parameters should succeed."""
@@ -89,20 +88,22 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
         self.assertIsNotNone(self.sim._model.module)
 
     def test_evaluate_returns_error_and_loss(self) -> None:
-        """:meth:`evaluate` should return error and loss dict."""
+        """:meth:`evaluate` should return a 2-tuple of floats."""
         self.sim.setup()
         result = self.sim.evaluate()
-        self.assertIsInstance(result, dict)
-        self.assertSetEqual(set(result.keys()), {"test_error", "test_loss"})
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+        for val in result:
+            self.assertIsInstance(val, float)
 
-    def test_run_returns_traces(self) -> None:
-        """:meth:`run` should return a list of trace tuples."""
-        traces = self.sim.run()
-        for tup in traces:
-            round_num = tup[0]
-            metrics = tup[1]
-            self.assertIsInstance(round_num, int)
-            self.assertIsInstance(metrics, dict)
+    def test_step_and_evaluate_workflow(self) -> None:
+        """``step`` then ``evaluate`` should return metrics across multiple rounds."""
+        self.sim.setup()
+        for _ in range(3):
+            self.sim.step()
+        result = self.sim.evaluate()
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
 
 
 class KrumSimulationLRScheduleTest(unittest.TestCase):

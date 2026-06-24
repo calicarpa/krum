@@ -5,12 +5,13 @@ from typing import Any
 import torch.nn as nn
 from torch.utils.data import Dataset
 
+from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
 from krum.simulations.centralised import KrumSimulation
 
 
-def run_one_simulation(
+def krum_experiment(
     *,
     label: str,
     model_cls: type[nn.Module],
@@ -27,11 +28,10 @@ def run_one_simulation(
     seed: int,
     eval_every: int = 10,
     aggregator_kwargs: dict[str, Any] | None = None,
-    aggregator_f: int | None = None,
 ) -> list[tuple[int, Any]]:
     """Build and run one KrumSimulation instance."""
     print(f"\n=== {label} ===")
-    sim = KrumSimulation(
+    krum_simulation = KrumSimulation(
         model_cls=model_cls,
         train_set=train_set,
         test_set=test_set,
@@ -41,11 +41,21 @@ def run_one_simulation(
         attack_kwargs=attack_kwargs,
         n=n,
         f=f,
-        aggregator_f=aggregator_f,
         rounds=rounds,
         batch_size=batch_size,
         lr=lr,
         seed=seed,
         eval_every=eval_every,
     )
-    return sim.run()
+
+    krum_simulation.setup()
+
+    loss = Metric("loss", float)
+    error = Metric("error", float)
+
+    for step in range(rounds):
+        krum_simulation.step()
+        loss_value, error_value = krum_simulation.evaluate()
+
+        loss.push(step, loss_value)
+        error.push(step, error_value)
