@@ -17,11 +17,12 @@ place (dataset, worker counts, rounds, learning rate, attack, partitioning).
 
 ## Files
 
-- [run.py](run.py): `run_monna_simulation()` — builds one `MonnaSimulation`,
-  trains it, and **returns** per-round `(train_loss, test_loss, test_accuracy)`
-  records for the caller to print, plot, or assert on.
+- [run.py](run.py): `monna_experiment()` — an orchestrator experiment that
+  builds one `MonnaSimulation` (datasets included, from config) and **pushes**
+  per-round `train_loss`, `test_loss`, and `test_accuracy` to `Metric` channels.
 - [experiment_1.py](experiment_1.py): configuration constants + entry point;
-  prints the metrics returned by `run.py`.
+  drives `monna_experiment` with an `Orchestrator` and prints the collected
+  metrics via `orchestrator.get(...).to_pandas()`.
 
 Dataset and model code is shared one level up, under
 `experiments/decentralised/`, so future decentralised experiments can reuse it:
