@@ -59,3 +59,7 @@ def krum_experiment(
 
         loss.push(step, loss_value)
         error.push(step, error_value)
+
+        if step % eval_every == 0:
+            print(f"step {step}")
+            print(f"loss: {loss_value:.4f}, error: {error_value:.4f}")
