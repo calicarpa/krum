@@ -4,6 +4,7 @@ import hashlib
 import unittest
 from unittest.mock import patch
 
+from krum.orchestration._frozendict import FrozenDict
 from krum.orchestration.dataframe import MetricDataFrame
 from krum.orchestration.metric import Metric
 from krum.orchestration.orchestrator import Orchestrator
@@ -207,6 +208,54 @@ class OrchestratorTest(unittest.TestCase):
         orchestrator.run(experiment, n=10, n_steps=1)  # lr defaulted to 0.1
         orchestrator.run(experiment, n=10, n_steps=1, lr=0.1)  # lr = 0.1 explicitly
         self.assertEqual(len(orchestrator.get("loss")), 1)
+
+    def test_dict_param_value_is_frozen_and_usable(self) -> None:
+        """A dict-valued parameter is frozen, so the run key is hashable."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(n: int, attack_kwargs: dict, n_steps: int) -> None:
+            Metric("loss", float).push(0, float(n))
+
+        orchestrator.run(experiment, n=10, attack_kwargs={"p": 2, "scale": 1.0}, n_steps=1)
+        recorded = orchestrator.get("loss").to_pandas().iloc[0]["attack_kwargs"]
+        self.assertIsInstance(recorded, FrozenDict)
+        self.assertEqual(dict(recorded), {"p": 2, "scale": 1.0})
+
+    def test_equal_dict_params_collapse_to_one_run(self) -> None:
+        """Dict params with equal contents identify the same run."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(attack_kwargs: dict, n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        orchestrator.run(experiment, attack_kwargs={"p": 2, "scale": 1.0}, n_steps=1)
+        orchestrator.run(experiment, attack_kwargs={"scale": 1.0, "p": 2}, n_steps=1)
+        self.assertEqual(len(orchestrator.get("loss")), 1)
+
+    def test_list_param_value_is_frozen_to_tuple(self) -> None:
+        """A list-valued parameter is frozen to a tuple."""
+        orchestrator = Orchestrator("t")
+
+        def experiment(layers: list, n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        orchestrator.run(experiment, layers=[64, 64], n_steps=1)
+        recorded = orchestrator.get("loss").to_pandas().iloc[0]["layers"]
+        self.assertEqual(recorded, (64, 64))
+
+    def test_unhashable_param_value_raises_clear_error(self) -> None:
+        """A value unhashable even after freezing is rejected, naming the param."""
+        orchestrator = Orchestrator("t")
+
+        class Unhashable:
+            __hash__ = None  # type: ignore[assignment]
+
+        def experiment(thing: object, n_steps: int) -> None:
+            Metric("loss", float).push(0, 1.0)
+
+        with self.assertRaises(ValueError) as context:
+            orchestrator.run(experiment, thing=Unhashable(), n_steps=1)
+        self.assertIn("thing", str(context.exception))
 
 
 if __name__ == "__main__":

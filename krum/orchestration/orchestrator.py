@@ -32,9 +32,11 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from ._context import begin_run, end_run
+from ._frozendict import FrozenDict
 from .dataframe import MetricDataFrame
 
 if TYPE_CHECKING:
@@ -44,6 +46,39 @@ if TYPE_CHECKING:
 # Column names reserved for sample values and orchestrator-provided metadata; a
 # run parameter may not reuse them because it would collide in the result frame.
 _RESERVED_COLUMNS = ("step", "value", "experiment", "experiment_hash")
+
+
+def _freeze(value: Any) -> Any:
+    """Return a hashable, immutable form of a run-parameter ``value``.
+
+    Run parameters form the immutable run key, so each value must be hashable.
+    Mappings become :class:`~krum.orchestration._frozendict.FrozenDict`, lists
+    and tuples become tuples, and sets become frozensets -- recursively -- so a
+    structured parameter such as ``attack_kwargs={...}`` can be part of the key.
+    Already-hashable values (numbers, strings, classes, ...) are returned
+    unchanged. A genuinely unhashable leaf (e.g. a tensor) is returned as-is and
+    is rejected later by the hashability check in :meth:`Orchestrator.run`.
+
+    The freezing lives here rather than in ``FrozenDict`` on purpose: on Python
+    3.15 ``FrozenDict`` is the built-in ``frozendict``, which does not freeze its
+    values, so doing it here keeps behaviour identical across versions.
+    """
+    if isinstance(value, Mapping):
+        return FrozenDict({key: _freeze(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(item) for item in value)
+    if isinstance(value, (set, frozenset)):
+        return frozenset(_freeze(item) for item in value)
+    return value
+
+
+def _is_hashable(value: Any) -> bool:
+    """Return whether ``value`` can be hashed."""
+    try:
+        hash(value)
+    except TypeError:
+        return False
+    return True
 
 
 class Orchestrator:
@@ -81,8 +116,11 @@ class Orchestrator:
         experiment are tagged with the same parameter set whether or not a
         defaulted argument was passed explicitly. The resolved parameters are
         then tagged with the experiment's module-qualified name and source hash.
+        Structured parameter values (dicts, lists, sets) are frozen into
+        hashable forms so they can be part of the run key (see :func:`_freeze`).
         The orchestrator publishes that enriched context, invokes
-        ``experiment(**params)``, and clears the context afterwards.
+        ``experiment(**params)`` -- which receives the *original* (unfrozen)
+        values -- and clears the context afterwards.
 
         Args:
             experiment: The experiment function, called as
@@ -90,10 +128,11 @@ class Orchestrator:
             **params: The parameter values of this run. Names (including the
                 experiment's defaulted arguments) must not include the reserved
                 column names ``step``, ``value``, ``experiment``, or
-                ``experiment_hash``.
+                ``experiment_hash``. Values must be hashable once frozen.
 
         Raises:
-            ValueError: If a parameter name collides with a reserved column.
+            ValueError: If a parameter name collides with a reserved column, or
+                if a parameter value is not hashable even after freezing.
             RuntimeError: If ``experiment`` raises. The error names the failing
                 run's parameters and chains the original exception (fail-fast:
                 the sweep stops). The run context is cleared either way.
@@ -103,6 +142,14 @@ class Orchestrator:
         if conflicts:
             raise ValueError(f"Parameter name(s) {conflicts} are reserved for metric columns.")
         run_params = {**resolved, **self._experiment_params(experiment)}
+        run_params = {name: _freeze(value) for name, value in run_params.items()}
+        unhashable = sorted(name for name, value in run_params.items() if not _is_hashable(value))
+        if unhashable:
+            raise ValueError(
+                f"Run parameter(s) {unhashable} have unhashable values and cannot "
+                f"form the run key. Pass hashable values (numbers, strings, "
+                f"classes, tuples, or nested dicts/lists of those)."
+            )
         begin_run(self, run_params)
         try:
             # Future work: dispatch to a worker process (one per run) instead
