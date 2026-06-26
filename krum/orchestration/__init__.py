@@ -39,7 +39,7 @@ Example::
                     )
 
     loss = orch.get("loss")               # MetricDataFrame
-    krum_alie = loss(aggregator=Krum, attack=ALIEAttack)   # narrowed MetricDataFrame
+    krum_alie = loss.filter(aggregator=Krum, attack=ALIEAttack)  # narrowed MetricDataFrame
     frame = krum_alie.to_pandas()         # pandas.DataFrame for plotting/analysis
 """
 

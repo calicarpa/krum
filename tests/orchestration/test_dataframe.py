@@ -78,22 +78,22 @@ class MetricDataFrameTest(unittest.TestCase):
         self.assertEqual(len(store), 1)
         self.assertEqual(store.to_pandas().iloc[0]["value"], 9.0)
 
-    def test_call_returns_narrowed_metric_dataframe(self) -> None:
-        """Calling the store filters runs and preserves the storage API."""
+    def test_filter_returns_narrowed_metric_dataframe(self) -> None:
+        """filter() narrows runs and preserves the storage API."""
         store = MetricDataFrame(float)
         store.record({"n": 10, "f": 2}, 0, 1.0)
         store.record({"n": 10, "f": 3}, 0, 2.0)
         store.record({"n": 20, "f": 2}, 0, 3.0)
-        narrowed = store(n=10)
+        narrowed = store.filter(n=10)
         self.assertIsInstance(narrowed, MetricDataFrame)
         self.assertEqual(len(narrowed), 2)
         self.assertEqual(set(narrowed.to_pandas()["value"]), {1.0, 2.0})
 
-    def test_call_without_filters_returns_independent_full_store(self) -> None:
-        """Calling with no filters copies every run into a new store."""
+    def test_filter_without_arguments_returns_independent_full_store(self) -> None:
+        """filter() with no arguments copies every run into a new store."""
         store = MetricDataFrame(float)
         store.record({"n": 10}, 0, 1.0)
-        narrowed = store()
+        narrowed = store.filter()
         narrowed.record({"n": 10}, 1, 2.0)
         self.assertEqual(len(store), 1)
         self.assertEqual(len(narrowed), 2)
@@ -102,7 +102,7 @@ class MetricDataFrameTest(unittest.TestCase):
         """Filtering on an absent parameter returns no runs."""
         store = MetricDataFrame(float)
         store.record({"n": 10}, 0, 1.0)
-        self.assertEqual(len(store(unknown=1)), 0)
+        self.assertEqual(len(store.filter(unknown=1)), 0)
 
     def test_missing_parameter_is_filled_with_pd_na(self) -> None:
         """The parameter union fills absent values without creating an index."""

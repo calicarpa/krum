@@ -2,8 +2,8 @@
 
 A :class:`MetricDataFrame` holds the samples of a single metric. Run parameters
 are stored once per run, and :meth:`to_pandas` materialises them as flat columns
-alongside ``step`` and ``value``. Calling the instance with keyword filters
-returns a narrowed :class:`MetricDataFrame`.
+alongside ``step`` and ``value``. :meth:`MetricDataFrame.filter` returns a
+narrowed :class:`MetricDataFrame`.
 """
 
 from __future__ import annotations
@@ -90,7 +90,7 @@ class MetricDataFrame:
             frame[name] = pd.Series([row[name] for row in rows], dtype=object)
         return frame
 
-    def __call__(self, **filters: Any) -> MetricDataFrame:
+    def filter(self, **filters: Any) -> MetricDataFrame:
         """Return a narrowed store whose run parameters match ``filters``.
 
         Args:
@@ -104,6 +104,10 @@ class MetricDataFrame:
         for params, steps in self._samples.items():
             matches = all(params.get(name, _MISSING) == value for name, value in filters.items())
             if matches:
+                # Shallow-copy the per-run samples so the filtered store is
+                # independent: a plain assignment would share the {step: value}
+                # dict with the original, so mutating one would leak into the other.
+                # (dict(steps) copies the mapping; the float values are immutable.)
                 narrowed._samples[params] = dict(steps)
         return narrowed
 
