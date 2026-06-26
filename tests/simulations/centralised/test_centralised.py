@@ -211,6 +211,33 @@ class CentralisedSimulationStepTest(unittest.TestCase):
         sim.step()
         self.assertEqual(sim._current_round, 1)
 
+    def test_worker_gradients_are_distinct(self) -> None:
+        """Honest workers on different data shards must produce distinct gradients.
+
+        This is a regression test for a bug where ``module.zero_grad()`` (with
+        PyTorch's default ``set_to_none=True``) discarded the relinked flat
+        gradient view, causing every worker to return the stale gradient from
+        the first worker.
+        """
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_set=_dummy_dataset(n=128),
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            n=4,
+            f=0,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        gradients = [sim._train_one_worker(loader) for loader in sim._worker_loaders]
+        for i in range(1, len(gradients)):
+            self.assertFalse(
+                torch.equal(gradients[0], gradients[i]),
+                "Two honest workers produced identical gradients; the flat gradient view is likely stale.",
+            )
+
 
 class CentralisedSimulationLRScheduleTest(unittest.TestCase):
     """Test learning-rate schedules."""
