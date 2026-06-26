@@ -8,7 +8,6 @@ from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from .datasets import spambase_dataset
 from .models import MLPSpambase
 from .run import krum_experiment
 
@@ -35,7 +34,6 @@ AGGREGATORS = [
 
 def main() -> None:
     """Run Experiment 1."""
-    train_set, test_set = spambase_dataset()
     attack_kw = {"std": ATTACK_STD}
 
     orchestrator = Orchestrator("krum_nips_2017_experiment_1")
@@ -48,9 +46,8 @@ def main() -> None:
             orchestrator.run(
                 krum_experiment,
                 label=label,
+                dataset="spambase",
                 model_cls=MLPSpambase,
-                train_set=train_set,
-                test_set=test_set,
                 aggregator=agg,
                 attack=GaussianAttack,
                 attack_kwargs=attack_kw,

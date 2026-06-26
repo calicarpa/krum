@@ -9,7 +9,6 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 
 from ..models import MLP as MLPMnist
-from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase
 from .run import krum_experiment
 
@@ -36,8 +35,8 @@ AGGREGATORS = [
 
 # Datasets to test
 DATASETS = [
-    ("spambase", spambase_dataset, MLPSpambase),
-    ("mnist", mnist_dataset, MLPMnist),
+    ("spambase", MLPSpambase),
+    ("mnist", MLPMnist),
 ]
 # --------------------------------------------
 
@@ -48,8 +47,7 @@ def main() -> None:
 
     orchestrator = Orchestrator("krum_nips_2017_experiment_2")
 
-    for ds_name, ds_fn, model_cls in DATASETS:
-        train_set, test_set = ds_fn()
+    for ds_name, model_cls in DATASETS:
         for f in F_VALUES:
             for bs in BATCH_SIZES:
                 for agg, agg_label in AGGREGATORS:
@@ -58,9 +56,8 @@ def main() -> None:
                     orchestrator.run(
                         krum_experiment,
                         label=label,
+                        dataset=ds_name,
                         model_cls=model_cls,
-                        train_set=train_set,
-                        test_set=test_set,
                         aggregator=agg,
                         attack=FullGradientNegationAttack,
                         attack_kwargs=attack_kw,

@@ -3,14 +3,12 @@
 Multi-Krum vs Krum and Average under Gaussian attack on Spambase.
 """
 
-from krum.orchestrator import Orchestrator
-
+from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from .datasets import spambase_dataset
 from .models import MLPSpambase
 from .run import krum_experiment
 
@@ -41,7 +39,6 @@ CONFIGS = [
 
 def main() -> None:
     """Run Experiment 3."""
-    train_set, test_set = spambase_dataset()
     attack_kw = {"std": ATTACK_STD}
 
     f = int(N * BYZ_FRACTION)
@@ -59,9 +56,8 @@ def main() -> None:
         orchestrator.run(
             krum_experiment,
             label=label,
+            dataset="spambase",
             model_cls=MLPSpambase,
-            train_set=train_set,
-            test_set=test_set,
             aggregator=agg,
             aggregator_kwargs=agg_kw,
             attack=GaussianAttack,

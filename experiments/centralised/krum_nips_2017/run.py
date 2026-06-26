@@ -3,20 +3,20 @@
 from typing import Any
 
 import torch.nn as nn
-from torch.utils.data import Dataset
 
 from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
 from krum.simulations.centralised import KrumSimulation
 
+from .datasets import make_datasets
+
 
 def krum_experiment(
     *,
     label: str,
+    dataset: str,
     model_cls: type[nn.Module],
-    train_set: Dataset[Any],
-    test_set: Dataset[Any],
     aggregator: type[Aggregator],
     attack: type[Attack],
     attack_kwargs: dict[str, Any] | None = None,
@@ -27,10 +27,18 @@ def krum_experiment(
     lr: float,
     seed: int,
     eval_every: int = 10,
+    train_size: int = 0,
+    test_size: int = 0,
     aggregator_kwargs: dict[str, Any] | None = None,
 ) -> list[tuple[int, Any]]:
-    """Build and run one KrumSimulation instance."""
+    """Build and run one KrumSimulation instance.
+
+    The datasets are built from the hashable ``dataset`` name (and optional
+    ``train_size``/``test_size``) *inside* this function, so the run is
+    identified by those parameters rather than by the dataset objects.
+    """
     print(f"\n=== {label} ===")
+    train_set, test_set = make_datasets(dataset, train_size, test_size)
     krum_simulation = KrumSimulation(
         model_cls=model_cls,
         train_set=train_set,
