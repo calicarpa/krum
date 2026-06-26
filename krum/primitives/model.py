@@ -211,6 +211,22 @@ class Model:
                 parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
             yield parameter.grad
 
+    def _flat_gradients_is_synced(self) -> bool:
+        """Return whether every parameter ``.grad`` shares the cached flat buffer.
+
+        Used by :attr:`gradients` to detect when an external operation (such
+        as ``module.zero_grad()`` with ``set_to_none=True``) has replaced or
+        removed the ``.grad`` tensors, so the flat view can be repaired
+        automatically.
+        """
+        if self._flat_gradients is None:
+            return False
+        storage = self._flat_gradients.untyped_storage()
+        return all(
+            parameter.grad is not None and parameter.grad.untyped_storage() is storage
+            for parameter in self._module.parameters()
+        )
+
     @property
     def gradients(self) -> Tensor:
         r"""Zero-copy flat view of module gradients.
@@ -221,7 +237,7 @@ class Model:
         This is a simple, fast getter once the flat gradient has been
         lazy-initialized on the first access. If gradients are replaced or
         removed externally (e.g. via ``module.zero_grad(set_to_none=True)``),
-        call :meth:`relink_gradients` to re-synchronise the flat view.
+        the flat view is re-synchronised automatically.
 
         Returns:
             Tensor of shape ``(d,)`` sharing memory with all module
@@ -229,6 +245,8 @@ class Model:
         """
         if self._flat_gradients is None:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
+        elif not self._flat_gradients_is_synced():
+            self.relink_gradients()
         return self._flat_gradients
 
     def relink_gradients(self) -> Self:
@@ -240,8 +258,11 @@ class Model:
         zero-copy link between the cached flat tensor and every ``.grad``
         so that the fast ``.gradients`` getter yields a consistent view again.
         """
-        flat = self.gradients
+        if self._flat_gradients is None:
+            self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
+            return self
 
+        flat = self._flat_gradients
         storage = flat.untyped_storage()
         offset = 0
         with torch.no_grad():

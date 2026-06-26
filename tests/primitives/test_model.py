@@ -139,6 +139,25 @@ class ModelTest(unittest.TestCase):
         assert wg is not None
         self.assertEqual(wg[0, 0].item(), 77.0)
 
+    def test_gradients_auto_relink_after_zero_grad_set_to_none(self) -> None:
+        """The gradients property auto-relinks after zero_grad(set_to_none=True)."""
+        x1 = torch.randn(1, 3)
+        loss1 = self.linear(x1).sum()
+        loss1.backward()
+        flat1 = self.model.gradients.clone()
+
+        self.linear.zero_grad(set_to_none=True)
+        self.assertIsNone(self.linear.weight.grad)
+
+        x2 = torch.randn(1, 3)
+        loss2 = self.linear(x2).sum()
+        loss2.backward()
+        flat2 = self.model.gradients
+
+        self.assertFalse(torch.equal(flat1, flat2))
+        self.assertIs(self.model.gradients, flat2)
+        self.assertIsNotNone(self.linear.weight.grad)
+
     def test_relink_gradients_preserves_grad_values(self) -> None:
         """relink_gradients copies existing gradient values into the flat buffer."""
         self._forward_backward()
