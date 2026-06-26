@@ -30,7 +30,6 @@ but not the :class:`~krum.orchestration.metric.Metric` / :meth:`get` contract.
 
 from __future__ import annotations
 
-import hashlib
 import inspect
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
@@ -45,7 +44,7 @@ if TYPE_CHECKING:
 
 # Column names reserved for sample values and orchestrator-provided metadata; a
 # run parameter may not reuse them because it would collide in the result frame.
-_RESERVED_COLUMNS = ("step", "value", "experiment", "experiment_hash")
+_RESERVED_COLUMNS = ("step", "value", "experiment")
 
 
 def _freeze(value: Any) -> Any:
@@ -85,8 +84,9 @@ class Orchestrator:
     """Runs experiments and owns the metric data they produce.
 
     An orchestrator can drive multiple experiments and parameter sweeps. Every
-    run is tagged with the experiment's module-qualified name and a short hash
-    of its source, keeping otherwise identical parameter sets distinct.
+    run is tagged with the experiment function itself (under the ``experiment``
+    key), so otherwise-identical parameter sets from different experiments stay
+    distinct.
 
     A channel is identified by its name, unique within the orchestrator. Each
     channel's samples are stored in a
@@ -115,8 +115,8 @@ class Orchestrator:
         arguments (see :meth:`_resolve_params`), so two runs of the same
         experiment are tagged with the same parameter set whether or not a
         defaulted argument was passed explicitly. The resolved parameters are
-        then tagged with the experiment's module-qualified name and source hash.
-        Structured parameter values (dicts, lists, sets) are frozen into
+        then tagged with the experiment function itself (under the ``experiment``
+        key). Structured parameter values (dicts, lists, sets) are frozen into
         hashable forms so they can be part of the run key (see :func:`_freeze`).
         The orchestrator publishes that enriched context, invokes
         ``experiment(**params)`` -- which receives the *original* (unfrozen)
@@ -127,8 +127,8 @@ class Orchestrator:
                 ``experiment(**params)``.
             **params: The parameter values of this run. Names (including the
                 experiment's defaulted arguments) must not include the reserved
-                column names ``step``, ``value``, ``experiment``, or
-                ``experiment_hash``. Values must be hashable once frozen.
+                column names ``step``, ``value``, or ``experiment``. Values must
+                be hashable once frozen.
 
         Raises:
             ValueError: If a parameter name collides with a reserved column, or
@@ -141,7 +141,7 @@ class Orchestrator:
         conflicts = sorted(set(resolved) & set(_RESERVED_COLUMNS))
         if conflicts:
             raise ValueError(f"Parameter name(s) {conflicts} are reserved for metric columns.")
-        run_params = {**resolved, **self._experiment_params(experiment)}
+        run_params = {**resolved, "experiment": experiment}
         run_params = {name: _freeze(value) for name, value in run_params.items()}
         unhashable = sorted(name for name, value in run_params.items() if not _is_hashable(value))
         if unhashable:
@@ -161,33 +161,6 @@ class Orchestrator:
             raise RuntimeError(f"Run failed for params {run_params}.") from error
         finally:
             end_run()
-
-    @staticmethod
-    def _experiment_params(experiment: Callable[..., Any]) -> dict[str, str]:
-        """Return stable identifying metadata for ``experiment``.
-
-        The human-readable identity includes the module because qualified names
-        alone can collide across modules. The short hash tracks the exact source
-        text when inspection is available; otherwise it hashes that identity.
-
-        Args:
-            experiment: The callable being run.
-
-        Returns:
-            The ``experiment`` name and 12-character ``experiment_hash``.
-        """
-        module = getattr(experiment, "__module__", type(experiment).__module__)
-        qualname = getattr(experiment, "__qualname__", type(experiment).__qualname__)
-        experiment_name = f"{module}.{qualname}"
-        try:
-            hash_input = inspect.getsource(experiment)
-        except (OSError, TypeError):
-            hash_input = experiment_name
-        experiment_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:12]
-        return {
-            "experiment": experiment_name,
-            "experiment_hash": experiment_hash,
-        }
 
     @staticmethod
     def _resolve_params(experiment: Callable[..., Any], params: dict[str, Any]) -> dict[str, Any]:
