@@ -146,26 +146,45 @@ Attacks generate Byzantine gradients from honest worker gradients:
 Model Wrapper
 ~~~~~~~~~~~~~
 
-Krum provides a ``Model`` wrapper for zero-copy flat views of PyTorch parameters:
+Krum provides a ``Model`` wrapper for zero-copy flat views of PyTorch parameters and gradients:
 
 .. code-block:: python
 
    from krum.primitives import Model
    import torch.nn as nn
 
-   model = nn.Linear(10, 5)
-   krum_model = Model(model)
+   module = nn.Linear(10, 5)
+   model = Model(module)
 
-   # Get flat parameter view (zero-copy)
-   flat_params = krum_model.flat_params  # shape: (55,)
+   # Flat parameter view (zero-copy, lazy-initialized)
+   flat_params = model.parameters  # shape: (55,)
 
-   # Get flat gradients after backward()
-   loss = model(input).sum()
+   # Flat gradients after backward()
+   loss = module(torch.randn(3, 10)).sum()
    loss.backward()
-   flat_grads = krum_model.flat_grads  # shape: (55,)
+   flat_grads = model.gradients  # shape: (55,)
 
-   # Load flat parameters back
-   krum_model.load_flat_params(new_flat_params)
+   # Write aggregated gradients back (zero-copy relink)
+   model.gradients = aggregated_flat
+
+.. note::
+
+   **``zero_grad(set_to_none=True)`` — the default since PyTorch 2.11 — replaces
+   each ``.grad`` with ``None``, breaking the cached flat gradient view.**
+   After calling ``zero_grad()``, access ``.gradients`` via
+   ``relink_gradients()`` to restore the link in a single call:
+
+   .. code-block:: python
+
+      optimizer.zero_grad()                    # drops .grad tensors
+      grads = model.relink_gradients()         # re-link + get flat view
+      grads[:] = 0                             # equivalent to zero_grad
+
+   The same pattern applies to :meth:`~krum.primitives.Model.relink_parameters`
+   when a parameter's ``.data`` has been replaced externally.
+
+   Both methods return the flat tensor directly, so no further property access is
+   needed:
 
 Next Steps
 ----------
