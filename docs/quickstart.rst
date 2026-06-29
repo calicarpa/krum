@@ -169,8 +169,8 @@ Krum provides a ``Model`` wrapper for zero-copy flat views of PyTorch parameters
 
 .. note::
 
-   **``zero_grad(set_to_none=True)`` — the default since PyTorch 2.11 — replaces
-   each ``.grad`` with ``None``, breaking the cached flat gradient view.**
+   ``zero_grad(set_to_none=True)`` (the default since PyTorch 2.11) replaces
+   each ``.grad`` with ``None``, breaking the cached flat gradient view.
    After calling ``zero_grad()``, access ``.gradients`` via
    ``relink_gradients()`` to restore the link in a single call:
 
