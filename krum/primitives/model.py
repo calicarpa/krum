@@ -34,7 +34,6 @@ from collections.abc import Iterator
 import torch
 from torch import Tensor
 from torch.nn import Module
-from typing_extensions import Self
 
 
 class Model:
@@ -173,13 +172,17 @@ class Model:
         """
         self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
 
-    def relink_parameters(self) -> Self:
+    def relink_parameters(self) -> Tensor:
         """Re-synchronise the flat parameter view after an external ``.data`` replacement.
 
         This method is necessary when a parameter's ``.data`` has been
         replaced since the flat parameters were built, restoring the zero-copy
         link between the cached flat tensor and every parameter so that the
         fast ``.parameters`` getter yields a consistent view again.
+
+        Returns:
+            The flat parameter tensor of shape ``(d,)`` sharing memory with
+            all module parameters.
         """
         flat = self.parameters
         storage = flat.untyped_storage()
@@ -190,7 +193,7 @@ class Model:
                 if parameter.data.untyped_storage() is not storage:
                     parameter.data = flat[offset:end].view(*parameter.shape).copy_(parameter.data)
                 offset = end
-        return self
+        return flat
 
     def _gradients(self, *, empty: bool) -> Iterator[Tensor]:
         """Iterate over module parameter gradients, initializing missing ones.
@@ -211,22 +214,6 @@ class Model:
                 parameter.grad = torch.empty_like(parameter) if empty else torch.zeros_like(parameter)
             yield parameter.grad
 
-    def _flat_gradients_is_synced(self) -> bool:
-        """Return whether every parameter ``.grad`` shares the cached flat buffer.
-
-        Used by :attr:`gradients` to detect when an external operation (such
-        as ``module.zero_grad()`` with ``set_to_none=True``) has replaced or
-        removed the ``.grad`` tensors, so the flat view can be repaired
-        automatically.
-        """
-        if self._flat_gradients is None:
-            return False
-        storage = self._flat_gradients.untyped_storage()
-        return all(
-            parameter.grad is not None and parameter.grad.untyped_storage() is storage
-            for parameter in self._module.parameters()
-        )
-
     @property
     def gradients(self) -> Tensor:
         r"""Zero-copy flat view of module gradients.
@@ -237,7 +224,7 @@ class Model:
         This is a simple, fast getter once the flat gradient has been
         lazy-initialized on the first access. If gradients are replaced or
         removed externally (e.g. via ``module.zero_grad(set_to_none=True)``),
-        the flat view is re-synchronised automatically.
+        call :meth:`relink_gradients` to re-synchronise the flat view.
 
         Returns:
             Tensor of shape ``(d,)`` sharing memory with all module
@@ -245,11 +232,9 @@ class Model:
         """
         if self._flat_gradients is None:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
-        elif not self._flat_gradients_is_synced():
-            self.relink_gradients()
         return self._flat_gradients
 
-    def relink_gradients(self) -> Self:
+    def relink_gradients(self) -> Tensor:
         """Re-synchronise the flat gradient view after an external ``.grad`` replacement.
 
         This method is necessary when a parameter's ``.grad`` attribute has
@@ -257,10 +242,14 @@ class Model:
         instance after ``module.zero_grad(set_to_none=True)``. It restores the
         zero-copy link between the cached flat tensor and every ``.grad``
         so that the fast ``.gradients`` getter yields a consistent view again.
+
+        Returns:
+            The flat gradient tensor of shape ``(d,)`` sharing memory with
+            all module gradients.
         """
         if self._flat_gradients is None:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
-            return self
+            return self._flat_gradients
 
         flat = self._flat_gradients
         storage = flat.untyped_storage()
@@ -276,7 +265,7 @@ class Model:
                 elif parameter.grad.untyped_storage() is not storage:
                     parameter.grad.data = flat[offset:end].view(*parameter.shape).copy_(parameter.grad)
                 offset = end
-        return self
+        return self._flat_gradients
 
     @gradients.setter
     def gradients(self, flat: Tensor) -> None:
