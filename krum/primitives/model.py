@@ -247,11 +247,7 @@ class Model:
             The flat gradient tensor of shape ``(d,)`` sharing memory with
             all module gradients.
         """
-        if self._flat_gradients is None:
-            self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
-            return self._flat_gradients
-
-        flat = self._flat_gradients
+        flat = self.gradients
         storage = flat.untyped_storage()
         offset = 0
         with torch.no_grad():
@@ -265,7 +261,7 @@ class Model:
                 elif parameter.grad.untyped_storage() is not storage:
                     parameter.grad.data = flat[offset:end].view(*parameter.shape).copy_(parameter.grad)
                 offset = end
-        return self._flat_gradients
+        return flat
 
     @gradients.setter
     def gradients(self, flat: Tensor) -> None:
