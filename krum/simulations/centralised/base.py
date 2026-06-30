@@ -351,7 +351,7 @@ class CentralisedSimulation:
         self._model.module.zero_grad()
         loss = self.loss_fn(self._model.module(x), y)
         loss.backward()
-        return self._model.gradients.clone()
+        return self._model.relink_gradients().clone()
 
     def _apply_robbins_monro_lr(self, t: int) -> None:
         """Set the learning rate to the Robbins-Monro value for round ``t``.

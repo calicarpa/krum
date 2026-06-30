@@ -216,11 +216,7 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             self.model.module.zero_grad(set_to_none=True)
             loss = self.loss_fn(self.model.module(inputs), targets)
             loss.backward()
-            # ``zero_grad(set_to_none=True)`` drops each ``.grad`` and
-            # ``backward`` allocates fresh ones, so the cached flat view must be
-            # re-synchronised before reading ``model.gradients``.
-            self.model.relink_gradients()
-            gradients.append(self.model.gradients.detach().clone())
+            gradients.append(self.model.relink_gradients().detach().clone())
             losses.append(loss.detach())
 
         return torch.stack(gradients), torch.stack(losses)
