@@ -49,14 +49,24 @@ class CentralisedSimulation:
         aggregator_kwargs: Extra keyword arguments forwarded to
             ``aggregator.aggregate`` (e.g. ``{"m": 12}`` for ``MultiKrum``).
             ``n`` and ``f`` are automatically injected by the simulation.
+            To override the ``f`` injected from :attr:`f` (the "real"
+            Byzantine count), pass ``"f"`` explicitly here — for example,
+            to run with ``f=0`` honest workers but configure Bulyan as if
+            it had to defend against 9 Byzantins, pass
+            ``aggregator_kwargs={"f": 9}``.
         attack: Byzantine attack strategy class (e.g. ``GaussianAttack``).
             Pass the class itself — :meth:`~CentralisedSimulation.step` calls
             ``attack.generate(honest_gradients, f=f, **attack_kwargs)``.
         attack_kwargs: Extra keyword arguments forwarded to
             ``attack.generate`` (e.g. ``{"std": 200.0}`` for ``GaussianAttack``).
         n: Total number of workers.
-        f: Number of Byzantine workers. Must be within the aggregator's
-            Byzantine tolerance.
+        f: Number of Byzantine workers (the **real** Byzantine count).
+            Controls how many gradients the simulation produces per round:
+            ``n - f`` honest workers always run, and the remaining ``f``
+            slots are filled with Byzantine gradients only when ``attack``
+            is provided. Must be within the aggregator's Byzantine
+            tolerance. To configure the aggregator with a different
+            (declared) Byzantine budget, see ``aggregator_kwargs`` above.
         rounds: Number of synchronous training rounds.
         batch_size: Mini-batch size per honest worker.
         lr: Initial learning rate for SGD. Used as :math:`η_0` by every
@@ -144,6 +154,12 @@ class CentralisedSimulation:
             raise ValueError(f"Invalid weight_decay, got {weight_decay!r}, expected weight_decay >= 0")
         if stop_attack_at is not None and stop_attack_at < 0:
             raise ValueError(f"Invalid stop_attack_at, got {stop_attack_at!r}, expected stop_attack_at >= 0")
+        if aggregator is None and f > 0 and attack is not None:
+            raise ValueError(
+                "aggregator=None is incompatible with f > 0 and a configured attack: "
+                "the Byzantine gradients would have nowhere to go. Either set f=0, "
+                "drop the attack, or pass an aggregator."
+            )
 
         self.model_cls = model_cls
         self.train_set = train_set
@@ -304,9 +320,13 @@ class CentralisedSimulation:
             agg_kwargs.setdefault("f", self.f)
             agg_kwargs.setdefault("n", self.n)
             aggregated = self.aggregator.aggregate(all_gradients, **agg_kwargs)
-            self._model.gradients = aggregated
         else:
-            self._model.gradients = all_gradients
+            # aggregator=None: average the produced gradients. If ``f > 0`` and
+            # ``attack is None`` no Byzantine gradients were generated, so the
+            # list has only the ``n - f`` honest workers — averaging over them
+            # is the natural fallback.
+            aggregated = all_gradients.mean(dim=0)
+        self._model.gradients = aggregated
         with torch.no_grad():
             params = self._model.parameters
             if self.weight_decay > 0:
