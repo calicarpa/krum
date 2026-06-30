@@ -27,13 +27,6 @@ ATTACK_STD = 200.0
 
 # MultiKrum parameter
 MULTIKRUM_M = None  # None = auto (N - F - 2)
-
-# Configurations to run
-CONFIGS = [
-    (Average, "Average_f0", 0, None),
-    (Krum, "Krum_f6", None, None),  # f computed from fraction
-    (MultiKrum, "MultiKrum_f6", None, None),  # f and m computed
-]
 # --------------------------------------------
 
 

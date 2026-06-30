@@ -204,7 +204,17 @@ class CentralisedSimulation:
 
         When ``xavier_init`` is enabled, every weight tensor of the
         instantiated model is re-initialized with the Glorot/Xavier
-        uniform rule, and every bias is reset to zero.
+        uniform rule, and every bias is reset to zero. The Xavier draws
+        use a per-parameter local :class:`torch.Generator` (matched to
+        the parameter device), so they do not perturb the global PyTorch
+        RNG and work correctly on MPS/CUDA.
+
+        Determinism: ``setup()`` is fully deterministic for a given
+        ``seed``. Local :class:`torch.Generator` instances are used for
+        the shard permutation, the per-worker dataloaders, and (when
+        enabled) the Xavier re-initialization, so the global RNG state
+        is left untouched and re-running ``setup()`` reproduces the
+        exact same model, weights, and dataloaders.
 
         Safe to call multiple times — each call resets all internal state.
         """
@@ -290,7 +300,10 @@ class CentralisedSimulation:
 
         all_gradients = torch.stack(worker_gradients)
         if self.aggregator is not None:
-            aggregated = self.aggregator.aggregate(all_gradients, n=self.n, f=self.f, **self._aggregator_kwargs)
+            agg_kwargs = dict(self._aggregator_kwargs)
+            agg_kwargs.setdefault("f", self.f)
+            agg_kwargs.setdefault("n", self.n)
+            aggregated = self.aggregator.aggregate(all_gradients, **agg_kwargs)
             self._model.gradients = aggregated
         else:
             self._model.gradients = all_gradients
@@ -319,7 +332,16 @@ class CentralisedSimulation:
         return torch.device("cpu")
 
     def _set_seed(self) -> None:
-        """Set all RNG seeds for reproducible runs (PyTorch, CUDA, MPS)."""
+        """Set all RNG seeds for reproducible runs (PyTorch, CUDA, MPS).
+
+        .. note::
+            MPS determinism is best-effort: ``torch.mps.manual_seed``
+            seeds the MPS generator, but some reduction kernels remain
+            non-deterministic across PyTorch versions and platforms.
+            For bit-exact reproducible runs on Apple Silicon, prefer
+            running on CPU (set the ``device`` argument explicitly)
+            or pin a known-good PyTorch build.
+        """
         torch.manual_seed(self.seed)
         if self.device.type == "cuda":
             torch.cuda.manual_seed(self.seed)
@@ -368,19 +390,40 @@ class CentralisedSimulation:
         self._current_lr = self.r_eta * self.lr / (t + self.r_eta)
 
     @staticmethod
-    def _xavier_init_(module: nn.Module) -> None:
+    def _xavier_init_(module: nn.Module, generator: torch.Generator | None = None) -> None:
         """Re-initialize every weight tensor of ``module`` with Xavier-uniform.
 
         Biases are reset to zero. Convolutional and linear layers are
         the only ones re-initialized: scalar/vector buffers (e.g.
         ``BatchNorm`` running statistics) are left untouched.
 
+        A local ``torch.Generator`` is used for the Xavier draws so the
+        re-initialization does not perturb the global PyTorch RNG state.
+        This keeps ``setup()`` deterministic regardless of any RNG
+        consumed elsewhere in the process before the call.
+
+        The generator must live on the same device as the parameter
+        tensors — PyTorch's ``uniform_`` rejects a CPU generator on
+        MPS/CUDA tensors. ``setup()`` constructs a device-matched
+        generator (or omits it on CPU where PyTorch accepts the
+        default CPU generator).
+
         Args:
             module: The module to re-initialize in place.
+            generator: Optional RNG used to draw the Xavier weights. If
+                ``None``, an internal device-matched generator is
+                created lazily per parameter tensor (preserving the
+                per-``setup()`` determinism contract).
         """
         for m in module.modules():
             if isinstance(m, (nn.Linear, nn.Conv2d)):
-                nn.init.xavier_uniform_(m.weight)
+                gen = generator
+                if gen is not None and gen.device != m.weight.device:
+                    gen = None
+                if gen is None:
+                    gen = torch.Generator(device=m.weight.device)
+                    gen.manual_seed(torch.initial_seed())
+                nn.init.xavier_uniform_(m.weight, generator=gen)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
 

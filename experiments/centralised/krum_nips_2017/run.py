@@ -30,7 +30,7 @@ def krum_experiment(
     train_size: int = 0,
     test_size: int = 0,
     aggregator_kwargs: dict[str, Any] | None = None,
-) -> list[tuple[int, Any]]:
+) -> None:
     """Build and run one KrumSimulation instance.
 
     The datasets are built from the hashable ``dataset`` name (and optional
