@@ -14,6 +14,18 @@ class FullGradientNegationAttack(Attack):
     Each Byzantine worker sends the negation of the full-dataset gradient
     scaled by a factor :math:`\kappa`. The attack assumes knowledge of the
     true gradient over the entire dataset.
+
+    .. note::
+        No clipping or norm bound is applied to the malicious gradient:
+        the attack returns :math:`-\kappa \cdot g_\text{full}` verbatim,
+        so :math:`\kappa = 100` with a large :math:`d` can produce
+        arbitrarily large-magnitude values (and ``NaN``/``Inf`` under
+        :func:`torch.nn.functional.cross_entropy` with a Robbins-Monro
+        learning-rate schedule). This is intentional — the point of the
+        experiment is to stress-test the aggregator's robustness to
+        unbounded adversaries. If you need a bounded variant, scale
+        ``kappa`` down to your desired :math:`\ell_\infty` cap, or
+        post-process the malicious gradient before injecting it.
     """
 
     @classmethod

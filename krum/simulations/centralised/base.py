@@ -335,6 +335,16 @@ class CentralisedSimulation:
         """Set all RNG seeds for reproducible runs (PyTorch, CUDA, MPS).
 
         .. note::
+            Side effect on CUDA: this also sets
+            ``torch.backends.cudnn.deterministic = True`` and
+            ``torch.backends.cudnn.benchmark = False`` globally for the
+            process, and does **not** restore them on exit. This is
+            intentional for reproducibility of this simulation, but if
+            you compose multiple simulations (or run other code) that
+            expects the default cuDNN heuristic, pin the flags back
+            manually after ``setup()`` returns.
+
+        .. note::
             MPS determinism is best-effort: ``torch.mps.manual_seed``
             seeds the MPS generator, but some reduction kernels remain
             non-deterministic across PyTorch versions and platforms.
