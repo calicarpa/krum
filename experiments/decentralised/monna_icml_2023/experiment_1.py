@@ -6,6 +6,8 @@ while one Byzantine worker applies a sign-flip attack. Edit the constants below
 to reconfigure, or wrap ``orchestrator.run`` in loops to sweep parameters.
 """
 
+import matplotlib.pyplot as plt
+
 from krum.orchestration import Orchestrator
 from krum.primitives.attacks.sign_flip import SignFlipAttack
 
@@ -61,18 +63,18 @@ def main() -> None:
         seed=SEED,
     )
 
-    # The three channels share the same run parameters and rounds. Keep both in
-    # the merge key so this also works when the orchestrator drives a sweep.
-    def column(metric: str, name: str):
-        frame = orchestrator.get(metric).to_pandas()
-        return frame.rename(columns={"step": "round", "value": name})
-
-    train = column("train_loss", "train_loss")
-    merge_keys = [column for column in train.columns if column != "train_loss"]
-    report = train.merge(column("test_loss", "test_loss"), on=merge_keys).merge(
-        column("test_accuracy", "test_accuracy"), on=merge_keys
-    )
-    print(report.to_string(index=False))
+    metrics = ["train_loss", "test_loss", "test_accuracy"]
+    fig, axes = plt.subplots(1, len(metrics), figsize=(14, 4))
+    for ax, name in zip(axes, metrics, strict=True):
+        frame = orchestrator.get(name).to_pandas()
+        ax.plot(frame["step"], frame["value"])
+        ax.set_xlabel("round")
+        ax.set_ylabel(name)
+        ax.set_title(name)
+        ax.grid(True, linestyle=":", alpha=0.5)
+    fig.tight_layout()
+    fig.savefig("experiment_1.png", dpi=150)
+    plt.close(fig)
 
     print("\nExperiment 1 done.")
 
