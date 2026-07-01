@@ -10,6 +10,7 @@ from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
 from .models import MLPSpambase
+from .plot import plot_error_curves_multi_krum
 from .run import krum_experiment
 
 # --- Configurable parameters ---
@@ -68,6 +69,7 @@ def main() -> None:
     error_data = orchestrator.get("error")
     print(len(loss_data))
     print(len(error_data))
+    plot_error_curves_multi_krum(error_data)
 
 
 if __name__ == "__main__":

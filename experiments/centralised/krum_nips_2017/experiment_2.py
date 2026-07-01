@@ -10,6 +10,7 @@ from krum.primitives.attacks.full_gradient_negation import FullGradientNegationA
 
 from ..models import MLP as MLPMnist
 from .models import MLPSpambase
+from .plot import plot_error_vs_batch_size
 from .run import krum_experiment
 
 # --- Configurable parameters ---
@@ -74,6 +75,7 @@ def main() -> None:
     error_data = orchestrator.get("error")
     print(len(loss_data))
     print(len(error_data))
+    plot_error_vs_batch_size(error_data)
 
 
 if __name__ == "__main__":

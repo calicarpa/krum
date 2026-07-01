@@ -9,6 +9,7 @@ from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
 from .models import MLPSpambase
+from .plot import plot_error_curves_by_f
 from .run import krum_experiment
 
 # --- Configurable parameters ---
@@ -64,6 +65,7 @@ def main() -> None:
     error_data = orchestrator.get("error")
     print(len(loss_data))
     print(len(error_data))
+    plot_error_curves_by_f(error_data)
 
 
 if __name__ == "__main__":
