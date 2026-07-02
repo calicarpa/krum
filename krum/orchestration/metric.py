@@ -38,21 +38,16 @@ class Metric:
         """Open (or re-open) the channel ``name`` on the active orchestrator.
 
         Args:
-            name: Channel identifier. Must not contain spaces; case-sensitive.
-                Other special characters (``-``, ``_``, ``.``, ``/``) are
-                allowed.
+            name: Channel identifier. Case-sensitive.
             dtype: Declared type of the pushed values. Enforced on every
                 :meth:`push`.
 
         Raises:
-            ValueError: If ``name`` contains a space.
             RuntimeError: If created outside of an
                 :meth:`~krum.orchestration.orchestrator.Orchestrator.run` call.
             ValueError: If the channel was already declared with a different
                 ``dtype``.
         """
-        if " " in name:
-            raise ValueError(f"Metric name must not contain spaces: {name!r}.")
         self._name = name
         self._dtype = dtype
         # Found now, while a run is active; reused on every push. Registering

@@ -35,12 +35,6 @@ class MetricTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             metric.push(0, 1.0)
 
-    def test_name_with_space_raises(self) -> None:
-        """A metric name containing a space raises ValueError."""
-        self._activate()
-        with self.assertRaises(ValueError):
-            Metric("my loss")
-
     def test_name_and_dtype_properties(self) -> None:
         """The name and dtype are exposed as properties."""
         self._activate()
