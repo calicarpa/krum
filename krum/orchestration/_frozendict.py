@@ -16,7 +16,6 @@ the built-in.
 from __future__ import annotations
 
 import builtins
-import copy
 from collections.abc import Iterable, Iterator, Mapping
 from reprlib import recursive_repr
 from types import MappingProxyType
@@ -76,32 +75,6 @@ class FrozenDict(Mapping[_Key, _Value]):
         if isinstance(other, Mapping):
             return self.__data == other  # order-independent
         return NotImplemented
-
-    def __or__(self, other: object) -> FrozenDict[Any, Any]:
-        if not isinstance(other, Mapping):
-            return NotImplemented
-        return type(self)(self.__data | dict(other))
-
-    def __ror__(self, other: object) -> FrozenDict[Any, Any]:
-        if not isinstance(other, Mapping):
-            return NotImplemented
-        return type(self)(dict(other) | self.__data)
-
-    def __ior__(self, other: object) -> FrozenDict[Any, Any]:
-        return self | other
-
-    def copy(self) -> FrozenDict[_Key, _Value]:
-        """Return this instance, since it is immutable."""
-        return self
-
-    def __copy__(self) -> FrozenDict[_Key, _Value]:
-        return self
-
-    def __deepcopy__(self, memo: dict[int, Any]) -> FrozenDict[_Key, _Value]:
-        return type(self)(copy.deepcopy(dict(self.__data), memo))
-
-    def __reduce__(self) -> tuple[type[object], tuple[dict[_Key, _Value]]]:
-        return type(self), (dict(self.__data),)
 
     @recursive_repr()
     def __repr__(self) -> str:
