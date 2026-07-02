@@ -26,7 +26,7 @@ ATTACK_KAPPA = 100.0
 BATCH_SIZES = [3, 5, 10, 20, 40, 80, 160]
 
 # Byzantine worker counts to test
-F_VALUES = [0, 9]  # 0% and 45%
+F_VALUES = [0, 8]  # 0% and 45%
 
 # Aggregators to compare
 AGGREGATORS = [
