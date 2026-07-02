@@ -23,86 +23,38 @@ _LEGEND_STYLE = {
 
 
 def _extract_aggregator_and_f(run_label: str) -> tuple[str, int] | None:
-    """Parse a run label of the form ``"{ds}_{agg}_f{f}[...]"``.
+    """Parse a run label of the form ``"{agg}_f{f}[...]"``.
+
+    Handles two label shapes emitted by the experiments:
+    - ``"{agg}_f{f}"`` (e.g. ``"Average_f0"``, ``"Krum_f6"``)
+    - ``"{ds}_{agg}_f{f}[_bs{bs}]"`` (e.g. ``"spambase_Average_f0_bs3"``)
 
     Returns:
         A ``(aggregator_name, f)`` pair, or ``None`` if the label does not
-        match the expected pattern.
+        match the expected pattern. The dataset prefix and the optional
+        ``_bs{...}`` suffix are stripped before matching.
     """
-    parts = run_label.split("_")
-    # Find the segment starting with "f" and a digit.
-    for i, segment in enumerate(parts):
-        if segment.startswith("f") and segment[1:].isdigit():
-            agg = "_".join(parts[1:i])  # aggregator may contain underscores (e.g. "Bulyan_Krum")
-            try:
-                f = int(segment[1:])
-            except ValueError:
-                return None
-            return agg, f
-    return None
+    # Strip the optional dataset prefix (e.g. "spambase_", "mnist_").
+    for prefix in ("spambase_", "mnist_"):
+        if run_label.startswith(prefix):
+            run_label = run_label[len(prefix) :]
+            break
+    # Strip the optional "_bs{...}" suffix.
+    if "_bs" in run_label:
+        run_label = run_label.split("_bs", 1)[0]
 
-
-def _plot_lines(
-    frame: Any,
-    dataset_prefix: str,
-    f_target: int,
-    title: str,
-    ylabel: str,
-    xlim_right: int | None = None,
-) -> plt.Axes:
-    """Internal: draw one line per (aggregator, f) matching ``dataset_prefix``.
-
-    Args:
-        frame: Pandas DataFrame from ``MetricDataFrame.to_pandas()``.
-        dataset_prefix: ``"spambase"`` or ``"mnist"`` — selects runs for
-            this dataset.
-        f_target: Plot runs whose ``f`` equals this value (``0`` for honest
-            baselines, ``6``/``9`` for the byzantine runs).
-        title: Plot title.
-        ylabel: Y-axis label.
-        xlim_right: Optional upper bound for the x-axis (in epochs).
-
-    Returns:
-        The matplotlib axes for further customization.
-    """
-    fig, ax = plt.subplots(figsize=(8, 5))
-    plotted_handles: list[plt.Line2D] = []
-
-    for run_label, group in frame.groupby("label", sort=False):
-        if not run_label.startswith(dataset_prefix):
-            continue
-        parsed = _extract_aggregator_and_f(run_label)
-        if parsed is None:
-            continue
-        agg_name, f_value = parsed
-        if f_value != f_target:
-            continue
-        # The (agg, f) tuple is the legend key. We treat f=0 as the honest
-        # baseline and f>0 as the byzantine run.
-        key: tuple[str, Any] = (agg_name, 0 if f_value == 0 else "byz")
-        style = _LEGEND_STYLE.get(key)
-        if style is None:
-            continue
-        group = group.sort_values("step")
-        legend_label = f"{agg_name} (f={f_value})"
-        (line,) = ax.plot(
-            group["step"],
-            group["value"],
-            label=legend_label,
-            **style,
-        )
-        plotted_handles.append(line)
-
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel(ylabel)
-    ax.set_ylim(0.0, 1.0)
-    if xlim_right is not None:
-        ax.set_xlim(left=0, right=xlim_right)
-    ax.grid(True, linestyle=":", alpha=0.5)
-    ax.legend(handles=plotted_handles, loc="upper right", fontsize=9)
-    fig.suptitle(title, fontsize=12)
-    fig.tight_layout()
-    return ax
+    # Match "{agg}_f{f}" where {agg} may contain underscores.
+    idx = run_label.find("_f")
+    if idx < 0 or not run_label[idx + 2 :].isdigit():
+        return None
+    agg_name = run_label[:idx]
+    try:
+        f = int(run_label[idx + 2 :])
+    except ValueError:
+        return None
+    if not agg_name:
+        return None
+    return agg_name, f
 
 
 def plot_error_curves_by_f(error_data: MetricDataFrame) -> None:
@@ -111,6 +63,10 @@ def plot_error_curves_by_f(error_data: MetricDataFrame) -> None:
     Plots test error for Spambase under Average and Krum, side-by-side: the
     left subplot shows ``f=0`` (honest), the right subplot shows ``f=6``
     (33% Gaussian Byzantine).
+
+    The y-axis is auto-scaled with a 5% headroom margin so curves at the
+    bottom of the [0, 1] range are still readable. To use a fixed range
+    (e.g. ``(0, 1)`` to match the paper verbatim), pass ``ylim=...``.
     """
     frame = error_data.to_pandas()
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
@@ -120,9 +76,13 @@ def plot_error_curves_by_f(error_data: MetricDataFrame) -> None:
         (axes[1], 6, "33% byzantine"),
     ):
         plotted_handles: list[plt.Line2D] = []
+        # Track the global min/max across runs in this subplot so we can
+        # pick a tight ylim with a small headroom.
+        values_min, values_max = float("inf"), float("-inf")
         for run_label, group in frame.groupby("label", sort=False):
-            if not run_label.startswith("spambase"):
-                continue
+            # The dataset prefix (e.g. "spambase_") is optional: experiment_1
+            # emits "Average_f0", experiment_2 emits "spambase_Average_f0_bs3".
+            # The _extract_aggregator_and_f helper handles both.
             parsed = _extract_aggregator_and_f(run_label)
             if parsed is None:
                 continue
@@ -141,10 +101,18 @@ def plot_error_curves_by_f(error_data: MetricDataFrame) -> None:
                 **style,
             )
             plotted_handles.append(line)
+            values_min = min(values_min, float(group["value"].min()))
+            values_max = max(values_max, float(group["value"].max()))
 
         ax.set_title(title_suffix, fontsize=11)
         ax.set_xlabel("round")
-        ax.set_ylim(0.0, 1.0)
+        # Tight y-range with 5% headroom above and below; clamp to [0, 1]
+        # since misclassification error is a rate.
+        if plotted_handles:
+            margin = max(0.05 * (values_max - values_min), 0.01)
+            ax.set_ylim(max(0.0, values_min - margin), min(1.0, values_max + margin))
+        else:
+            ax.set_ylim(0.0, 1.0)
         ax.set_xlim(left=0)
         ax.grid(True, linestyle=":", alpha=0.5)
         ax.legend(handles=plotted_handles, loc="upper right", fontsize=9)
@@ -277,14 +245,17 @@ def plot_error_curves_multi_krum(error_data: MetricDataFrame) -> None:
     Plots test error on Spambase for three configurations: Average (f=0,
     honest baseline), Krum (f=6, 33% Gaussian Byzantine), and Multi-Krum
     (f=6, 33% Gaussian Byzantine, ``m = n - f``).
+
+    The y-axis is auto-scaled with a 5% headroom margin so curves at the
+    bottom of the [0, 1] range are still readable.
     """
     frame = error_data.to_pandas()
     fig, ax = plt.subplots(figsize=(8, 5))
     plotted_handles: list[plt.Line2D] = []
+    values_min, values_max = float("inf"), float("-inf")
 
     for run_label, group in frame.groupby("label", sort=False):
-        if not run_label.startswith("spambase"):
-            continue
+        # No dataset prefix expected (experiment_3 emits "Average_f0", etc.).
         parsed = _extract_aggregator_and_f(run_label)
         if parsed is None:
             continue
@@ -304,10 +275,16 @@ def plot_error_curves_multi_krum(error_data: MetricDataFrame) -> None:
             **style,
         )
         plotted_handles.append(line)
+        values_min = min(values_min, float(group["value"].min()))
+        values_max = max(values_max, float(group["value"].max()))
 
     ax.set_xlabel("round")
     ax.set_ylabel("error")
-    ax.set_ylim(0.0, 1.0)
+    if plotted_handles:
+        margin = max(0.05 * (values_max - values_min), 0.01)
+        ax.set_ylim(max(0.0, values_min - margin), min(1.0, values_max + margin))
+    else:
+        ax.set_ylim(0.0, 1.0)
     ax.set_xlim(left=0)
     ax.grid(True, linestyle=":", alpha=0.5)
     ax.legend(handles=plotted_handles, loc="upper right", fontsize=9)
