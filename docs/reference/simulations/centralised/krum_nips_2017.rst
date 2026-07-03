@@ -8,5 +8,4 @@ KrumSimulation
 
 .. seealso::
 
-   For the base class, see :doc:`base`.
    For the ICML 2018 counterpart, see :doc:`hidden_vulnerability_icml_2018`.
