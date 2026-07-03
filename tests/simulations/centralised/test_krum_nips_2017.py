@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 
 from krum.primitives.aggregators.average import Average
-from krum.simulations.centralised import KrumSimulation
+from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
 
 class _DummyModel(nn.Module):

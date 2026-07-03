@@ -8,8 +8,7 @@ import torch.nn as nn
 
 from krum.primitives import Model
 from krum.primitives.aggregators.average import Average
-from krum.simulations.decentralised import DecentralisedSimulation, StepResult
-from krum.simulations.decentralised.base import Batch, LossFn
+from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
 
 
 class _ConcreteSimulation(DecentralisedSimulation[StepResult]):

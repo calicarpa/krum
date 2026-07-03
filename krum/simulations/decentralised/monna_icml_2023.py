@@ -16,7 +16,7 @@ from krum.primitives import Model
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks import Attack
-from krum.simulations.decentralised.base import Batch, DecentralisedSimulation, LossFn, StepResult
+from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
 
 ByzantineReach = Literal["all", "sampled"]
 
@@ -36,7 +36,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
     round (its own plus a set of responders).
 
     MoNNA owns the local optimisation rule (momentum-SGD) and its state, so the
-    momentum lives here rather than in :class:`~krum.simulations.decentralised.base.DecentralisedSimulation`.
+    momentum lives here rather than in :class:`~krum.simulations.decentralised.DecentralisedSimulation`.
 
     ``byzantine_reach`` selects the adversary model used when forming those
     received sets in :meth:`gather_received_models`:

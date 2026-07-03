@@ -7,7 +7,7 @@ import torch.nn as nn
 from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
-from krum.simulations.centralised import KrumSimulation
+from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
 from .datasets import make_datasets
 
