@@ -31,16 +31,11 @@ but not the :class:`~krum.orchestration.metric.Metric` / :meth:`get` contract.
 from __future__ import annotations
 
 import inspect
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Mapping
+from typing import Any
 
-from ._context import begin_run, end_run
 from ._frozendict import FrozenDict
 from .dataframe import MetricDataFrame
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 
 # Column names reserved for sample values and orchestrator-provided metadata; a
 # run parameter may not reuse them because it would collide in the result frame.
@@ -256,3 +251,79 @@ class Orchestrator:
                 ``step`` already exists, do nothing.
         """
         self._frames[name].record(params, step, value, skip_if_exists)
+
+
+# -- Ambient run state, used by Metric to reach the orchestrator ------------
+#
+# The state of the run currently executing is held in **plain module-level
+# globals**. There is no stack and no thread/async isolation: exactly one run
+# is active at a time -- the near-term execution model is multi-process, one
+# process per run, with no multithreading -- so a simple global is sufficient
+# and a :class:`contextvars.ContextVar` would be needless machinery.
+#
+# Two pieces of state are tracked while a run executes: the active
+# orchestrator, so a :class:`~krum.orchestration.metric.Metric` created inside
+# the experiment can reach the orchestrator that owns the data; and the
+# current parameters, used to tag every pushed sample. Both are set at the
+# start of a run by :func:`begin_run` and cleared at its end by
+# :func:`end_run`.
+
+_active_orchestrator: Orchestrator | None = None
+_current_params: dict[str, Any] | None = None
+
+
+def begin_run(orchestrator: Orchestrator, params: dict[str, Any]) -> None:
+    """Mark the start of a run, publishing its orchestrator and parameters.
+
+    Args:
+        orchestrator: The orchestrator driving the run.
+        params: The parameter values of the run, as a mapping of name to value.
+    """
+    global _active_orchestrator, _current_params
+    _active_orchestrator = orchestrator
+    _current_params = params
+
+
+def end_run() -> None:
+    """Mark the end of a run, clearing the published state.
+
+    No stack is kept: the state simply returns to "no run active".
+    """
+    global _active_orchestrator, _current_params
+    _active_orchestrator = None
+    _current_params = None
+
+
+def active_orchestrator() -> Orchestrator:
+    """Return the orchestrator of the run currently executing.
+
+    Returns:
+        The active :class:`Orchestrator`.
+
+    Raises:
+        RuntimeError: If no run is active, which usually means a
+            :class:`~krum.orchestration.metric.Metric` was created outside of
+            :meth:`Orchestrator.run`.
+    """
+    if _active_orchestrator is None:
+        raise RuntimeError(
+            "No active orchestrator. A Metric may only be created inside a function executed by Orchestrator.run(...)."
+        )
+    return _active_orchestrator
+
+
+def current_params() -> dict[str, Any]:
+    """Return the parameter values of the run currently executing.
+
+    Returns:
+        The current run's parameters, as a mapping of name to value.
+
+    Raises:
+        RuntimeError: If no run is active, which usually means a value was
+            pushed outside of :meth:`Orchestrator.run`.
+    """
+    if _current_params is None:
+        raise RuntimeError(
+            "No active run. Metric.push(...) may only be called inside a function executed by Orchestrator.run(...)."
+        )
+    return _current_params

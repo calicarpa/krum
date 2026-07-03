@@ -7,9 +7,8 @@ directly via :func:`begin_run` / :func:`end_run` to exercise Metric in isolation
 
 import unittest
 
-from krum.orchestration._context import begin_run, end_run
 from krum.orchestration.metric import Metric
-from krum.orchestration.orchestrator import Orchestrator
+from krum.orchestration.orchestrator import Orchestrator, begin_run, end_run
 
 
 class MetricTest(unittest.TestCase):

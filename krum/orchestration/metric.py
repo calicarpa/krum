@@ -11,17 +11,17 @@ function. Values are recorded one ``(step, value)`` sample at a time::
 A :class:`Metric` is a **write handle, not a store**: the samples do not live
 on the metric object. Each push is routed to the
 :class:`~krum.orchestration.orchestrator.Orchestrator` driving the current run
--- found through the ambient run state (see :mod:`krum.orchestration._context`)
--- which owns and assembles the data. This lets one channel name accumulate
-samples across many runs even though a fresh :class:`Metric` is created on every
-run.
+-- found through the ambient run state tracked in
+:mod:`krum.orchestration.orchestrator` -- which owns and assembles the data.
+This lets one channel name accumulate samples across many runs even though a
+fresh :class:`Metric` is created on every run.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from ._context import active_orchestrator, current_params
+from .orchestrator import active_orchestrator, current_params
 
 
 class Metric:
