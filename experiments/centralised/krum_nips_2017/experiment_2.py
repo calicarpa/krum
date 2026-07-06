@@ -3,14 +3,15 @@
 Cost of Resilience: sweep batch sizes on Spambase and MNIST.
 """
 
+from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
 
 from ..models import MLP as MLPMnist
-from .run import run_one_simulation
-from .datasets import mnist_dataset, spambase_dataset
 from .models import MLPSpambase
+from .plot import plot_error_vs_batch_size
+from .run import krum_experiment
 
 # --- Configurable parameters ---
 ROUNDS = 500
@@ -25,7 +26,7 @@ ATTACK_KAPPA = 100.0
 BATCH_SIZES = [3, 5, 10, 20, 40, 80, 160]
 
 # Byzantine worker counts to test
-F_VALUES = [0, 9]  # 0% and 45%
+F_VALUES = [0, 8]  # 0% and 45%
 
 # Aggregators to compare
 AGGREGATORS = [
@@ -35,8 +36,8 @@ AGGREGATORS = [
 
 # Datasets to test
 DATASETS = [
-    ("spambase", spambase_dataset, MLPSpambase),
-    ("mnist", mnist_dataset, MLPMnist),
+    ("spambase", MLPSpambase),
+    ("mnist", MLPMnist),
 ]
 # --------------------------------------------
 
@@ -45,17 +46,19 @@ def main() -> None:
     """Run Experiment 2."""
     attack_kw = {"kappa": ATTACK_KAPPA}
 
-    for ds_name, ds_fn, model_cls in DATASETS:
-        train_set, test_set = ds_fn()
+    orchestrator = Orchestrator("krum_nips_2017_experiment_2")
+
+    for ds_name, model_cls in DATASETS:
         for f in F_VALUES:
             for bs in BATCH_SIZES:
                 for agg, agg_label in AGGREGATORS:
                     label = f"{ds_name}_{agg_label}_f{f}_bs{bs}"
-                    run_one_simulation(
+
+                    orchestrator.run(
+                        krum_experiment,
                         label=label,
+                        dataset=ds_name,
                         model_cls=model_cls,
-                        train_set=train_set,
-                        test_set=test_set,
                         aggregator=agg,
                         attack=FullGradientNegationAttack,
                         attack_kwargs=attack_kw,
@@ -68,6 +71,11 @@ def main() -> None:
                     )
 
     print("\nExperiment 2 done.")
+    loss_data = orchestrator.get("loss")
+    error_data = orchestrator.get("error")
+    print(len(loss_data))
+    print(len(error_data))
+    plot_error_vs_batch_size(error_data)
 
 
 if __name__ == "__main__":

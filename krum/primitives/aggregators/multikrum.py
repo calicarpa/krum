@@ -82,11 +82,19 @@ class MultiKrum(Aggregator):
 
     @staticmethod
     def _compute_scores(stacked: Tensor, *, n: int, f: int) -> Tensor:
-        """Score every stacked gradient by its sum of distances to its :math:`n - f - 1` closest peers.
+        r"""Score every stacked gradient by its sum of distances to its :math:`n - f - 1` closest peers in the sorted distance table.
 
-        The :math:`n - f - 1` closest distance sum approximates how surrounded a
-        gradient is by the (presumed honest) majority; lower scores are
-        better.
+        After :func:`torch.sort` on each row, the first entry is the
+        self-distance (zero), so the first :math:`n - f - 1` columns
+        effectively include the self at distance 0 plus the
+        :math:`n - f - 2` closest *other* workers — exactly the
+        :math:`n - f - 2` non-self neighbors.
+        The implementation sums Euclidean distances (not squared) but
+        the ranking is preserved.
+
+        The :math:`n - f - 1` closest-peers sum approximates how
+        surrounded a gradient is by the (presumed honest) majority;
+        lower scores are better.
 
         Args:
             stacked: Tensor of shape :math:`(n, d)` containing the stacked worker gradients.
@@ -94,7 +102,7 @@ class MultiKrum(Aggregator):
             f: Number of Byzantine workers to tolerate.
 
         Returns:
-            Tensor of shape ``(n,)`` containing the Krum score of each worker.
+            Tensor of shape :math:`(n,)` containing the Krum score of each worker.
         """
         distances = cdist(stacked, stacked, p=2.0)
         sorted_distances, _ = sort(distances, dim=1)

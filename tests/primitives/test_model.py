@@ -118,8 +118,9 @@ class ModelTest(unittest.TestCase):
 
     def test_relink_gradients_before_first_access(self) -> None:
         """relink_gradients works without prior access to .gradients (lazy init)."""
-        self.model.relink_gradients()
-        self.assertIsNotNone(self.model.gradients)
+        result = self.model.relink_gradients()
+        self.assertIsNotNone(result)
+        self.assertIs(result, self.model.gradients)
 
     def test_relink_gradients_after_zero_grad_set_to_none(self) -> None:
         """After zero_grad(set_to_none=True), relink_gradients restores zero-copy."""
@@ -138,6 +139,17 @@ class ModelTest(unittest.TestCase):
         wg = self.linear.weight.grad
         assert wg is not None
         self.assertEqual(wg[0, 0].item(), 77.0)
+
+    def test_relink_gradients_returns_flat_tensor(self) -> None:
+        """relink_gradients returns the flat gradient tensor, enabling single-call access."""
+        self._forward_backward()
+        result = self.model.relink_gradients()
+        self.assertIs(result, self.model.gradients)
+
+    def test_relink_parameters_returns_flat_tensor(self) -> None:
+        """relink_parameters returns the flat parameter tensor, enabling single-call access."""
+        result = self.model.relink_parameters()
+        self.assertIs(result, self.model.parameters)
 
     def test_relink_gradients_preserves_grad_values(self) -> None:
         """relink_gradients copies existing gradient values into the flat buffer."""
@@ -181,8 +193,9 @@ class ModelTest(unittest.TestCase):
 
     def test_relink_parameters_before_first_access(self) -> None:
         """relink_parameters works without prior access to .parameters (lazy init)."""
-        self.model.relink_parameters()
-        self.assertIsNotNone(self.model.parameters)
+        result = self.model.relink_parameters()
+        self.assertIsNotNone(result)
+        self.assertIs(result, self.model.parameters)
 
     def test_relink_parameters_after_data_replacement(self) -> None:
         """After replacing a parameter's .data, relink_parameters restores zero-copy."""
@@ -234,8 +247,8 @@ class ModelTest(unittest.TestCase):
         flat[0] = 88.0
         self.assertEqual(self.linear.weight[0, 0].item(), 88.0)
 
-    def test_relink_chaining(self) -> None:
-        """relink_gradients().relink_parameters() chains correctly."""
+    def test_relink_restores_after_combined_replacement(self) -> None:
+        """relink_gradients and relink_parameters work independently after external replacement."""
         self._forward_backward()
         _flat_p = self.model.parameters
         _flat_g = self.model.gradients
@@ -244,16 +257,14 @@ class ModelTest(unittest.TestCase):
         with torch.no_grad():
             self.linear.weight.data = torch.randn_like(self.linear.weight)
 
-        result = self.model.relink_gradients().relink_parameters()
-        self.assertIs(result, self.model)
+        flat_g = self.model.relink_gradients()
+        flat_p = self.model.relink_parameters()
 
-        flat_g = self.model.gradients
         flat_g[0] = 77.0
         wg = self.linear.weight.grad
         assert wg is not None
         self.assertEqual(wg[0, 0].item(), 77.0)
 
-        flat_p = self.model.parameters
         flat_p[0] = 33.0
         self.assertEqual(self.linear.weight[0, 0].item(), 33.0)
 

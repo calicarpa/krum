@@ -3,14 +3,15 @@
 Multi-Krum vs Krum and Average under Gaussian attack on Spambase.
 """
 
+from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.gaussian import GaussianAttack
 
-from .run import run_one_simulation
-from .datasets import spambase_dataset
 from .models import MLPSpambase
+from .plot import plot_error_curves_multi_krum
+from .run import krum_experiment
 
 # --- Configurable parameters ---
 ROUNDS = 500
@@ -27,19 +28,11 @@ ATTACK_STD = 200.0
 
 # MultiKrum parameter
 MULTIKRUM_M = None  # None = auto (N - F - 2)
-
-# Configurations to run
-CONFIGS = [
-    (Average, "Average_f0", 0, None),
-    (Krum, "Krum_f6", None, None),  # f computed from fraction
-    (MultiKrum, "MultiKrum_f6", None, None),  # f and m computed
-]
 # --------------------------------------------
 
 
 def main() -> None:
     """Run Experiment 3."""
-    train_set, test_set = spambase_dataset()
     attack_kw = {"std": ATTACK_STD}
 
     f = int(N * BYZ_FRACTION)
@@ -51,12 +44,14 @@ def main() -> None:
         (MultiKrum, f"MultiKrum_f{f}", f, {"m": m}),
     ]
 
+    orchestrator = Orchestrator("krum_nips_2017_experiment_3")
+
     for agg, label, f_val, agg_kw in configs:
-        run_one_simulation(
+        orchestrator.run(
+            krum_experiment,
             label=label,
+            dataset="spambase",
             model_cls=MLPSpambase,
-            train_set=train_set,
-            test_set=test_set,
             aggregator=agg,
             aggregator_kwargs=agg_kw,
             attack=GaussianAttack,
@@ -70,6 +65,11 @@ def main() -> None:
         )
 
     print("\nExperiment 3 done.")
+    loss_data = orchestrator.get("loss")
+    error_data = orchestrator.get("error")
+    print(len(loss_data))
+    print(len(error_data))
+    plot_error_curves_multi_krum(error_data)
 
 
 if __name__ == "__main__":

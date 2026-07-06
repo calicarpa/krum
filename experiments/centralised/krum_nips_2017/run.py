@@ -3,19 +3,20 @@
 from typing import Any
 
 import torch.nn as nn
-from torch.utils.data import Dataset
 
+from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
-from krum.simulations.centralised import KrumSimulation
+from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
+
+from .datasets import make_datasets
 
 
-def run_one_simulation(
+def krum_experiment(
     *,
     label: str,
+    dataset: str,
     model_cls: type[nn.Module],
-    train_set: Dataset[Any],
-    test_set: Dataset[Any],
     aggregator: type[Aggregator],
     attack: type[Attack],
     attack_kwargs: dict[str, Any] | None = None,
@@ -26,12 +27,19 @@ def run_one_simulation(
     lr: float,
     seed: int,
     eval_every: int = 10,
+    train_size: int = 0,
+    test_size: int = 0,
     aggregator_kwargs: dict[str, Any] | None = None,
-    aggregator_f: int | None = None,
-) -> list[tuple[int, Any]]:
-    """Build and run one KrumSimulation instance."""
+) -> None:
+    """Build and run one KrumSimulation instance.
+
+    The datasets are built from the hashable ``dataset`` name (and optional
+    ``train_size``/``test_size``) *inside* this function, so the run is
+    identified by those parameters rather than by the dataset objects.
+    """
     print(f"\n=== {label} ===")
-    sim = KrumSimulation(
+    train_set, test_set = make_datasets(dataset, train_size, test_size)
+    krum_simulation = KrumSimulation(
         model_cls=model_cls,
         train_set=train_set,
         test_set=test_set,
@@ -41,11 +49,25 @@ def run_one_simulation(
         attack_kwargs=attack_kwargs,
         n=n,
         f=f,
-        aggregator_f=aggregator_f,
         rounds=rounds,
         batch_size=batch_size,
         lr=lr,
         seed=seed,
         eval_every=eval_every,
     )
-    return sim.run()
+
+    krum_simulation.setup()
+
+    loss = Metric("loss", float)
+    error = Metric("error", float)
+
+    for step in range(rounds):
+        krum_simulation.step()
+        loss_value, error_value = krum_simulation.evaluate()
+
+        loss.push(step, loss_value)
+        error.push(step, error_value)
+
+        if step % eval_every == 0:
+            print(f"step {step}")
+            print(f"loss: {loss_value:.4f}, error: {error_value:.4f}")

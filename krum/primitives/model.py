@@ -34,7 +34,6 @@ from collections.abc import Iterator
 import torch
 from torch import Tensor
 from torch.nn import Module
-from typing_extensions import Self
 
 
 class Model:
@@ -173,13 +172,17 @@ class Model:
         """
         self._flat_parameters = self._relink(tuple(self._module.parameters()), flat)
 
-    def relink_parameters(self) -> Self:
+    def relink_parameters(self) -> Tensor:
         """Re-synchronise the flat parameter view after an external ``.data`` replacement.
 
         This method is necessary when a parameter's ``.data`` has been
         replaced since the flat parameters were built, restoring the zero-copy
         link between the cached flat tensor and every parameter so that the
         fast ``.parameters`` getter yields a consistent view again.
+
+        Returns:
+            The flat parameter tensor of shape ``(d,)`` sharing memory with
+            all module parameters.
         """
         flat = self.parameters
         storage = flat.untyped_storage()
@@ -190,7 +193,7 @@ class Model:
                 if parameter.data.untyped_storage() is not storage:
                     parameter.data = flat[offset:end].view(*parameter.shape).copy_(parameter.data)
                 offset = end
-        return self
+        return flat
 
     def _gradients(self, *, empty: bool) -> Iterator[Tensor]:
         """Iterate over module parameter gradients, initializing missing ones.
@@ -231,7 +234,7 @@ class Model:
             self._flat_gradients = self._flatten(tuple(self._gradients(empty=False)))
         return self._flat_gradients
 
-    def relink_gradients(self) -> Self:
+    def relink_gradients(self) -> Tensor:
         """Re-synchronise the flat gradient view after an external ``.grad`` replacement.
 
         This method is necessary when a parameter's ``.grad`` attribute has
@@ -239,9 +242,12 @@ class Model:
         instance after ``module.zero_grad(set_to_none=True)``. It restores the
         zero-copy link between the cached flat tensor and every ``.grad``
         so that the fast ``.gradients`` getter yields a consistent view again.
+
+        Returns:
+            The flat gradient tensor of shape ``(d,)`` sharing memory with
+            all module gradients.
         """
         flat = self.gradients
-
         storage = flat.untyped_storage()
         offset = 0
         with torch.no_grad():
@@ -255,7 +261,7 @@ class Model:
                 elif parameter.grad.untyped_storage() is not storage:
                     parameter.grad.data = flat[offset:end].view(*parameter.shape).copy_(parameter.grad)
                 offset = end
-        return self
+        return flat
 
     @gradients.setter
     def gradients(self, flat: Tensor) -> None:

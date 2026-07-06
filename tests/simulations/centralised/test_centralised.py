@@ -30,11 +30,6 @@ def _dummy_dataset(n: int = 32, d: int = 10, classes: int = 2) -> TensorDataset:
     return TensorDataset(x, y)
 
 
-def _dummy_evaluator(sim: CentralisedSimulation) -> float:
-    """Eval stub that returns a constant."""
-    return 0.0
-
-
 class CentralisedSimulationConstructionTest(unittest.TestCase):
     """Test construction validation."""
 
@@ -51,7 +46,6 @@ class CentralisedSimulationConstructionTest(unittest.TestCase):
                 "rounds": 3,
                 "batch_size": 8,
                 "lr": 0.1,
-                "evaluate_fn": _dummy_evaluator,
             },
         )
         kwargs.update(overrides)
@@ -98,24 +92,9 @@ class CentralisedSimulationConstructionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._make_sim(stop_attack_at=-1)
 
-    def test_missing_evaluate_fn_raises(self) -> None:
-        """Missing ``evaluate_fn`` should raise ``TypeError``."""
-        with self.assertRaises(TypeError):
-            CentralisedSimulation(
-                model_cls=_DummyModel,
-                train_set=_dummy_dataset(),
-                test_set=_dummy_dataset(),
-                aggregator=Average,
-                n=4,
-                f=0,
-                rounds=3,
-                batch_size=8,
-                lr=0.1,
-            )
-
 
 class CentralisedSimulationLifecycleTest(unittest.TestCase):
-    """Test the simulation lifecycle: setup → step → evaluate → run."""
+    """Test the simulation lifecycle: setup, step."""
 
     def setUp(self) -> None:
         """Set up a simulation instance for lifecycle testing."""
@@ -129,7 +108,6 @@ class CentralisedSimulationLifecycleTest(unittest.TestCase):
             rounds=5,
             batch_size=8,
             lr=0.1,
-            evaluate_fn=_dummy_evaluator,
         )
 
     def test_model_raises_before_setup(self) -> None:
@@ -166,38 +144,6 @@ class CentralisedSimulationLifecycleTest(unittest.TestCase):
         self.sim.step()
         self.assertEqual(self.sim._current_round, 1)
 
-    def test_evaluate_delegates_to_fn(self) -> None:
-        """:meth:`evaluate` should delegate to ``evaluate_fn``."""
-        self.sim.setup()
-        result = self.sim.evaluate()
-        self.assertEqual(result, 0.0)
-
-    def test_evaluate_test_error_raises_before_setup(self) -> None:
-        """:meth:`evaluate_test_error` before setup should raise ``RuntimeError``."""
-        with self.assertRaises(RuntimeError):
-            self.sim.evaluate_test_error()
-
-    def test_evaluate_test_error_and_loss_raises_before_setup(self) -> None:
-        """:meth:`evaluate_test_error_and_loss` before setup should raise ``RuntimeError``."""
-        with self.assertRaises(RuntimeError):
-            self.sim.evaluate_test_error_and_loss()
-
-    def test_evaluate_full_raises_before_setup(self) -> None:
-        """:meth:`evaluate_full` before setup should raise ``RuntimeError``."""
-        with self.assertRaises(RuntimeError):
-            self.sim.evaluate_full()
-
-    def test_run_returns_correct_trace_count(self) -> None:
-        """:meth:`run` should return the expected number of traces."""
-        traces = self.sim.run()
-        self.assertEqual(len(traces), 2)
-
-    def test_run_raises_on_double_call(self) -> None:
-        """Calling :meth:`run` twice should raise ``RuntimeError``."""
-        self.sim.run()
-        with self.assertRaises(RuntimeError):
-            self.sim.run()
-
 
 class CentralisedSimulationStepTest(unittest.TestCase):
     """Test step behaviour with honest workers and attacks."""
@@ -214,7 +160,6 @@ class CentralisedSimulationStepTest(unittest.TestCase):
             rounds=5,
             batch_size=8,
             lr=0.1,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         assert sim._model is not None
@@ -239,7 +184,6 @@ class CentralisedSimulationStepTest(unittest.TestCase):
             rounds=5,
             batch_size=8,
             lr=0.1,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
@@ -262,11 +206,37 @@ class CentralisedSimulationStepTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
             stop_attack_at=0,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
         self.assertEqual(sim._current_round, 1)
+
+    def test_worker_gradients_are_distinct(self) -> None:
+        """Honest workers on different data shards must produce distinct gradients.
+
+        This is a regression test for a bug where ``module.zero_grad()`` (with
+        PyTorch's default ``set_to_none=True``) discarded the relinked flat
+        gradient view, causing every worker to return the stale gradient from
+        the first worker.
+        """
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_set=_dummy_dataset(n=128),
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            n=4,
+            f=0,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        gradients = [sim._train_one_worker(loader) for loader in sim._worker_loaders]
+        for i in range(1, len(gradients)):
+            self.assertFalse(
+                torch.equal(gradients[0], gradients[i]),
+                "Two honest workers produced identical gradients; the flat gradient view is likely stale.",
+            )
 
 
 class CentralisedSimulationLRScheduleTest(unittest.TestCase):
@@ -285,7 +255,6 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
             lr_schedule="none",
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
@@ -305,7 +274,6 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
             lr=0.1,
             lr_schedule="exponential",
             lr_decay=0.5,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
@@ -325,125 +293,11 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
             lr=0.1,
             lr_schedule="robbins_monro",
             r_eta=1.0,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
         expected = 1.0 * 0.1 / (0 + 1.0)
         self.assertAlmostEqual(sim._current_lr, expected)
-
-
-class CentralisedSimulationEvaluateHelpersTest(unittest.TestCase):
-    """Test the built-in evaluate helper methods on real data."""
-
-    def setUp(self) -> None:
-        """Set up a simulation instance for evaluate helper testing."""
-        self.sim = CentralisedSimulation(
-            model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
-            test_set=_dummy_dataset(n=16),
-            aggregator=Average,
-            n=4,
-            f=0,
-            rounds=5,
-            batch_size=8,
-            lr=0.1,
-            evaluate_fn=_dummy_evaluator,
-        )
-        self.sim.setup()
-
-    def test_evaluate_test_error_returns_float(self) -> None:
-        """:meth:`evaluate_test_error` should return a float in ``[0, 1]``."""
-        err = self.sim.evaluate_test_error()
-        self.assertIsInstance(err, float)
-        self.assertGreaterEqual(err, 0.0)
-        self.assertLessEqual(err, 1.0)
-
-    def test_evaluate_test_error_and_loss_returns_dict(self) -> None:
-        """:meth:`evaluate_test_error_and_loss` should return a dict."""
-        result = self.sim.evaluate_test_error_and_loss()
-        self.assertIsInstance(result, dict)
-        self.assertSetEqual(set(result.keys()), {"test_error", "test_loss"})
-        self.assertIsInstance(result["test_error"], float)
-        self.assertIsInstance(result["test_loss"], float)
-        self.assertGreaterEqual(result["test_error"], 0.0)
-        self.assertLessEqual(result["test_error"], 1.0)
-
-    def test_evaluate_full_returns_dict(self) -> None:
-        """:meth:`evaluate_full` should return a dict."""
-        result = self.sim.evaluate_full()
-        self.assertIsInstance(result, dict)
-        self.assertSetEqual(set(result.keys()), {"train_loss", "test_accuracy", "test_loss"})
-        for v in result.values():
-            self.assertIsInstance(v, float)
-        self.assertGreaterEqual(result["test_accuracy"], 0.0)
-        self.assertLessEqual(result["test_accuracy"], 1.0)
-
-
-class CentralisedSimulationCompositionTest(unittest.TestCase):
-    """Test that evaluate_fn composition works for custom evaluators."""
-
-    def test_custom_evaluator_receives_sim(self) -> None:
-        """A custom ``evaluate_fn`` should receive the simulation instance."""
-        received: list[CentralisedSimulation | None] = [None]
-
-        def custom_eval(sim: CentralisedSimulation) -> str:
-            received[0] = sim
-            return "custom"
-
-        sim = CentralisedSimulation(
-            model_cls=_DummyModel,
-            train_set=_dummy_dataset(),
-            test_set=_dummy_dataset(),
-            aggregator=Average,
-            n=4,
-            f=0,
-            rounds=3,
-            batch_size=8,
-            lr=0.1,
-            evaluate_fn=custom_eval,
-        )
-        sim.setup()
-        result = sim.evaluate()
-        self.assertEqual(result, "custom")
-        self.assertIs(received[0], sim)
-
-    def test_use_built_in_evaluate_test_error(self) -> None:
-        """:meth:`evaluate` should work when ``evaluate_fn`` is :meth:`evaluate_test_error`."""
-        sim = CentralisedSimulation(
-            model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
-            test_set=_dummy_dataset(n=16),
-            aggregator=Average,
-            n=4,
-            f=0,
-            rounds=3,
-            batch_size=8,
-            lr=0.1,
-            evaluate_fn=CentralisedSimulation.evaluate_test_error,
-        )
-        sim.setup()
-        result = sim.evaluate()
-        self.assertIsInstance(result, float)
-
-    def test_use_built_in_evaluate_full(self) -> None:
-        """:meth:`evaluate` should work when ``evaluate_fn`` is :meth:`evaluate_full`."""
-        sim = CentralisedSimulation(
-            model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
-            test_set=_dummy_dataset(n=16),
-            aggregator=Average,
-            n=4,
-            f=0,
-            rounds=3,
-            batch_size=8,
-            lr=0.1,
-            evaluate_fn=CentralisedSimulation.evaluate_full,
-        )
-        sim.setup()
-        result = sim.evaluate()
-        self.assertIsInstance(result, dict)
-        self.assertEqual(len(result), 3)
 
 
 class CentralisedSimulationWeightDecayTest(unittest.TestCase):
@@ -462,7 +316,6 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
             weight_decay=1e-4,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         sim.step()
@@ -481,7 +334,6 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
             xavier_init=True,
-            evaluate_fn=_dummy_evaluator,
         )
         sim.setup()
         assert sim._model is not None
@@ -489,6 +341,121 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
         assert isinstance(module, _DummyModel)
         bias = module.linear.bias
         self.assertTrue(torch.all(bias == 0.0).item())
+
+    def test_xavier_init_is_deterministic_across_setup(self) -> None:
+        """Two ``setup()`` calls with the same seed must yield identical Xavier weights.
+
+        Regression guard for the deterministic-Xavier contract: the local
+        generator used by ``_xavier_init_`` must not be perturbed by RNG
+        consumption elsewhere in the process.
+        """
+        kwargs: dict[str, Any] = {
+            "model_cls": _DummyModel,
+            "train_set": _dummy_dataset(n=32),
+            "test_set": _dummy_dataset(),
+            "aggregator": Average,
+            "n": 4,
+            "f": 0,
+            "rounds": 1,
+            "batch_size": 8,
+            "lr": 0.1,
+            "xavier_init": True,
+            "seed": 42,
+        }
+        sim_a = CentralisedSimulation(**kwargs)
+        sim_a.setup()
+        sim_b = CentralisedSimulation(**kwargs)
+        sim_b.setup()
+        assert sim_a._model is not None and sim_b._model is not None
+        torch.testing.assert_close(sim_a._model.parameters, sim_b._model.parameters)
+
+    def test_xavier_init_ignores_global_rng(self) -> None:
+        """Consuming the global RNG before ``setup()`` must not perturb Xavier weights."""
+        kwargs: dict[str, Any] = {
+            "model_cls": _DummyModel,
+            "train_set": _dummy_dataset(n=32),
+            "test_set": _dummy_dataset(),
+            "aggregator": Average,
+            "n": 4,
+            "f": 0,
+            "rounds": 1,
+            "batch_size": 8,
+            "lr": 0.1,
+            "xavier_init": True,
+            "seed": 42,
+        }
+        sim_ref = CentralisedSimulation(**kwargs)
+        sim_ref.setup()
+        assert sim_ref._model is not None
+        ref_params = sim_ref._model.parameters.clone()
+
+        # Drain the global RNG between the two setups.
+        torch.manual_seed(0)
+        _ = torch.randn(1000)
+        _ = torch.randn(2000)
+
+        sim_after = CentralisedSimulation(**kwargs)
+        sim_after.setup()
+        assert sim_after._model is not None
+        torch.testing.assert_close(ref_params, sim_after._model.parameters)
+
+
+class CentralisedSimulationAggregatorOverrideTest(unittest.TestCase):
+    """Test that ``aggregator_kwargs`` can override the simulation's ``self.f``."""
+
+    def test_aggregator_kwargs_f_overrides_simulation_f(self) -> None:
+        """``aggregator_kwargs['f']`` must take precedence over ``self.f``."""
+        captured: dict[str, Any] = {}
+
+        class _SpyAggregator:
+            @classmethod
+            def aggregate(cls, gradients, /, **kwargs):
+                captured.update(kwargs)
+                return gradients.mean(dim=0)
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_set=_dummy_dataset(n=64),
+            test_set=_dummy_dataset(),
+            aggregator=_SpyAggregator,  # ty:ignore[invalid-argument-type]
+            aggregator_kwargs={"f": 5},
+            n=10,
+            f=2,
+            rounds=1,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        sim.step()
+        self.assertEqual(captured["f"], 5)
+        self.assertEqual(captured["n"], 10)
+
+    def test_aggregator_kwargs_n_overrides_simulation_n(self) -> None:
+        """``aggregator_kwargs['n']`` must take precedence over ``self.n``."""
+        captured: dict[str, Any] = {}
+
+        class _SpyAggregator:
+            @classmethod
+            def aggregate(cls, gradients, /, **kwargs):
+                captured.update(kwargs)
+                return gradients.mean(dim=0)
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_set=_dummy_dataset(n=64),
+            test_set=_dummy_dataset(),
+            aggregator=_SpyAggregator,  # ty:ignore[invalid-argument-type]
+            aggregator_kwargs={"n": 99},
+            n=10,
+            f=2,
+            rounds=1,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        sim.step()
+        self.assertEqual(captured["n"], 99)
+        self.assertEqual(captured["f"], 2)
 
 
 if __name__ == "__main__":

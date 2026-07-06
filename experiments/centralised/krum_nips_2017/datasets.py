@@ -1,12 +1,14 @@
 """Datasets for the Krum-NIPS-2017 simulation."""
 
 import urllib.request
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import TensorDataset
+from torch.utils.data import Dataset, TensorDataset
 
+from ..datasets import limit_dataset
 from ..datasets import mnist_dataset as mnist_dataset
 
 
@@ -45,3 +47,22 @@ def spambase_dataset(*, test_size: float = 0.2, seed: int = 42) -> tuple[TensorD
     train_ds = TensorDataset(torch.from_numpy(x[train_idx]), torch.from_numpy(y[train_idx]))
     test_ds = TensorDataset(torch.from_numpy(x[test_idx]), torch.from_numpy(y[test_idx]))
     return (train_ds, test_ds)
+
+
+@lru_cache(maxsize=8)
+def make_datasets(dataset: str, train_size: int = 0, test_size: int = 0) -> tuple[Dataset, Dataset]:
+    """Return the (train, test) datasets named by ``dataset``.
+
+    Built here from a hashable name and sizes (``0`` keeps the full split) so an
+    experiment run is identified by the dataset name and sizes rather than by the
+    bulky dataset objects themselves. Memoized on its configuration so repeated
+    runs reuse the loaded datasets; the returned datasets are read-only and
+    shared across runs, so callers must not mutate them.
+    """
+    if dataset == "spambase":
+        train, test = spambase_dataset()
+    elif dataset == "mnist":
+        train, test = mnist_dataset()
+    else:
+        raise ValueError(f"Unknown dataset {dataset!r}; expected 'spambase' or 'mnist'.")
+    return limit_dataset(train, train_size), limit_dataset(test, test_size)

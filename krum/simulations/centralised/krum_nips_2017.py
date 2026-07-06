@@ -11,7 +11,9 @@ configuration run over multiple synchronous rounds with no learning rate decay.
 
 from typing import Any
 
-from .base import CentralisedSimulation
+import torch
+
+from krum.simulations.centralised import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):
@@ -26,10 +28,23 @@ class KrumSimulation(CentralisedSimulation):
     - Reports misclassification error and cross-entropy loss on the test set.
     """
 
-    def __init__(self, *, aggregator_f: int | None = None, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """See :class:`~krum.simulations.centralised.CentralisedSimulation`."""
-        super().__init__(
-            aggregator_f=aggregator_f,
-            evaluate_fn=CentralisedSimulation.evaluate_test_error_and_loss,
-            **kwargs,
-        )
+        super().__init__(**kwargs)
+
+    def evaluate(self) -> tuple[float, float]:
+        """Evaluate the model on the test set.
+
+        Returns:
+            Tuple of ``(test_loss, test_error)``.
+        """
+        assert self._model is not None and self._test_loader is not None
+        self._model.module.eval()
+        with torch.no_grad():
+            x, y = next(iter(self._test_loader))
+            x, y = x.to(self.device), y.to(self.device)
+            logits = self._model.module(x)
+            loss = self.loss_fn(logits, y).item()
+            preds = logits.argmax(dim=1)
+            error = (preds != y).float().mean().item()
+        return loss, error

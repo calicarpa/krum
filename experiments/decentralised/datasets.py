@@ -2,6 +2,7 @@
 
 import random
 from collections.abc import Iterator
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -12,6 +13,7 @@ from torchvision import datasets, transforms
 Batch = tuple[torch.Tensor, torch.Tensor]
 
 
+@lru_cache(maxsize=8)
 def make_datasets(
     *,
     dataset: str,
@@ -22,7 +24,13 @@ def make_datasets(
     batch_size: int,
     seed: int,
 ) -> tuple[Dataset, Dataset]:
-    """Create the train and test datasets (MNIST download or synthetic FakeData)."""
+    """Create the train and test datasets (MNIST download or synthetic FakeData).
+
+    Memoized on its (hashable) configuration so repeated runs with the same data
+    configuration reuse the loaded datasets instead of reloading them. The cache
+    keeps the 8 most recent configurations; the returned datasets are read-only
+    and shared across runs, so callers must not mutate them.
+    """
     transform = transforms.Compose([transforms.ToTensor()])
     if dataset == "mnist":
         train = datasets.MNIST(Path(data_dir), train=True, download=True, transform=transform)
