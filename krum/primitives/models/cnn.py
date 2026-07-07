@@ -21,7 +21,7 @@ class CNN(nn.Module):
 
     .. math::
 
-        \mathbb{R}^{3 \times 32 \times 3}
+        \mathbb{R}^{3 \times 32 \times 32}
         \xrightarrow{\text{Conv2d}(16)} \mathbb{R}^{16 \times 32 \times 32}
         \xrightarrow{\text{MaxPool}} \mathbb{R}^{16 \times 15 \times 15}
         \xrightarrow{\text{Conv2d}(64)} \mathbb{R}^{64 \times 15 \times 15}
