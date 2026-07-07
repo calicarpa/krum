@@ -33,9 +33,11 @@ single call:
 parameters after an external ``.data`` replacement. Both methods return the
 flat ``Tensor`` directly so no further property access is needed.
 
+Core Abstractions
+-----------------
+
 .. toctree::
    :maxdepth: 1
-   :caption: Core Abstractions:
 
    models/index
    aggregators/index

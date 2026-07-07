@@ -3,26 +3,12 @@ Orchestration
 
 .. automodule:: krum.orchestration
 
-Orchestrator
-------------
+Available Classes
+-----------------
 
-.. automodule:: krum.orchestration.orchestrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+   :maxdepth: 1
 
-Metric
-------
-
-.. automodule:: krum.orchestration.metric
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-MetricDataFrame
----------------
-
-.. automodule:: krum.orchestration.dataframe
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   orchestrator
+   metric
+   metricdataframe
