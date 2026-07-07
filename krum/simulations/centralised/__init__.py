@@ -194,7 +194,7 @@ class CentralisedSimulation:
 
     @property
     def model(self) -> Model:
-        """The encapsulated :class:`~krum.primitives.model.Model`, available after :meth:`setup` or :meth:`run`.
+        """The encapsulated :class:`~krum.primitives.models.Model`, available after :meth:`setup` or :meth:`run`.
 
         Returns:
             The wrapped ``nn.Module`` with zero-copy flat parameter/gradient views.
@@ -389,7 +389,7 @@ class CentralisedSimulation:
         performs **a single mini-batch SGD step per round**. The worker calls
         ``loss.backward()`` on one mini-batch drawn from its dedicated
         :class:`~torch.utils.data.DataLoader`, then clones the flat gradient
-        tensor from the :class:`~krum.primitives.model.Model`.
+        tensor from the :class:`~krum.primitives.models.Model`.
 
         Args:
             loader: DataLoader yielding mini-batches from the worker's IID shard.
