@@ -4,7 +4,3 @@ Provides a zero-copy flat-tensor view of ``torch.nn.Module`` parameters and
 gradients, stateless gradient aggregation rules, and Byzantine attack
 strategies — the building blocks consumed by the simulation layer.
 """
-
-from .model import Model
-
-__all__ = ["Model"]

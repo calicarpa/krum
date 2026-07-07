@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 from krum.orchestration import Orchestrator
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.models import SmallMnistNet
 
-from ..models import SmallMnistNet
 from .run import monna_experiment
 
 # --- Configurable parameters ---

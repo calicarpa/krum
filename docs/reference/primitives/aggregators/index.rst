@@ -5,7 +5,7 @@ Aggregators
    :no-members:
 
 Available rules:
----------------
+----------------
    
 .. toctree::
    :maxdepth: 1

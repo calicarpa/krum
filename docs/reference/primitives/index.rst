@@ -14,7 +14,7 @@ This design provides:
 - **Simplicity**: Aggregators work with a single ``(d,)`` tensor instead of iterating over nested structures
 - **Flexibility**: Gradients can be read, modified, and written back in place
 
-The :doc:`model` wrapper encapsulates this behavior, exposing ``.parameters`` and ``.gradients`` as flat tensors that share the underlying buffer.
+The :class:`~krum.primitives.models.Model` wrapper encapsulates this behavior, exposing ``.parameters`` and ``.gradients`` as flat tensors that share the underlying buffer.
 
 Because the flat gradient stores a view of the module's ``.grad`` tensors,
 external operations that replace or delete those tensors — such as
@@ -37,4 +37,6 @@ flat ``Tensor`` directly so no further property access is needed.
    :maxdepth: 1
    :caption: Core Abstractions:
 
-   model
+   models/index
+   aggregators/index
+   attacks/index

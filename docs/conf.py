@@ -17,6 +17,7 @@ for _mod, _pkg in (
     ("primitives", "krum.primitives"),
     ("aggregators", "krum.primitives.aggregators"),
     ("attacks", "krum.primitives.attacks"),
+    ("models", "krum.primitives.models"),
     ("simulations", "krum.simulations"),
 ):
     sys.modules[_mod] = importlib.import_module(_pkg)
@@ -162,23 +163,30 @@ html_theme_options = {
             "children": [
                 {
                     "title": "Orchestration",
-                    "url": "reference/orchestration",
+                    "url": "reference/orchestration/index",
                     "summary": "Running and managing simulations and metrics",
                 },
                 {
                     "title": "Primitives",
-                    "url": "reference/primitives",
+                    "url": "reference/primitives/index",
                     "summary": "Core abstractions",
-                },
-                {
-                    "title": "Aggregators",
-                    "url": "reference/aggregators/index",
-                    "summary": "Byzantine-resilient gradient aggregation rules",
-                },
-                {
-                    "title": "Attacks",
-                    "url": "reference/attacks/index",
-                    "summary": "Byzantine attack strategies for evaluation",
+                    "children": [
+                        {
+                            "title": "Models",
+                            "url": "reference/primitives/models/index",
+                            "summary": "Standard models for simulations",
+                        },
+                        {
+                            "title": "Aggregators",
+                            "url": "reference/primitives/aggregators/index",
+                            "summary": "Byzantine-resilient gradient aggregation rules",
+                        },
+                        {
+                            "title": "Attacks",
+                            "url": "reference/primitives/attacks/index",
+                            "summary": "Byzantine attack strategies for evaluation",
+                        },
+                    ],
                 },
                 {
                     "title": "Simulations",

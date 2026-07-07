@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
-from krum.primitives.model import Model
+from krum.primitives.models import Model
 
 
 class CentralisedSimulation:
