@@ -19,6 +19,7 @@ Available aggregators
    classes/brute
    classes/geomed
    classes/nearest_neighbor_average
+   classes/aksel
 
 Base class
 -----------
