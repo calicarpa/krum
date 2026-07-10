@@ -194,27 +194,27 @@ distributed learning simulations:
 
 .. code-block:: python
 
-   from krum.primitives.models import MLP, MLPSpambase, CNN, SmallMnistNet
+   from krum.primitives.models import Krum2017MLPMnist, Krum2017MLPSpambase, Krum2017CNN, Monna2023SmallMnistNet
 
    # MLP for MNIST (784 → 100 → 10)
-   mlp = MLP()
+   mlp = Krum2017MLPMnist()
 
    # MLP for Spambase (57 → 20 → 20 → 2)
-   spambase = MLPSpambase()
+   spambase = Krum2017MLPSpambase()
 
    # CNN for CIFAR-10 (3×32×32 → 10)
-   cnn = CNN()
+   cnn = Krum2017CNN()
 
    # Small MLP for MNIST (784 → 128 → 10)
-   small_mnist = SmallMnistNet()
+   small_mnist = Monna2023SmallMnistNet()
 
 These models can be wrapped with the ``Model`` class for zero-copy flat views:
 
 .. code-block:: python
 
-   from krum.primitives.models import Model, MLP
+   from krum.primitives.models import Model, Krum2017MLPMnist
 
-   model = Model(MLP())
+   model = Model(Krum2017MLPMnist())
    flat_params = model.parameters  # shape: (d,) where d ≈ 80,000
 
 Next Steps

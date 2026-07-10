@@ -16,7 +16,6 @@ Available models
 
    classes/mlp
    classes/cnn
-   classes/small_mnist_net
 
 Model Wrapper
 -------------
