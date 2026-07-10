@@ -16,6 +16,19 @@ from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 from ..datasets import make_datasets, make_worker_streams
 
 
+def detect_device() -> torch.device:
+    """Detect the best available torch device.
+
+    Returns:
+        CUDA if available, otherwise MPS, otherwise CPU.
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
 def copy_parameters(model: Model, parameters: torch.Tensor) -> None:
     """Load one flat parameter vector into the shared model."""
     with torch.no_grad():
@@ -29,10 +42,12 @@ def evaluate_parameters(
     """Evaluate one worker parameter vector; return ``(loss, accuracy)``."""
     copy_parameters(model, parameters)
     model.module.eval()
+    device = parameters.device
     total_loss = 0.0
     total_correct = 0
     total = 0
     for inputs, targets in loader:
+        inputs, targets = inputs.to(device), targets.to(device)
         logits = model.module(inputs)
         loss = loss_fn(logits, targets)
         total_loss += loss.item() * targets.numel()
@@ -79,6 +94,7 @@ def monna_experiment(
     num_workers: int,
     seed: int,
     byzantine_reach: str = "all",
+    device: torch.device | None = None,
 ) -> None:
     """Run one MoNNA simulation and record its per-round metrics.
 
@@ -93,9 +109,16 @@ def monna_experiment(
     metric channels are pushed, keyed by the round number as ``step``:
     ``train_loss`` (mean over honest workers), ``test_loss`` and
     ``test_accuracy`` (mean over honest worker models on the test set).
+
+    The model and every batch are placed on ``device`` (CUDA, MPS, or CPU,
+    auto-detected when ``device`` is left as ``None``).
     """
     print(f"\n=== {label} ===")
+    resolved_device = device or detect_device()
     torch.manual_seed(seed)
+    if resolved_device.type == "cuda":
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
     random.seed(seed)
 
     train_set, test_set = make_datasets(
@@ -118,7 +141,7 @@ def monna_experiment(
     )
     test_loader = DataLoader(test_set, batch_size=256, shuffle=False, num_workers=num_workers)
 
-    model = Model(model_cls())
+    model = Model(model_cls().to(resolved_device))
     loss_fn = nn.CrossEntropyLoss()
 
     simulation = MonnaSimulation(
