@@ -10,23 +10,27 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, mean, stack, topk
+from torch import Tensor, stack, topk
 
 from . import Aggregator
 from .multikrum import MultiKrum
+from .trimmed_mean import TrimmedMean
 
 
 class Bulyan(Aggregator):
     r"""Bulyan aggregation rule, two-stage Krum + trimmed mean.
 
-    This implementation follows ``Bulyan(Krum)`` from El Mhamdi et al.
-    It first builds a selection set :math:`S` of
-    :math:`\theta = n - 2f` gradients. At each iteration, Krum is applied
-    to the remaining candidate gradients, the selected gradient is added
-    to :math:`S`, and that gradient is removed from the candidate pool.
-    It then aggregates :math:`S` coordinate-wise by taking the median and
-    averaging the :math:`\beta = \theta - 2f = n - 4f` values closest to
-    the median for each coordinate.
+    Bulyan first iteratively applies Multi-Krum to select a set
+    :math:`S` of :math:`\theta = n - 2f - 2` aggregated vectors.
+    At each iteration the Multi-Krum output (average of the :math:`m`
+    gradients with smallest Krum scores) is added to :math:`S`, and
+    the gradient with the smallest Krum score is removed from the
+    candidate pool. It then aggregates :math:`S` coordinate-wise via
+    :class:`TrimmedMean` with the same :math:`f`, keeping
+    :math:`\beta = \theta - 2f = n - 4f - 2` values per coordinate.
+
+    The paper studies ``Bulyan(A)`` with ``A = Krum`` (``Bulyan(Krum)``)
+    in all figures; this implementation follows that choice.
     """
 
     @classmethod
@@ -38,6 +42,7 @@ class Bulyan(Aggregator):
         *,
         n: int,
         f: int,
+        m: int | None = None,
         **specialized: Any,
     ) -> Tensor:
         r"""Aggregate the gradients.
@@ -48,14 +53,15 @@ class Bulyan(Aggregator):
             n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 4``.
+            m: Number of gradients selected by Multi-Krum at each iteration.
+                Defaults to :math:`n - f - 2`.
             **specialized: Additional keyword arguments.
 
         Returns:
             Aggregated gradient of shape ``(d,)``.
 
         Raises:
-            TypeError: If a non-paper ``m`` parameter is provided.
-            ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, :math:`m`, or the gradients count is invalid.
         """
         if not isinstance(n, int):
             raise TypeError(f"Invalid total number of workers, got {n=!r}, expected a positive int")
@@ -63,14 +69,17 @@ class Bulyan(Aggregator):
             raise TypeError(
                 f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected a non-negative int"
             )
-        if "m" in specialized:
-            raise TypeError("Bulyan(Krum) from the reference paper does not accept an m parameter")
+        if m is not None and not isinstance(m, int):
+            raise TypeError(f"Invalid number of selected gradients, got {m=!r}, expected a positive int")
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n=!r}")
         if f < 0:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
+        m = m if m is not None else n - f - 2
+        if m < 1 or m > n - f - 2:
+            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
         if f < 1 or n < 4 * f + 3:
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
@@ -82,20 +91,16 @@ class Bulyan(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        theta = n - 2 * f
+        scores = MultiKrum.score(gradients, n=n, f=f, m=m)
+
+        theta = n - 2 * f - 2
         selected = gradients.new_empty((theta, gradients.size(1)))
 
-        candidate_indices = list(range(n))
+        m_cur = m
         for i in range(theta):
-            candidates = gradients[candidate_indices]
-            scores = MultiKrum.score(candidates, n=len(candidate_indices), f=f)
-            winner_pos = int(scores.argmin().item())
-            selected[i] = candidates[winner_pos]
-            candidate_indices.pop(winner_pos)
+            m_cur = min(m_cur, n - f - 2 - i)
+            _, top = topk(scores, m_cur, largest=False)
+            selected[i] = gradients[top].mean(dim=0)
+            scores[top[0]] = float("inf")
 
-        beta = theta - 2 * f  # n - 4f
-        median = selected.median(dim=0).values
-        dist_to_median = (selected - median).abs()
-        _, closest = topk(dist_to_median, beta, dim=0, largest=False)
-
-        return mean(selected.gather(0, closest), dim=0, out=out)
+        return TrimmedMean.aggregate(selected, out=out, f=f)
