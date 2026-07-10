@@ -6,8 +6,8 @@ from collections.abc import Iterable, Sequence
 import torch
 import torch.nn as nn
 
-from krum.primitives import Model
 from krum.primitives.aggregators.average import Average
+from krum.primitives.models import Model
 from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
 
 

@@ -4,9 +4,9 @@ Aggregators
 .. automodule:: krum.primitives.aggregators
    :no-members:
 
-Available rules:
----------------
-   
+Available aggregators
+---------------------
+
 .. toctree::
    :maxdepth: 1
 
@@ -19,3 +19,11 @@ Available rules:
    classes/brute
    classes/geomed
    classes/nearest_neighbor_average
+
+Base class
+-----------
+
+.. autoclass:: krum.primitives.aggregators.Aggregator
+   :members:
+   :undoc-members:
+   :show-inheritance:

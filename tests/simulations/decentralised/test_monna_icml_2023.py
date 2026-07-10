@@ -5,9 +5,9 @@ import unittest
 import torch
 from torch import nn
 
-from krum.primitives import Model
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach, MonnaSimulation
 
 

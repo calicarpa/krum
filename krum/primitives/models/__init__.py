@@ -1,4 +1,4 @@
-"""Zero-copy flat-tensor view of a ``torch.nn.Module``.
+"""Zero-copy flat-tensor view of a ``torch.nn.Module`` and standard models.
 
 The :class:`Model` wrapper relinks a module's parameters and gradients to
 contiguous flat 1-D tensors, so that aggregators and attacks can operate on
@@ -8,10 +8,17 @@ returns a view sharing the underlying buffer; writing to
 ``model.gradients = flat`` unpacks the flat vector back into each
 parameter's ``.grad`` in place.
 
+Standard models (:class:`Krum2017MLPMnist`, :class:`Krum2017MLPSpambase`,
+:class:`Krum2017CNN`, :class:`Monna2023SmallMnist`) are provided for the
+simulation protocols from the literature. These models implement the
+architectures used in the foundational papers on Byzantine-resilient
+distributed learning (NIPS 2017, ICML 2018, ICML 2023) and can be reused
+for custom experiments or as baselines.
+
 Example::
 
     from torch.nn import Linear
-    from krum.primitives import Model
+    from krum.primitives.models import Model
 
     model = Model(Linear(4, 2))
 
@@ -25,6 +32,19 @@ Example::
 
     # Write aggregated gradients back (zero-copy relink)
     model.gradients = grads.clone()
+
+Using standard models::
+
+    from krum.primitives.models import Krum2017MLPMnist, Krum2017CNN, Krum2017MLPSpambase, Model
+
+    # Use a standard model directly
+    mlp = Krum2017MLPMnist()           # MNIST: 784 → 100 → 10
+    cnn = Krum2017CNN()                # CIFAR-10: 3×32×32 → 10
+    spambase = Krum2017MLPSpambase()   # Spambase: 57 → 20 → 20 → 2
+
+    # Wrap with Model for zero-copy flat views
+    wrapped = Model(mlp)
+    print(wrapped.parameters.shape)    # (d,) where d ≈ 80,000
 """
 
 from __future__ import annotations

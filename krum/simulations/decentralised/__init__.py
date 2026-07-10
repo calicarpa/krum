@@ -17,9 +17,9 @@ from typing import Any, Generic, TypedDict, TypeVar
 
 import torch
 
-from krum.primitives import Model
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
+from krum.primitives.models import Model
 
 Batch = tuple[torch.Tensor, torch.Tensor]
 LossFn = Callable[[torch.Tensor, torch.Tensor], torch.Tensor]

@@ -3,15 +3,6 @@
 The user writes an experiment as a single run, sweeps it with ordinary Python
 loops, and reads the results back per metric.
 
-It exposes three classes:
-
-* :class:`~krum.orchestration.orchestrator.Orchestrator` -- drives the runs and
-  owns all collected data.
-* :class:`~krum.orchestration.metric.Metric` -- a named channel the user pushes
-  values into; a write handle whose data lives on the orchestrator.
-* :class:`~krum.orchestration.dataframe.MetricDataFrame` -- a metric's collected
-  samples, viewable as a pandas frame and sliceable by parameter values.
-
 Metric values are collected in memory and not persisted. Execution is
 synchronous and fail-fast in this version; the near-term plan is multi-process,
 one process per run.

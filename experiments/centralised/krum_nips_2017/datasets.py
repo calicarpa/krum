@@ -8,8 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, TensorDataset
 
-from ..datasets import limit_dataset
-from ..datasets import mnist_dataset as mnist_dataset
+from ..datasets import limit_dataset, mnist_dataset
 
 
 def spambase_dataset(*, test_size: float = 0.2, seed: int = 42) -> tuple[TensorDataset, TensorDataset]:

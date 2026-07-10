@@ -8,8 +8,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from krum.orchestration import Metric
-from krum.primitives import Model
 from krum.primitives.attacks import Attack
+from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
 from ..datasets import make_datasets, make_worker_streams

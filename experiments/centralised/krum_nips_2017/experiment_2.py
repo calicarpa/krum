@@ -7,9 +7,8 @@ from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
+from krum.primitives.models.mlp import Krum2017MLPMnist, Krum2017MLPSpambase
 
-from ..models import MLP as MLPMnist
-from .models import MLPSpambase
 from .plot import plot_error_vs_batch_size
 from .run import krum_experiment
 
@@ -36,8 +35,8 @@ AGGREGATORS = [
 
 # Datasets to test
 DATASETS = [
-    ("spambase", MLPSpambase),
-    ("mnist", MLPMnist),
+    ("spambase", Krum2017MLPSpambase),
+    ("mnist", Krum2017MLPMnist),
 ]
 # --------------------------------------------
 

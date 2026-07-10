@@ -33,11 +33,17 @@ Reference
    :maxdepth: 2
    :caption: Reference
 
-   reference/orchestration
-   reference/primitives
-   reference/aggregators/index
-   reference/attacks/index
+   reference/orchestration/index
+   reference/primitives/index
    reference/simulations/index
+
+Contributors
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   contributors
 
 
 License

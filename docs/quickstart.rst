@@ -150,7 +150,7 @@ Krum provides a ``Model`` wrapper for zero-copy flat views of PyTorch parameters
 
 .. code-block:: python
 
-   from krum.primitives import Model
+   from krum.primitives.models import Model
    import torch.nn as nn
 
    module = nn.Linear(10, 5)
@@ -180,15 +180,47 @@ Krum provides a ``Model`` wrapper for zero-copy flat views of PyTorch parameters
       grads = model.relink_gradients()         # re-link + get flat view
       grads[:] = 0                             # equivalent to zero_grad
 
-   The same pattern applies to :meth:`~krum.primitives.Model.relink_parameters`
+   The same pattern applies to :meth:`~krum.primitives.models.Model.relink_parameters`
    when a parameter's ``.data`` has been replaced externally.
 
    Both methods return the flat tensor directly, so no further property access is
-   needed:
+   needed.
+
+Standard Models
+~~~~~~~~~~~~~~~
+
+Krum provides standard models used in the literature for Byzantine-resilient
+distributed learning simulations:
+
+.. code-block:: python
+
+   from krum.primitives.models import Krum2017MLPMnist, Krum2017MLPSpambase, Krum2017CNN, Monna2023SmallMnist
+
+   # MLP for MNIST (784 → 100 → 10)
+   mlp = Krum2017MLPMnist()
+
+   # MLP for Spambase (57 → 20 → 20 → 2)
+   spambase = Krum2017MLPSpambase()
+
+   # CNN for CIFAR-10 (3×32×32 → 10)
+   cnn = Krum2017CNN()
+
+   # Small MLP for MNIST (784 → 128 → 10)
+   small_mnist = Monna2023SmallMnist()
+
+These models can be wrapped with the ``Model`` class for zero-copy flat views:
+
+.. code-block:: python
+
+   from krum.primitives.models import Model, Krum2017MLPMnist
+
+   model = Model(Krum2017MLPMnist())
+   flat_params = model.parameters  # shape: (d,) where d ≈ 80,000
 
 Next Steps
 ----------
 
-- Browse the :doc:`reference/aggregators/index` for all available aggregation rules
-- Browse the :doc:`reference/attacks/index` for all available attack strategies
+- Browse the :doc:`reference/primitives/models/index` for standard models
+- Browse the :doc:`reference/primitives/aggregators/index` for all available aggregation rules
+- Browse the :doc:`reference/primitives/attacks/index` for all available attack strategies
 - See :doc:`reference/simulations/index` for reproducing published experiments in distributed settings
