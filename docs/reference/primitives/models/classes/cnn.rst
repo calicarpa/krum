@@ -1,4 +1,4 @@
-Krum2017CNN Model
+CNN Models
 ===================
 
 .. automodule:: krum.primitives.models.cnn
