@@ -7,7 +7,7 @@ import torch
 from krum.primitives.models import (
     Krum2017MLPMnist,
     Krum2017MLPSpambase,
-    Monna2023SmallMnistNet,
+    Monna2023SmallMnist,
 )
 
 
@@ -92,11 +92,11 @@ class Krum2017MLPSpambaseTest(unittest.TestCase):
 
 
 class Monna2023SmallMnistNetTest(unittest.TestCase):
-    """Test the Monna2023SmallMnistNet model for MNIST."""
+    """Test the Monna2023SmallMnist model for MNIST."""
 
     def setUp(self):
-        """Set up a Monna2023SmallMnistNet model for testing."""
-        self.model = Monna2023SmallMnistNet()
+        """Set up a Monna2023SmallMnist model for testing."""
+        self.model = Monna2023SmallMnist()
 
     def test_forward_pass_flat_input(self):
         """Forward pass works with flat input of shape (batch_size, 784)."""

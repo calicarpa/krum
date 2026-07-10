@@ -194,7 +194,7 @@ distributed learning simulations:
 
 .. code-block:: python
 
-   from krum.primitives.models import Krum2017MLPMnist, Krum2017MLPSpambase, Krum2017CNN, Monna2023SmallMnistNet
+   from krum.primitives.models import Krum2017MLPMnist, Krum2017MLPSpambase, Krum2017CNN, Monna2023SmallMnist
 
    # MLP for MNIST (784 → 100 → 10)
    mlp = Krum2017MLPMnist()
@@ -206,7 +206,7 @@ distributed learning simulations:
    cnn = Krum2017CNN()
 
    # Small MLP for MNIST (784 → 128 → 10)
-   small_mnist = Monna2023SmallMnistNet()
+   small_mnist = Monna2023SmallMnist()
 
 These models can be wrapped with the ``Model`` class for zero-copy flat views:
 

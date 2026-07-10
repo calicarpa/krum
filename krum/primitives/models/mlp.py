@@ -83,7 +83,7 @@ class Krum2017MLPSpambase(nn.Sequential):
         )
 
 
-class Monna2023SmallMnistNet(nn.Sequential):
+class Monna2023SmallMnist(nn.Sequential):
     r"""Small CPU-friendly classifier for 28x28 images.
 
     This is a lightweight MLP designed for MNIST classification in
@@ -105,9 +105,9 @@ class Monna2023SmallMnistNet(nn.Sequential):
 
     Example::
 
-        from krum.primitives.models import Monna2023SmallMnistNet
+        from krum.primitives.models import Monna2023SmallMnist
 
-        model = Monna2023SmallMnistNet()
+        model = Monna2023SmallMnist()
         x = torch.randn(32, 1, 28, 28)  # batch of 32 MNIST images
         output = model(x)                # shape: (32, 10)
     """

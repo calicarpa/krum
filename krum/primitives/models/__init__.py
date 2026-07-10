@@ -9,7 +9,7 @@ returns a view sharing the underlying buffer; writing to
 parameter's ``.grad`` in place.
 
 Standard models (:class:`Krum2017MLPMnist`, :class:`Krum2017MLPSpambase`,
-:class:`Krum2017CNN`, :class:`Monna2023SmallMnistNet`) are provided for the
+:class:`Krum2017CNN`, :class:`Monna2023SmallMnist`) are provided for the
 simulation protocols from the literature. These models implement the
 architectures used in the foundational papers on Byzantine-resilient
 distributed learning (NIPS 2017, ICML 2018, ICML 2023) and can be reused
@@ -56,14 +56,14 @@ from torch import Tensor
 from torch.nn import Module
 
 from .cnn import Krum2017CNN
-from .mlp import Krum2017MLPMnist, Krum2017MLPSpambase, Monna2023SmallMnistNet
+from .mlp import Krum2017MLPMnist, Krum2017MLPSpambase, Monna2023SmallMnist
 
 __all__ = [
     "Krum2017CNN",
     "Krum2017MLPMnist",
     "Krum2017MLPSpambase",
     "Model",
-    "Monna2023SmallMnistNet",
+    "Monna2023SmallMnist",
 ]
 
 
