@@ -7,7 +7,7 @@ from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
-from krum.primitives.models import MLPSpambase
+from krum.primitives.models import Krum2017MLPSpambase
 
 from .plot import plot_error_curves_by_f
 from .run import krum_experiment
@@ -48,7 +48,7 @@ def main() -> None:
                 krum_experiment,
                 label=label,
                 dataset="spambase",
-                model_cls=MLPSpambase,
+                model_cls=Krum2017MLPSpambase,
                 aggregator=agg,
                 attack=GaussianAttack,
                 attack_kwargs=attack_kw,

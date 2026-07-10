@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from krum.orchestration import Orchestrator
 from krum.primitives.attacks.sign_flip import SignFlipAttack
-from krum.primitives.models import SmallMnistNet
+from krum.primitives.models import Monna2023SmallMnist
 
 from .run import monna_experiment
 
@@ -45,7 +45,7 @@ def main() -> None:
         monna_experiment,
         dataset=DATASET,
         data_dir=DATA_DIR,
-        model_cls=SmallMnistNet,
+        model_cls=Monna2023SmallMnist,
         n=NUM_HONEST + NUM_BYZANTINE,
         f=NUM_BYZANTINE,
         learning_rate=LEARNING_RATE,
