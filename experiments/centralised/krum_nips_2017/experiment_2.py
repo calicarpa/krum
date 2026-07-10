@@ -7,7 +7,7 @@ from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
-from krum.primitives.models import Krum2017MLPMnist, Krum2017MLPSpambase
+from krum.primitives.models.mlp import Krum2017MLPMnist, Krum2017MLPSpambase
 
 from .plot import plot_error_vs_batch_size
 from .run import krum_experiment

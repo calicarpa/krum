@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.models import Krum2017CNN
+from krum.primitives.models.cnn import Krum2017CNN
 
 
 class Krum2017CNNTest(unittest.TestCase):

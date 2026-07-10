@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from krum.orchestration import Orchestrator
 from krum.primitives.attacks.sign_flip import SignFlipAttack
-from krum.primitives.models import Monna2023SmallMnist
+from krum.primitives.models.mlp import Monna2023SmallMnist
 
 from .run import monna_experiment
 

@@ -7,7 +7,7 @@ from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.krum import Krum
 from krum.primitives.attacks.gaussian import GaussianAttack
-from krum.primitives.models import Krum2017MLPSpambase
+from krum.primitives.models.mlp import Krum2017MLPSpambase
 
 from .plot import plot_error_curves_by_f
 from .run import krum_experiment

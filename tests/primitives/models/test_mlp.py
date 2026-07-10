@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from krum.primitives.models import (
+from krum.primitives.models.mlp import (
     Krum2017MLPMnist,
     Krum2017MLPSpambase,
     Monna2023SmallMnist,

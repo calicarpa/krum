@@ -55,17 +55,6 @@ import torch
 from torch import Tensor
 from torch.nn import Module
 
-from .cnn import Krum2017CNN
-from .mlp import Krum2017MLPMnist, Krum2017MLPSpambase, Monna2023SmallMnist
-
-__all__ = [
-    "Krum2017CNN",
-    "Krum2017MLPMnist",
-    "Krum2017MLPSpambase",
-    "Model",
-    "Monna2023SmallMnist",
-]
-
 
 class Model:
     """Model encapsulating a ``Module`` with zero-copy flat views of parameters and gradients.
