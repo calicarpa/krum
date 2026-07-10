@@ -9,11 +9,12 @@ returns a view sharing the underlying buffer; writing to
 parameter's ``.grad`` in place.
 
 Standard models (:class:`Krum2017MLPMnist`, :class:`Krum2017MLPSpambase`,
-:class:`Krum2017CNN`, :class:`Monna2023SmallMnist`) are provided for the
-simulation protocols from the literature. These models implement the
-architectures used in the foundational papers on Byzantine-resilient
-distributed learning (NIPS 2017, ICML 2018, ICML 2023) and can be reused
-for custom experiments or as baselines.
+:class:`Krum2017CNN`, :class:`Monna2023SmallMnist`, :class:`Monna2023CNNMnist`,
+:class:`Monna2023CNNCifar10`) are provided for the simulation protocols from
+the literature. These models implement the architectures used in the
+foundational papers on Byzantine-resilient distributed learning (NIPS 2017,
+ICML 2018, ICML 2023) and can be reused for custom experiments or as
+baselines.
 
 Example::
 
