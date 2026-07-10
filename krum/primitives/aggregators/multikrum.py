@@ -33,7 +33,7 @@ class MultiKrum(Aggregator):
         *,
         n: int,
         f: int,
-        m: int,
+        m: int | None,
         **specialized: Any,
     ) -> Tensor:
         r"""Aggregate the gradients.
@@ -45,7 +45,7 @@ class MultiKrum(Aggregator):
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 2``.
             m: Number of selected gradients to average. Must satisfy
-                :math:`1 \le m \le n - f - 2`.
+                :math:`1 \le m \le n - f - 2`. If ``None``, defaults to :math:`n - f - 2`.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -68,6 +68,8 @@ class MultiKrum(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
+        if m is None:
+            m = n - f - 2
         if m < 1 or m > n - f - 2:
             raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
         if n < 2 * f + 3:
