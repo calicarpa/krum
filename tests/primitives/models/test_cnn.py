@@ -1,18 +1,18 @@
-"""Tests for CNN model."""
+"""Tests for Krum2017CNN model."""
 
 import unittest
 
 import torch
 
-from krum.primitives.models import CNN
+from krum.primitives.models import Krum2017CNN
 
 
-class CNNTest(unittest.TestCase):
-    """Test the CNN model for CIFAR-10."""
+class Krum2017CNNTest(unittest.TestCase):
+    """Test the Krum2017CNN model for CIFAR-10."""
 
     def setUp(self):
-        """Set up a CNN model for testing."""
-        self.model = CNN()
+        """Set up a Krum2017CNN model for testing."""
+        self.model = Krum2017CNN()
 
     def test_forward_pass(self):
         """Forward pass works with input of shape (batch_size, 3, 32, 32)."""

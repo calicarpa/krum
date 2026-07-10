@@ -1,16 +1,15 @@
 r"""MLP models for Byzantine-resilient distributed learning simulations.
 
 These models implement the architectures used in the foundational papers on
-Byzantine-resilient distributed learning. They are provided as ready-to-use
-building blocks for simulations and can also serve as baselines for custom
-experiments.
+Byzantine-resilient distributed learning and decentralised learning. They are
+provided as ready-to-use building blocks for simulations and can also serve as
+baselines for custom experiments.
 """
 
-import torch
 import torch.nn as nn
 
 
-class MLP(nn.Module):
+class Krum2017MLPMnist(nn.Sequential):
     r"""Two-layer MLP for MNIST classification.
 
     This architecture is used in both the NIPS 2017 and ICML 2018 papers
@@ -29,34 +28,24 @@ class MLP(nn.Module):
 
     Example::
 
-        from krum.primitives.models import MLP
+        from krum.primitives.models import Krum2017MLPMnist
 
-        model = MLP()
+        model = Krum2017MLPMnist()
         x = torch.randn(32, 784)  # batch of 32 flattened MNIST images
         output = model(x)          # shape: (32, 10)
     """
 
     def __init__(self) -> None:
-        """Initialize the MLP model."""
-        super().__init__()
-        self.fc1 = nn.Linear(784, 100)
-        self.fc2 = nn.Linear(100, 10)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through the MLP model.
-
-        Args:
-            x: Input tensor of shape ``(batch_size, 784)`` or ``(batch_size, 1, 28, 28)``.
-
-        Returns:
-            Output tensor of shape ``(batch_size, 10)`` containing class logits.
-        """
-        x = x.view(x.size(0), -1)
-        x = torch.relu(self.fc1(x))
-        return self.fc2(x)
+        """Initialize the MNIST MLP model."""
+        super().__init__(
+            nn.Flatten(),
+            nn.Linear(784, 100),
+            nn.ReLU(),
+            nn.Linear(100, 10),
+        )
 
 
-class MLPSpambase(nn.Module):
+class Krum2017MLPSpambase(nn.Sequential):
     r"""Two-hidden-layer MLP for Spambase classification.
 
     This architecture is used in the NIPS 2017 paper for experiments on the
@@ -75,30 +64,59 @@ class MLPSpambase(nn.Module):
 
     Example::
 
-        from krum.primitives.models import MLPSpambase
+        from krum.primitives.models import Krum2017MLPSpambase
 
-        model = MLPSpambase()
+        model = Krum2017MLPSpambase()
         x = torch.randn(16, 57)  # batch of 16 Spambase samples
         output = model(x)         # shape: (16, 2)
     """
 
     def __init__(self) -> None:
         """Initialize the Spambase MLP model."""
-        super().__init__()
-        self.fc1 = nn.Linear(57, 20)
-        self.fc2 = nn.Linear(20, 20)
-        self.fc3 = nn.Linear(20, 2)
+        super().__init__(
+            nn.Flatten(),
+            nn.Linear(57, 20),
+            nn.ReLU(),
+            nn.Linear(20, 20),
+            nn.ReLU(),
+            nn.Linear(20, 2),
+        )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through the Spambase MLP model.
 
-        Args:
-            x: Input tensor of shape ``(batch_size, 57)``.
+class Monna2023SmallMnistNet(nn.Sequential):
+    r"""Small CPU-friendly classifier for 28x28 images.
 
-        Returns:
-            Output tensor of shape ``(batch_size, 2)`` containing class logits.
-        """
-        x = x.view(x.size(0), -1)
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        return self.fc3(x)
+    This is a lightweight MLP designed for MNIST classification in
+    decentralised learning experiments. It uses a simple architecture
+    with one hidden layer, making it suitable for quick experiments
+    and CPU-based training.
+
+    Architecture:
+
+    .. math::
+
+        \mathbb{R}^{28 \times 28} \xrightarrow{\text{Flatten}} \mathbb{R}^{784}
+        \xrightarrow{\text{Linear}} \mathbb{R}^{128}
+        \xrightarrow{\text{ReLU}} \mathbb{R}^{128}
+        \xrightarrow{\text{Linear}} \mathbb{R}^{10}
+
+    The model accepts both flattened inputs of shape ``(batch_size, 784)``
+    and image tensors of shape ``(batch_size, 1, 28, 28)`` or ``(batch_size, 28, 28)``.
+
+    Example::
+
+        from krum.primitives.models import Monna2023SmallMnistNet
+
+        model = Monna2023SmallMnistNet()
+        x = torch.randn(32, 1, 28, 28)  # batch of 32 MNIST images
+        output = model(x)                # shape: (32, 10)
+    """
+
+    def __init__(self) -> None:
+        """Initialize the network."""
+        super().__init__(
+            nn.Flatten(),
+            nn.Linear(28 * 28, 128),
+            nn.ReLU(),
+            nn.Linear(128, 10),
+        )

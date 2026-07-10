@@ -8,10 +8,11 @@ returns a view sharing the underlying buffer; writing to
 ``model.gradients = flat`` unpacks the flat vector back into each
 parameter's ``.grad`` in place.
 
-Standard models (:class:`MLP`, :class:`MLPSpambase`, :class:`CNN`) are
-provided for the simulation protocols from the literature. These models
-implement the architectures used in the foundational papers on Byzantine-
-resilient distributed learning (NIPS 2017, ICML 2018) and can be reused
+Standard models (:class:`Krum2017MLPMnist`, :class:`Krum2017MLPSpambase`,
+:class:`Krum2017CNN`, :class:`Monna2023SmallMnistNet`) are provided for the
+simulation protocols from the literature. These models implement the
+architectures used in the foundational papers on Byzantine-resilient
+distributed learning (NIPS 2017, ICML 2018, ICML 2023) and can be reused
 for custom experiments or as baselines.
 
 Example::
@@ -34,12 +35,12 @@ Example::
 
 Using standard models::
 
-    from krum.primitives.models import MLP, CNN, MLPSpambase, Model
+    from krum.primitives.models import Krum2017MLPMnist, Krum2017CNN, Krum2017MLPSpambase, Model
 
     # Use a standard model directly
-    mlp = MLP()                        # MNIST: 784 → 100 → 10
-    cnn = CNN()                        # CIFAR-10: 3×32×32 → 10
-    spambase = MLPSpambase()           # Spambase: 57 → 20 → 20 → 2
+    mlp = Krum2017MLPMnist()           # MNIST: 784 → 100 → 10
+    cnn = Krum2017CNN()                # CIFAR-10: 3×32×32 → 10
+    spambase = Krum2017MLPSpambase()   # Spambase: 57 → 20 → 20 → 2
 
     # Wrap with Model for zero-copy flat views
     wrapped = Model(mlp)
@@ -54,11 +55,16 @@ import torch
 from torch import Tensor
 from torch.nn import Module
 
-from .cnn import CNN
-from .mlp import MLP, MLPSpambase
-from .small_mnist_net import SmallMnistNet
+from .cnn import Krum2017CNN
+from .mlp import Krum2017MLPMnist, Krum2017MLPSpambase, Monna2023SmallMnistNet
 
-__all__ = ["Model", "MLP", "MLPSpambase", "CNN", "SmallMnistNet"]
+__all__ = [
+    "Krum2017CNN",
+    "Krum2017MLPMnist",
+    "Krum2017MLPSpambase",
+    "Model",
+    "Monna2023SmallMnistNet",
+]
 
 
 class Model:

@@ -6,11 +6,10 @@ building block for simulations and can also serve as a baseline for custom
 experiments on image classification tasks.
 """
 
-import torch
 import torch.nn as nn
 
 
-class CNN(nn.Module):
+class Krum2017CNN(nn.Sequential):
     r"""Convolutional neural network for CIFAR-10 classification.
 
     This architecture is used in the ICML 2018 paper for experiments on the
@@ -35,36 +34,26 @@ class CNN(nn.Module):
 
     Example::
 
-        from krum.primitives.models import CNN
+        from krum.primitives.models import Krum2017CNN
 
-        model = CNN()
+        model = Krum2017CNN()
         x = torch.randn(16, 3, 32, 32)  # batch of 16 CIFAR-10 images
         output = model(x)                # shape: (16, 10)
     """
 
     def __init__(self) -> None:
         """Initialize the CNN model."""
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(16, 64, kernel_size=4, stride=1, padding=1)
-        self.fc1 = nn.Linear(64 * 6 * 6, 384)
-        self.fc2 = nn.Linear(384, 192)
-        self.fc3 = nn.Linear(192, 10)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through the CNN model.
-
-        Args:
-            x: Input tensor of shape ``(batch_size, 3, 32, 32)``.
-
-        Returns:
-            Output tensor of shape ``(batch_size, 10)`` containing class logits.
-        """
-        x = torch.relu(self.conv1(x))
-        x = nn.functional.max_pool2d(x, kernel_size=3, stride=2)
-        x = torch.relu(self.conv2(x))
-        x = nn.functional.max_pool2d(x, kernel_size=4, stride=2)
-        x = x.view(x.size(0), -1)
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        return self.fc3(x)
+        super().__init__(
+            nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.Conv2d(16, 64, kernel_size=4, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=4, stride=2),
+            nn.Flatten(),
+            nn.Linear(64 * 6 * 6, 384),
+            nn.ReLU(),
+            nn.Linear(384, 192),
+            nn.ReLU(),
+            nn.Linear(192, 10),
+        )
