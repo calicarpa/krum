@@ -66,14 +66,14 @@ class MultiKrum(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
-        if m is None:
-            m = n - f - 2
-        if m < 1 or m > n - f - 2:
-            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
         if n < 2 * f + 3:
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
             )
+        if m is None:
+            m = n - f - 2
+        if m < 1 or m > n - f - 2:
+            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
 
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))
@@ -128,7 +128,6 @@ class MultiKrum(Aggregator):
             m = n - f - 2
         distances = cdist(stacked, stacked, p=2.0)
         if valid_mask is not None:
-            distances = distances.clone()
             distances[~valid_mask] = float("inf")
             distances[:, ~valid_mask] = float("inf")
         distances.fill_diagonal_(0.0)

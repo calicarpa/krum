@@ -18,7 +18,7 @@ from .multikrum import MultiKrum
 class Krum(MultiKrum):
     r"""Krum aggregation rule, single-gradient selection.
 
-    For each worker gradient, Krum scores it by the sum of squared Euclidean
+    For each worker gradient, Krum scores it by the sum of Euclidean
     distances to its :math:`n - f - 2` closest peers. After
     :func:`torch.sort` on each row, the self-distance is 0 so column 0
     is always the worker itself. Columns :math:`1` through
