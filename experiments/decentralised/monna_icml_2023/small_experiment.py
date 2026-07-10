@@ -1,11 +1,16 @@
-"""Experiment 1 — MoNNA vs Mean on MNIST under a sign-flip Byzantine worker.
+"""Small MoNNA vs Mean proof of concept, on MNIST under a sign-flip Byzantine worker.
 
-A small decentralised run driven by the orchestrator: honest workers train on
-Dirichlet-sharded MNIST and mix their models either by nearest-neighbor
-averaging (MoNNA) or by a plain (non-robust) mean, while ``f`` Byzantine
-workers apply the sign-flip attack. Sweeps ``f in F_VALUES`` against
-``AGGREGATORS`` to illustrate the phenomenon behind #42: NNA resists the
-attack and keeps training, while Mean collapses to chance-level accuracy.
+A small, fast decentralised run driven by the orchestrator: honest workers
+train on Dirichlet-sharded MNIST and mix their models either by
+nearest-neighbor averaging (MoNNA) or by a plain (non-robust) mean, while
+``f`` Byzantine workers apply the sign-flip attack. Sweeps ``f in F_VALUES``
+against ``AGGREGATORS`` to illustrate the phenomenon behind #42: NNA resists
+the attack and keeps training, while Mean collapses to chance-level accuracy.
+
+This is a proof-of-concept demo, not a paper reproduction: it uses a small
+MLP and a fast, illustrative configuration rather than the paper's own model
+and hyperparameters. See ``experiment_mnist.py`` and ``experiment_cifar.py``
+for runs that match Table 2 (Appendix D.2) of the ICML 2023 paper.
 
 Edit the constants below to reconfigure.
 """
@@ -47,8 +52,8 @@ AGGREGATORS = [
 
 
 def main() -> None:
-    """Run Experiment 1."""
-    orchestrator = Orchestrator("monna_icml_2023_experiment_1")
+    """Run the small MoNNA vs Mean proof of concept."""
+    orchestrator = Orchestrator("monna_icml_2023_small_experiment")
 
     for f in F_VALUES:
         attack = None if f == 0 else SignFlipAttack
@@ -96,7 +101,7 @@ def main() -> None:
     fig.tight_layout()
     plt.show()
 
-    print("\nExperiment 1 done.")
+    print("\nSmall experiment done.")
 
 
 if __name__ == "__main__":
