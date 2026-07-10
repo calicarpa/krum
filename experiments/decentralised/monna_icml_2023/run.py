@@ -8,6 +8,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from krum.orchestration import Metric
+from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
@@ -55,6 +56,7 @@ def evaluate_workers(
 
 def monna_experiment(
     *,
+    label: str,
     dataset: str,
     data_dir: str,
     model_cls: type[nn.Module],
@@ -64,6 +66,8 @@ def monna_experiment(
     beta: float,
     attack: type[Attack] | None = None,
     attack_kwargs: dict[str, Any] | None = None,
+    aggregator: type[Aggregator] | None = None,
+    aggregator_kwargs: dict[str, Any] | None = None,
     rounds: int,
     eval_every: int,
     batch_size: int,
@@ -81,13 +85,15 @@ def monna_experiment(
     datasets are built from configuration *inside* this function, so the run is
     identified by hashable parameters only (the dataset name and sizes, not the
     dataset objects). Honest workers run local momentum-SGD then mix their models
-    by nearest-neighbor averaging.
+    by nearest-neighbor averaging (or ``aggregator``, if given, e.g. ``Average``
+    for a non-robust baseline).
 
     On evaluated rounds (the first, every ``eval_every``, and the last) three
     metric channels are pushed, keyed by the round number as ``step``:
     ``train_loss`` (mean over honest workers), ``test_loss`` and
     ``test_accuracy`` (mean over honest worker models on the test set).
     """
+    print(f"\n=== {label} ===")
     torch.manual_seed(seed)
     random.seed(seed)
 
@@ -124,6 +130,8 @@ def monna_experiment(
         beta=beta,
         attack=attack,
         attack_kwargs=attack_kwargs,
+        aggregator=aggregator,
+        aggregator_kwargs=aggregator_kwargs,
         byzantine_reach=byzantine_reach,
         seed=seed,
     )
