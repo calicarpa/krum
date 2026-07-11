@@ -283,8 +283,8 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, self.num_honest, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
-        return other_indices[permutation[:num_responders].to(device)]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
+        return other_indices[permutation[:num_responders]]
 
     def select_received_model_indices(self, *, worker_index: int, device: torch.device) -> torch.Tensor:
         """Randomly select the ``n - f - 1`` nodes received by one honest worker.
@@ -306,5 +306,5 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, num_nodes, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
-        return other_indices[permutation[:num_received].to(device)]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
+        return other_indices[permutation[:num_received]]

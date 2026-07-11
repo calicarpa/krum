@@ -154,8 +154,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         self.attack_kwargs = attack_kwargs or {}
         self.aggregator = aggregator
         self.aggregator_kwargs = dict(aggregator_kwargs or {})
-        self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(self.num_honest, 1)
+        self.generator = None if seed is None else torch.Generator(device=self.parameters.device).manual_seed(seed)
         self.step_index = 0
 
     def step(self) -> StepResultT:
