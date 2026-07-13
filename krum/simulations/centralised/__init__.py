@@ -19,10 +19,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset, Subset
 
-from krum.primitives.aggregators import Aggregator
-from krum.primitives.attacks import Attack
-from krum.primitives.attacks.full_gradient_negation import FullGradientNegationAttack
-from krum.primitives.models import Model
+from ...primitives.aggregators import Aggregator
+from ...primitives.attacks import Attack
+from ...primitives.attacks.full_gradient_negation import FullGradientNegationAttack
+from ...primitives.models import Model
 
 
 class CentralisedSimulation:

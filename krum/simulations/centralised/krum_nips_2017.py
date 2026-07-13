@@ -13,7 +13,7 @@ from typing import Any
 
 import torch
 
-from krum.simulations.centralised import CentralisedSimulation
+from ...simulations.centralised import CentralisedSimulation
 
 
 class KrumSimulation(CentralisedSimulation):

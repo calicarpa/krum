@@ -12,11 +12,11 @@ from typing import Any, Literal
 
 import torch
 
-from krum.primitives.aggregators import Aggregator
-from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
-from krum.primitives.attacks import Attack
-from krum.primitives.models import Model
-from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
+from ...primitives.aggregators import Aggregator
+from ...primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
+from ...primitives.attacks import Attack
+from ...primitives.models import Model
+from ..decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
 
 ByzantineReach = Literal["all", "sampled"]
 
