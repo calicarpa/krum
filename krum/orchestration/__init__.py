@@ -34,53 +34,44 @@ Example::
     frame = krum_alie.to_pandas()         # pandas.DataFrame for plotting/analysis
 """
 
+from __future__ import annotations
+
 import gc
 import sys
 
 from collections import deque as Deque
+from collections.abc import Callable
 from hashlib import blake2b as Blake2b
+from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec
 from pathlib import Path
+from typing import Self
+from types import ModuleType, TracebackType
 
-def bytes_to_int(data: bytes, size: int = 16) -> int:
-    value = 0
-    for byte in data[:size]:
-        value = value * 2**8 + byte
-    return value
+class Dependencies:
+    """(Conservative) list of dependencies for a collection of objects."""
 
-def playground_hash(root: object) -> int:
-    # Hash about current interpreter
-    b2b = Blake2b()
-    b2b.update(sys.version.encode())
-    b2b.update(b"\xfe" if __debug__ else b"\xff")
-    hash = bytes_to_int(b2b.digest())
-    # Process whole referent tree
-    todo = Deque()
-    todo.append(root)
-    seen = set()
-    origins = set()
-    while True:
-        # Pull next object to process
-        try:
-            obj = todo.popleft()
-        except IndexError:
-            break
-        # Ensure objects are seen at most once
-        oid = id(obj)
-        if oid in seen:
-            continue
-        seen.add(oid)
-        # Push sub-referents
-        todo.extend(gc.get_referents(obj))
-        # Skip if not a module specification
-        if not isinstance(obj, ModuleSpec):
-            continue
-        # Ignore namespace/unknown specification
-        origin = obj.origin
-        if origin is None or not obj.has_location:
-            continue
+    _modules: dict[str, int]
+    _hash: int | None
+
+    __slots__ = tuple(__annotations__)
+
+    # Fixed hash size (in bytes)
+    _HASH_SIZE: int = 16
+    # Runtime hash of the current interpreter (computed by `__preinit__`)
+    _HASH_BASE: int
+
+    @classmethod
+    def _bytes_to_int(cls, data: bytes) -> int:
+        value = 0
+        for byte in data[:cls._HASH_SIZE]:
+            value = value * 2**8 + byte
+        return value
+
+    @classmethod
+    def _hash_spec(cls, spec: ModuleSpec) -> int:
         # Recover actual location and open file
-        origin = Path(origin)
+        origin = Path(spec.origin)
         while True:
             try:
                 fd = origin.open("rb")
@@ -91,15 +82,98 @@ def playground_hash(root: object) -> int:
         # Hash module name and "content" together
         with fd:
             b2b = Blake2b()
-            b2b.update(obj.name.encode())
+            b2b.update(spec.name.encode())
             b2b.update(b"\x00")
             buf = memoryview(bytearray(65536))
             while True:
                 read = fd.readinto(buf)
                 if read == 0:
+                    del buf
                     break
                 b2b.update(buf[:read])
-        # Update order-invariant hash
-        hash ^= bytes_to_int(b2b.digest())
-    # Forward resulting hash
-    return hash
+        # Digest and forward
+        return cls._bytes_to_int(b2b.digest())
+
+    @classmethod
+    def __preinit__(cls) -> None:
+        # Hash about current interpreter
+        b2b = Blake2b()
+        b2b.update(sys.version.encode())
+        b2b.update(b"\xfe" if __debug__ else b"\xff")
+        cls._HASH_BASE = cls._bytes_to_int(b2b.digest())
+
+    @classmethod
+    def derive(cls, closure: Callable) -> Self:
+        # TODO: Do something more relevant than only hashing code; only resort to hashing code
+        #       for native functions (and just-in-time imports, for lack of a better solution).
+        #       Process non-native closures/generators by discovering relevant referent objects,
+        #       and only hashing bytecode (which should be stable for each interpreter version).
+        #       Hash other objects based on their pickled stream (optionally with fixed version).
+        #       (Acknowledge this is fundamentally an impossible problem, c.f. `exec(random())`.)
+        #       The end-user will not like to see everything run again after each micro-change.
+        modules = dict()
+        # Ignore `closure` and hash all loaded modules
+        for name, module in sys.modules.items():
+            spec = module.__spec__
+            if spec is None or not spec.has_location:
+                continue
+            modules[name] = cls._hash_spec(spec)
+        # Wrap and forward
+        return cls(modules)
+
+    def __init__(self, modules: dict[str, int]) -> None:
+        # Compute hash
+        hash = self._HASH_BASE
+        for module in modules.values():
+            hash ^= module
+        # Initialize members
+        self._modules = modules
+        self._hash = hash
+
+    @property
+    def hash(self) -> int:
+        return self._hash
+
+    def modules(self) -> Iterator[str]:
+        return iter(self._modules)
+
+    def push(self, module: str, spec: ModuleSpec) -> None:
+        hash = self._hash_spec(spec)
+        prev = self._modules.get(module)
+        if prev is None:
+            self._modules[module] = hash
+            self._hash ^= hash
+        elif hash != prev:
+            raise RuntimeError(f"trying to overwrite hash of {module!r}")
+
+# Finalize class initialization
+Dependencies.__preinit__()
+
+class InterceptFinder(MetaPathFinder):
+    """Meta path finder intercepting and integrating new imports."""
+
+    _target: Dependencies
+    _finders: list[MetaPathFinder] | None
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, target: Dependencies) -> None:
+        self._target = target
+        self._finders = None
+
+    def __enter__(self) -> None:
+        if self._finders is not None:
+            raise RuntimeError("unsupported reentrancy")
+        self._finders = sys.meta_path
+        sys.meta_path = [self]
+
+    def __exit__(self, exc_type: Optional[type], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
+        sys.meta_path = self._finders
+        self._finders = None
+
+    def find_spec(self, fullname: str, path: str | None, target: ModuleType | None = None) -> ModuleSpec | None:
+        for finder in self._finders:
+            spec = finder.find_spec(fullname, path, target)
+            if spec is not None:
+                self._target.push(fullname, spec)
+                return spec
