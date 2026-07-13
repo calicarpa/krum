@@ -18,7 +18,7 @@ from . import Aggregator
 class MultiKrum(Aggregator):
     r"""MultiKrum aggregation rule, multi-gradient averaging.
 
-    Scores every worker gradient by the sum of Euclidean distances to
+    Scores every worker gradient by the sum of squared Euclidean distances to
     its :math:`n - f - 2` closest peers, picks the :math:`m` gradients with the
     smallest scores, and returns their mean. With :math:`m = 1` it reduces to
     :class:`~krum.primitives.aggregators.krum.Krum`.
@@ -95,7 +95,7 @@ class MultiKrum(Aggregator):
         m: int | None = None,
         valid_mask: Tensor | None = None,
     ) -> Tensor:
-        r"""Score every stacked gradient by its sum of distances to its :math:`m` closest peers.
+        r"""Score every stacked gradient by its sum of squared distances to its :math:`m` closest peers.
 
         After :func:`torch.sort` on each row, the self-distance is
         0 (set via :meth:`~torch.Tensor.fill_diagonal_`), so column 0
@@ -126,7 +126,7 @@ class MultiKrum(Aggregator):
         """
         if m is None:
             m = n - f - 2
-        distances = cdist(stacked, stacked, p=2.0)
+        distances = cdist(stacked, stacked, p=2.0).square()
         if valid_mask is not None:
             distances[~valid_mask] = float("inf")
             distances[:, ~valid_mask] = float("inf")
