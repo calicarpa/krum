@@ -89,7 +89,7 @@ class MultiKrum(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = cls.score(gradients, n=n, f=f, m=n - f - 2)
+        scores = cls.score(gradients, n=n, f=f, num_peers=n - f - 2)
         _, top_indices = topk(scores, m, largest=False)
 
         return mean(gradients[top_indices], dim=0, out=out)
@@ -100,44 +100,44 @@ class MultiKrum(Aggregator):
         *,
         n: int,
         f: int,
-        m: int | None = None,
+        num_peers: int | None = None,
         valid_mask: Tensor | None = None,
     ) -> Tensor:
-        r"""Score every stacked gradient by its sum of squared distances to its :math:`m` closest peers.
+        r"""Score every stacked gradient by its sum of squared distances to its ``num_peers`` closest peers.
 
         After :func:`torch.sort` on each row, the self-distance is
         0 (set via :meth:`~torch.Tensor.fill_diagonal_`), so column 0
         is always the worker itself. Columns :math:`1` through
-        :math:`m` give the :math:`m` closest *other* workers.
+        ``num_peers`` give the ``num_peers`` closest *other* workers.
 
-        When ``m`` is ``None`` it defaults to :math:`n - f - 2`,
+        When ``num_peers`` is ``None`` it defaults to :math:`n - f - 2`,
         the standard Krum score from Blanchard et al.
 
-        The :math:`m` closest-peers sum approximates how surrounded a
+        The ``num_peers`` closest-peers sum approximates how surrounded a
         gradient is by the (presumed honest) majority; lower scores
         are better.
 
         When ``valid_mask`` is provided, gradients with ``mask[i] = False``
         are treated as infinitely far from every other gradient (so they
-        cannot win the top-``m`` selection).
+        cannot win the top-``num_peers`` selection).
 
         Args:
             stacked: Tensor of shape :math:`(n, d)` containing the stacked worker gradients.
             n: Total number of workers (rows of ``stacked``).
             f: Number of Byzantine workers to tolerate.
-            m: Number of closest peers to consider. Defaults to :math:`n - f - 2`.
+            num_peers: Number of closest peers to consider. Defaults to :math:`n - f - 2`.
             valid_mask: Optional boolean tensor of shape :math:`(n,)``;
                 ``False`` entries are excluded from selection.
 
         Returns:
             Tensor of shape :math:`(n,)` containing the Krum score of each worker.
         """
-        if m is None:
-            m = n - f - 2
+        if num_peers is None:
+            num_peers = n - f - 2
         distances = cdist(stacked, stacked, p=2.0).square()
         if valid_mask is not None:
             distances[~valid_mask] = float("inf")
             distances[:, ~valid_mask] = float("inf")
         distances.fill_diagonal_(0.0)
         sorted_distances, _ = sort(distances, dim=1)
-        return sorted_distances[:, 1 : m + 1].sum(dim=1)
+        return sorted_distances[:, 1 : num_peers + 1].sum(dim=1)

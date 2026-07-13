@@ -104,7 +104,7 @@ class Bulyan(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = MultiKrum.score(gradients, n=n, f=f, m=m)
+        scores = MultiKrum.score(gradients, n=n, f=f, num_peers=m)
 
         theta = n - 2 * f - 2
         selected = gradients.new_empty((theta, gradients.size(1)))
