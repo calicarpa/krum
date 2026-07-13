@@ -44,8 +44,10 @@ class MultiKrum(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 2``.
-            m: Number of selected gradients to average. Must satisfy
-                :math:`1 \le m \le n - f - 2`. If ``None``, defaults to :math:`n - f - 2`.
+            m: Number of selected gradients to average. ``m = 1`` requires
+                :math:`n \ge 2f + 3` (the Krum resilience bound). ``m > 1``
+                requires :math:`1 \le m \le n - 2f - 3` (the Multi-Krum
+                resilience bound). If ``None``, defaults to :math:`n - 2f - 3`.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -66,14 +68,20 @@ class MultiKrum(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
-        if n < 2 * f + 3:
-            raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
-            )
         if m is None:
-            m = n - f - 2
-        if m < 1 or m > n - f - 2:
-            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
+            m = n - 2 * f - 3
+        if m == 1:
+            # Plain Krum's own resilience proof (Blanchard et al., Proposition 1)
+            # only needs n >= 2f + 3, looser than the general Multi-Krum bound
+            # (Proposition 3) that the elif branch below enforces for m > 1 —
+            # that bound is one iteration of this same proof and is strictly
+            # tighter than necessary at m=1.
+            if n < 2 * f + 3:
+                raise ValueError(
+                    f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
+                )
+        elif m < 1 or m > n - 2 * f - 3:
+            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - 2 * f - 3}")
 
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))
