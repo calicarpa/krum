@@ -12,9 +12,7 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_averages_top_m(self) -> None:
         """MultiKrum averages the m gradients with smallest Krum scores."""
-        grads = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]]
-        )
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
         self.assertEqual(result.shape, (2,))
         expected = torch.tensor([2.5, 0.0])
@@ -37,9 +35,7 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_at_max_m(self) -> None:
         """MultiKrum supports m at the upper bound n - 2f - 3."""
-        grads = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]]
-        )
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
         expected = torch.tensor([2.5, 0.0])
         self.assertTrue(torch.allclose(result, expected))
@@ -53,9 +49,7 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_writes_into_out_buffer_and_returns_it(self) -> None:
         """A provided out buffer receives the result and is returned."""
-        grads = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]]
-        )
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
         out = torch.empty(2, dtype=torch.float32)
         result = MultiKrum.aggregate(grads, out, n=7, f=1, m=2)
         self.assertIs(result, out)
@@ -63,9 +57,15 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_accepts_sequence_of_per_worker_vectors(self) -> None:
         """A sequence of 1-D vectors gives the same result as the stacked tensor."""
-        as_tensor = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]]
-        )
+        as_tensor = torch.tensor([
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [2.0, 0.0],
+            [3.0, 0.0],
+            [4.0, 0.0],
+            [5.0, 0.0],
+            [100.0, 100.0],
+        ])
         as_sequence = [as_tensor[i] for i in range(as_tensor.shape[0])]
         self.assertTrue(
             torch.allclose(
