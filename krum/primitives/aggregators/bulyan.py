@@ -88,8 +88,12 @@ class Bulyan(Aggregator):
         valid_mask = ones(n, dtype=bool, device=gradients.device)
         selected = []
 
-        for i in range(n - 2 * f - 2):
-            m_cur = min(m, n - f - 2 - i)
+        theta = n - 2 * f
+
+        for _ in range(theta):
+            remaining = int(valid_mask.sum().item())
+            k_nearest = min(n - f - 2, max(1, remaining - 1))
+            m_cur = min(m, remaining)
 
             D = distances.clone()
             D[~valid_mask] = float("inf")
@@ -97,7 +101,7 @@ class Bulyan(Aggregator):
             D.fill_diagonal_(float("inf"))
 
             sorted_D, _ = sort(D, dim=1)
-            scores = sorted_D[:, :m_cur].sum(dim=1)
+            scores = sorted_D[:, :k_nearest].sum(dim=1)
             scores[~valid_mask] = float("inf")
 
             _, top_nodes = topk(scores, m_cur, largest=False)

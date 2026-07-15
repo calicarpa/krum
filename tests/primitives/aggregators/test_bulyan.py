@@ -61,6 +61,32 @@ class BulyanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Bulyan.aggregate(torch.tensor([[1.0], [2.0], [3.0]]), n=7, f=1)
 
+    def test_rejects_byzantine_outliers(self) -> None:
+        """Bulyan output does not contain byzantine outlier values."""
+        torch.manual_seed(0)
+        n, f, d = 11, 2, 50
+        honest = torch.randn(n - f, d)
+        byz = torch.full((f, d), 1e6)
+        all_grads = torch.cat([honest, byz], dim=0)
+        result = Bulyan.aggregate(all_grads, n=n, f=f, m=1)
+        # No coordinate should approach the byzantine magnitude.
+        self.assertLess(result.abs().max().item(), 100.0)
+        # Output should be much closer to honest mean than to naive average.
+        naive = all_grads.mean(dim=0)
+        honest_mean = honest.mean(dim=0)
+        self.assertLess(
+            (result - honest_mean).norm().item(),
+            (naive - honest_mean).norm().item() * 0.01,
+        )
+
+    def test_m_equals_one_selects_theta_gradients(self) -> None:
+        """With m=1, Bulyan selects exactly n-2f gradients before trimming."""
+        n, f, d = 11, 2, 5
+        grads = torch.randn(n, d)
+        # Should not raise (bulyan_m = n-4f = 3 > 0)
+        result = Bulyan.aggregate(grads, n=n, f=f, m=1)
+        self.assertEqual(result.shape, (d,))
+
 
 if __name__ == "__main__":
     unittest.main()
