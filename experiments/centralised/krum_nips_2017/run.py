@@ -66,12 +66,14 @@ def krum_experiment(
         krum_simulation.step()
 
         if step % eval_every == 0:
-            test_loss, test_accuracy = krum_simulation.evaluate()
-            train_loss = krum_simulation.evaluate_train()
+            test_loss_value, test_accuracy_value = krum_simulation.evaluate()
+            train_loss_value = krum_simulation.evaluate_train()
 
-            test_loss.push(step, test_loss)
-            test_accuracy.push(step, test_accuracy)
-            train_loss.push(step, train_loss)
+            test_loss.push(step, test_loss_value)
+            test_accuracy.push(step, test_accuracy_value)
+            train_loss.push(step, train_loss_value)
 
             print(f"step {step}")
-            print(f"test_loss: {test_loss:.4f}, test_accuracy: {test_accuracy:.4f}, train_loss: {train_loss:.4f}")
+            print(
+                f"test_loss: {test_loss_value:.4f}, test_accuracy: {test_accuracy_value:.4f}, train_loss: {train_loss_value:.4f}"
+            )
