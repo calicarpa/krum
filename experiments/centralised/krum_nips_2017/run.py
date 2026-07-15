@@ -58,16 +58,20 @@ def krum_experiment(
 
     krum_simulation.setup()
 
-    loss = Metric("loss", float)
-    error = Metric("error", float)
+    test_loss = Metric("test_loss", float)
+    test_accuracy = Metric("test_accuracy", float)
+    train_loss = Metric("train_loss", float)
 
     for step in range(rounds):
         krum_simulation.step()
-        loss_value, error_value = krum_simulation.evaluate()
-
-        loss.push(step, loss_value)
-        error.push(step, error_value)
 
         if step % eval_every == 0:
+            test_loss, test_accuracy = krum_simulation.evaluate()
+            train_loss = krum_simulation.evaluate_train()
+
+            test_loss.push(step, test_loss)
+            test_accuracy.push(step, test_accuracy)
+            train_loss.push(step, train_loss)
+
             print(f"step {step}")
-            print(f"loss: {loss_value:.4f}, error: {error_value:.4f}")
+            print(f"test_loss: {test_loss:.4f}, test_accuracy: {test_accuracy:.4f}, train_loss: {train_loss:.4f}")

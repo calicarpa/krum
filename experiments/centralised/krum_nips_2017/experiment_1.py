@@ -1,71 +1,113 @@
-"""Experiment 1 — NIPS 2017 (Blanchard et al.).
+"""Experiment — MultiKrum vs Mean under sign-flip attack.
 
-Resilience to Gaussian Byzantine workers on Spambase.
+Phenomenon: MultiKrum resists Byzantine workers while Mean diverges.
+Runs in ~30s on CPU.
 """
 
+import matplotlib.pyplot as plt
+
 from krum.orchestration import Orchestrator
+from krum.orchestration.dataframe import MetricDataFrame
 from krum.primitives.aggregators.average import Average
-from krum.primitives.aggregators.krum import Krum
-from krum.primitives.attacks.gaussian import GaussianAttack
+from krum.primitives.aggregators.multikrum import MultiKrum
+from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.primitives.models.mlp import Krum2017MLPSpambase
 
-from .plot import plot_error_curves_by_f
 from .run import krum_experiment
 
-# --- Configurable parameters ---
-ROUNDS = 500
+ROUNDS = 100
+MODEL = Krum2017MLPSpambase
+DATASET = "spambase"
 N = 20
+F = N // 3
 BATCH_SIZE = 3
 LR = 0.01
 SEED = 42
+EVAL_EVERY = 15
 
-# Attack configuration
-ATTACK_STD = 200.0
 
-# Byzantine fractions to test (0.0 = 0%, 0.33 = 33%)
-BYZ_FRACTIONS = [0.0, 0.33]
+def plot_comparison(
+    test_loss: MetricDataFrame,
+    test_accuracy: MetricDataFrame,
+    train_loss: MetricDataFrame,
+    *,
+    f_byz: int,
+) -> None:
+    """Plot the comparison of MultiKrum and Mean under sign-flip attack."""
+    frame_tl = test_loss.to_pandas()
+    frame_ta = test_accuracy.to_pandas()
+    frame_trl = train_loss.to_pandas()
 
-# Aggregators to compare
-AGGREGATORS = [
-    (Average, "Average"),
-    (Krum, "Krum"),
-]
-# --------------------------------------------
+    styles = {
+        "Mean_f0": {"color": "tab:green", "linestyle": "-"},
+        f"Mean_f{f_byz}": {"color": "tab:red", "linestyle": "--"},
+        "MultiKrum_f0": {"color": "tab:orange", "linestyle": "-"},
+        f"MultiKrum_f{f_byz}": {"color": "tab:blue", "linestyle": "--"},
+    }
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+    for ax, frame, ylabel, title in [
+        (axes[0], frame_tl, "loss", "test loss"),
+        (axes[1], frame_trl, "loss", "train loss"),
+        (axes[2], frame_ta, "accuracy", "test accuracy"),
+    ]:
+        for run_label, group in frame.groupby("label", sort=False):
+            style = styles.get(run_label)
+            if style is None:
+                continue
+            group = group.sort_values("step")
+            ax.plot(group["step"], group["value"], label=run_label, **style, linewidth=1.5)
+        ax.set_xlabel("round")
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.legend(fontsize=8)
+        ax.grid(True, linestyle=":", alpha=0.5)
+        if "accuracy" in ylabel:
+            ax.set_ylim(0.0, 1.0)
+
+    fig.suptitle("MultiKrum vs Mean — sign-flip attack", fontsize=12)
+    fig.tight_layout()
+    plt.show()
 
 
 def main() -> None:
-    """Run Experiment 1."""
-    attack_kw = {"std": ATTACK_STD}
+    """Run the experiment and plot the results."""
+    orchestrator = Orchestrator("krum_2017_nips_spambase")
 
-    orchestrator = Orchestrator("krum_nips_2017_experiment_1")
+    configs = [
+        (Average, "Mean_f0", 0, None),
+        (Average, f"Mean_f{F}", F, None),
+        (MultiKrum, "MultiKrum_f0", 0, {"m": N - 2}),
+        (MultiKrum, f"MultiKrum_f{F}", F, {"m": N - F - 2}),
+    ]
 
-    for fraction in BYZ_FRACTIONS:
-        f = int(N * fraction)
-        for agg, agg_label in AGGREGATORS:
-            label = f"{agg_label}_f{f}"
+    for agg, label, f_val, agg_kw in configs:
+        orchestrator.run(
+            krum_experiment,
+            label=label,
+            dataset=DATASET,
+            model_cls=MODEL,
+            aggregator=agg,
+            aggregator_kwargs=agg_kw,
+            attack=SignFlipAttack,
+            attack_kwargs={"scale": 10.0},
+            n=N,
+            f=f_val,
+            rounds=ROUNDS,
+            batch_size=BATCH_SIZE,
+            lr=LR,
+            seed=SEED,
+            eval_every=EVAL_EVERY,
+        )
 
-            orchestrator.run(
-                krum_experiment,
-                label=label,
-                dataset="spambase",
-                model_cls=Krum2017MLPSpambase,
-                aggregator=agg,
-                attack=GaussianAttack,
-                attack_kwargs=attack_kw,
-                n=N,
-                f=f,
-                rounds=ROUNDS,
-                batch_size=BATCH_SIZE,
-                lr=LR,
-                seed=SEED,
-            )
-
-    print("\nExperiment 1 done.")
-    loss_data = orchestrator.get("loss")
-    error_data = orchestrator.get("error")
-    print(len(loss_data))
-    print(len(error_data))
-    plot_error_curves_by_f(error_data)
+    print("\nDone.")
+    plot_comparison(
+        orchestrator.get("test_loss"),
+        orchestrator.get("test_accuracy"),
+        orchestrator.get("train_loss"),
+        f_byz=F,
+    )
 
 
 if __name__ == "__main__":
