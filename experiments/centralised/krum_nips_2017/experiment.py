@@ -1,7 +1,6 @@
 """Experiment — MultiKrum vs Mean under sign-flip attack.
 
 Phenomenon: MultiKrum resists Byzantine workers while Mean diverges.
-Runs in ~30s on CPU.
 """
 
 import matplotlib.pyplot as plt
