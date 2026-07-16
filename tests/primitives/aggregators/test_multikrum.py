@@ -15,7 +15,7 @@ class MultiKrumTest(unittest.TestCase):
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
         self.assertEqual(result.shape, (2,))
-        expected = torch.tensor([1.5, 0.0])
+        expected = torch.tensor([2.5, 0.0])
         self.assertTrue(torch.allclose(result, expected))
 
     def test_aggregate_m_equals_one_is_krum(self) -> None:
