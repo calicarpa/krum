@@ -4,6 +4,7 @@ Phenomenon: MultiKrum resists Byzantine workers while Mean diverges.
 """
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from krum.orchestration import Orchestrator
 from krum.orchestration.dataframe import MetricDataFrame
@@ -27,6 +28,31 @@ XAVIER_INIT = True
 WEIGHT_DECAY = 1e-4
 
 
+def _plot_panel(
+    ax: plt.Axes,
+    frame: "pd.DataFrame",
+    styles: dict,
+    ylabel: str,
+    title: str,
+    *,
+    exclude: str | None = None,
+) -> None:
+    """Plot a single panel of the comparison between MultiKrum and Mean under sign-flip attack."""
+    for run_label, group in frame.groupby("label", sort=False):
+        if run_label == exclude:
+            continue
+        style = styles.get(run_label)
+        if style is None:
+            continue
+        group = group.sort_values("step")
+        ax.plot(group["step"], group["value"], label=run_label, **style, linewidth=1.5)
+    ax.set_xlabel("round")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(fontsize=7)
+    ax.grid(True, linestyle=":", alpha=0.5)
+
+
 def plot_comparison(
     test_loss: MetricDataFrame,
     test_accuracy: MetricDataFrame,
@@ -46,29 +72,21 @@ def plot_comparison(
         f"MultiKrum_f{f_byz}": {"color": "tab:blue", "linestyle": "--"},
     }
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    fig = plt.figure(figsize=(16, 10))
+    gs = fig.add_gridspec(3, 2, hspace=0.35, wspace=0.25)
 
-    for ax, frame, ylabel, title in [
-        (axes[0], frame_tl, "loss", "test loss"),
-        (axes[1], frame_trl, "loss", "train loss"),
-        (axes[2], frame_ta, "accuracy", "test accuracy"),
-    ]:
-        for run_label, group in frame.groupby("label", sort=False):
-            style = styles.get(run_label)
-            if style is None:
-                continue
-            group = group.sort_values("step")
-            ax.plot(group["step"], group["value"], label=run_label, **style, linewidth=1.5)
-        ax.set_xlabel("round")
-        ax.set_ylabel(ylabel)
-        ax.set_title(title)
-        ax.legend(fontsize=8)
-        ax.grid(True, linestyle=":", alpha=0.5)
-        if "accuracy" in ylabel:
-            ax.set_ylim(0.0, 1.0)
+    mean_f_label = f"Mean_f{f_byz}"
+
+    _plot_panel(fig.add_subplot(gs[0, 0]), frame_tl, styles, "loss", "test loss")
+    _plot_panel(fig.add_subplot(gs[0, 1]), frame_tl, styles, "loss", "test loss (excl. Mean_f6)", exclude=mean_f_label)
+    _plot_panel(fig.add_subplot(gs[1, 0]), frame_trl, styles, "loss", "train loss")
+    _plot_panel(
+        fig.add_subplot(gs[1, 1]), frame_trl, styles, "loss", "train loss (excl. Mean_f6)", exclude=mean_f_label
+    )
+    _plot_panel(fig.add_subplot(gs[2, :]), frame_ta, styles, "accuracy", "test accuracy")
+    fig.axes[-1].set_ylim(0.0, 1.0)
 
     fig.suptitle("MultiKrum vs Mean — sign-flip attack", fontsize=12)
-    fig.tight_layout()
     plt.show()
 
 
