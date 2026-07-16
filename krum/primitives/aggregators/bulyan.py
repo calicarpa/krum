@@ -94,9 +94,9 @@ class Bulyan(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
             )
-        m = m if m is not None else n - f - 2
-        if m < 1 or m > n - f - 2:
-            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n - f - 2}")
+        m = m if m is not None else n - f
+        if m < 1 or m > n:
+            raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n}")
 
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))

@@ -71,11 +71,6 @@ class MultiKrum(Aggregator):
         if m is None:
             m = n - 2 * f - 3
         if m == 1:
-            # Plain Krum's own resilience proof (Blanchard et al., Proposition 1)
-            # only needs n >= 2f + 3, looser than the general Multi-Krum bound
-            # (Proposition 3) that the elif branch below enforces for m > 1 —
-            # that bound is one iteration of this same proof and is strictly
-            # tighter than necessary at m=1.
             if n < 2 * f + 3:
                 raise ValueError(
                     f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
@@ -109,7 +104,6 @@ class MultiKrum(Aggregator):
         0 (set via :meth:`~torch.Tensor.fill_diagonal_`), so column 0
         is always the worker itself. Columns :math:`1` through
         ``num_peers`` give the ``num_peers`` closest *other* workers.
-
         When ``num_peers`` is ``None`` it defaults to :math:`n - f - 2`,
         the standard Krum score from Blanchard et al.
 
