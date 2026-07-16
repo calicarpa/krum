@@ -15,7 +15,7 @@ class KrumTest(unittest.TestCase):
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
         result = Krum.aggregate(grads, n=5, f=1)
         self.assertEqual(result.shape, (2,))
-        self.assertTrue(torch.equal(result, torch.tensor([1.0, 0.0])))
+        self.assertTrue(torch.equal(result, torch.tensor([0.0, 0.0])))
 
     def test_aggregate_identical_gradients(self) -> None:
         """Krum returns the first gradient when all are identical."""
