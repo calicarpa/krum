@@ -96,10 +96,10 @@ class BulyanTest(unittest.TestCase):
         result = Bulyan.aggregate(grads, n=11, f=2, m=7)
         self.assertTrue(torch.all(result < 10.0))
 
-    def test_aggregate_with_default_m_uses_n_minus_f_minus_2(self) -> None:
-        """When m is omitted, the default n-f-2 is used (m=7 for n=11, f=2)."""
+    def test_aggregate_with_default_m_uses_n_minus_f(self) -> None:
+        """When m is omitted, the default n-f is used (m=9 for n=11, f=2)."""
         grads = torch.randn(11, 4)
-        with_explicit = Bulyan.aggregate(grads, n=11, f=2, m=7)
+        with_explicit = Bulyan.aggregate(grads, n=11, f=2, m=9)
         with_default = Bulyan.aggregate(grads, n=11, f=2)
         self.assertTrue(torch.equal(with_explicit, with_default))
 
