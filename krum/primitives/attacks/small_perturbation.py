@@ -46,7 +46,7 @@ import math
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, argmax, cat, ones, stack, zeros
+from torch import Tensor, arange, argmax, cat, isin, ones, stack, topk, zeros
 
 from ..aggregators import Aggregator
 from . import Attack
@@ -208,8 +208,6 @@ class SmallPerturbationAttack(Attack):
             return ones(d, device=device, dtype=dtype)
 
         if coordinate is None or coordinate in {"max", "largest"}:
-            # correction=0 → population std (matches the paper's reference
-            # implementation from the LPD-EPFL lab).
             std = honest_gradients.std(dim=0, correction=0)
             idx = int(argmax(std).item())
         else:
@@ -236,10 +234,13 @@ class SmallPerturbationAttack(Attack):
     ) -> bool:
         r"""Test whether the target aggregator "selects" :math:`B(\gamma)`.
 
-        This uses a relative difference metric: it computes the normalized
-        difference between the aggregator's output with and without the
-        perturbation. The gradient is considered "selected" only if the
-        relative difference exceeds the threshold.
+        For Krum-based aggregators (those with a ``_compute_scores`` method),
+        the test directly checks whether at least one :math:`B(\gamma)` copy
+        lands in the top-``m`` Krum scores — a subset-membership test.
+        For all other aggregators, the test falls back to a relative-output-
+        change heuristic: the Byzantine gradient is considered "selected" if
+        swapping the honest mean for :math:`B(\gamma)` changes the aggregator
+        output by more than ``threshold``.
 
         Args:
             honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
@@ -249,24 +250,31 @@ class SmallPerturbationAttack(Attack):
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
             out_without: Pre-computed aggregator output when the Byzantine
-                gradients are replaced by the honest mean. If ``None``, it is
-                computed on the fly.
+                gradients are replaced by the honest mean. Only used by the
+                generic fallback path.
             threshold: Relative difference threshold (default 0.5 = 50%).
-                The gradient is considered selected only if the output changes
-                by more than this fraction.
 
         Returns:
-            ``True`` if the aggregator's output differs by more than the
-            threshold when :math:`B(\gamma)` is included.
+            ``True`` if the aggregator selects :math:`B(\gamma)`.
         """
+        byz_with = b_gamma.unsqueeze(0).expand(f, -1)
+        stacked_with = cat([honest_gradients, byz_with], dim=0)
+
+        if hasattr(aggregator, "_compute_scores"):
+            scores = aggregator._compute_scores(stacked_with, n=n, f=f)  # ty:ignore[call-non-callable]
+            m = aggregator_kwargs.get("m", n - f - 2)
+            if m < 1 or m > n - f - 2:
+                m = min(max(m, 1), n - f - 2)
+            _, top_indices = topk(scores, m, largest=False)
+            byz_indices = arange(n - f, n, device=stacked_with.device, dtype=top_indices.dtype)
+            return bool(isin(top_indices, byz_indices).any().item())
+
         if out_without is None:
             honest_mean = honest_gradients.mean(dim=0)
             byz_without = honest_mean.unsqueeze(0).expand(f, -1)
             stacked_without = cat([honest_gradients, byz_without], dim=0)
             out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
 
-        byz_with = b_gamma.unsqueeze(0).expand(f, -1)
-        stacked_with = cat([honest_gradients, byz_with], dim=0)
         out_with = aggregator.aggregate(stacked_with, n=n, f=f, **aggregator_kwargs)
 
         diff_norm = (out_with - out_without).norm()
