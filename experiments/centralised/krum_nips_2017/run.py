@@ -30,6 +30,8 @@ def krum_experiment(
     train_size: int = 0,
     test_size: int = 0,
     aggregator_kwargs: dict[str, Any] | None = None,
+    xavier_init: bool = False,
+    weight_decay: float = 0.0,
 ) -> None:
     """Build and run one KrumSimulation instance.
 
@@ -54,6 +56,8 @@ def krum_experiment(
         lr=lr,
         seed=seed,
         eval_every=eval_every,
+        xavier_init=xavier_init,
+        weight_decay=weight_decay,
     )
 
     krum_simulation.setup()

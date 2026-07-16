@@ -30,6 +30,7 @@ class KrumSimulation(CentralisedSimulation):
 
     def __init__(self, **kwargs: Any) -> None:
         """See :class:`~krum.simulations.centralised.CentralisedSimulation`."""
+        kwargs.setdefault("lr_schedule", "none")
         super().__init__(**kwargs)
 
     def evaluate(self) -> tuple[float, float]:

@@ -55,7 +55,7 @@ class KrumSimulationConstructionTest(unittest.TestCase):
     def test_construction_defaults(self) -> None:
         """Construction with default parameters should apply NIPS 2017 values."""
         sim = self._make_sim()
-        self.assertEqual(sim.lr_schedule, "exponential")
+        self.assertEqual(sim.lr_schedule, "none")
 
     def test_construction_happy(self) -> None:
         """Construction with default parameters should succeed."""
@@ -109,8 +109,8 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
 class KrumSimulationLRScheduleTest(unittest.TestCase):
     """KrumSimulation uses inherited LR defaults."""
 
-    def test_default_schedule_is_exponential(self) -> None:
-        """Default LR schedule should be exponential with decay 0.99."""
+    def test_default_schedule_is_none(self) -> None:
+        """Default LR schedule should be none (fixed learning rate, NIPS 2017 protocol)."""
         sim = KrumSimulation(
             model_cls=_DummyModel,
             train_set=_dummy_dataset(),
@@ -122,8 +122,7 @@ class KrumSimulationLRScheduleTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
         )
-        self.assertEqual(sim.lr_schedule, "exponential")
-        self.assertAlmostEqual(sim.lr_decay, 0.99)  # ty:ignore[no-matching-overload]
+        self.assertEqual(sim.lr_schedule, "none")
 
 
 if __name__ == "__main__":

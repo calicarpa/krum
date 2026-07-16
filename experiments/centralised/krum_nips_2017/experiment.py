@@ -14,7 +14,7 @@ from krum.primitives.models.mlp import Krum2017MLPSpambase
 
 from .run import krum_experiment
 
-ROUNDS = 100
+ROUNDS = 300
 MODEL = Krum2017MLPSpambase
 DATASET = "spambase"
 N = 20
@@ -23,6 +23,8 @@ BATCH_SIZE = 3
 LR = 0.01
 SEED = 42
 EVAL_EVERY = 15
+XAVIER_INIT = True
+WEIGHT_DECAY = 1e-4
 
 
 def plot_comparison(
@@ -98,6 +100,8 @@ def main() -> None:
             lr=LR,
             seed=SEED,
             eval_every=EVAL_EVERY,
+            xavier_init=XAVIER_INIT,
+            weight_decay=WEIGHT_DECAY,
         )
 
     print("\nDone.")
