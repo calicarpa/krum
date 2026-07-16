@@ -18,18 +18,13 @@ from .multikrum import MultiKrum
 class Krum(MultiKrum):
     r"""Krum aggregation rule, single-gradient selection.
 
-    For each worker gradient, Krum scores it by the sum of Euclidean
-    distances to its :math:`n - f - 1` closest *peers in the sorted
-    distance table*. After :func:`torch.sort` on each row, the first
-    entry is the self-distance (zero), so the first :math:`n - f - 1`
-    columns effectively include the self at distance 0 plus the
-    :math:`n - f - 2` closest *other* workers — exactly the
-    :math:`n - f - 2` non-self neighbors of Blanchard 2017, Éq. 1.
+    For each worker gradient, Krum scores it by the sum of squared
+    Euclidean distances to its :math:`n - f - 2` closest peers. After
+    :func:`torch.sort` on each row, the self-distance is 0 so column 0
+    is always the worker itself. Columns :math:`1` through
+    :math:`n - f - 2` give :math:`n - f - 2` closest *other* workers.
 
-    The implementation sums Euclidean distances (not squared) but the
-    ranking is preserved, so Krum still selects the gradient the
-    paper-derived score would. This is :class:`MultiKrum` with
-    :math:`m = 1`.
+    This is :class:`MultiKrum` with :math:`m = 1`.
     """
 
     @classmethod

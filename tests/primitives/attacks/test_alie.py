@@ -17,10 +17,17 @@ class ALIEAttackTest(unittest.TestCase):
 
         byzantine_gradients = ALIEAttack.generate(honest_gradients, f=f)
 
-        z_max = torch.distributions.Normal(
-            honest_gradients.new_tensor(0.0),
-            honest_gradients.new_tensor(1.0),
-        ).icdf(honest_gradients.new_tensor(24 / 26))
+        # Algorithm 3: s = floor(n/2) + 1 - f, ratio = (n - s) / n where n = h + f
+        h = 26
+        n = h + f
+        s = n // 2 + 1 - f
+        ratio = (n - s) / n
+        z_max = abs(
+            torch.distributions.Normal(
+                honest_gradients.new_tensor(0.0),
+                honest_gradients.new_tensor(1.0),
+            ).icdf(honest_gradients.new_tensor(ratio))
+        )
         expected_gradient = honest_gradients.mean(dim=0) - z_max * honest_gradients.std(dim=0, correction=0)
         expected = expected_gradient.repeat(f, 1)
 
@@ -100,12 +107,39 @@ class ALIEAttackTest(unittest.TestCase):
         self.assertEqual(byzantine_gradients.dtype, honest_gradients.dtype)
         self.assertEqual(byzantine_gradients.device, honest_gradients.device)
 
-    def test_rejects_worker_configuration_without_non_negative_z_max(self) -> None:
-        """Worker configuration must allow a non-negative maximal attack factor."""
-        honest_gradients = torch.zeros((3, 5))
-
+    def test_rejects_worker_configuration_with_degenerate_target(self) -> None:
+        """A worker configuration where ratio >= 1 raises ValueError."""
+        # f=1, h=3 gives n=4, s=4//2+1-1=2, ratio=(4-2)/4=0.5 (valid)
+        # f=1, h=1 gives n=2, s=2//2+1-1=1, ratio=(2-1)/2=0.5 (valid)
+        # f=2, h=1 gives n=3, s=3//2+1-2=0, ratio=(3-0)/3=1.0 (invalid, ratio >= 1)
+        honest_gradients = torch.zeros((1, 5))
         with self.assertRaises(ValueError):
-            ALIEAttack.generate(honest_gradients, f=1)
+            ALIEAttack.generate(honest_gradients, f=2)
+
+    def test_rejects_worker_configuration_with_z_max_negative(self) -> None:
+        """A worker configuration where z_max would be negative raises ValueError."""
+        # f=3, h=2 gives n=5, s=5//2+1-3=0, ratio=(5-0)/5=1.0 (invalid)
+        honest_gradients = torch.zeros((2, 5))
+        with self.assertRaises(ValueError):
+            ALIEAttack.generate(honest_gradients, f=3)
+
+    def test_generates_positive_direction_with_paper_max_z(self) -> None:
+        """The paper's max_z with POSITIVE direction puts the malicious gradient above the mean."""
+        honest_gradients = torch.arange(52, dtype=torch.float64).reshape(26, 2)
+        byzantine_gradients = ALIEAttack.generate(honest_gradients, f=24, direction=Direction.POSITIVE)
+        h = 26
+        n = h + 24
+        s = n // 2 + 1 - 24
+        ratio = (n - s) / n
+        z_max = abs(
+            torch.distributions.Normal(
+                honest_gradients.new_tensor(0.0),
+                honest_gradients.new_tensor(1.0),
+            ).icdf(honest_gradients.new_tensor(ratio))
+        )
+        expected_gradient = honest_gradients.mean(dim=0) + z_max * honest_gradients.std(dim=0, correction=0)
+        expected = expected_gradient.repeat(24, 1)
+        self.assertTrue(torch.allclose(byzantine_gradients, expected))
 
     def test_accepts_sequence_of_per_worker_vectors(self) -> None:
         """Honest gradients may be a sequence of 1-D vectors, not just a 2-D tensor."""

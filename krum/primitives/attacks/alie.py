@@ -115,10 +115,12 @@ class ALIEAttack(Attack):
         r"""Compute the maximal valid ALIE attack factor for the worker configuration.
 
         :math:`z_{\max}` is the largest :math:`z` such that
-        :math:`\Phi(z) < (h - s) / h`, where :math:`h` is the number of honest
-        workers and :math:`s` is the number of honest workers needed to form a
-        majority among the :math:`n = h + f` workers:
+        :math:`\Phi(z) < (n - s) / n`, where :math:`n = h + f` is the total
+        number of workers and :math:`s` is the number of honest workers needed
+        to form a majority among the :math:`n` workers:
         :math:`s = \lfloor n / 2 \rfloor + 1 - f`.
+
+        This follows Algorithm 3 from Baruch et al., NeurIPS 2019.
 
         Args:
             honest_gradients: Tensor of shape :math:`(h, d)` containing gradients
@@ -140,7 +142,7 @@ class ALIEAttack(Attack):
         num_workers = num_honest + f
         # s = floor(n / 2) + 1 - f: honest workers needed for a majority of n = h + f.
         num_supporters = num_workers // 2 + 1 - f
-        ratio = (num_honest - num_supporters) / num_honest
+        ratio = (num_workers - num_supporters) / num_workers
         if ratio >= 1:
             msg = f"Invalid worker configuration for ALIE, got normal CDF target = {ratio!r}, expected target < 1"
             raise ValueError(msg)

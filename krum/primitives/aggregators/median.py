@@ -10,7 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, long, median, stack
+from torch import Tensor, quantile, stack
 
 from . import Aggregator
 
@@ -45,8 +45,10 @@ class Median(Aggregator):
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))
 
-        if out is not None:
-            indices = out.new_empty(out.shape, dtype=long)
-            median(gradients, dim=0, out=(out, indices))
-            return out
-        return gradients.median(dim=0).values
+        # Yin et al. define this as "the usual (one-dimensional) median," which
+        # by standard convention averages the two middle values for an even
+        # worker count. torch.median instead always returns one of the actual
+        # submitted values (the lower of the two middles when even) — quantile
+        # at q=0.5 is the variant that matches the paper's definition exactly,
+        # and reduces to the same value as torch.median whenever the count is odd.
+        return quantile(gradients, 0.5, dim=0, out=out)

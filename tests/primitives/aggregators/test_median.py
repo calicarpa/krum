@@ -23,6 +23,17 @@ class MedianTest(unittest.TestCase):
         result = Median.aggregate(grads)
         self.assertEqual(result.item(), 3.0)
 
+    def test_aggregate_even_number_of_gradients_averages_middle_two(self) -> None:
+        """For an even worker count, the median averages the two middle values.
+
+        Regression guard for the paper's "usual (one-dimensional) median"
+        (Yin et al., Definition 2.1), which torch.median does not implement:
+        it returns the lower of the two middle values instead of their mean.
+        """
+        grads = torch.tensor([[1.0], [2.0], [3.0], [4.0]])
+        result = Median.aggregate(grads)
+        self.assertEqual(result.item(), 2.5)
+
     def test_aggregate_single_gradient(self) -> None:
         """Aggregate with one gradient returns it."""
         grads = torch.tensor([[7.0, 8.0]])
