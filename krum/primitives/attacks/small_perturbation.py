@@ -250,8 +250,8 @@ class SmallPerturbationAttack(Attack):
             f: Number of Byzantine workers.
             aggregator_kwargs: Extra keyword arguments for the aggregator.
             out_without: Pre-computed aggregator output when the Byzantine
-                gradients are replaced by the honest mean. Only used by the
-                generic fallback path.
+                gradients are replaced by the honest mean. If ``None``, it is
+                computed on the fly.
             threshold: Relative difference threshold (default 0.5 = 50%).
 
         Returns:
