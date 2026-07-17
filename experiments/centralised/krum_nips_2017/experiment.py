@@ -30,7 +30,7 @@ WEIGHT_DECAY = 1e-4
 
 def _plot_panel(
     ax: plt.Axes,
-    frame: "pd.DataFrame",
+    frame: pd.DataFrame,
     styles: dict,
     ylabel: str,
     title: str,
