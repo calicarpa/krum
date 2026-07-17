@@ -1,6 +1,7 @@
-"""Experiment — MultiKrum vs Mean under sign-flip attack.
+"""MultiKrum vs Mean under sign-flip attack on the Spambase dataset.
 
-Phenomenon: MultiKrum resists Byzantine workers while Mean diverges.
+MultiKrum resists Byzantine workers while the coordinate-wise mean diverges,
+reproducing the centralised setting of Blanchard et al. (Section 2).
 """
 
 import matplotlib.pyplot as plt
