@@ -340,6 +340,14 @@ class SmallPerturbationAttack(Attack):
         Returns:
             The largest ``\gamma`` for which the aggregator selects
             ``B(\gamma)``, as a Python float.
+
+        Note:
+            The exponential scan steps by powers of 2 from
+            ``gamma_init`` to ``gamma_max``. Selection pockets that
+            fall entirely below ``gamma_init`` (e.g. the attack is only
+            effective for very small :math:`\gamma`) are not explored
+            — the search returns ``0.0`` instead. To probe lower
+            :math:`\gamma`, pass a smaller ``gamma_init``.
         """
         byz_placeholder = honest_mean.unsqueeze(0).expand(f, -1)
         stacked_without = cat([honest_gradients, byz_placeholder], dim=0)
