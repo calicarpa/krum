@@ -2,6 +2,7 @@
 
 import math
 import unittest
+import unittest.mock
 
 import torch
 
@@ -212,6 +213,21 @@ class SmallPerturbationAttackTest(unittest.TestCase):
         honest_mean = honest.mean(dim=0)
         result = SmallPerturbationAttack._is_selected(honest, honest_mean, Brute, 5, 1, {})
         self.assertIsInstance(result, bool)
+
+    def test_krum_branch_is_used_for_multikrum_target(self) -> None:
+        """_is_selected routes to the MultiKrum.score subset-membership path.
+
+        Regression: the Krum-specific branch previously checked for
+        ``_compute_scores``, a method that does not exist on MultiKrum. The
+        branch was therefore dead code and every attack fell through to the
+        relative-output-change heuristic, contradicting the module docstring.
+        """
+        honest = torch.randn(6, 10)
+        honest_mean = honest.mean(dim=0)
+
+        with unittest.mock.patch.object(MultiKrum, "score", wraps=MultiKrum.score) as spy:
+            SmallPerturbationAttack._is_selected(honest, honest_mean, MultiKrum, 8, 2, {"m": 1})
+            spy.assert_called_once()
 
     def test_multikrum_target_finds_nontrivial_gamma(self) -> None:
         """The search also produces a non-trivial perturbation for MultiKrum."""

@@ -234,7 +234,7 @@ class SmallPerturbationAttack(Attack):
     ) -> bool:
         r"""Test whether the target aggregator "selects" :math:`B(\gamma)`.
 
-        For Krum-based aggregators (those with a ``_compute_scores`` method),
+        For Krum-based aggregators (those with a ``score`` static method),
         the test directly checks whether at least one :math:`B(\gamma)` copy
         lands in the top-``m`` Krum scores — a subset-membership test.
         For all other aggregators, the test falls back to a relative-output-
@@ -260,11 +260,11 @@ class SmallPerturbationAttack(Attack):
         byz_with = b_gamma.unsqueeze(0).expand(f, -1)
         stacked_with = cat([honest_gradients, byz_with], dim=0)
 
-        if hasattr(aggregator, "_compute_scores"):
-            scores = aggregator._compute_scores(stacked_with, n=n, f=f)  # ty:ignore[call-non-callable]
+        if hasattr(aggregator, "score"):
             m = aggregator_kwargs.get("m", n - f - 2)
             if m < 1 or m > n - f - 2:
                 m = min(max(m, 1), n - f - 2)
+            scores = aggregator.score(stacked_with, n=n, f=f, num_peers=m)  # ty:ignore[call-non-callable]
             _, top_indices = topk(scores, m, largest=False)
             byz_indices = arange(n - f, n, device=stacked_with.device, dtype=top_indices.dtype)
             return bool(isin(top_indices, byz_indices).any().item())
