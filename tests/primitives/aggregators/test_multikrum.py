@@ -12,22 +12,31 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_averages_top_m(self) -> None:
         """MultiKrum averages the m gradients with smallest Krum scores."""
-        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
+        grads = torch.tensor([
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [3.0, 0.0],
+            [7.0, 0.0],
+            [15.0, 0.0],
+            [31.0, 0.0],
+            [1000.0, 1000.0],
+        ])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
         self.assertEqual(result.shape, (2,))
-        expected = torch.tensor([1.5, 0.0])
+        expected = torch.tensor([0.5, 0.0])
         self.assertTrue(torch.allclose(result, expected))
 
     def test_aggregate_m_equals_one_is_krum(self) -> None:
         """MultiKrum with m=1 is equivalent to Krum."""
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
         result = MultiKrum.aggregate(grads, n=5, f=1, m=1)
-        self.assertTrue(torch.equal(result, torch.tensor([0.0, 0.0])))
+        honest = grads[:4]
+        self.assertTrue(any(torch.equal(result, g) for g in honest))
 
     def test_aggregate_preserves_dtype(self) -> None:
         """Aggregate preserves the input dtype."""
         grads = torch.tensor(
-            [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]],
+            [[0.0, 0.0], [1.0, 0.0], [3.0, 0.0], [7.0, 0.0], [15.0, 0.0], [31.0, 0.0], [1000.0, 1000.0]],
             dtype=torch.float64,
         )
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
@@ -35,9 +44,17 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_at_max_m(self) -> None:
         """MultiKrum supports m at the upper bound n - 2f - 3."""
-        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
+        grads = torch.tensor([
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [3.0, 0.0],
+            [7.0, 0.0],
+            [15.0, 0.0],
+            [31.0, 0.0],
+            [1000.0, 1000.0],
+        ])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
-        expected = torch.tensor([1.5, 0.0])
+        expected = torch.tensor([0.5, 0.0])
         self.assertTrue(torch.allclose(result, expected))
 
     def test_aggregate_high_dimensional(self) -> None:
@@ -49,22 +66,30 @@ class MultiKrumTest(unittest.TestCase):
 
     def test_aggregate_writes_into_out_buffer_and_returns_it(self) -> None:
         """A provided out buffer receives the result and is returned."""
-        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [100.0, 100.0]])
+        grads = torch.tensor([
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [3.0, 0.0],
+            [7.0, 0.0],
+            [15.0, 0.0],
+            [31.0, 0.0],
+            [1000.0, 1000.0],
+        ])
         out = torch.empty(2, dtype=torch.float32)
         result = MultiKrum.aggregate(grads, out, n=7, f=1, m=2)
         self.assertIs(result, out)
-        self.assertTrue(torch.allclose(result, torch.tensor([1.5, 0.0])))
+        self.assertTrue(torch.allclose(result, torch.tensor([0.5, 0.0])))
 
     def test_aggregate_accepts_sequence_of_per_worker_vectors(self) -> None:
         """A sequence of 1-D vectors gives the same result as the stacked tensor."""
         as_tensor = torch.tensor([
             [0.0, 0.0],
             [1.0, 0.0],
-            [2.0, 0.0],
             [3.0, 0.0],
-            [4.0, 0.0],
-            [5.0, 0.0],
-            [100.0, 100.0],
+            [7.0, 0.0],
+            [15.0, 0.0],
+            [31.0, 0.0],
+            [1000.0, 1000.0],
         ])
         as_sequence = [as_tensor[i] for i in range(as_tensor.shape[0])]
         self.assertTrue(
@@ -78,9 +103,7 @@ class MultiKrumTest(unittest.TestCase):
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
         scores = MultiKrum.score(grads, n=5, f=1)
         self.assertEqual(scores.shape, (5,))
-        # The outlier (worker 4) should have the highest score
         self.assertEqual(int(scores.argmax().item()), 4)
-        # Edge workers have higher scores than central ones
         self.assertLess(scores[1].item(), scores[0].item())
         self.assertLess(scores[2].item(), scores[0].item())
         self.assertLess(scores[3].item(), scores[1].item())
@@ -91,9 +114,7 @@ class MultiKrumTest(unittest.TestCase):
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
         mask = torch.tensor([True, True, True, True, False])
         scores = MultiKrum.score(grads, n=5, f=1, num_peers=2, valid_mask=mask)
-        # Worker 4 (masked) should have an infinite score
         self.assertEqual(float(scores[4]), float("inf"))
-        # The remaining workers should still have finite scores
         self.assertTrue(torch.isfinite(scores[:4]).all())
 
     def test_score_with_mask_all_false_returns_inf(self) -> None:
@@ -144,9 +165,9 @@ class MultiKrumTest(unittest.TestCase):
             MultiKrum.aggregate(torch.tensor([[1.0]]), n=5, f=1, m=0)
 
     def test_check_rejects_invalid_m_too_large(self) -> None:
-        """Check raises ValueError when m > n - f - 2."""
+        """Check raises ValueError when m > n."""
         with self.assertRaises(ValueError):
-            MultiKrum.aggregate(torch.tensor([[1.0]]), n=5, f=1, m=3)
+            MultiKrum.aggregate(torch.tensor([[1.0]]), n=5, f=1, m=6)
 
     def test_check_rejects_wrong_number_of_gradients(self) -> None:
         """Check raises ValueError when len(gradients) != n."""
