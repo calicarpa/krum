@@ -87,14 +87,15 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
         assert self.sim._model is not None
         self.assertIsNotNone(self.sim._model.module)
 
-    def test_evaluate_returns_error_and_loss(self) -> None:
-        """:meth:`evaluate` should return a 2-tuple of floats."""
+    def test_evaluate_returns_loss_and_accuracy(self) -> None:
+        """:meth:`evaluate` should return ``(test_loss, test_accuracy)`` floats."""
         self.sim.setup()
-        result = self.sim.evaluate()
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        for val in result:
-            self.assertIsInstance(val, float)
+        test_loss, test_accuracy = self.sim.evaluate()
+        self.assertIsInstance(test_loss, float)
+        self.assertIsInstance(test_accuracy, float)
+        self.assertGreaterEqual(test_loss, 0.0)
+        self.assertGreaterEqual(test_accuracy, 0.0)
+        self.assertLessEqual(test_accuracy, 1.0)
 
     def test_step_and_evaluate_workflow(self) -> None:
         """``step`` then ``evaluate`` should return metrics across multiple rounds."""
