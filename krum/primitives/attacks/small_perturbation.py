@@ -46,7 +46,7 @@ import math
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, allclose, argmax, cat, ones, stack, zeros
+from torch import Tensor, arange, argmax, cat, isin, ones, stack, topk, zeros
 
 from ..aggregators import Aggregator
 from . import Attack
@@ -83,8 +83,7 @@ class SmallPerturbationAttack(Attack):
         gamma_max: float = 1e6,
         gamma_init: float = 1.0,
         tol: float = 1e-3,
-        atol: float = 1e-6,
-        rtol: float = 1e-5,
+        threshold: float = 0.5,
         **specialized: Any,
     ) -> Tensor:
         r"""Generate Byzantine gradients.
@@ -109,9 +108,8 @@ class SmallPerturbationAttack(Attack):
             gamma_max: Upper bound on the search for :math:`\gamma_m`.
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
-            atol: Absolute tolerance for the aggregator selection test
-                (see :meth:`_is_selected`).
-            rtol: Relative tolerance for the aggregator selection test.
+            threshold: Relative difference threshold for the aggregator selection
+                test (default 0.5 = 50%). See :meth:`_is_selected`.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -171,8 +169,7 @@ class SmallPerturbationAttack(Attack):
                 gamma_max=gamma_max,
                 gamma_init=gamma_init,
                 tol=tol,
-                atol=atol,
-                rtol=rtol,
+                threshold=threshold,
             )
         b_gamma = honest_mean + gamma_m * direction
         result = b_gamma.unsqueeze(0).expand(f, -1).contiguous()
@@ -211,8 +208,6 @@ class SmallPerturbationAttack(Attack):
             return ones(d, device=device, dtype=dtype)
 
         if coordinate is None or coordinate in {"max", "largest"}:
-            # correction=0 → population std (matches the paper's reference
-            # implementation from the LPD-EPFL lab).
             std = honest_gradients.std(dim=0, correction=0)
             idx = int(argmax(std).item())
         else:
@@ -235,16 +230,17 @@ class SmallPerturbationAttack(Attack):
         aggregator_kwargs: dict[str, Any],
         *,
         out_without: Tensor | None = None,
-        atol: float = 1e-6,
-        rtol: float = 1e-5,
+        threshold: float = 0.5,
     ) -> bool:
         r"""Test whether the target aggregator "selects" :math:`B(\gamma)`.
 
-        This is a heuristic: it substitutes a placeholder for :math:`B(\gamma)`
-        (the honest mean) and checks whether the aggregator's output changes
-        within the given tolerances. It works uniformly for any stateless
-        aggregator, but the absolute/relative tolerances may need tuning
-        depending on the gradient scale.
+        For Krum-based aggregators (those with a ``score`` static method),
+        the test directly checks whether at least one :math:`B(\gamma)` copy
+        lands in the top-``m`` Krum scores — a subset-membership test.
+        For all other aggregators, the test falls back to a relative-output-
+        change heuristic: the Byzantine gradient is considered "selected" if
+        swapping the honest mean for :math:`B(\gamma)` changes the aggregator
+        output by more than ``threshold``.
 
         Args:
             honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
@@ -256,23 +252,37 @@ class SmallPerturbationAttack(Attack):
             out_without: Pre-computed aggregator output when the Byzantine
                 gradients are replaced by the honest mean. If ``None``, it is
                 computed on the fly.
-            atol: Absolute tolerance for the output comparison.
-            rtol: Relative tolerance for the output comparison.
+            threshold: Relative difference threshold (default 0.5 = 50%).
 
         Returns:
-            ``True`` if the aggregator's output is sensitive to
-            ``B(\gamma)``.
+            ``True`` if the aggregator selects :math:`B(\gamma)`.
         """
+        byz_with = b_gamma.unsqueeze(0).expand(f, -1)
+        stacked_with = cat([honest_gradients, byz_with], dim=0)
+
+        if hasattr(aggregator, "score"):
+            m = aggregator_kwargs.get("m", n - f - 2)
+            if m < 1 or m > n - f - 2:
+                m = min(max(m, 1), n - f - 2)
+            scores = aggregator.score(stacked_with, n=n, f=f, num_peers=m)  # ty:ignore[call-non-callable]
+            _, top_indices = topk(scores, m, largest=False)
+            byz_indices = arange(n - f, n, device=stacked_with.device, dtype=top_indices.dtype)
+            return bool(isin(top_indices, byz_indices).any().item())
+
         if out_without is None:
             honest_mean = honest_gradients.mean(dim=0)
             byz_without = honest_mean.unsqueeze(0).expand(f, -1)
             stacked_without = cat([honest_gradients, byz_without], dim=0)
             out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
 
-        byz_with = b_gamma.unsqueeze(0).expand(f, -1)
-        stacked_with = cat([honest_gradients, byz_with], dim=0)
         out_with = aggregator.aggregate(stacked_with, n=n, f=f, **aggregator_kwargs)
-        return not allclose(out_with, out_without, atol=atol, rtol=rtol)
+
+        diff_norm = (out_with - out_without).norm()
+        ref_norm = out_without.norm()
+        if ref_norm < 1e-10:
+            return diff_norm.item() > threshold
+        relative_diff = (diff_norm / ref_norm).item()
+        return relative_diff > threshold
 
     @classmethod
     def _find_gamma_max(
@@ -288,17 +298,30 @@ class SmallPerturbationAttack(Attack):
         gamma_max: float = 1e6,
         gamma_init: float = 1.0,
         tol: float = 1e-3,
-        atol: float = 1e-6,
-        rtol: float = 1e-5,
+        threshold: float = 0.5,
     ) -> float:
         r"""Find the largest :math:`\gamma` such that the aggregator selects :math:`B(\gamma)`.
 
-        Uses an exponential search to bracket the boundary, then refines
-        it with binary search up to :math:`\varepsilon`. Returns
-        :math:`\gamma_{\max}` if the aggregator never rejects
+        The selection test is *non-monotonic* in :math:`\gamma`: at
+        :math:`\gamma = 0` the perturbation has no effect, at moderate
+        :math:`\gamma` the byzantine vector shifts the aggregator's output
+        beyond ``threshold`` (selected), and at large :math:`\gamma` the
+        aggregator rejects :math:`B(\gamma)` and the output collapses back
+        onto the honest majority (not selected). The "selected" region is
+        therefore a bounded window :math:`[\gamma_{\text{low}}, \gamma_{\text{up}}]`.
+
+        To handle this, the search first scans exponentially upward from
+        ``gamma_init`` (skipping non-selected probes that sit below the
+        window) until a selected :math:`\gamma` is found, then continues
+        doubling until the window's upper edge is bracketed by a
+        non-selected probe, and finally refines that edge with a binary
+        search up to :math:`\varepsilon`.
+
+        Returns :math:`0` if no :math:`\gamma` within the search range ever
+        influences the aggregator (the attack has no effect), and
+        :math:`\gamma_{\max}` if the aggregator never *rejects*
         :math:`B(\gamma)` within the search range (i.e. :math:`B(\gamma)`
-        remains in the selection set for arbitrarily large
-        :math:`\gamma`).
+        stays selected for arbitrarily large :math:`\gamma`).
 
         Args:
             honest_gradients: Honest gradient stack of shape :math:`(n-f, d)`.
@@ -311,54 +334,58 @@ class SmallPerturbationAttack(Attack):
             gamma_max: Upper bound on the search.
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
-            atol: Absolute tolerance for the aggregator selection test.
-            rtol: Relative tolerance for the aggregator selection test.
+            threshold: Relative difference threshold for the aggregator selection
+                test (default 0.5 = 50%). See :meth:`_is_selected`.
 
         Returns:
             The largest ``\gamma`` for which the aggregator selects
             ``B(\gamma)``, as a Python float.
+
+        Note:
+            The exponential scan steps by powers of 2 from
+            ``gamma_init`` to ``gamma_max``. Selection pockets that
+            fall entirely below ``gamma_init`` (e.g. the attack is only
+            effective for very small :math:`\gamma`) are not explored
+            — the search returns ``0.0`` instead. To probe lower
+            :math:`\gamma`, pass a smaller ``gamma_init``.
         """
-        # Pre-compute the aggregator output with the honest mean as placeholder.
-        # This avoids calling aggregate() twice per selection test.
         byz_placeholder = honest_mean.unsqueeze(0).expand(f, -1)
         stacked_without = cat([honest_gradients, byz_placeholder], dim=0)
         out_without = aggregator.aggregate(stacked_without, n=n, f=f, **aggregator_kwargs)
 
-        low = 0.0
-        high = gamma_init
-        while high < gamma_max:
-            b_gamma = honest_mean + high * direction
-            if not cls._is_selected(
+        def _selected(gamma: float) -> bool:
+            return cls._is_selected(
                 honest_gradients,
-                b_gamma,
+                honest_mean + gamma * direction,
                 aggregator,
                 n,
                 f,
                 aggregator_kwargs,
                 out_without=out_without,
-                atol=atol,
-                rtol=rtol,
-            ):
+                threshold=threshold,
+            )
+
+        selected_probe: float | None = None
+        rejection_probe: float | None = None
+        probe = gamma_init
+        while probe < gamma_max:
+            if _selected(probe):
+                selected_probe = probe
+            elif selected_probe is not None:
+                rejection_probe = probe
                 break
-            low = high
-            high *= 2.0
-        else:
+            probe *= 2.0
+
+        if selected_probe is None:
+            return 0.0
+        if rejection_probe is None:
             return gamma_max
 
+        low = selected_probe
+        high = rejection_probe
         while high - low > tol:
             mid = 0.5 * (low + high)
-            b_gamma = honest_mean + mid * direction
-            if cls._is_selected(
-                honest_gradients,
-                b_gamma,
-                aggregator,
-                n,
-                f,
-                aggregator_kwargs,
-                out_without=out_without,
-                atol=atol,
-                rtol=rtol,
-            ):
+            if _selected(mid):
                 low = mid
             else:
                 high = mid

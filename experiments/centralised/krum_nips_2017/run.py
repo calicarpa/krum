@@ -30,6 +30,8 @@ def krum_experiment(
     train_size: int = 0,
     test_size: int = 0,
     aggregator_kwargs: dict[str, Any] | None = None,
+    xavier_init: bool = False,
+    weight_decay: float = 0.0,
 ) -> None:
     """Build and run one KrumSimulation instance.
 
@@ -54,20 +56,28 @@ def krum_experiment(
         lr=lr,
         seed=seed,
         eval_every=eval_every,
+        xavier_init=xavier_init,
+        weight_decay=weight_decay,
     )
 
     krum_simulation.setup()
 
-    loss = Metric("loss", float)
-    error = Metric("error", float)
+    test_loss = Metric("test_loss", float)
+    test_accuracy = Metric("test_accuracy", float)
+    train_loss = Metric("train_loss", float)
 
     for step in range(rounds):
         krum_simulation.step()
-        loss_value, error_value = krum_simulation.evaluate()
-
-        loss.push(step, loss_value)
-        error.push(step, error_value)
 
         if step % eval_every == 0:
+            test_loss_value, test_accuracy_value = krum_simulation.evaluate()
+            train_loss_value = krum_simulation.evaluate_train()
+
+            test_loss.push(step, test_loss_value)
+            test_accuracy.push(step, test_accuracy_value)
+            train_loss.push(step, train_loss_value)
+
             print(f"step {step}")
-            print(f"loss: {loss_value:.4f}, error: {error_value:.4f}")
+            print(
+                f"test_loss: {test_loss_value:.4f}, test_accuracy: {test_accuracy_value:.4f}, train_loss: {train_loss_value:.4f}"
+            )

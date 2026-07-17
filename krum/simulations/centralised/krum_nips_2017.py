@@ -30,13 +30,14 @@ class KrumSimulation(CentralisedSimulation):
 
     def __init__(self, **kwargs: Any) -> None:
         """See :class:`~krum.simulations.centralised.CentralisedSimulation`."""
+        kwargs.setdefault("lr_schedule", "none")
         super().__init__(**kwargs)
 
     def evaluate(self) -> tuple[float, float]:
         """Evaluate the model on the test set.
 
         Returns:
-            Tuple of ``(test_loss, test_error)``.
+            Tuple of ``(test_loss, test_accuracy)``.
         """
         assert self._model is not None and self._test_loader is not None
         self._model.module.eval()
@@ -46,5 +47,26 @@ class KrumSimulation(CentralisedSimulation):
             logits = self._model.module(x)
             loss = self.loss_fn(logits, y).item()
             preds = logits.argmax(dim=1)
-            error = (preds != y).float().mean().item()
-        return loss, error
+            accuracy = (preds == y).float().mean().item()
+        return loss, accuracy
+
+    def evaluate_train(self) -> float:
+        """Evaluate the model on the training set.
+
+        Returns:
+            Training loss.
+
+        Note:
+            Reads the full training set in a single ``no_grad`` pass
+            (``self._full_loader`` is built with ``batch_size=len(train_set)``).
+            OK for the small datasets used by the bundled experiments
+            (Spambase ≈ 4.5k rows); for larger datasets, sample a
+            fixed-size subset instead.
+        """
+        assert self._model is not None and self._full_loader is not None
+        self._model.module.eval()
+        with torch.no_grad():
+            x, y = next(iter(self._full_loader))
+            x, y = x.to(self.device), y.to(self.device)
+            logits = self._model.module(x)
+            return self.loss_fn(logits, y).item()

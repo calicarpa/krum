@@ -55,7 +55,7 @@ class KrumSimulationConstructionTest(unittest.TestCase):
     def test_construction_defaults(self) -> None:
         """Construction with default parameters should apply NIPS 2017 values."""
         sim = self._make_sim()
-        self.assertEqual(sim.lr_schedule, "exponential")
+        self.assertEqual(sim.lr_schedule, "none")
 
     def test_construction_happy(self) -> None:
         """Construction with default parameters should succeed."""
@@ -87,14 +87,15 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
         assert self.sim._model is not None
         self.assertIsNotNone(self.sim._model.module)
 
-    def test_evaluate_returns_error_and_loss(self) -> None:
-        """:meth:`evaluate` should return a 2-tuple of floats."""
+    def test_evaluate_returns_loss_and_accuracy(self) -> None:
+        """:meth:`evaluate` should return ``(test_loss, test_accuracy)`` floats."""
         self.sim.setup()
-        result = self.sim.evaluate()
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        for val in result:
-            self.assertIsInstance(val, float)
+        test_loss, test_accuracy = self.sim.evaluate()
+        self.assertIsInstance(test_loss, float)
+        self.assertIsInstance(test_accuracy, float)
+        self.assertGreaterEqual(test_loss, 0.0)
+        self.assertGreaterEqual(test_accuracy, 0.0)
+        self.assertLessEqual(test_accuracy, 1.0)
 
     def test_step_and_evaluate_workflow(self) -> None:
         """``step`` then ``evaluate`` should return metrics across multiple rounds."""
@@ -109,8 +110,8 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
 class KrumSimulationLRScheduleTest(unittest.TestCase):
     """KrumSimulation uses inherited LR defaults."""
 
-    def test_default_schedule_is_exponential(self) -> None:
-        """Default LR schedule should be exponential with decay 0.99."""
+    def test_default_schedule_is_none(self) -> None:
+        """Default LR schedule should be none (fixed learning rate, NIPS 2017 protocol)."""
         sim = KrumSimulation(
             model_cls=_DummyModel,
             train_set=_dummy_dataset(),
@@ -122,8 +123,7 @@ class KrumSimulationLRScheduleTest(unittest.TestCase):
             batch_size=8,
             lr=0.1,
         )
-        self.assertEqual(sim.lr_schedule, "exponential")
-        self.assertAlmostEqual(sim.lr_decay, 0.99)  # ty:ignore[no-matching-overload]
+        self.assertEqual(sim.lr_schedule, "none")
 
 
 if __name__ == "__main__":
