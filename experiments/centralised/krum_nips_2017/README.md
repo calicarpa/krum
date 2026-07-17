@@ -57,6 +57,13 @@ model collapses to random guessing.
 | Weight decay        | 1e-4              |
 | Weight init         | Xavier uniform    |
 | Random seed         | 42                |
+| MultiKrum `m`       | 18 (no attack) / 12 (attack) |
+
+**Note on MultiKrum `m`:** the attack case uses `m = 12`, well above the
+theoretical resilience bound `n − 2f − 3 = 5`. This intentionally
+demonstrates MultiKrum's robustness under a conservative (closer-to-Average)
+aggregator rather than the worst-case selector, so the experiment isolates
+Byzantine-resilience behaviour from Krum's strict selection rule.
 
 ## Results
 
