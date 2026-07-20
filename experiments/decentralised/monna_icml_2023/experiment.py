@@ -9,8 +9,7 @@ the attack and keeps training, while Mean collapses to chance-level accuracy.
 
 This is a proof-of-concept demo, not a paper reproduction: it uses a small
 MLP and a fast, illustrative configuration rather than the paper's own model
-and hyperparameters. See ``experiment_mnist.py`` and ``experiment_cifar.py``
-for runs that match Table 2 (Appendix D.2) of the ICML 2023 paper.
+and hyperparameters.
 
 Edit the constants below to reconfigure.
 """
@@ -53,7 +52,7 @@ AGGREGATORS = [
 
 def main() -> None:
     """Run the small MoNNA vs Mean proof of concept."""
-    orchestrator = Orchestrator("monna_icml_2023_small_experiment")
+    orchestrator = Orchestrator("monna_icml_2023_experiment")
 
     for f in F_VALUES:
         attack = None if f == 0 else SignFlipAttack
