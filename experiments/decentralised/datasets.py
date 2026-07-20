@@ -24,7 +24,7 @@ def make_datasets(
     batch_size: int,
     seed: int,
 ) -> tuple[Dataset, Dataset]:
-    """Create the train and test datasets (MNIST download or synthetic FakeData).
+    """Create the train and test datasets (MNIST/CIFAR-10 download, or synthetic FakeData).
 
     Memoized on its (hashable) configuration so repeated runs with the same data
     configuration reuse the loaded datasets instead of reloading them. The cache
@@ -35,6 +35,9 @@ def make_datasets(
     if dataset == "mnist":
         train = datasets.MNIST(Path(data_dir), train=True, download=True, transform=transform)
         test = datasets.MNIST(Path(data_dir), train=False, download=True, transform=transform)
+    elif dataset == "cifar10":
+        train = datasets.CIFAR10(Path(data_dir), train=True, download=True, transform=transform)
+        test = datasets.CIFAR10(Path(data_dir), train=False, download=True, transform=transform)
     else:
         train = datasets.FakeData(
             size=max(train_size, num_honest * batch_size),

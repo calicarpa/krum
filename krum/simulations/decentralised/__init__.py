@@ -154,8 +154,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         self.attack_kwargs = attack_kwargs or {}
         self.aggregator = aggregator
         self.aggregator_kwargs = dict(aggregator_kwargs or {})
-        self.generator = None if seed is None else torch.Generator().manual_seed(seed)
         self.parameters = model.parameters.detach().clone().repeat(self.num_honest, 1)
+        self.generator = None if seed is None else torch.Generator(device=self.parameters.device).manual_seed(seed)
         self.step_index = 0
 
     def step(self) -> StepResultT:
@@ -212,6 +212,10 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
     def compute_honest_worker_gradients(self, batches: Sequence[Batch]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute gradients at each honest worker's current parameters.
 
+        Batches are moved to the model's device (wherever :attr:`parameters`
+        already lives) before the forward pass, so callers may freely mix a
+        CPU-only ``DataLoader`` with a model placed on an accelerator.
+
         Args:
             batches: One batch per honest worker, in worker order.
 
@@ -219,9 +223,11 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             A tuple ``(gradients, losses)`` of stacked tensors, each with one row
             per honest worker.
         """
+        device = self.parameters.device
         gradients: list[torch.Tensor] = []
         losses: list[torch.Tensor] = []
         for worker_parameters, (inputs, targets) in zip(self.parameters, batches, strict=True):
+            inputs, targets = inputs.to(device), targets.to(device)
             self.copy_parameters_to_model(worker_parameters)
             self.model.module.train()
             self.model.module.zero_grad(set_to_none=True)

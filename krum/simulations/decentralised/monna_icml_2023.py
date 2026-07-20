@@ -62,6 +62,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         f: int,
         learning_rate: float,
         beta: float = 0.99,
+        weight_decay: float = 0.0,
         attack: type[Attack] | None = None,
         attack_kwargs: dict[str, Any] | None = None,
         aggregator: type[Aggregator] | None = None,
@@ -80,6 +81,9 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             f: Number of Byzantine workers; must be non-negative.
             learning_rate: Positive local step size.
             beta: Momentum coefficient in ``[0, 1)``.
+            weight_decay: Non-negative L2-regularization coefficient, added to
+                each honest gradient as ``weight_decay * parameters`` before the
+                momentum update (standard SGD-with-momentum weight decay).
             attack: :class:`~krum.primitives.attacks.Attack` subclass whose
                 ``generate`` classmethod maps the honest models and ``f`` to the
                 Byzantine models. Required when ``f > 0``.
@@ -100,9 +104,9 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             seed: Optional integer seed for responder sampling.
 
         Raises:
-            ValueError: If a worker count, learning rate, beta, data length, or
-                ``byzantine_reach`` is out of range, or an attack is missing
-                while ``f > 0``.
+            ValueError: If a worker count, learning rate, beta, weight decay,
+                data length, or ``byzantine_reach`` is out of range, or an
+                attack is missing while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
@@ -115,6 +119,8 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             raise ValueError(f"Expected positive learning rate, got {learning_rate!r}")
         if beta < 0 or beta >= 1:
             raise ValueError(f"Expected beta in [0, 1), got {beta!r}")
+        if weight_decay < 0:
+            raise ValueError(f"Expected non-negative weight_decay, got {weight_decay!r}")
 
         resolved_aggregator = aggregator or NearestNeighborAverage
         resolved_kwargs = dict(aggregator_kwargs or {})
@@ -137,6 +143,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         )
         self.learning_rate = learning_rate
         self.beta = beta
+        self.weight_decay = weight_decay
         self.byzantine_reach = byzantine_reach
         self.momentum = torch.zeros_like(self.parameters)
 
@@ -150,9 +157,24 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             The post-local-update parameters ``theta_{t+1/2}``, one row per
             honest worker.
         """
-        next_momentum = self.update_local_momentum(gradients)
+        decayed_gradients = self.apply_weight_decay(gradients)
+        next_momentum = self.update_local_momentum(decayed_gradients)
         self.momentum = next_momentum
         return self.compute_local_parameter_updates(next_momentum)
+
+    def apply_weight_decay(self, gradients: torch.Tensor) -> torch.Tensor:
+        """Add L2-regularization to the honest gradients before the momentum update.
+
+        Args:
+            gradients: Stacked honest gradients, one row per worker.
+
+        Returns:
+            ``gradients + weight_decay * parameters``, one row per honest
+            worker; ``gradients`` unchanged when ``weight_decay`` is zero.
+        """
+        if self.weight_decay == 0:
+            return gradients
+        return gradients.add(self.parameters, alpha=self.weight_decay)
 
     def update_local_momentum(self, gradients: torch.Tensor) -> torch.Tensor:
         """Update each honest worker's local momentum vector.
@@ -261,8 +283,8 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, self.num_honest, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
-        return other_indices[permutation[:num_responders].to(device)]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
+        return other_indices[permutation[:num_responders]]
 
     def select_received_model_indices(self, *, worker_index: int, device: torch.device) -> torch.Tensor:
         """Randomly select the ``n - f - 1`` nodes received by one honest worker.
@@ -284,5 +306,5 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
             torch.arange(0, worker_index, device=device),
             torch.arange(worker_index + 1, num_nodes, device=device),
         ])
-        permutation = torch.randperm(other_indices.numel(), generator=self.generator)
-        return other_indices[permutation[:num_received].to(device)]
+        permutation = torch.randperm(other_indices.numel(), generator=self.generator, device=device)
+        return other_indices[permutation[:num_received]]

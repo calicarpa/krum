@@ -8,11 +8,25 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from krum.orchestration import Metric
+from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
 from ..datasets import make_datasets, make_worker_streams
+
+
+def detect_device() -> torch.device:
+    """Detect the best available torch device.
+
+    Returns:
+        CUDA if available, otherwise MPS, otherwise CPU.
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
 
 
 def copy_parameters(model: Model, parameters: torch.Tensor) -> None:
@@ -28,10 +42,12 @@ def evaluate_parameters(
     """Evaluate one worker parameter vector; return ``(loss, accuracy)``."""
     copy_parameters(model, parameters)
     model.module.eval()
+    device = parameters.device
     total_loss = 0.0
     total_correct = 0
     total = 0
     for inputs, targets in loader:
+        inputs, targets = inputs.to(device), targets.to(device)
         logits = model.module(inputs)
         loss = loss_fn(logits, targets)
         total_loss += loss.item() * targets.numel()
@@ -55,6 +71,7 @@ def evaluate_workers(
 
 def monna_experiment(
     *,
+    label: str,
     dataset: str,
     data_dir: str,
     model_cls: type[nn.Module],
@@ -62,8 +79,11 @@ def monna_experiment(
     f: int,
     learning_rate: float,
     beta: float,
+    weight_decay: float = 0.0,
     attack: type[Attack] | None = None,
     attack_kwargs: dict[str, Any] | None = None,
+    aggregator: type[Aggregator] | None = None,
+    aggregator_kwargs: dict[str, Any] | None = None,
     rounds: int,
     eval_every: int,
     batch_size: int,
@@ -74,6 +94,7 @@ def monna_experiment(
     num_workers: int,
     seed: int,
     byzantine_reach: str = "all",
+    device: torch.device | None = None,
 ) -> None:
     """Run one MoNNA simulation and record its per-round metrics.
 
@@ -81,14 +102,23 @@ def monna_experiment(
     datasets are built from configuration *inside* this function, so the run is
     identified by hashable parameters only (the dataset name and sizes, not the
     dataset objects). Honest workers run local momentum-SGD then mix their models
-    by nearest-neighbor averaging.
+    by nearest-neighbor averaging (or ``aggregator``, if given, e.g. ``Average``
+    for a non-robust baseline).
 
     On evaluated rounds (the first, every ``eval_every``, and the last) three
     metric channels are pushed, keyed by the round number as ``step``:
     ``train_loss`` (mean over honest workers), ``test_loss`` and
     ``test_accuracy`` (mean over honest worker models on the test set).
+
+    The model and every batch are placed on ``device`` (CUDA, MPS, or CPU,
+    auto-detected when ``device`` is left as ``None``).
     """
+    print(f"\n=== {label} ===")
+    resolved_device = device or detect_device()
     torch.manual_seed(seed)
+    if resolved_device.type == "cuda":
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
     random.seed(seed)
 
     train_set, test_set = make_datasets(
@@ -111,7 +141,7 @@ def monna_experiment(
     )
     test_loader = DataLoader(test_set, batch_size=256, shuffle=False, num_workers=num_workers)
 
-    model = Model(model_cls())
+    model = Model(model_cls().to(resolved_device))
     loss_fn = nn.CrossEntropyLoss()
 
     simulation = MonnaSimulation(
@@ -122,8 +152,11 @@ def monna_experiment(
         f=f,
         learning_rate=learning_rate,
         beta=beta,
+        weight_decay=weight_decay,
         attack=attack,
         attack_kwargs=attack_kwargs,
+        aggregator=aggregator,
+        aggregator_kwargs=aggregator_kwargs,
         byzantine_reach=byzantine_reach,
         seed=seed,
     )

@@ -21,6 +21,7 @@ class MonnaProtocolTest(unittest.TestCase):
         f: int,
         learning_rate: float,
         beta: float = 0.99,
+        weight_decay: float = 0.0,
         attack=None,
         byzantine_reach: ByzantineReach = "all",
         seed: int | None = None,
@@ -36,6 +37,7 @@ class MonnaProtocolTest(unittest.TestCase):
             f=f,
             learning_rate=learning_rate,
             beta=beta,
+            weight_decay=weight_decay,
             attack=attack,
             byzantine_reach=byzantine_reach,
             seed=seed,
@@ -76,6 +78,31 @@ class MonnaProtocolTest(unittest.TestCase):
 
         expected = torch.tensor([[5.5, 11.0], [16.5, 22.0]])
         self.assertTrue(torch.equal(result, expected))
+
+    def test_apply_weight_decay_adds_scaled_parameters_to_gradients(self) -> None:
+        """Weight decay adds ``weight_decay * parameters`` to each gradient."""
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1, weight_decay=0.5)
+        simulation.parameters = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+        gradients = torch.tensor([[10.0, 20.0], [30.0, 40.0]])
+
+        result = simulation.apply_weight_decay(gradients)
+
+        expected = torch.tensor([[10.5, 21.0], [31.5, 42.0]])
+        self.assertTrue(torch.equal(result, expected))
+
+    def test_apply_weight_decay_is_noop_when_zero(self) -> None:
+        """Weight decay of zero leaves gradients unchanged."""
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1, weight_decay=0.0)
+        gradients = torch.tensor([[10.0, 20.0], [30.0, 40.0]])
+
+        result = simulation.apply_weight_decay(gradients)
+
+        self.assertTrue(torch.equal(result, gradients))
+
+    def test_negative_weight_decay_rejected(self) -> None:
+        """A negative weight_decay raises ValueError."""
+        with self.assertRaises(ValueError):
+            self.make_simulation(n=2, f=0, learning_rate=0.1, weight_decay=-0.1)
 
     def test_aggregate_over_received_nodes_averages_n_minus_2f_vectors(self) -> None:
         """Each worker runs NNA on n - f local vectors and averages n - 2f of them."""
