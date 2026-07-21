@@ -44,12 +44,21 @@ This project supports Python **3.10 through 3.14**.
 pip install krum
 ```
 
+This installs **PyTorch**, **torchvision**, and **pandas**. Additional
+dependencies (``matplotlib``, ``numpy``, ``seaborn``) are required for running experiments
+and visualisations:
+
+```bash
+pip install "krum[experiments]"
+```
+
 With `uv` (Recommended):
 
 ```bash
 uv pip install krum
 # or directly in a uv project
 uv add krum
+uv add "krum[experiments]"  # with optional experiment deps
 ```
 
 ### From source
@@ -60,7 +69,7 @@ install in editable mode with the development dependencies:
 ```bash
 git clone https://github.com/calicarpa/krum.git
 cd krum
-pip install -e ".[dev]"
+pip install -e ".[dev,experiments]"
 ```
 
 With `uv` (Recommended):
@@ -68,7 +77,7 @@ With `uv` (Recommended):
 ```bash
 git clone https://github.com/calicarpa/krum.git
 cd krum
-uv sync --extra dev
+uv sync --all-extras --all-groups
 ```
 
 This installs all linting, type-checking, and documentation tools.
