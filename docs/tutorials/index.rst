@@ -1,0 +1,62 @@
+Tutorials
+=========
+
+Step-by-step guides to help you get the most out of Krum.
+
+If you are new to Krum, start with :doc:`using_aggregators_attacks` and
+:doc:`working_with_models`, then move on to :doc:`using_simulations`.
+The last three tutorials show you how to extend Krum with custom logic.
+
+.. toctree::
+   :maxdepth: 1
+
+   using_aggregators_attacks
+   working_with_models
+   using_simulations
+   working_with_orchestrator
+   implement_simulation
+   implement_aggregator
+   implement_attack
+
+.. list-table::
+   :widths: 25 75
+
+   * - :doc:`using_aggregators_attacks`
+     - All built-in aggregation rules and attack strategies, with a resilience
+       table and a combined example.
+
+       See also :doc:`/reference/primitives/aggregators/index` and
+       :doc:`/reference/primitives/attacks/index`.
+   * - :doc:`working_with_models`
+     - The ``Model`` wrapper for zero-copy flat tensor views and the standard
+       models from the literature (Krum NIPS 2017, MONNA ICML 2023).
+
+       See also :doc:`/reference/primitives/models/index`.
+   * - :doc:`using_simulations`
+     - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
+       MNIST, dataset setup, training loop, and baseline comparison.
+
+       See also :doc:`/reference/simulations/centralised/index` and
+       :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`working_with_orchestrator`
+     - Collecting structured results with ``Metric`` and ``Orchestrator``:
+       running multiple configurations, filtering, and exporting to DataFrames.
+
+       See also :doc:`/reference/orchestration/index`.
+   * - :doc:`implement_simulation`
+     - Creating a custom simulation by subclassing
+       ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
+       evaluation, local update, and communication topology.
+
+       See also :doc:`/reference/simulations/centralised/index` and
+       :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`implement_aggregator`
+     - Write a custom aggregation rule by subclassing ``Aggregator`` and
+       implementing ``aggregate``, with tests.
+
+       See also :doc:`/reference/primitives/aggregators/index`.
+   * - :doc:`implement_attack`
+     - Write a custom Byzantine attack by subclassing ``Attack`` and
+       implementing ``generate``, with tests.
+
+       See also :doc:`/reference/primitives/attacks/index`.
