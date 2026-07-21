@@ -9,6 +9,9 @@ If you are new to Krum, start with :doc:`using_aggregators_attacks` and
 :doc:`decentralised_simulation_walkthrough`. The last three tutorials show
 you how to extend Krum with custom logic.
 
+Available Tutorials
+-------------------
+
 .. toctree::
    :maxdepth: 1
 
@@ -16,13 +19,16 @@ you how to extend Krum with custom logic.
    working_with_models
    centralised_simulation_walkthrough
    decentralised_simulation_walkthrough
+   custom_dataset
    working_with_orchestrator
    results_analysis
    systematic_benchmark
-   understanding_byzantine_attacks
    implement_simulation
    implement_aggregator
    implement_attack
+
+Detailed Tutorials
+------------------
 
 .. list-table::
    :widths: 25 75
@@ -44,6 +50,12 @@ you how to extend Krum with custom logic.
        reach modes, and custom data streams.
 
        See also :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`custom_dataset`
+     - Using any PyTorch ``Dataset`` with Krum simulations:
+       ``TensorDataset``, ``torchvision`` datasets, loading from
+       disk, and matching the model's input and output dimensions.
+
+       See also :doc:`/reference/simulations/centralised/index`.
    * - :doc:`centralised_simulation_walkthrough`
      - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
        MNIST, dataset setup, training loop, and baseline comparison.
@@ -66,13 +78,7 @@ you how to extend Krum with custom logic.
        ``Orchestrator``, building a comparison table, interpreting
        results, and exporting for papers.
 
-       See also :doc:`/reference/orchestration/index`.
-   * - :doc:`understanding_byzantine_attacks`
-     - The Byzantine threat model, the ``f < n/2`` bound and its
-       variants, a strategy-based panorama of the five built-in attacks,
-       and the fundamental limits of robustness.
-
-       See also :doc:`/reference/primitives/attacks/index`.
+        See also :doc:`/reference/orchestration/index`.
    * - :doc:`implement_simulation`
      - Creating a custom simulation by subclassing
        ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
