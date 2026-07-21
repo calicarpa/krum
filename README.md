@@ -16,7 +16,7 @@ The reference documentation is available at
 ```python
 import torch
 from krum.primitives.aggregators import Krum, Average
-from krum.primitives.attacks import Gaussian
+from krum.primitives.attacks.gaussian import Gaussian
 
 # Simulate gradients from 10 workers (8 honest, 2 Byzantine)
 honest = torch.randn(8, 100)
