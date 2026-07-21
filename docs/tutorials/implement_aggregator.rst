@@ -171,7 +171,7 @@ injected by the simulation are absorbed by ``**specialized``:
 
    sim = KrumSimulation(
        model_cls=Krum2017MLPMnist,
-       train_set=train_set,   # see :doc:`using_simulations` for dataset setup
+       train_set=train_set,   # see :doc:`centralised_simulation_walkthrough` for dataset setup
        test_set=test_set,
        aggregator=CenteredMean,
        attack=SignFlipAttack,
@@ -223,4 +223,4 @@ Next steps
 
 * Browse the :doc:`/reference/primitives/aggregators/index` for all built-in rules
 * See :doc:`implement_attack` for creating custom Byzantine attacks
-* :doc:`using_simulations` to test your aggregator in a full training loop
+* :doc:`centralised_simulation_walkthrough` to test your aggregator in a full training loop

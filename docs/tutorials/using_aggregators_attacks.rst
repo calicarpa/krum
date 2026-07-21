@@ -207,6 +207,6 @@ Combining everything
 Next steps
 ----------
 
-* :doc:`using_simulations` to run this inside a full training loop
+* :doc:`centralised_simulation_walkthrough` to run this inside a full training loop
 * :doc:`/reference/primitives/aggregators/index` for the full API reference
 * :doc:`/reference/primitives/attacks/index` for the full API reference

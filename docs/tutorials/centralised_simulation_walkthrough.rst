@@ -1,8 +1,12 @@
-Using the built-in simulations
-==============================
+Centralised simulation walkthrough
+===================================
 
-Krum ships with ready-to-use simulations that reproduce published protocols.
-This tutorial shows how to configure and run them.
+Krum ships with ready-to-use centralised (parameter-server) simulations
+that reproduce published protocols. This tutorial shows how to configure
+and run them.
+
+For decentralised (peer-to-peer) simulations, see
+:doc:`decentralised_simulation_walkthrough`.
 
 Available simulations
 ---------------------
@@ -12,15 +16,11 @@ Available simulations
 * :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation` — Blanchard et al. (NIPS 2017): fixed learning rate, reports test loss + accuracy.
 * :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation` — El Mhamdi et al. (ICML 2018): Robbins-Monro schedule, L2 regularization, Xavier init, reports test loss + error + accuracy.
 
-**Decentralised** (peer-to-peer):
+All centralised simulations share the lifecycle:
+**instantiate → setup → step → evaluate**.
 
-* :class:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation` — Farhadkhani et al. (ICML 2023): nearest-neighbour averaging, momentum-SGD, reports per-worker losses and model snapshots.
-
-Centralised simulations subclass :class:`~krum.simulations.centralised.CentralisedSimulation`
-and share the lifecycle: **instantiate → setup → step → evaluate**.
-Decentralised simulations subclass :class:`~krum.simulations.decentralised.DecentralisedSimulation`
-and follow a different pattern: **instantiate → step** (or ``run(rounds)``),
-with a per-round snapshot returned by each step.
+Decentralised (peer-to-peer) simulations follow a different pattern —
+see :doc:`decentralised_simulation_walkthrough`.
 
 Minimal example
 ---------------
@@ -50,7 +50,6 @@ Minimal example
        attack_kwargs={"scale": 1.5},
        n=10,
        f=2,
-       rounds=50,
        batch_size=64,
        lr=0.01,
        seed=42,
@@ -67,9 +66,12 @@ The lifecycle
 -------------
 
 #. **Instantiation** — pass the model class, datasets, aggregator, attack,
-   and hyperparameters. Aggregator and attack are **classes**, not instances.
-   The simulation calls their classmethods each round. Use ``aggregator_kwargs``
-   and ``attack_kwargs`` for extra parameters.
+   and hyperparameters (but **not** ``rounds``, which is a
+   :class:`~krum.simulations.centralised.CentralisedSimulation` parameter for
+   the constructor convenience but is better passed to ``run()`` for clarity).
+   Aggregator and attack are **classes**, not instances. The simulation calls
+   their classmethods each round. Use ``aggregator_kwargs`` and
+   ``attack_kwargs`` for extra parameters.
 
 #. ``setup()`` —
    initialises the model, splits the training set into IID shards (one per
@@ -108,7 +110,6 @@ the parameters it requires:
        attack_kwargs={"scale": 1.5},
        n=10,
        f=2,
-       rounds=50,
        batch_size=64,
        lr=0.01,
        r_eta=10.0,  # required by Robbins-Monro schedule
@@ -146,7 +147,7 @@ the effect of Byzantine workers:
        aggregator=Average,
        attack=SignFlipAttack,
        attack_kwargs={"scale": 1.5},
-       n=10, f=2, rounds=50, batch_size=64, lr=0.01, seed=42,
+       n=10, f=2, batch_size=64, lr=0.01, seed=42,
    )
    baseline.setup()
    for _ in range(50):
@@ -160,6 +161,8 @@ the effect of Byzantine workers:
 Next steps
 ----------
 
+* :doc:`decentralised_simulation_walkthrough` — peer-to-peer simulations
+  with per-worker models and model mixing.
 * :doc:`working_with_orchestrator` — collect structured results with
   ``Metric`` and ``Orchestrator``, combine multiple runs into DataFrames.
 * :doc:`implement_simulation` — create your own simulation by subclassing

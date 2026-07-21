@@ -179,4 +179,4 @@ matching their respective papers.
 .. seealso::
 
    * :doc:`/reference/primitives/models/index` for the ``Model`` API reference
-   * :doc:`using_simulations` to use these models in a full simulation
+   * :doc:`centralised_simulation_walkthrough` to use these models in a full simulation

@@ -75,6 +75,6 @@ Next steps
 
 Dive into the :doc:`tutorials/index` for step-by-step guides:
 
-* :doc:`tutorials/using_simulations` — using the built-in simulations
+* :doc:`tutorials/centralised_simulation_walkthrough` — using the built-in simulations
 * :doc:`tutorials/using_aggregators_attacks` — how to use all built-in aggregators and attacks
 * :doc:`tutorials/working_with_models` — zero-copy flat tensor views and standard models

@@ -223,7 +223,7 @@ Choosing a base class
 Next steps
 ----------
 
-* :doc:`using_simulations` — using the built-in simulations.
+* :doc:`centralised_simulation_walkthrough` — using the built-in simulations.
 * See :doc:`/reference/simulations/centralised/index` for the full
   :class:`~krum.simulations.centralised.CentralisedSimulation` API.
 * See :doc:`/reference/simulations/decentralised/index` for the full

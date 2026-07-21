@@ -1,7 +1,7 @@
 Collecting results with Metric and Orchestrator
 ================================================
 
-The :doc:`using_simulations` tutorial used
+The :doc:`centralised_simulation_walkthrough` tutorial used
 ``sim.evaluate()`` and ``print()`` to show results. For real research you need
 structured collection: run many configurations, record metrics at every step,
 and analyse the results as a table.
@@ -191,7 +191,7 @@ you can plot directly from the DataFrame:
 Next steps
 ----------
 
-* :doc:`using_simulations` — using the built-in simulations directly.
+* :doc:`centralised_simulation_walkthrough` — using the built-in simulations directly.
 * :doc:`implement_simulation` — creating a custom simulation with a custom
   ``evaluate`` method.
 * See :doc:`/reference/orchestration/index` for the full Orchestrator and

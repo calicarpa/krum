@@ -206,7 +206,7 @@ hyperparameters forwarded via ``attack_kwargs``:
 
    sim = KrumSimulation(
        model_cls=Krum2017MLPMnist,
-       train_set=train_set,   # see :doc:`using_simulations` for dataset setup
+       train_set=train_set,   # see :doc:`centralised_simulation_walkthrough` for dataset setup
        test_set=test_set,
        aggregator=MultiKrum,
        attack=MomentumMismatch,
@@ -260,4 +260,4 @@ Next steps
 
 * Browse the :doc:`/reference/primitives/attacks/index` for all built-in attacks
 * See :doc:`implement_aggregator` for creating custom aggregation rules
-* :doc:`using_simulations` to test your attack in a full training loop
+* :doc:`centralised_simulation_walkthrough` to test your attack in a full training loop

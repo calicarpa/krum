@@ -4,15 +4,18 @@ Tutorials
 Step-by-step guides to help you get the most out of Krum.
 
 If you are new to Krum, start with :doc:`using_aggregators_attacks` and
-:doc:`working_with_models`, then move on to :doc:`using_simulations`.
-The last three tutorials show you how to extend Krum with custom logic.
+:doc:`working_with_models`, then move on to
+:doc:`centralised_simulation_walkthrough` and
+:doc:`decentralised_simulation_walkthrough`. The last three tutorials show
+you how to extend Krum with custom logic.
 
 .. toctree::
    :maxdepth: 1
 
    using_aggregators_attacks
    working_with_models
-   using_simulations
+   centralised_simulation_walkthrough
+   decentralised_simulation_walkthrough
    working_with_orchestrator
    implement_simulation
    implement_aggregator
@@ -32,7 +35,13 @@ The last three tutorials show you how to extend Krum with custom logic.
        models from the literature (Krum NIPS 2017, MONNA ICML 2023).
 
        See also :doc:`/reference/primitives/models/index`.
-   * - :doc:`using_simulations`
+   * - :doc:`decentralised_simulation_walkthrough`
+     - Peer-to-peer simulations with ``DecentralisedSimulation`` and
+       ``MonnaSimulation``: per-worker models, model mixing, Byzantine
+       reach modes, and custom data streams.
+
+       See also :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`centralised_simulation_walkthrough`
      - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
        MNIST, dataset setup, training loop, and baseline comparison.
 
