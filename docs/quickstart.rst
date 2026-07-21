@@ -36,7 +36,7 @@ install in editable mode with the development dependencies:
 
    git clone https://github.com/calicarpa/krum.git
    cd krum
-   pip install -e ".[dev]"
+   pip install -e ".[dev,experiments]"
 
 With ``uv`` (recommended):
 
@@ -44,14 +44,20 @@ With ``uv`` (recommended):
 
    git clone https://github.com/calicarpa/krum.git
    cd krum
-   uv sync --extra dev
+   uv sync --all-extras --all-groups
 
 Dependencies
 ~~~~~~~~~~~~
 
-Krum's only runtime dependencies are **PyTorch** and **torchvision**. If you plan
-to use CUDA, ensure your PyTorch build matches your CUDA version. All other
-requirements are pulled in automatically when you install Krum.
+Krum's runtime dependencies are **PyTorch**, **torchvision**, and **pandas**.
+If you plan to use CUDA, ensure your PyTorch build matches your CUDA version.
+For experiments and visualisations, install the optional extras:
+
+.. code-block:: bash
+
+   pip install "krum[experiments]"
+
+This adds ``matplotlib``, ``numpy``, and ``seaborn``.
 
 Sanity check
 ------------
