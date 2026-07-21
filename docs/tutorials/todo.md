@@ -8,7 +8,7 @@
 
 - [x] **Decentralised simulation walkthrough** — tutorial pas-à-pas sur `DecentralisedSimulation`. Renommé `centralised_simulation_walkthrough` pour la version centralisée.
 
-- [ ] **Results analysis** — exploiter un `MetricDataFrame` : filtrer, pivoter, plotter avec pandas/matplotlib, exporter en CSV/JSON. Prend le relais de `working_with_orchestrator`.
+- [x] **Results analysis** — exploiter un `MetricDataFrame` : filtrer, pivoter, plotter avec pandas/matplotlib, exporter en CSV/JSON. Prend le relais de `working_with_orchestrator`.
 
 - [ ] **Systematic benchmark** — lancer N agg × M attacks sur un dataset, produire un tableau comparatif de précision/résilience. Cas d'usage recherche courant.
 

@@ -17,6 +17,7 @@ you how to extend Krum with custom logic.
    centralised_simulation_walkthrough
    decentralised_simulation_walkthrough
    working_with_orchestrator
+   results_analysis
    implement_simulation
    implement_aggregator
    implement_attack
@@ -52,6 +53,12 @@ you how to extend Krum with custom logic.
        running multiple configurations, filtering, and exporting to DataFrames.
 
        See also :doc:`/reference/orchestration/index`.
+   * - :doc:`results_analysis`
+     - Filtering, merging, pivoting, exporting, and plotting
+       ``MetricDataFrame`` results. Aggregating across seeds and
+       comparing multiple metrics on shared axes.
+
+       See also :doc:`/reference/orchestration/metricdataframe`.
    * - :doc:`implement_simulation`
      - Creating a custom simulation by subclassing
        ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
