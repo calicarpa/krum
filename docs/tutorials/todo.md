@@ -12,7 +12,7 @@
 
 - [x] **Systematic benchmark** — lancer N agg × M attacks sur un dataset, produire un tableau comparatif de précision/résilience. Cas d'usage recherche courant.
 
-- [ ] **Understanding Byzantine attacks** — tutoriel conceptuel : threat model, budget byzantin (f < n/2, f < n/3), panorama des attaques et leurs effets.
+- [x] **Understanding Byzantine attacks** — tutoriel conceptuel : threat model, budget byzantin (f < n/2, f < n/3), panorama des attaques et leurs effets.
 
 - [ ] **Choosing an aggregation rule** — quel GAR pour quel scénario. Tableau des hypothèses (n, f, dimension, type d'attaque), guide de sélection.
 

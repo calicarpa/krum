@@ -19,6 +19,7 @@ you how to extend Krum with custom logic.
    working_with_orchestrator
    results_analysis
    systematic_benchmark
+   understanding_byzantine_attacks
    implement_simulation
    implement_aggregator
    implement_attack
@@ -66,6 +67,12 @@ you how to extend Krum with custom logic.
        results, and exporting for papers.
 
        See also :doc:`/reference/orchestration/index`.
+   * - :doc:`understanding_byzantine_attacks`
+     - The Byzantine threat model, the ``f < n/2`` bound and its
+       variants, a strategy-based panorama of the five built-in attacks,
+       and the fundamental limits of robustness.
+
+       See also :doc:`/reference/primitives/attacks/index`.
    * - :doc:`implement_simulation`
      - Creating a custom simulation by subclassing
        ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
