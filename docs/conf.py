@@ -159,6 +159,10 @@ html_theme_options = {
             "url": "quickstart",
         },
         {
+            "title": "Tutorials",
+            "url": "tutorials/index",
+        },
+        {
             "title": "Reference",
             "children": [
                 {
