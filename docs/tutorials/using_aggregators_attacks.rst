@@ -133,6 +133,6 @@ Combining everything
 Next steps
 ----------
 
-* :doc:`first_simulation` to run this inside a full training loop with the Orchestrator
+* :doc:`using_simulations` to run this inside a full training loop
 * :doc:`/reference/primitives/aggregators/index` for the full API reference
 * :doc:`/reference/primitives/attacks/index` for the full API reference

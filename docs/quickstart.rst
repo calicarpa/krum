@@ -75,6 +75,6 @@ Next steps
 
 Dive into the :doc:`tutorials/index` for step-by-step guides:
 
-* :doc:`tutorials/first_simulation` — run a full simulation with the Orchestrator
+* :doc:`tutorials/using_simulations` — using the built-in simulations
 * :doc:`tutorials/using_aggregators_attacks` — how to use all built-in aggregators and attacks
 * :doc:`tutorials/working_with_models` — zero-copy flat tensor views and standard models
