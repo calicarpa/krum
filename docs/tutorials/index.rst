@@ -18,6 +18,7 @@ you how to extend Krum with custom logic.
    decentralised_simulation_walkthrough
    working_with_orchestrator
    results_analysis
+   systematic_benchmark
    implement_simulation
    implement_aggregator
    implement_attack
@@ -59,6 +60,12 @@ you how to extend Krum with custom logic.
        comparing multiple metrics on shared axes.
 
        See also :doc:`/reference/orchestration/metricdataframe`.
+   * - :doc:`systematic_benchmark`
+     - Running N aggregators × M attacks on a shared dataset with
+       ``Orchestrator``, building a comparison table, interpreting
+       results, and exporting for papers.
+
+       See also :doc:`/reference/orchestration/index`.
    * - :doc:`implement_simulation`
      - Creating a custom simulation by subclassing
        ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom

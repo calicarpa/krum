@@ -10,7 +10,7 @@
 
 - [x] **Results analysis** — exploiter un `MetricDataFrame` : filtrer, pivoter, plotter avec pandas/matplotlib, exporter en CSV/JSON. Prend le relais de `working_with_orchestrator`.
 
-- [ ] **Systematic benchmark** — lancer N agg × M attacks sur un dataset, produire un tableau comparatif de précision/résilience. Cas d'usage recherche courant.
+- [x] **Systematic benchmark** — lancer N agg × M attacks sur un dataset, produire un tableau comparatif de précision/résilience. Cas d'usage recherche courant.
 
 - [ ] **Understanding Byzantine attacks** — tutoriel conceptuel : threat model, budget byzantin (f < n/2, f < n/3), panorama des attaques et leurs effets.
 
