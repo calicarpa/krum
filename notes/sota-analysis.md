@@ -133,8 +133,9 @@ non-monotonicity in γ and the `gamma_init` floor limitation.
 - **Type safety** — full type annotations, `TypedDict`, `Generic`,
   `Literal`. `__slots__` on Model.
 - **ADRs** — design decisions documented as dated markdown files.
-- **Buffer reuse (`out=`)** — consistent zero-allocation pattern
-  across all primitives.
+- **In-place result (`out=`)** — the final aggregation step writes
+  directly into the caller-provided tensor, avoiding allocation only
+  at that point.
 
 ### 2.6 Limitations
 
