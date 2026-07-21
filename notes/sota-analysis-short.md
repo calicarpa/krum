@@ -22,12 +22,12 @@
 
 | Axe | Krum | Concurrent le plus proche |
 |---|---|---|
-| **Fidélité simulations** | ✅ papiers spécifiques (NIPS17, ICML18, ICML23) | ❌ ByzFL: boucles FedAvg/DSGD génériques |
-| **Topologie P2P** | ✅ centralisé + décentralisé | ❌ ByzFL: PS only (ByzPy: oui mais pre-1.0) |
-| **Zero-copy model** | ✅ flat tensors shared storage | ❌ tous les autres: flatten/unflatten standard |
-| **API stateless** | ✅ @classmethod, pas d'état caché | ❌ ByzFL/ByzPy: instances stateful |
-| **Type checking** | ✅ `ty` sur tout le code | ❌ tous: partiel ou inexistant |
-| **Tests** | ✅ edge cases, régression, CI | ❌ ByzFL: basique, sans CI |
+| **Fidélité simulations** | papiers spécifiques (NIPS17, ICML18, ICML23) | ByzFL: boucles FedAvg/DSGD génériques |
+| **Topologie P2P** | centralisé + décentralisé | ByzFL: PS only (ByzPy: oui mais pre-1.0) |
+| **Zero-copy model** | flat tensors shared storage | tous les autres: flatten/unflatten standard |
+| **API stateless** | @classmethod, pas d'état caché | ByzFL/ByzPy: instances stateful |
+| **Type checking** | `ty` sur tout le code | tous: partiel ou inexistant |
+| **Tests** | edge cases, régression, CI | ByzFL: basique, sans CI |
 | **Aggrégateurs uniques** | Bulyan, Brute, Aksel | — |
 | **Attaques uniques** | FullGradNeg, SmallPerturb | — |
 
