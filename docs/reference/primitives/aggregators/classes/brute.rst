@@ -1,7 +1,7 @@
 Brute
 =====
 
-.. automodule:: aggregators.brute
+.. automodule:: krum.primitives.aggregators.brute
    :members:
    :undoc-members:
    :show-inheritance:

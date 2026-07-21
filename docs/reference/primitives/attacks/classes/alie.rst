@@ -1,7 +1,7 @@
 A Little Is Enough
 ==================
 
-.. automodule:: attacks.alie
+.. automodule:: krum.primitives.attacks.alie
    :members:
    :undoc-members:
    :show-inheritance:

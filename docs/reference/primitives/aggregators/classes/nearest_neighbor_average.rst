@@ -1,7 +1,7 @@
 Nearest Neighbor Average
 ========================
 
-.. automodule:: aggregators.nearest_neighbor_average
+.. automodule:: krum.primitives.aggregators.nearest_neighbor_average
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 Trimmed Mean
 ============
 
-.. automodule:: aggregators.trimmed_mean
+.. automodule:: krum.primitives.aggregators.trimmed_mean
    :members:
    :undoc-members:
    :show-inheritance:

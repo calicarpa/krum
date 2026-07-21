@@ -1,7 +1,7 @@
 Median
 ======
 
-.. automodule:: aggregators.median
+.. automodule:: krum.primitives.aggregators.median
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 Full Gradient Negation
 ======================
 
-.. automodule:: attacks.full_gradient_negation
+.. automodule:: krum.primitives.attacks.full_gradient_negation
    :members:
    :undoc-members:
    :show-inheritance:

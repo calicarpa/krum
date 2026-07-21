@@ -1,7 +1,7 @@
 SignFlip
 ========
 
-.. automodule:: attacks.sign_flip
+.. automodule:: krum.primitives.attacks.sign_flip
    :members:
    :undoc-members:
    :show-inheritance:

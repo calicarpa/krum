@@ -1,7 +1,7 @@
 Krum
 ====
 
-.. automodule:: aggregators.krum
+.. automodule:: krum.primitives.aggregators.krum
    :members:
    :undoc-members:
    :show-inheritance:
