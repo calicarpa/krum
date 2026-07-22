@@ -1,5 +1,5 @@
 Centralised simulation walkthrough
-===================================
+==================================
 
 Krum ships with ready-to-use centralised (parameter-server) simulations
 that reproduce published protocols. This tutorial shows how to configure
@@ -163,8 +163,10 @@ Next steps
 
 * :doc:`decentralised_simulation_walkthrough` — peer-to-peer simulations
   with per-worker models and model mixing.
+* :doc:`end_to_end` — a complete pipeline from data to export in one script.
 * :doc:`working_with_orchestrator` — collect structured results with
   ``Metric`` and ``Orchestrator``, combine multiple runs into DataFrames.
+* :doc:`troubleshooting` — common errors and how to fix them.
 * :doc:`implement_simulation` — create your own simulation by subclassing
   :class:`~krum.simulations.centralised.CentralisedSimulation`.
 * :doc:`/reference/simulations/index` — reproduce published experiments

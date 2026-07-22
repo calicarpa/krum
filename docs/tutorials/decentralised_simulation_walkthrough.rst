@@ -1,5 +1,5 @@
 Decentralised simulation walkthrough
-=====================================
+====================================
 
 Krum ships with one built-in decentralised (peer-to-peer) simulation.
 This tutorial covers the peer-to-peer framework where each worker holds
@@ -11,7 +11,7 @@ If you have not yet used the centralised simulations, start with
 that foundation.
 
 Centralised vs decentralised
------------------------------
+----------------------------
 
 .. list-table::
    :header-rows: 1
@@ -32,7 +32,7 @@ Centralised vs decentralised
      - Per-worker losses, per-worker parameter vectors.
 
 Available simulations
-----------------------
+---------------------
 
 **Decentralised** (peer-to-peer):
 

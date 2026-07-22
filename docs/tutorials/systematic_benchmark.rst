@@ -1,5 +1,5 @@
 Systematic benchmark
-===================
+====================
 
 Byzantine-robust research typically compares multiple aggregation rules
 against multiple attacks on a shared dataset. This tutorial shows how to

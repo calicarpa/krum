@@ -1,5 +1,5 @@
 Collecting results with Metric and Orchestrator
-================================================
+===============================================
 
 The :doc:`centralised_simulation_walkthrough` tutorial used
 ``sim.evaluate()`` and ``print()`` to show results. For real research you need
@@ -191,9 +191,13 @@ you can plot directly from the DataFrame:
 Next steps
 ----------
 
+* :doc:`end_to_end` — a complete pipeline from data to export in one script.
+* :doc:`results_analysis` — filtering, pivoting, plotting, and exporting
+  ``MetricDataFrame`` results.
 * :doc:`centralised_simulation_walkthrough` — using the built-in simulations directly.
 * :doc:`implement_simulation` — creating a custom simulation with a custom
   ``evaluate`` method.
+* :doc:`troubleshooting` — common errors and how to fix them.
 * See :doc:`/reference/orchestration/index` for the full Orchestrator and
   Metric API.
 * Check the :doc:`/reference/orchestration/metricdataframe` documentation for

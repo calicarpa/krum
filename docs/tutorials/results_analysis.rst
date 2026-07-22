@@ -1,5 +1,5 @@
 Analysing experiment results
-=============================
+============================
 
 The :doc:`working_with_orchestrator` tutorial showed how to collect structured
 metrics with ``Metric`` and ``Orchestrator``. Once you have a
@@ -9,7 +9,7 @@ This tutorial assumes you have ``pandas``, ``matplotlib``, and ``seaborn``
 installed (available via ``pip install krum[experiments]``).
 
 Recap: from Orchestrator to a frame
-------------------------------------
+-----------------------------------
 
 After a campaign, each metric channel is a
 :class:`~krum.orchestration.dataframe.MetricDataFrame`:
