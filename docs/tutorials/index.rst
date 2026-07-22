@@ -6,8 +6,10 @@ Step-by-step guides to help you get the most out of Krum.
 If you are new to Krum, start with :doc:`using_aggregators_attacks` and
 :doc:`working_with_models`, then move on to
 :doc:`centralised_simulation_walkthrough` and
-:doc:`decentralised_simulation_walkthrough`. The last three tutorials show
-you how to extend Krum with custom logic.
+:doc:`decentralised_simulation_walkthrough`. For a complete walkthrough
+from data to export in a single script, see :doc:`end_to_end`.
+If you hit an issue, check :doc:`troubleshooting`.
+The last three tutorials show you how to extend Krum with custom logic.
 
 Available Tutorials
 -------------------
@@ -23,6 +25,8 @@ Available Tutorials
    working_with_orchestrator
    results_analysis
    systematic_benchmark
+   end_to_end
+   troubleshooting
    implement_simulation
    implement_aggregator
    implement_attack
@@ -79,6 +83,14 @@ Detailed Tutorials
        results, and exporting for papers.
 
         See also :doc:`/reference/orchestration/index`.
+   * - :doc:`end_to_end`
+     - A complete experiment from data to export in one script: synthetic
+       dataset, custom model, ``Orchestrator`` sweep, and analysis table.
+
+       See also :doc:`/reference/orchestration/index`.
+   * - :doc:`troubleshooting`
+     - Common errors (aggregator bounds, loss divergence, NaN, missing
+       gradients) and how to fix them.
    * - :doc:`implement_simulation`
      - Creating a custom simulation by subclassing
        ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
