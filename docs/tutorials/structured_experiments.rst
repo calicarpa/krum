@@ -131,6 +131,11 @@ The following experiment runs a Krum simulation twice: once with a robust
 aggregator and once with the Average baseline, collecting the results as
 structured metrics.
 
+Setup
+^^^^^
+
+Imports, MNIST, and an MLP:
+
 .. code-block:: python
 
    from krum.orchestration import Metric, Orchestrator
@@ -153,27 +158,36 @@ structured metrics.
        root="./data", train=False, download=True, transform=transform
    )
 
+Experiment function
+^^^^^^^^^^^^^^^^^^^
+
+Creates the simulation, loops over rounds, and
+pushes metrics. The function accepts every configurable parameter so it
+can be driven by the ``Orchestrator``:
+
+.. code-block:: python
 
    def run_experiment(
        *,
        label: str,
        aggregator,
+       attack,
        f: int,
-       lr: float,
+       n: int = 10,
+       lr: float = 0.01,
+       seed: int = 42,
+       attack_kwargs: dict | None = None,
+       rounds: int = 50,
+       batch_size: int = 64,
+       eval_every: int = 10,
    ) -> None:
        sim = KrumSimulation(
            model_cls=Krum2017MLPMnist,
-           train_set=train_set,
-           test_set=test_set,
-           aggregator=aggregator,
-           attack=SignFlipAttack,
-           attack_kwargs={"scale": 1.5},
-           n=10,
-           f=f,
-           rounds=50,
-           batch_size=64,
-           lr=lr,
-           seed=42,
+           train_set=train_set, test_set=test_set,
+           aggregator=aggregator, attack=attack,
+           attack_kwargs=attack_kwargs,
+           n=n, f=f, rounds=rounds,
+           batch_size=batch_size, lr=lr, seed=seed,
        )
        sim.setup()
 
@@ -181,9 +195,9 @@ structured metrics.
        test_accuracy = Metric("test_accuracy", float)
        train_loss = Metric("train_loss", float)
 
-       for step in range(50):
+       for step in range(rounds):
            sim.step()
-           if step % 10 == 0 or step == 49:
+           if step % eval_every == 0 or step == rounds - 1:
                loss_val, acc_val = sim.evaluate()
                test_loss.push(step, loss_val)
                test_accuracy.push(step, acc_val)
@@ -191,6 +205,13 @@ structured metrics.
 
        print(f"  {label}: final accuracy {acc_val:.2%}")
 
+Run the two configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each ``orchestrator.run()`` call records
+every parameter so the data is self-describing:
+
+.. code-block:: python
 
    orchestrator = Orchestrator("mnist_comparison")
 
@@ -198,17 +219,26 @@ structured metrics.
        run_experiment,
        label="MultiKrum (robust)",
        aggregator=MultiKrum,
+       attack=SignFlipAttack,
+       attack_kwargs={"scale": 1.5},
        f=2,
-       lr=0.01,
    )
    orchestrator.run(
        run_experiment,
        label="Average (non-robust)",
        aggregator=Average,
+       attack=SignFlipAttack,
+       attack_kwargs={"scale": 1.5},
        f=2,
-       lr=0.01,
    )
 
+Inspect the results
+^^^^^^^^^^^^^^^^^^^
+
+``Orchestrator.get()`` returns a
+``MetricDataFrame`` that supports filtering:
+
+.. code-block:: python
 
    print("\nAll results (last 5 rows):")
    print(orchestrator.get("test_accuracy").to_pandas().tail(5))
@@ -258,8 +288,13 @@ every combination of aggregators and attacks across multiple seeds:
 
 .. code-block:: python
 
-   from krum.aggregators import Average, Median, TrimmedMean, MultiKrum
-   from krum.attacks import SignFlipAttack, ALIEAttack, GaussianAttack
+   from krum.primitives.aggregators.average import Average
+   from krum.primitives.aggregators.median import Median
+   from krum.primitives.aggregators.trimmed_mean import TrimmedMean
+   from krum.primitives.aggregators.multikrum import MultiKrum
+   from krum.primitives.attacks.sign_flip import SignFlipAttack
+   from krum.primitives.attacks.alie import ALIEAttack
+   from krum.primitives.attacks.gaussian import GaussianAttack
 
    orch = Orchestrator("mnist_benchmark")
    N, F, ROUNDS = 15, 3, 50
