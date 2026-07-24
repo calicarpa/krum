@@ -165,13 +165,13 @@ the effect of Byzantine workers:
 Next steps
 ----------
 
+* :doc:`implement_aggregator`: write your own aggregation rule and test it
+  in this simulation.
+* :doc:`implement_attack`: write your own Byzantine attack and test it
+  in this simulation.
 * :doc:`decentralised_simulation_walkthrough`: peer-to-peer simulations
   with per-worker models and model mixing.
-* :doc:`end_to_end` — a complete pipeline from data to export in one script.
-* :doc:`working_with_orchestrator` — collect structured results with
-  ``Metric`` and ``Orchestrator``, combine multiple runs into DataFrames.
-* :doc:`troubleshooting` — common errors and how to fix them.
-* :doc:`implement_simulation` — create your own simulation by subclassing
-  :class:`~krum.simulations.centralised.CentralisedSimulation`.
-* :doc:`/reference/simulations/index`: reproduce published experiments
-  with the bundled experiment scripts.
+* :doc:`structured_experiments`: collect structured results with
+  ``Metric`` and ``Orchestrator``, from single runs to systematic benchmarks.
+* :doc:`/reference/simulations/index`: all bundled experiment scripts
+  reproducing published papers.

@@ -282,8 +282,15 @@ A minimal test suite, run with pytest:
        assert torch.allclose(byzantine[0], honest[0])
 
 Next steps
-----------
+---------
 
-* Browse the :doc:`/reference/primitives/attacks/index` for all built-in attacks
-* See :doc:`implement_aggregator` for creating custom aggregation rules
-* :doc:`centralised_simulation_walkthrough` to test your attack in a full training loop
+* :doc:`implement_aggregator`: write an aggregation rule that defends
+  against your attack.
+* :doc:`centralised_simulation_walkthrough`: test your attack in a
+  full training loop.
+* :doc:`decentralised_simulation_walkthrough`: use the same attack in a
+  peer-to-peer setting.
+* :doc:`structured_experiments`: benchmark your attack across seeds and
+  aggregators with ``Orchestrator``.
+* Browse the :doc:`/reference/primitives/attacks/index` for all built-in
+  attacks.

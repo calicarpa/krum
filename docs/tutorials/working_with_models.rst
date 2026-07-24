@@ -180,7 +180,13 @@ all in :mod:`krum.primitives.models`:
 All take no constructor arguments and instantiate fixed architectures
 matching their respective papers.
 
-.. seealso::
+Next steps
+---------
 
-   * :doc:`/reference/primitives/models/index` for the ``Model`` API reference
-   * :doc:`centralised_simulation_walkthrough` to use these models in a full simulation
+* :doc:`using_aggregators_attacks`: see how ``Model`` gradient views
+  connect to aggregation rules.
+* :doc:`centralised_simulation_walkthrough`: use these models in a
+  full simulation.
+* :doc:`implement_aggregator`: write an aggregation rule that operates
+  on the flat gradient tensors from a ``Model``.
+* :doc:`/reference/primitives/models/index`: ``Model`` API reference.

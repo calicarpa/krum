@@ -351,14 +351,15 @@ per honest worker:
    # Now use sim.model.module for evaluation, logging, etc.
 
 Next steps
-----------
+---------
 
-* :doc:`centralised_simulation_walkthrough`: if you have not yet tried
-  the parameter-server simulations.
+* :doc:`centralised_simulation_walkthrough`: try the simpler
+  parameter-server simulation first if you haven't.
+* :doc:`implement_aggregator`: write your own aggregation rule and test it
+  in this simulation.
+* :doc:`implement_attack`: write your own Byzantine attack and test it
+  in this simulation.
 * :doc:`structured_experiments`: collect structured results across
   multiple configurations with ``Metric`` and ``Orchestrator``.
-* :doc:`implement_simulation`: create your own decentralised simulation
-  by subclassing
-  :class:`~krum.simulations.decentralised.DecentralisedSimulation`.
 * :doc:`/reference/simulations/decentralised/index`: the full
   decentralised simulation reference.

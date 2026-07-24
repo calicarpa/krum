@@ -263,8 +263,15 @@ A minimal test suite, run with pytest:
        assert torch.allclose(result, grads[0])
 
 Next steps
-----------
+---------
 
-* Browse the :doc:`/reference/primitives/aggregators/index` for all built-in rules
-* See :doc:`implement_attack` for creating custom Byzantine attacks
-* :doc:`centralised_simulation_walkthrough` to test your aggregator in a full training loop
+* :doc:`implement_attack`: write a Byzantine attack to test your
+  aggregator against.
+* :doc:`centralised_simulation_walkthrough`: test your aggregator in a
+  full training loop.
+* :doc:`decentralised_simulation_walkthrough`: use the same aggregator in a
+  peer-to-peer setting.
+* :doc:`structured_experiments`: benchmark your aggregator across seeds
+  and attacks with ``Orchestrator``.
+* Browse the :doc:`/reference/primitives/aggregators/index` for all built-in
+  aggregation rules.

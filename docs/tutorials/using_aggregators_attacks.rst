@@ -209,10 +209,15 @@ Combining everything
    print(f"Result norm: {result.norm():.4f}")
 
 Next steps
-----------
+---------
 
 * :doc:`working_with_models`: how aggregators access flat gradient tensors
-  and the standard models bundled with Krum
-* :doc:`centralised_simulation_walkthrough` to run this inside a full training loop
-* :doc:`/reference/primitives/aggregators/index` for the full API reference
-* :doc:`/reference/primitives/attacks/index` for the full API reference
+  and the standard models bundled with Krum.
+* :doc:`centralised_simulation_walkthrough`: run aggregators and attacks
+  inside a full training loop.
+* :doc:`structured_experiments`: compare configurations systematically
+  with ``Orchestrator`` and ``Metric``.
+* :doc:`implement_aggregator`: write your own aggregation rule.
+* :doc:`implement_attack`: write your own Byzantine attack.
+* :doc:`/reference/primitives/aggregators/index`: full API reference.
+* :doc:`/reference/primitives/attacks/index`: full API reference.
