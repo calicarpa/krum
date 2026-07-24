@@ -3,13 +3,14 @@ Tutorials
 
 Step-by-step guides to help you get the most out of Krum.
 
-If you are new to Krum, start with :doc:`using_aggregators_attacks` and
-:doc:`working_with_models`. Next, learn how to extend Krum with
-:doc:`implement_aggregator` and :doc:`implement_attack`, then move on to
-:doc:`centralised_simulation_walkthrough` and
+Start with :doc:`using_aggregators_attacks` and
+:doc:`working_with_models` to learn the basics. Next,
+:doc:`implement_aggregator` and :doc:`implement_attack` show you how to
+extend Krum. Then run full simulations with
+:doc:`centralised_simulation_walkthrough` or
 :doc:`decentralised_simulation_walkthrough`.
-For structured data collection and analysis, see
-:doc:`structured_experiments`.
+Finally, :doc:`structured_experiments` covers data collection and
+analysis at scale.
 
 Available Tutorials
 -------------------
@@ -24,6 +25,7 @@ Available Tutorials
    centralised_simulation_walkthrough
    decentralised_simulation_walkthrough
    structured_experiments
+
 Detailed Tutorials
 -----------------
 
@@ -31,44 +33,41 @@ Detailed Tutorials
    :widths: 25 75
 
    * - :doc:`using_aggregators_attacks`
-     - All built-in aggregation rules and attack strategies, with a resilience
-       table and a combined example.
+     - All built-in aggregation rules and attack strategies with a
+       resilience table and a combined example.
 
-       See also :doc:`/reference/primitives/aggregators/index` and
+       See :doc:`/reference/primitives/aggregators/index` and
        :doc:`/reference/primitives/attacks/index`.
    * - :doc:`working_with_models`
-     - The ``Model`` wrapper for zero-copy flat tensor views and the standard
-       models from the literature (Krum NIPS 2017, MONNA ICML 2023).
+     - The ``Model`` wrapper for zero-copy flat tensor views plus the
+       standard models from the literature (Krum NIPS 2017, MONNA ICML 2023).
 
-       See also :doc:`/reference/primitives/models/index`.
+       See :doc:`/reference/primitives/models/index`.
    * - :doc:`implement_aggregator`
-     - Write a custom aggregation rule by subclassing ``Aggregator`` and
-       implementing ``aggregate``, with tests. Build up from gradients-only
-       to fully parameterised rules.
+     - Subclass ``Aggregator`` and implement ``aggregate``, with tests.
+       Build from gradients-only to fully parameterised.
 
-       See also :doc:`/reference/primitives/aggregators/index`.
+       See :doc:`/reference/primitives/aggregators/index`.
    * - :doc:`implement_attack`
-     - Write a custom Byzantine attack by subclassing ``Attack`` and
-       implementing ``generate``, with tests.
+     - Subclass ``Attack`` and implement ``generate``, with tests.
 
-       See also :doc:`/reference/primitives/attacks/index`.
+       See :doc:`/reference/primitives/attacks/index`.
    * - :doc:`centralised_simulation_walkthrough`
-     - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
-       MNIST, dataset setup, training loop, and baseline comparison.
+     - Parameter-server simulation with ``KrumSimulation``: MultiKrum +
+       SignFlip on MNIST, dataset setup, training loop, baseline comparison.
 
-       See also :doc:`/reference/simulations/centralised/index` and
+       See :doc:`/reference/simulations/centralised/index` and
        :doc:`/reference/simulations/decentralised/index`.
    * - :doc:`decentralised_simulation_walkthrough`
      - Peer-to-peer simulations with ``DecentralisedSimulation`` and
        ``MonnaSimulation``: per-worker models, model mixing, Byzantine
-       reach modes, and custom data streams.
+       reach modes, custom data streams.
 
-       See also :doc:`/reference/simulations/decentralised/index`.
+       See :doc:`/reference/simulations/decentralised/index`.
    * - :doc:`structured_experiments`
-     - Collecting metrics with ``Metric`` and ``Orchestrator``, analysing
-       results with filtering and plotting, and running N×M systematic
-       benchmarks with comparison tables.
+     - Collect metrics with ``Metric`` and ``Orchestrator``, analyse
+       with filtering and plotting, run N×M benchmarks.
 
-       See also :doc:`/reference/orchestration/index` and
+       See :doc:`/reference/orchestration/index` and
        :doc:`/reference/orchestration/metricdataframe`.
 
