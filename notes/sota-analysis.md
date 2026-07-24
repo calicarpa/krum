@@ -268,6 +268,7 @@ Each evaluation runs the full pipeline; up to 20 evaluations per attack.
 
 | Feature | Krum | ByzFL | FedLab | Blades | FL-Byz-Lib | ByzPy |
 |---|---|---|---|---|---|---|
+| **Robust Aggregators** | 10 | 12+4 pre | 0 | 9 | **36** | 12+4 pre |
 | **Aggregators** | 10 | 12+4 pre | 2 | 9 | **36** | 12+4 pre |
 | **Attacks** | 5 | 9 | 0 | **10** | **23** | 8 |
 | **Pre-agg** | — | 4 | — | — | — | 4 |
