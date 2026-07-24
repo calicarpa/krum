@@ -4,12 +4,12 @@ Tutorials
 Step-by-step guides to help you get the most out of Krum.
 
 If you are new to Krum, start with :doc:`using_aggregators_attacks` and
-:doc:`working_with_models`, then move on to
+:doc:`working_with_models`. Next, learn how to extend Krum with
+:doc:`implement_aggregator` and :doc:`implement_attack`, then move on to
 :doc:`centralised_simulation_walkthrough` and
-:doc:`decentralised_simulation_walkthrough`. For a complete walkthrough
-from data to export in a single script, see :doc:`end_to_end`.
-If you hit an issue, check :doc:`troubleshooting`.
-The last three tutorials show you how to extend Krum with custom logic.
+:doc:`decentralised_simulation_walkthrough`.
+For structured data collection and analysis, see
+:doc:`structured_experiments`.
 
 Available Tutorials
 -------------------
@@ -19,20 +19,13 @@ Available Tutorials
 
    using_aggregators_attacks
    working_with_models
-   centralised_simulation_walkthrough
-   decentralised_simulation_walkthrough
-   custom_dataset
-   working_with_orchestrator
-   results_analysis
-   systematic_benchmark
-   end_to_end
-   troubleshooting
-   implement_simulation
    implement_aggregator
    implement_attack
-
+   centralised_simulation_walkthrough
+   decentralised_simulation_walkthrough
+   structured_experiments
 Detailed Tutorials
-------------------
+-----------------
 
 .. list-table::
    :widths: 25 75
@@ -48,59 +41,10 @@ Detailed Tutorials
        models from the literature (Krum NIPS 2017, MONNA ICML 2023).
 
        See also :doc:`/reference/primitives/models/index`.
-   * - :doc:`decentralised_simulation_walkthrough`
-     - Peer-to-peer simulations with ``DecentralisedSimulation`` and
-       ``MonnaSimulation``: per-worker models, model mixing, Byzantine
-       reach modes, and custom data streams.
-
-       See also :doc:`/reference/simulations/decentralised/index`.
-   * - :doc:`custom_dataset`
-     - Using any PyTorch ``Dataset`` with Krum simulations:
-       ``TensorDataset``, ``torchvision`` datasets, loading from
-       disk, and matching the model's input and output dimensions.
-
-       See also :doc:`/reference/simulations/centralised/index`.
-   * - :doc:`centralised_simulation_walkthrough`
-     - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
-       MNIST, dataset setup, training loop, and baseline comparison.
-
-       See also :doc:`/reference/simulations/centralised/index` and
-       :doc:`/reference/simulations/decentralised/index`.
-   * - :doc:`working_with_orchestrator`
-     - Collecting structured results with ``Metric`` and ``Orchestrator``:
-       running multiple configurations, filtering, and exporting to DataFrames.
-
-       See also :doc:`/reference/orchestration/index`.
-   * - :doc:`results_analysis`
-     - Filtering, merging, pivoting, exporting, and plotting
-       ``MetricDataFrame`` results. Aggregating across seeds and
-       comparing multiple metrics on shared axes.
-
-       See also :doc:`/reference/orchestration/metricdataframe`.
-   * - :doc:`systematic_benchmark`
-     - Running N aggregators × M attacks on a shared dataset with
-       ``Orchestrator``, building a comparison table, interpreting
-       results, and exporting for papers.
-
-        See also :doc:`/reference/orchestration/index`.
-   * - :doc:`end_to_end`
-     - A complete experiment from data to export in one script: synthetic
-       dataset, custom model, ``Orchestrator`` sweep, and analysis table.
-
-       See also :doc:`/reference/orchestration/index`.
-   * - :doc:`troubleshooting`
-     - Common errors (aggregator bounds, loss divergence, NaN, missing
-       gradients) and how to fix them.
-   * - :doc:`implement_simulation`
-     - Creating a custom simulation by subclassing
-       ``CentralisedSimulation`` or ``DecentralisedSimulation``: custom
-       evaluation, local update, and communication topology.
-
-       See also :doc:`/reference/simulations/centralised/index` and
-       :doc:`/reference/simulations/decentralised/index`.
    * - :doc:`implement_aggregator`
      - Write a custom aggregation rule by subclassing ``Aggregator`` and
-       implementing ``aggregate``, with tests.
+       implementing ``aggregate``, with tests. Build up from gradients-only
+       to fully parameterised rules.
 
        See also :doc:`/reference/primitives/aggregators/index`.
    * - :doc:`implement_attack`
@@ -108,3 +52,23 @@ Detailed Tutorials
        implementing ``generate``, with tests.
 
        See also :doc:`/reference/primitives/attacks/index`.
+   * - :doc:`centralised_simulation_walkthrough`
+     - A complete simulation with the ``KrumSimulation``: MultiKrum + SignFlip on
+       MNIST, dataset setup, training loop, and baseline comparison.
+
+       See also :doc:`/reference/simulations/centralised/index` and
+       :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`decentralised_simulation_walkthrough`
+     - Peer-to-peer simulations with ``DecentralisedSimulation`` and
+       ``MonnaSimulation``: per-worker models, model mixing, Byzantine
+       reach modes, and custom data streams.
+
+       See also :doc:`/reference/simulations/decentralised/index`.
+   * - :doc:`structured_experiments`
+     - Collecting metrics with ``Metric`` and ``Orchestrator``, analysing
+       results with filtering and plotting, and running N×M systematic
+       benchmarks with comparison tables.
+
+       See also :doc:`/reference/orchestration/index` and
+       :doc:`/reference/orchestration/metricdataframe`.
+
