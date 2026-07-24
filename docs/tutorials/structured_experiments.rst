@@ -284,7 +284,13 @@ against multiple attacks on a shared dataset. This section shows how to
 run such a benchmark with ``Orchestrator`` and produce a comparison table.
 
 We build on the same MNIST + MLP setup from the previous example, but run
-every combination of aggregators and attacks across multiple seeds:
+every combination of aggregators and attacks across multiple seeds.
+
+Setup
+^^^^^
+
+Import the aggregators and attacks we want to compare, and define the
+grid constants:
 
 .. code-block:: python
 
@@ -300,6 +306,15 @@ every combination of aggregators and attacks across multiple seeds:
    N, F, ROUNDS = 15, 3, 50
    SEEDS = [42, 43, 44]
 
+Running the grid
+^^^^^^^^^^^^^^^^
+
+Loop over every aggregator-attack-seed combination. Each call to
+``orchestrator.run()`` records the experiment and tags it with its
+parameters:
+
+.. code-block:: python
+
    for agg in [Average, Median, TrimmedMean, MultiKrum]:
        for atk in [None, SignFlipAttack, ALIEAttack, GaussianAttack]:
            atk_label = atk.__name__ if atk else "NoAttack"
@@ -311,14 +326,10 @@ every combination of aggregators and attacks across multiple seeds:
                    f=F, n=N, lr=0.1, seed=seed,
                )
 
-The ``Orchestrator`` records every run parameter (including the
-``aggregator`` and ``attack`` classes), so we can group and pivot later
-without parsing labels.
-
 Building the comparison table
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Grab the final-step accuracy, average across seeds, and pivot into a
+Collect the final accuracy, average across seeds, and pivot into a
 matrix:
 
 .. code-block:: python
