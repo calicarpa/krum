@@ -15,15 +15,17 @@ All aggregators in Krum follow the same protocol:
 What we'll build
 ----------------
 
-We'll implement **CenteredMean**, a simple Byzantine-resilient rule that
-discards the single gradient farthest from the mean and averages the rest.
-It's not a published algorithm, but it's simple enough to illustrate the
-pattern clearly.
+We'll implement **FirstGrad**, the simplest possible aggregator. It
+discards all gradients except the first one. This is not a Byzantine-resilient
+rule, but it illustrates the protocol in its purest form.
+
+We'll start with just ``gradients``, then add ``out`` for in-place output,
+then ``**specialized`` for extra parameters.
 
 Step 1: subclass Aggregator
------------------------------
+----------------------------
 
-Create a file ``centered_mean.py``:
+Create a file ``first_grad.py``:
 
 .. code-block:: python
 
@@ -34,13 +36,88 @@ Create a file ``centered_mean.py``:
 
    from krum.primitives.aggregators import Aggregator
 
-   class CenteredMean(Aggregator):
+   class FirstGrad(Aggregator):
        ...
 
-Step 2: implement aggregate
------------------------------
+Step 2: implement aggregate (gradients only)
+----------------------------------------------
 
-Add the ``@classmethod``:
+Start with only the ``gradients`` argument, the minimal contract:
+
+.. code-block:: python
+
+       @classmethod
+       def aggregate(
+           cls,
+           gradients: Sequence[Tensor] | Tensor,
+       ) -> Tensor:
+           ...
+
+Normalise the input, then return the first gradient:
+
+.. code-block:: python
+
+       @classmethod
+       def aggregate(
+           cls,
+           gradients: Sequence[Tensor] | Tensor,
+       ) -> Tensor:
+           if not isinstance(gradients, Tensor):
+               gradients = stack(list(gradients))
+
+           return gradients[0]
+
+That is the full algorithm. Feed it ``n`` worker gradients and get back
+the gradient of worker 0.
+
+At this point the aggregator works for direct calls and the simulation
+will accept it, but it ignores the ``out`` and ``**specialized``
+parameters that more advanced callers may pass.
+
+Step 3: add the out parameter
+-------------------------------
+
+The optional ``out`` argument lets the caller pass a pre-allocated tensor.
+When provided, write into it instead of returning a new tensor:
+
+.. code-block:: python
+
+       @classmethod
+       def aggregate(
+           cls,
+           gradients: Sequence[Tensor] | Tensor,
+           out: Tensor | None = None,
+       ) -> Tensor:
+           if not isinstance(gradients, Tensor):
+               gradients = stack(list(gradients))
+
+           if out is not None:
+               out.copy_(gradients[0])
+               return out
+           return gradients[0]
+
+With ``out``, the simulation can reuse the same output buffer every round
+and avoid an allocation:
+
+.. code-block:: python
+
+   buffer = torch.empty(100)
+   result = FirstGrad.aggregate(grads, out=buffer)
+   assert result is buffer  # same tensor, no allocation
+
+.. note::
+
+   The ``out`` parameter is part of every aggregator's signature. It
+   enables the caller to control memory allocation. See the
+   :doc:`/reference/primitives/aggregators/index` for the full API
+   reference.
+
+Step 4: add specialized keyword arguments
+------------------------------------------
+
+Aggregators receive extra parameters like ``n`` and ``f`` from the
+simulation. Absorb them with ``**specialized`` so the simulation
+interface stays uniform:
 
 .. code-block:: python
 
@@ -54,45 +131,30 @@ Add the ``@classmethod``:
        ) -> Tensor:
            ...
 
-Step 3: unpack and validate
------------------------------
-
-Normalise the input to a stacked 2-D tensor and add guardrails:
-
-.. code-block:: python
-
-           if not isinstance(gradients, Tensor):
-               gradients = stack(list(gradients))
-
-           n = gradients.shape[0]
-           if n < 3:
-               msg = f"CenteredMean requires n >= 3, got n={n}"
-               raise ValueError(msg)
-
-Step 4: compute the result
------------------------------
-
-Find the gradient farthest from the mean, remove it, and average the rest:
+The ``/`` marks ``gradients`` as positional-only (prevents accidental
+keyword usage). ``**specialized`` collects everything else (``n``,
+``f``, ``m``, etc.) that the simulation passes automatically. You can
+inspect them inside your algorithm:
 
 .. code-block:: python
 
-           from torch import cdist, mean, stack, topk
+   class FirstGrad(Aggregator):
+       @classmethod
+       def aggregate(cls, gradients, /, out=None, **specialized):
+           f = specialized.get("f", 0)
+           print(f"Running with f={f} Byzantine workers")
+           ...
 
-           # Mean across all workers
-           mu = mean(gradients, dim=0, keepdim=True)          # (1, d)
+To pass your own custom keyword arguments, use ``aggregator_kwargs`` on
+the simulation:
 
-           # Distances from the mean
-           dists = cdist(gradients, mu).squeeze(-1)            # (n,)
+.. code-block:: python
 
-           # Index of the farthest gradient
-           _, worst = topk(dists, k=1, largest=True)           # (1,)
-
-           # Mask it out and average the rest
-           mask = torch.ones(n, dtype=torch.bool)
-           mask[worst] = False
-           clean = gradients[mask]                              # (n-1, d)
-
-           return mean(clean, dim=0, out=out)
+   sim = KrumSimulation(
+       ...,
+       aggregator=FirstGrad,
+       aggregator_kwargs={"my_param": 42},
+   )
 
 Full code
 ---------
@@ -103,17 +165,16 @@ Full code
    from typing import Any
 
    import torch
-   from torch import Tensor, cdist, mean, stack, topk
+   from torch import Tensor, stack
 
    from krum.primitives.aggregators import Aggregator
 
 
-   class CenteredMean(Aggregator):
-       """Byzantine-resilient aggregation that discards the gradient
-       farthest from the mean and averages the rest.
+   class FirstGrad(Aggregator):
+       """Aggregation rule that keeps only the first gradient.
 
-       This is a pedagogical rule, not a published algorithm,
-       that demonstrates the Aggregator protocol.
+       This is a pedagogical rule, not a robust one. Every worker
+       after the first is ignored entirely.
        """
 
        @classmethod
@@ -127,20 +188,9 @@ Full code
            if not isinstance(gradients, Tensor):
                gradients = stack(list(gradients))
 
-           n = gradients.shape[0]
-           if n < 3:
-               msg = f"CenteredMean requires n >= 3, got n={n}"
-               raise ValueError(msg)
-
-           mu = mean(gradients, dim=0, keepdim=True)
-           dists = cdist(gradients, mu).squeeze(-1)
-           _, worst = topk(dists, k=1, largest=True)
-
-           mask = torch.ones(n, dtype=torch.bool)
-           mask[worst] = False
-           clean = gradients[mask]
-
-           return mean(clean, dim=0, out=out)
+           if out is not None:
+               return out.copy_(gradients[0])
+           return gradients[0]
 
 Using your aggregator
 ---------------------
@@ -151,17 +201,17 @@ Import it and call it like any built-in aggregator. Aggregators are
 .. code-block:: python
 
    import torch
-   from centered_mean import CenteredMean
+   from first_grad import FirstGrad
 
    grads = torch.randn(10, 100)
-   result = CenteredMean.aggregate(grads)
+   result = FirstGrad.aggregate(grads)
    print(result.shape)  # (100,)
+   print(result is grads[0])  # True, same tensor
 
 In a simulation
 ---------------
 
-Pass the **class** (not an instance) to a simulation. The ``n`` and ``f``
-injected by the simulation are absorbed by ``**specialized``:
+Pass the **class** (not an instance) to a simulation:
 
 .. code-block:: python
 
@@ -171,9 +221,9 @@ injected by the simulation are absorbed by ``**specialized``:
 
    sim = KrumSimulation(
        model_cls=Krum2017MLPMnist,
-       train_set=train_set,   # see :doc:`centralised_simulation_walkthrough` for dataset setup
+       train_set=train_set,
        test_set=test_set,
-       aggregator=CenteredMean,
+       aggregator=FirstGrad,
        attack=SignFlipAttack,
        attack_kwargs={"scale": 1.5},
        n=10, f=2, rounds=50, batch_size=64, lr=0.01, seed=42,
@@ -182,10 +232,6 @@ injected by the simulation are absorbed by ``**specialized``:
    for _ in range(50):
        sim.step()
    loss, accuracy = sim.evaluate()
-
-To sweep configurations and collect structured results, wrap the run in an
-experiment function driven by the :class:`~krum.orchestration.orchestrator.Orchestrator` —
-see :doc:`working_with_orchestrator`.
 
 Testing
 -------
@@ -197,26 +243,24 @@ A minimal test suite, run with pytest:
    import pytest
    import torch
 
-   from centered_mean import CenteredMean
+   from first_grad import FirstGrad
 
-   def test_centered_mean_shape():
+   def test_first_grad_shape():
        grads = torch.randn(10, 100)
-       result = CenteredMean.aggregate(grads)
+       result = FirstGrad.aggregate(grads)
        assert result.shape == (100,)
 
-   def test_centered_mean_removes_outlier():
-       # 9 identical gradients + 1 far away
-       honest = torch.ones(9, 10)
-       outlier = -100 * torch.ones(1, 10)
-       grads = torch.cat([honest, outlier], dim=0)
+   def test_first_grad_returns_first():
+       grads = torch.randn(10, 100)
+       result = FirstGrad.aggregate(grads)
+       assert torch.allclose(result, grads[0])
 
-       result = CenteredMean.aggregate(grads)
-       assert torch.allclose(result, torch.ones(10))
-
-   def test_centered_mean_too_few_workers():
-       grads = torch.randn(2, 100)
-       with pytest.raises(ValueError, match="n >= 3"):
-           CenteredMean.aggregate(grads)
+   def test_first_grad_uses_out():
+       grads = torch.randn(10, 100)
+       buffer = torch.empty(100)
+       result = FirstGrad.aggregate(grads, out=buffer)
+       assert result is buffer
+       assert torch.allclose(result, grads[0])
 
 Next steps
 ----------
