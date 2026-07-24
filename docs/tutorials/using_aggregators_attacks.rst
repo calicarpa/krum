@@ -192,9 +192,13 @@ Available attacks
 Combining everything
 --------------------
 
+The example below generates a SignFlip attack and compares a robust
+aggregator (MultiKrum) against a non-robust baseline (Average):
+
 .. code-block:: python
 
    import torch
+   from krum.primitives.aggregators.average import Average
    from krum.primitives.aggregators.multikrum import MultiKrum
    from krum.primitives.attacks.sign_flip import SignFlipAttack
 
@@ -202,11 +206,17 @@ Combining everything
 
    honest = torch.randn(n_workers - n_byzantine, dim)
    malicious = SignFlipAttack.generate(honest, f=n_byzantine, scale=1.5)
-
    all_grads = torch.cat([honest, malicious], dim=0)
-   result = MultiKrum.aggregate(all_grads, n=n_workers, f=n_byzantine)
 
-   print(f"Result norm: {result.norm():.4f}")
+   result = MultiKrum.aggregate(all_grads, n=n_workers, f=n_byzantine)
+   baseline = Average.aggregate(all_grads)
+
+   print(f"MultiKrum: {result.norm():.4f}")
+   print(f"Average:   {baseline.norm():.4f}")
+
+With a SignFlip attack, the Average gradient norm is much larger than
+MultiKrum's because Average includes the flipped values directly,
+while MultiKrum discards the outlier gradients before averaging.
 
 Next steps
 ---------
