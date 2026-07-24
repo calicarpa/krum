@@ -181,7 +181,7 @@ Full code
 Using your attack
 -----------------
 
-Import it and call it like any built-in attack — attacks are **stateless**,
+Import it and call it like any built-in attack. Attacks are **stateless**,
 so you pass the class itself, never an instance:
 
 .. code-block:: python

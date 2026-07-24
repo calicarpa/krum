@@ -145,7 +145,7 @@ Full code
 Using your aggregator
 ---------------------
 
-Import it and call it like any built-in aggregator — aggregators are
+Import it and call it like any built-in aggregator. Aggregators are
 **stateless**, so you pass the class itself, never an instance:
 
 .. code-block:: python

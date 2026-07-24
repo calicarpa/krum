@@ -10,9 +10,9 @@ The built-in simulations cover common protocols. When you need a different
 evaluation metric, a custom learning-rate schedule, or a new peer-to-peer
 communication topology, subclass one of the two base classes:
 
-* :class:`~krum.simulations.centralised.CentralisedSimulation` — parameter-server
+* :class:`~krum.simulations.centralised.CentralisedSimulation` for the parameter-server
   setting (one shared model, synchronous SGD).
-* :class:`~krum.simulations.decentralised.DecentralisedSimulation` — peer-to-peer
+* :class:`~krum.simulations.decentralised.DecentralisedSimulation` for the peer-to-peer
   setting (each worker holds its own model, local optimisation + model mixing).
 
 Centralised simulation
@@ -20,18 +20,18 @@ Centralised simulation
 
 A centralised simulation subclasses
 :class:`~krum.simulations.centralised.CentralisedSimulation` and at minimum
-defines an ``evaluate`` method — the base class deliberately leaves evaluation
+defines an ``evaluate`` method. The base class deliberately leaves evaluation
 to subclasses, since each protocol reports its own metrics.
 
 What you can customise
 ----------------------
 
-* **Evaluation** — define ``evaluate`` to return any tuple of metrics.
-* **Training loss** — define ``evaluate_train`` if your protocol reports it
+* **Evaluation**: define ``evaluate`` to return any tuple of metrics.
+* **Training loss**: define ``evaluate_train`` if your protocol reports it
   (both built-in simulations do).
-* **Training step** — override ``step`` to inject logic before or after each
+* **Training step**: override ``step`` to inject logic before or after each
   round.
-* **Initialisation** — override ``setup`` to add custom weight initialisation
+* **Initialisation**: override ``setup`` to add custom weight initialisation
   or data transformations.
 
 Minimal example
@@ -98,11 +98,11 @@ A decentralised simulation subclasses
 implement three abstract methods:
 
 * :meth:`~krum.simulations.decentralised.DecentralisedSimulation.local_update`
-  — how each worker turns its gradient into a post-local-update model.
+  describes how each worker turns its gradient into a post-local-update model.
 * :meth:`~krum.simulations.decentralised.DecentralisedSimulation.gather_received_models`
-  — which models each worker receives (the communication topology).
+  specifies which models each worker receives (the communication topology).
 * :meth:`~krum.simulations.decentralised.DecentralisedSimulation.build_step_result`
-  — the snapshot structure returned by each round.
+  defines the snapshot structure returned by each round.
 
 The constructor takes a :class:`~krum.primitives.models.Model` **instance**
 (not a class), one data stream per honest worker, and a loss function:
@@ -165,7 +165,7 @@ The constructor takes a :class:`~krum.primitives.models.Model` **instance**
 The data argument is one iterable of batches per honest worker. Wrap a
 :class:`~torch.utils.data.DataLoader` or use a generator. Streams are consumed
 one batch per round, so make them infinite (or long enough) for the number of
-rounds you plan to run — here with a simple cycling generator:
+rounds you plan to run, here with a simple cycling generator:
 
 .. code-block:: python
 
@@ -198,7 +198,7 @@ rounds you plan to run — here with a simple cycling generator:
 .. note::
 
    The decentralised base injects only the per-worker ``pivot`` into each
-   ``aggregate`` call — unlike the centralised simulations, it does **not**
+   ``aggregate`` call. Unlike the centralised simulations, it does **not**
    inject ``n`` and ``f``. Aggregators like ``Krum`` that require them must
    receive them through ``aggregator_kwargs``, as above. Pivot-anchored
    rules like ``NearestNeighborAverage`` need no extra arguments.
@@ -228,10 +228,10 @@ Choosing a base class
 Next steps
 ----------
 
-* :doc:`centralised_simulation_walkthrough` — using the built-in simulations.
+* :doc:`centralised_simulation_walkthrough`: using the built-in simulations.
 * See :doc:`/reference/simulations/centralised/index` for the full
   :class:`~krum.simulations.centralised.CentralisedSimulation` API.
 * See :doc:`/reference/simulations/decentralised/index` for the full
   :class:`~krum.simulations.decentralised.DecentralisedSimulation` API.
-* :doc:`working_with_orchestrator` — collect structured results with
+* :doc:`structured_experiments`: collect structured results with
   ``Metric`` and ``Orchestrator``.

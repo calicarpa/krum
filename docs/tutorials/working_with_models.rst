@@ -36,7 +36,7 @@ provides zero-copy flat views:
    model.gradients = aggregated_flat
 
 The flat tensors are **views** into the original parameter and gradient
-storage — zero-copy applies to both. No memory is copied.
+storage, so zero-copy applies to both and no memory is copied.
 
 How zero-copy works
 -------------------
@@ -158,26 +158,26 @@ Available models
 Krum bundles six standard models from the Byzantine resilience literature,
 all in :mod:`krum.primitives.models`:
 
-* :class:`~krum.primitives.models.mlp.Krum2017MLPMnist` — MLP for MNIST
+* :class:`~krum.primitives.models.mlp.Krum2017MLPMnist` is an MLP for MNIST
   (784, 100, 10). ~80K params. Krum NIPS 2017.
 
-* :class:`~krum.primitives.models.mlp.Krum2017MLPSpambase` — MLP for
+* :class:`~krum.primitives.models.mlp.Krum2017MLPSpambase` is an MLP for
   Spambase (57, 20, 20, 2). ~2K params. Krum NIPS 2017.
 
-* :class:`~krum.primitives.models.cnn.Krum2017CNN` — CNN for CIFAR-10.
+* :class:`~krum.primitives.models.cnn.Krum2017CNN` is a CNN for CIFAR-10.
   2 conv + 3 FC layers. ~1.2M params. Hidden Vulnerability ICML 2018.
 
-* :class:`~krum.primitives.models.mlp.Monna2023SmallMnist` — small MLP
+* :class:`~krum.primitives.models.mlp.Monna2023SmallMnist` is a small MLP
   for MNIST (784, 128, 10). ~101K params. MONNA ICML 2023.
 
-* :class:`~krum.primitives.models.cnn.Monna2023CNNMnist` — CNN for MNIST.
+* :class:`~krum.primitives.models.cnn.Monna2023CNNMnist` is a CNN for MNIST.
   2 conv + 2 FC layers. ~610K params. MONNA ICML 2023.
 
-* :class:`~krum.primitives.models.cnn.Monna2023CNNCifar10` — CNN for
+* :class:`~krum.primitives.models.cnn.Monna2023CNNCifar10` is a CNN for
   CIFAR-10. 4 conv + 2 FC layers + BatchNorm/Dropout. ~1.5M params.
   MONNA ICML 2023.
 
-All take no constructor arguments — they instantiate fixed architectures
+All take no constructor arguments and instantiate fixed architectures
 matching their respective papers.
 
 .. seealso::

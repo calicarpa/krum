@@ -12,7 +12,7 @@ its **own** model and workers exchange models through a communication
 topology.
 
 If you have not yet used the centralised simulations, start with
-:doc:`centralised_simulation_walkthrough` first — this tutorial builds on
+:doc:`centralised_simulation_walkthrough` first. This tutorial builds on
 that foundation.
 
 Centralised vs decentralised
@@ -31,8 +31,8 @@ Centralised vs decentralised
      - Peer-to-peer topology: workers mix their model with models
        *received* from neighbours.
    * - Lifecycle: ``setup() -> step() -> evaluate()``.
-     - Lifecycle: **instantiate → step** (or ``run(rounds)``) — no setup,
-       no evaluate.
+      - Lifecycle: **instantiate → step** (or ``run(rounds)``); no setup,
+        no evaluate.
    * - One loss / accuracy for the shared model.
      - Per-worker losses, per-worker parameter vectors.
 
@@ -41,16 +41,16 @@ Available simulations
 
 **Decentralised** (peer-to-peer):
 
-* :class:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation` — Farhadkhani et al. (ICML 2023): momentum-SGD, nearest-neighbour averaging, per-worker losses and model snapshots.
+* :class:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation` from Farhadkhani et al. (ICML 2023): momentum-SGD, nearest-neighbour averaging, per-worker losses and model snapshots.
 
 All decentralised simulations share the lifecycle:
 **instantiate → step** (or ``run(rounds)``), with a per-round snapshot.
 
 Each round runs two phases:
 
-1. **Local optimisation** — each honest worker computes a gradient on its own
+1. **Local optimisation**: each honest worker computes a gradient on its own
    batch and updates its own model.
-2. **Model mixing** — each worker gathers ``n - f`` models from other nodes
+2. **Model mixing**: each worker gathers ``n - f`` models from other nodes
    (*received set*) and replaces its model with an aggregate of that set.
 
 Minimal example
@@ -146,9 +146,9 @@ the attack generates ``f`` Byzantine parameter vectors from the honest ones.
 The :attr:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation.byzantine_reach`
 mode controls which workers receive them:
 
-* ``"all"`` — every Byzantine model reaches every worker; only the honest
+* ``"all"``: every Byzantine model reaches every worker; only the honest
   responders are sampled. Worst-case adversary.
-* ``"sampled"`` — responders drawn uniformly from all other nodes; a worker
+* ``"sampled"``: responders drawn uniformly from all other nodes; a worker
   receives ``0`` to ``f`` Byzantine models. Models gossip where Byzantine
   reach is random.
 
@@ -278,12 +278,12 @@ per honest worker:
 Next steps
 ----------
 
-* :doc:`centralised_simulation_walkthrough` — if you have not yet tried
+* :doc:`centralised_simulation_walkthrough`: if you have not yet tried
   the parameter-server simulations.
-* :doc:`working_with_orchestrator` — collect structured results across
+* :doc:`structured_experiments`: collect structured results across
   multiple configurations with ``Metric`` and ``Orchestrator``.
-* :doc:`implement_simulation` — create your own decentralised simulation
+* :doc:`implement_simulation`: create your own decentralised simulation
   by subclassing
   :class:`~krum.simulations.decentralised.DecentralisedSimulation`.
-* :doc:`/reference/simulations/decentralised/index` — the full
+* :doc:`/reference/simulations/decentralised/index`: the full
   decentralised simulation reference.

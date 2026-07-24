@@ -137,11 +137,11 @@ Going further
 This tutorial used built-in aggregators, attacks, and the default
 ``KrumSimulation``. To go beyond:
 
-* :doc:`implement_aggregator` — write your own aggregation rule by
+* :doc:`implement_aggregator`: write your own aggregation rule by
   subclassing ``Aggregator``
-* :doc:`implement_attack` — write your own Byzantine attack by
+* :doc:`implement_attack`: write your own Byzantine attack by
   subclassing ``Attack``
-* :doc:`implement_simulation` — create a custom simulation with a
+* :doc:`implement_simulation`: create a custom simulation with a
   custom evaluation metric, learning-rate schedule, or communication
   topology
 * :doc:`custom_dataset` — more dataset patterns (torchvision, disk

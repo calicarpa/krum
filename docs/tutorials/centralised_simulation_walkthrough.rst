@@ -17,14 +17,14 @@ Available simulations
 
 **Centralised** (parameter-server):
 
-* :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation` — Blanchard et al. (NIPS 2017): fixed learning rate, reports test loss + accuracy.
-* :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation` — El Mhamdi et al. (ICML 2018): Robbins-Monro schedule, L2 regularization, Xavier init, reports test loss + error + accuracy.
+* :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation` from Blanchard et al. (NIPS 2017): fixed learning rate, reports test loss + accuracy.
+* :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation` from El Mhamdi et al. (ICML 2018): Robbins-Monro schedule, L2 regularization, Xavier init, reports test loss + error + accuracy.
 
 All centralised simulations share the lifecycle:
 **instantiate → setup → step → evaluate**.
 
-Decentralised (peer-to-peer) simulations follow a different pattern —
-see :doc:`decentralised_simulation_walkthrough`.
+Decentralised (peer-to-peer) simulations follow a different pattern. See
+:doc:`decentralised_simulation_walkthrough`.
 
 Minimal example
 ---------------
@@ -69,7 +69,7 @@ Minimal example
 The lifecycle
 -------------
 
-#. **Instantiation** — pass the model class, datasets, aggregator, attack,
+#. **Instantiation**: pass the model class, datasets, aggregator, attack,
    and hyperparameters (but **not** ``rounds``, which is a
    :class:`~krum.simulations.centralised.CentralisedSimulation` parameter for
    the constructor convenience but is better passed to ``run()`` for clarity).
@@ -77,11 +77,11 @@ The lifecycle
    their classmethods each round. Use ``aggregator_kwargs`` and
    ``attack_kwargs`` for extra parameters.
 
-#. ``setup()`` —
+#. ``setup()``:
    initialises the model, splits the training set into IID shards (one per
    worker), and seeds all RNG. Deterministic for a given ``seed``.
 
-#. ``step()``—
+#. ``step()``:
    runs one synchronous round:
 
    * Broadcast the model to all workers.
@@ -90,7 +90,7 @@ The lifecycle
    * The aggregator combines all :math:`n` gradients.
    * SGD update is applied.
 
-#. ``evaluate()`` —
+#. ``evaluate()``:
    returns the metrics specific to the protocol (loss, accuracy, etc.).
 
 Using the ICML 2018 simulation
@@ -165,7 +165,7 @@ the effect of Byzantine workers:
 Next steps
 ----------
 
-* :doc:`decentralised_simulation_walkthrough` — peer-to-peer simulations
+* :doc:`decentralised_simulation_walkthrough`: peer-to-peer simulations
   with per-worker models and model mixing.
 * :doc:`end_to_end` — a complete pipeline from data to export in one script.
 * :doc:`working_with_orchestrator` — collect structured results with
@@ -173,5 +173,5 @@ Next steps
 * :doc:`troubleshooting` — common errors and how to fix them.
 * :doc:`implement_simulation` — create your own simulation by subclassing
   :class:`~krum.simulations.centralised.CentralisedSimulation`.
-* :doc:`/reference/simulations/index` — reproduce published experiments
+* :doc:`/reference/simulations/index`: reproduce published experiments
   with the bundled experiment scripts.
