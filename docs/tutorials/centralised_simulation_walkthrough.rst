@@ -9,22 +9,14 @@ Krum ships with ready-to-use centralised (parameter-server) simulations
 that reproduce published protocols. This tutorial shows how to configure
 and run them.
 
-For decentralised (peer-to-peer) simulations, see
-:doc:`decentralised_simulation_walkthrough`.
-
-Available simulations
----------------------
-
-**Centralised** (parameter-server):
-
-* :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation` from Blanchard et al. (NIPS 2017): fixed learning rate, reports test loss + accuracy.
-* :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation` from El Mhamdi et al. (ICML 2018): Robbins-Monro schedule, L2 regularization, Xavier init, reports test loss + error + accuracy.
-
 All centralised simulations share the lifecycle:
 **instantiate → setup → step → evaluate**.
 
-Decentralised (peer-to-peer) simulations follow a different pattern. See
-:doc:`decentralised_simulation_walkthrough`.
+.. seealso::
+
+   :doc:`/reference/simulations/centralised/index`
+      Full reference for :class:`~krum.simulations.centralised.KrumSimulation`
+      and :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`.
 
 Minimal example
 ---------------
@@ -70,12 +62,9 @@ The lifecycle
 -------------
 
 #. **Instantiation**: pass the model class, datasets, aggregator, attack,
-   and hyperparameters (but **not** ``rounds``, which is a
-   :class:`~krum.simulations.centralised.CentralisedSimulation` parameter for
-   the constructor convenience but is better passed to ``run()`` for clarity).
-   Aggregator and attack are **classes**, not instances. The simulation calls
-   their classmethods each round. Use ``aggregator_kwargs`` and
-   ``attack_kwargs`` for extra parameters.
+   and hyperparameters. Aggregator and attack are **classes**, not
+   instances. The simulation calls their classmethods each round. Use
+   ``aggregator_kwargs`` and ``attack_kwargs`` for extra parameters.
 
 #. ``setup()``:
    initialises the model, splits the training set into IID shards (one per

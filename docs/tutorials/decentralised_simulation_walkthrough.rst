@@ -11,40 +11,14 @@ This tutorial covers the peer-to-peer framework where each worker holds
 its **own** model and workers exchange models through a communication
 topology.
 
-If you have not yet used the centralised simulations, start with
-:doc:`centralised_simulation_walkthrough` first. This tutorial builds on
-that foundation.
-
-Centralised vs decentralised
-----------------------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 50 50
-
-   * - Centralised
-     - Decentralised
-   * - One shared model, broadcast to all workers each round.
-     - Each worker owns its **own** model. No broadcast.
-   * - Parameter-server topology: one aggregator combines all ``n``
-       gradients.
-     - Peer-to-peer topology: workers mix their model with models
-       *received* from neighbours.
-   * - Lifecycle: ``setup() -> step() -> evaluate()``.
-      - Lifecycle: **instantiate → step** (or ``run(rounds)``); no setup,
-        no evaluate.
-   * - One loss / accuracy for the shared model.
-     - Per-worker losses, per-worker parameter vectors.
-
-Available simulations
----------------------
-
-**Decentralised** (peer-to-peer):
-
-* :class:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation` from Farhadkhani et al. (ICML 2023): momentum-SGD, nearest-neighbour averaging, per-worker losses and model snapshots.
-
 All decentralised simulations share the lifecycle:
 **instantiate → step** (or ``run(rounds)``), with a per-round snapshot.
+
+.. seealso::
+
+   :doc:`/reference/simulations/decentralised/index`
+      Full reference for
+      :class:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation`.
 
 Each round runs two phases:
 
@@ -129,27 +103,39 @@ Inspecting the round snapshot
 
    result = sim.step()  # a single round
 
-   print(f"Step:         {result['step']}")
-   print(f"Parameters:   {result['parameters'].shape}")      # (n-f, d)
-   print(f"Momentum:     {result['momentum'].shape}")         # (n-f, d)
-   print(f"Losses:       {result['losses']}")                 # (n-f,)
-   print(f"Local params: {result['local_parameters'].shape}")  # (n-f, d)
-   print(f"Mixed params: {result['mixed_parameters'].shape}")  # (n-f, d)
+The returned :class:`~krum.simulations.decentralised.StepResult` dict (or subclass) contains:
 
-   # access specific workers
-   worker_0_loss = result["losses"][0]
-   worker_2_params = result["parameters"][2]
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 15
 
-The keys are:
-
-* ``step``: round counter (1-indexed)
-* ``parameters``: the committed parameters after mixing, shape ``(n - f, d)``
-* ``momentum``: the momentum buffer (``MonnaStepResult`` only)
-* ``honest_gradients``: computed gradients before local update
-* ``local_parameters``: parameters after local update, before mixing
-* ``byzantine_parameters``: the Byzantine models injected this round
-* ``mixed_parameters``: same as ``parameters`` (already committed)
-* ``losses``: per-worker scalar losses
+   * - Key
+     - Description
+     - Shape
+   * - ``step``
+     - Round counter (1-indexed)
+     - scalar
+   * - ``parameters``
+     - Committed parameters after mixing
+     - ``(n - f, d)``
+   * - ``momentum``
+     - Momentum buffer (``MonnaStepResult`` only)
+     - ``(n - f, d)``
+   * - ``honest_gradients``
+     - Computed gradients before local update
+     - ``(n - f, d)``
+   * - ``local_parameters``
+     - Parameters after local update, before mixing
+     - ``(n - f, d)``
+   * - ``byzantine_parameters``
+     - Byzantine models injected this round
+     - ``(f, d)``
+   * - ``mixed_parameters``
+     - Same as ``parameters`` (already committed)
+     - ``(n - f, d)``
+   * - ``losses``
+     - Per-worker scalar losses
+     - ``(n - f,)``
 
 Byzantine workers
 -----------------
@@ -253,23 +239,25 @@ Data partitioning
 -----------------
 
 The minimal example splits the dataset into equal IID shards with
-``Subset``. The experiment scripts also support a **Dirichlet non-IID**
-split, where each worker receives a different class distribution:
+``Subset``. The experiment scripts shipped with the repository (``experiments/decentralised/``)
+also support a **Dirichlet non-IID** split:
 
 .. code-block:: python
 
-   from experiments.decentralised.datasets import split_dataset
+   import random
+   from torch.utils.data import Subset
 
-   worker_shards = split_dataset(
-       dataset=train_set,
-       partition="dirichlet",
-       num_parts=n - f,
-       dirichlet_alpha=1.0,
-       seed=seed,
-   )
+   def split_iid(dataset, *, num_parts, seed):
+       indices = list(range(len(dataset)))
+       random.Random(seed).shuffle(indices)
+       shards = [indices[i::num_parts] for i in range(num_parts)]
+       return [Subset(dataset, shard) for shard in shards]
 
-A lower ``alpha`` produces more skewed distributions (less IID). This is
-useful for testing robustness under data heterogeneity.
+``split_iid`` gives each worker an equal, shuffled portion of the dataset.
+The experiment scripts add a ``split_dirichlet`` variant that controls
+class-skew via an ``alpha`` parameter. A lower ``alpha`` produces more
+skewed distributions (less IID), useful for testing robustness under
+data heterogeneity.
 
 Evaluating worker models
 -------------------------
@@ -279,14 +267,20 @@ for the single shared model. In the decentralised setting, each worker
 has its own parameters. The standard approach evaluates every honest
 worker on the same test set and averages the results:
 
+Load each honest worker's parameters into the evaluation model, then run
+the full test set:
+
 .. code-block:: python
 
    @torch.no_grad()
    def evaluate_workers(model, parameters, test_loader, loss_fn):
        losses, accuracies = [], []
        for worker_params in parameters:
+           # copy worker params into the model
            model.parameters.copy_(worker_params)
            model.module.eval()
+
+           # run the full test set for this worker
            total_loss = total_correct = total = 0
            for inputs, targets in test_loader:
                inputs, targets = inputs.to(device), targets.to(device)
@@ -295,8 +289,11 @@ worker on the same test set and averages the results:
                total_loss += loss.item() * targets.numel()
                total_correct += (logits.argmax(1) == targets).sum().item()
                total += targets.numel()
+
            losses.append(total_loss / total)
            accuracies.append(total_correct / total)
+
+       # average across all honest workers
        return sum(losses) / len(losses), sum(accuracies) / len(accuracies)
 
    test_loader = DataLoader(test_set, batch_size=256, shuffle=False)
