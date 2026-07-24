@@ -211,6 +211,8 @@ Combining everything
 Next steps
 ----------
 
+* :doc:`working_with_models`: how aggregators access flat gradient tensors
+  and the standard models bundled with Krum
 * :doc:`centralised_simulation_walkthrough` to run this inside a full training loop
 * :doc:`/reference/primitives/aggregators/index` for the full API reference
 * :doc:`/reference/primitives/attacks/index` for the full API reference
