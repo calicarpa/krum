@@ -121,47 +121,6 @@ schedule:
    train_loss = sim.evaluate_train()
    print(f"final training loss: {train_loss:.4f}")
 
-Comparing two configurations
-----------------------------
-
-Create a fresh robust simulation alongside a non-robust ``Average``
-baseline to see the effect of Byzantine workers:
-
-.. code-block:: python
-
-   from krum.primitives.aggregators.average import Average
-
-   robust = KrumSimulation(
-       model_cls=Krum2017MLPMnist,
-       train_set=train_set,
-       test_set=test_set,
-       aggregator=MultiKrum,
-       attack=SignFlipAttack,
-       attack_kwargs={"scale": 1.5},
-       n=10, f=2, batch_size=64, lr=0.01, seed=42,
-   )
-   robust.setup()
-   for _ in range(50):
-       robust.step()
-
-   baseline = KrumSimulation(
-       model_cls=Krum2017MLPMnist,
-       train_set=train_set,
-       test_set=test_set,
-       aggregator=Average,
-       attack=SignFlipAttack,
-       attack_kwargs={"scale": 1.5},
-       n=10, f=2, batch_size=64, lr=0.01, seed=42,
-   )
-   baseline.setup()
-   for _ in range(50):
-       baseline.step()
-
-   _, robust_acc = robust.evaluate()
-   _, baseline_acc = baseline.evaluate()
-   print(f"MultiKrum: {robust_acc:.2%}")
-   print(f"Average:   {baseline_acc:.2%}")
-
 Next steps
 ----------
 
