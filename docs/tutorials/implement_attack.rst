@@ -251,7 +251,7 @@ Pass the **class** (not an instance) to a simulation:
 Testing
 -------
 
-A minimal test suite, run with pytest:
+A minimal test suite. Run with ``pytest repeat_attack.py``:
 
 .. code-block:: python
 
