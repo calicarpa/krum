@@ -48,35 +48,8 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
    # Aksel (optimal breakdown point, requires n > 2f)
    result = Aksel.aggregate(gradients, f=2)
 
-Available aggregators
-~~~~~~~~~~~~~~~~~~~~~
-
-* :class:`~krum.primitives.aggregators.average.Average` computes the plain mean over all
-  gradients; non-robust baseline (McMahan et al., AISTATS 2017).
-* :class:`~krum.primitives.aggregators.median.Median` takes the coordinate-wise
-  median (Yin et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.geomed.GeoMed` selects the geometric median
-  (medoid): the submitted gradient that minimises the sum of
-  distances to all others (Yin et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.trimmed_mean.TrimmedMean` drops the
-  :math:`f` smallest and :math:`f` largest values per coordinate, then
-  averages the rest (Yin et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.aksel.Aksel` averages the
-  :math:`n - f` gradients closest to the coordinate-wise median; optimal
-  breakdown point in :math:`\mathcal{O}(nd)` (Boussetta et al., OPODIS 2020).
-* :class:`~krum.primitives.aggregators.krum.Krum` selects the single
-  gradient with the smallest sum of squared distances to its closest peers
-  (Blanchard et al., NIPS 2017).
-* :class:`~krum.primitives.aggregators.multikrum.MultiKrum` averages the
-  :math:`m` best Krum-scored gradients (Blanchard et al., NIPS 2017).
-* :class:`~krum.primitives.aggregators.brute.Brute` finds the exact most-clumped
-  :math:`n - f` subset, exponential in cost.
-* :class:`~krum.primitives.aggregators.bulyan.Bulyan` uses a two-stage rule:
-  MultiKrum pre-selection, then a coordinate-wise trimmed average
-  (El Mhamdi et al., ICML 2018).
-* :class:`~krum.primitives.aggregators.nearest_neighbor_average.NearestNeighborAverage`
-  averages the ``num_closest`` vectors nearest to a per-worker ``pivot``;
-  the default mixing rule of the decentralised MoNNA simulation.
+See :doc:`/reference/primitives/aggregators/index` for the full list with
+resilience guarantees, algorithmic details, and literature references.
 
 Input shape
 ~~~~~~~~~~~
@@ -171,23 +144,8 @@ Attacks generate Byzantine gradients from honest worker gradients:
 All attacks follow the same pattern: pass the honest gradients and the number
 of Byzantine workers ``f``, and they return a tensor of shape ``(f, d)``.
 
-Available attacks
-~~~~~~~~~~~~~~~~~
-
-* :class:`~krum.primitives.attacks.sign_flip.SignFlipAttack` sends the
-  sign-flipped honest mean, scaled by ``scale`` (Xie et al., AISTATS 2019).
-* :class:`~krum.primitives.attacks.alie.ALIEAttack` shifts the honest mean
-  by :math:`z` standard deviations, small enough to stay hidden inside the
-  honest distribution (Baruch et al., NeurIPS 2019).
-* :class:`~krum.primitives.attacks.gaussian.GaussianAttack` applies isotropic
-  Gaussian noise, independent of the honest gradients.
-* :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`
-  sends the negated full-dataset gradient, scaled by ``kappa``; an
-  omniscient attack that assumes knowledge of the entire dataset.
-* :class:`~krum.primitives.attacks.small_perturbation.SmallPerturbationAttack`
-  shifts one coordinate as much as possible while remaining selected by a
-  *target* aggregator, exploiting the curse of dimensionality
-  (El Mhamdi et al., ICML 2018).
+See :doc:`/reference/primitives/attacks/index` for the full list with
+attack mechanics, parameters, and literature references.
 
 Combining everything
 --------------------
