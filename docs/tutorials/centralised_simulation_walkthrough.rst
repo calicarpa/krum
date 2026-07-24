@@ -1,6 +1,10 @@
 Centralised simulation walkthrough
 ==================================
 
+**Problem:** You want to reproduce a published Byzantine resilience
+experiment (e.g., Krum NIPS 2017) but don't know how to configure the
+workers, aggregator, attack, or training loop.
+
 Krum ships with ready-to-use centralised (parameter-server) simulations
 that reproduce published protocols. This tutorial shows how to configure
 and run them.

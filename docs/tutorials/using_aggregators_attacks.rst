@@ -1,6 +1,10 @@
 Using Aggregators and Attacks
 =============================
 
+**Problem:** You need to pick an aggregation rule and an attack strategy
+for your experiment, but the library offers many options. How do you
+choose the right ones and understand their resilience guarantees?
+
 This tutorial covers all built-in aggregation rules and attack strategies
 available in Krum.
 

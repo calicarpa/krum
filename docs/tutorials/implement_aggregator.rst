@@ -1,8 +1,8 @@
 Implement a custom aggregator
 =============================
 
-This tutorial walks you through implementing a new gradient aggregation rule
-from scratch.
+**Problem:** The built-in aggregation rules don't cover your use case.
+How do you write your own aggregation rule?
 
 All aggregators in Krum follow the same protocol:
 

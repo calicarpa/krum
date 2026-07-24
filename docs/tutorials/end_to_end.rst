@@ -1,6 +1,10 @@
 End-to-end example
 ==================
 
+**Problem:** You want to see the complete pipeline from synthetic data
+to exported analysis table, in a single reference script you can adapt
+to your own experiments.
+
 This tutorial walks through a complete experiment from start to finish:
 loading a custom dataset, defining a model, running simulations under
 attack, collecting results with ``Orchestrator``, and exporting a

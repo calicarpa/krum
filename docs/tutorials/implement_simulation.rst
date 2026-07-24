@@ -1,6 +1,11 @@
 Implement a custom simulation
 =============================
 
+**Problem:** The built-in simulations report specific metrics from
+specific papers, but your protocol needs a different evaluation metric,
+learning-rate schedule, or communication topology. How do you create
+your own simulation subclass?
+
 The built-in simulations cover common protocols. When you need a different
 evaluation metric, a custom learning-rate schedule, or a new peer-to-peer
 communication topology, subclass one of the two base classes:

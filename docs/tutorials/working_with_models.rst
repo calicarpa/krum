@@ -1,6 +1,10 @@
 Working with models
 ===================
 
+**Problem:** Aggregators need flat 1-D gradient tensors, but copying
+parameters every round is slow and wasteful. How do you efficiently
+access and manipulate model parameters and gradients as flat tensors?
+
 This tutorial covers the ``Model`` wrapper (zero-copy flat tensor views
 of PyTorch parameters and gradients) and the standard models bundled with
 Krum.

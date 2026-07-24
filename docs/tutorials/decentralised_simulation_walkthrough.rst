@@ -1,6 +1,11 @@
 Decentralised simulation walkthrough
 ====================================
 
+**Problem:** Your scenario needs peer-to-peer communication with
+per-worker models instead of a central parameter server. How do you
+set up a simulation where each worker trains its own model and
+exchanges parameters with neighbours?
+
 Krum ships with one built-in decentralised (peer-to-peer) simulation.
 This tutorial covers the peer-to-peer framework where each worker holds
 its **own** model and workers exchange models through a communication

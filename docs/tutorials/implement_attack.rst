@@ -1,8 +1,9 @@
 Implement a custom attack
 =========================
 
-This tutorial walks you through implementing a new Byzantine attack strategy
-from scratch.
+**Problem:** You want to stress-test an aggregator against a novel attack
+not yet in the library. How do you implement a custom Byzantine attack
+strategy from scratch?
 
 All attacks in Krum follow the same protocol:
 
