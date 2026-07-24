@@ -48,8 +48,10 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
    # Aksel (optimal breakdown point, requires n > 2f)
    result = Aksel.aggregate(gradients, f=2)
 
-See :doc:`/reference/primitives/aggregators/index` for the full list with
-resilience guarantees, algorithmic details, and literature references.
+.. seealso::
+
+   :doc:`/reference/primitives/aggregators/index` for the full list with
+   resilience guarantees, algorithmic details, and literature references.
 
 Input shape
 ~~~~~~~~~~~
@@ -144,8 +146,10 @@ Attacks generate Byzantine gradients from honest worker gradients:
 All attacks follow the same pattern: pass the honest gradients and the number
 of Byzantine workers ``f``, and they return a tensor of shape ``(f, d)``.
 
-See :doc:`/reference/primitives/attacks/index` for the full list with
-attack mechanics, parameters, and literature references.
+.. seealso::
+
+   :doc:`/reference/primitives/attacks/index` for the full list with
+   attack mechanics, parameters, and literature references.
 
 Combining everything
 --------------------
