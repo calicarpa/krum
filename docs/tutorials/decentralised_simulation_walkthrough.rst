@@ -87,8 +87,8 @@ portion of the dataset. The experiment scripts in
 ``experiments/decentralised/`` add a ``split_dirichlet`` variant for
 non-IID data (class-skew controlled by an ``alpha`` parameter).
 
-Model and instantiation
-^^^^^^^^^^^^^^^^^^^^^^^
+Instantiation
+^^^^^^^^^^^^^
 
 The model is wrapped in a :class:`~krum.primitives.models.Model` container
 that exposes a ``.parameters`` tensor and a ``.module`` (the underlying
@@ -276,30 +276,6 @@ the shared model, runs the full test set, and averages across workers:
        model, sim.parameters, test_loader, nn.CrossEntropyLoss()
    )
    print(f"Average test loss: {avg_loss:.4f}, accuracy: {avg_acc:.2%}")
-
-Going further
--------------
-
-**Continuing training.** State persists on the simulation, so you can
-call ``run()`` multiple times:
-
-.. code-block:: python
-
-   first_50 = sim.run(50)
-   next_50  = sim.run(50)
-   total_100 = first_50 + next_50
-
-**Per-worker state.** The ``parameters`` attribute exposes all honest
-worker parameter vectors:
-
-.. code-block:: python
-
-   all_params = sim.parameters          # shape: (n-f, d)
-   worker_0   = sim.parameters[0]
-   momentum_0 = sim.momentum[0]         # MonnaSimulation only
-
-   # Copy a worker's parameters back into the Model to inspect
-   sim.copy_parameters_to_model(sim.parameters[2])
 
 Next steps
 ----------
