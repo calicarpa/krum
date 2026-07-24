@@ -17,19 +17,16 @@ All attacks in Krum follow the same protocol:
 What we'll build
 ----------------
 
-We'll implement **MomentumMismatch**, an attack that estimates the honest
-update direction as the mean of the honest gradients and sends Byzantine
-gradients pointing in the *opposite* direction, scaled by a configurable
-factor. A small random perturbation is added per worker so the Byzantine
-gradients aren't identical — a crowd of identical outliers is easier for
-robust aggregators to isolate. The intuition: if the honest workers are
-converging toward a good minimum, the Byzantine workers try to pull the
-model elsewhere.
+We'll implement **RepeatAttack**, the simplest possible Byzantine attack.
+It takes the first honest gradient and repeats it ``f`` times. Every
+Byzantine worker sends the exact same gradient. The intuition: if honest
+workers are converging, sending a stale or misleading gradient repeated
+many times can shift the aggregate away from the true direction.
 
 Step 1: subclass Attack
 -------------------------
 
-Create a file ``momentum_mismatch.py``:
+Create a file ``repeat_attack.py``:
 
 .. code-block:: python
 
@@ -40,13 +37,94 @@ Create a file ``momentum_mismatch.py``:
 
    from krum.primitives.attacks import Attack
 
-   class MomentumMismatch(Attack):
+   class RepeatAttack(Attack):
        ...
 
-Step 2: implement generate
-----------------------------
+Step 2: implement generate (gradients only)
+----------------------------------------------
 
-Add the ``@classmethod``:
+Start without ``out`` or ``**specialized`` to see the core logic:
+
+.. code-block:: python
+
+       @classmethod
+       def generate(
+           cls,
+           honest_gradients: Sequence[Tensor] | Tensor,
+           *,
+           f: int,
+       ) -> Tensor:
+           ...
+
+Stack the honest gradients, take the first one, and repeat it:
+
+.. code-block:: python
+
+       @classmethod
+       def generate(
+           cls,
+           honest_gradients: Sequence[Tensor] | Tensor,
+           *,
+           f: int,
+       ) -> Tensor:
+           if not isinstance(honest_gradients, Tensor):
+               honest_gradients = stack(list(honest_gradients))
+
+           _, d = honest_gradients.shape
+           first = honest_gradients[0:1]  # (1, d)
+
+           if f == 0:
+               return honest_gradients.new_empty((0, d))
+
+           return first.expand(f, d)  # broadcast to (f, d)
+
+If ``f`` is zero the attack returns an empty tensor. The simulation handles
+this correctly.
+
+Step 3: add the out parameter
+-------------------------------
+
+Add support for the optional output buffer:
+
+.. code-block:: python
+
+       @classmethod
+       def generate(
+           cls,
+           honest_gradients: Sequence[Tensor] | Tensor,
+           /,
+           out: Tensor | None = None,
+           *,
+           f: int,
+       ) -> Tensor:
+           if not isinstance(honest_gradients, Tensor):
+               honest_gradients = stack(list(honest_gradients))
+
+           _, d = honest_gradients.shape
+           first = honest_gradients[0:1]
+
+           if f == 0:
+               empty = honest_gradients.new_empty((0, d))
+               if out is not None:
+                   return out.copy_(empty)
+               return empty
+
+            result = first.expand(f, d)
+            if out is not None:
+                return out.copy_(result)
+            return result
+
+.. note::
+
+   The ``out`` parameter is part of every attack's signature. It
+   enables the caller to control memory allocation. See the
+   :doc:`/reference/primitives/attacks/index` for the full API
+   reference.
+
+Step 4: add specialized keyword arguments
+------------------------------------------
+
+Add ``**specialized`` to absorb whatever the simulation passes:
 
 .. code-block:: python
 
@@ -62,55 +140,26 @@ Add the ``@classmethod``:
        ) -> Tensor:
            ...
 
-Step 3: validate inputs
--------------------------
+To pass your own custom keyword arguments, use ``attack_kwargs`` on the
+simulation:
 
 .. code-block:: python
 
-           if f < 0:
-               msg = f"Invalid f, got {f!r}, expected 0 <= f"
-               raise ValueError(msg)
-           if len(honest_gradients) == 0:
-               msg = "Expected at least one honest gradient"
-               raise ValueError(msg)
+   sim = KrumSimulation(
+       ...,
+       attack=RepeatAttack,
+       attack_kwargs={"my_param": 42},
+   )
 
-           stacked = stack(list(honest_gradients))
-           if not is_floating_point(stacked):
-               raise TypeError("Expected honest gradients to use a floating-point dtype")
-
-Step 4: compute the Byzantine gradients
------------------------------------------
-
-The attack estimates the honest direction as the mean of the honest
-gradients, then sends the opposite vector with ``scale`` times the
-magnitude. When ``f == 0``, return an empty ``(0, d)`` tensor like the
-built-in attacks do:
+Inside the attack, read them from ``specialized``:
 
 .. code-block:: python
 
-           from torch import mean, randn
-
-           _, d = stacked.shape
-           honest_mean = mean(stacked, dim=0)             # (d,)
-           magnitude = honest_mean.norm() * scale
-
-           if f == 0:
-               empty = stacked.new_empty((0, d))
-               if out is not None:
-                   return out.copy_(empty)
-               return empty
-
-           # Each Byzantine worker sends roughly the same wrong direction
-           # plus a small random perturbation so they aren't identical
-           noise = randn(f, d, device=stacked.device, dtype=stacked.dtype)
-           byzantine = (
-               -honest_mean.unsqueeze(0).expand(f, -1) * scale
-               + noise * magnitude * 0.1
-           )
-
-           if out is not None:
-               return out.copy_(byzantine)
-           return byzantine
+   class RepeatAttack(Attack):
+       @classmethod
+       def generate(cls, honest_gradients, /, out=None, *, f, **specialized):
+           threshold = specialized.get("my_param", 0)
+           ...
 
 Full code
 ---------
@@ -120,18 +169,16 @@ Full code
    from collections.abc import Sequence
    from typing import Any
 
-   from torch import Tensor, is_floating_point, mean, randn, stack
+   from torch import Tensor, stack
 
    from krum.primitives.attacks import Attack
 
 
-   class MomentumMismatch(Attack):
-       """Byzantine attack that pushes against the estimated honest direction.
+   class RepeatAttack(Attack):
+       """Byzantine attack that repeats the first honest gradient f times.
 
-       Computes the mean of honest gradients, then sends Byzantine
-       gradients that point in the opposite direction with a configurable
-       scale factor. Small random noise is added to each Byzantine worker
-       so the gradients aren't identical.
+       Every Byzantine worker sends the same gradient. Simple to
+       implement, useful as a baseline for testing aggregators.
        """
 
        @classmethod
@@ -142,41 +189,24 @@ Full code
            out: Tensor | None = None,
            *,
            f: int,
-           scale: float = 2.0,
            **specialized: Any,
        ) -> Tensor:
-           if f < 0:
-               msg = f"Invalid f, got {f!r}, expected 0 <= f"
-               raise ValueError(msg)
-           if scale < 0:
-               msg = f"Invalid scale, got {scale!r}, expected scale >= 0"
-               raise ValueError(msg)
-           if len(honest_gradients) == 0:
-               msg = "Expected at least one honest gradient"
-               raise ValueError(msg)
+           if not isinstance(honest_gradients, Tensor):
+               honest_gradients = stack(list(honest_gradients))
 
-           stacked = stack(list(honest_gradients))
-           if not is_floating_point(stacked):
-               raise TypeError("Expected honest gradients to use a floating-point dtype")
-
-           _, d = stacked.shape
-           honest_mean = mean(stacked, dim=0)
-           magnitude = honest_mean.norm() * scale
+           _, d = honest_gradients.shape
+           first = honest_gradients[0:1]
 
            if f == 0:
-               empty = stacked.new_empty((0, d))
+               empty = honest_gradients.new_empty((0, d))
                if out is not None:
                    return out.copy_(empty)
                return empty
 
-           noise = randn(f, d, device=stacked.device, dtype=stacked.dtype)
-           byzantine = (
-               -honest_mean.unsqueeze(0).expand(f, -1) * scale + noise * magnitude * 0.1
-           )
-
+           result = first.expand(f, d)
            if out is not None:
-               return out.copy_(byzantine)
-           return byzantine
+               return out.copy_(result)
+           return result
 
 Using your attack
 -----------------
@@ -187,17 +217,17 @@ so you pass the class itself, never an instance:
 .. code-block:: python
 
    import torch
-   from momentum_mismatch import MomentumMismatch
+   from repeat_attack import RepeatAttack
 
    honest = torch.randn(8, 100)
-   byzantine = MomentumMismatch.generate(honest, f=2, scale=2.0)
+   byzantine = RepeatAttack.generate(honest, f=2)
    print(byzantine.shape)  # (2, 100)
+   print(torch.allclose(byzantine[0], byzantine[1]))  # True, all identical
 
 In a simulation
 ---------------
 
-Pass the **class** (not an instance) to a simulation, with any extra
-hyperparameters forwarded via ``attack_kwargs``:
+Pass the **class** (not an instance) to a simulation:
 
 .. code-block:: python
 
@@ -207,21 +237,16 @@ hyperparameters forwarded via ``attack_kwargs``:
 
    sim = KrumSimulation(
        model_cls=Krum2017MLPMnist,
-       train_set=train_set,   # see :doc:`centralised_simulation_walkthrough` for dataset setup
+       train_set=train_set,
        test_set=test_set,
        aggregator=MultiKrum,
-       attack=MomentumMismatch,
-       attack_kwargs={"scale": 2.0},
+       attack=RepeatAttack,
        n=10, f=2, rounds=50, batch_size=64, lr=0.01, seed=42,
    )
    sim.setup()
    for _ in range(50):
        sim.step()
    loss, accuracy = sim.evaluate()
-
-To sweep configurations and collect structured results, wrap the run in an
-experiment function driven by the :class:`~krum.orchestration.orchestrator.Orchestrator` —
-see :doc:`working_with_orchestrator`.
 
 Testing
 -------
@@ -233,28 +258,28 @@ A minimal test suite, run with pytest:
    import pytest
    import torch
 
-   from momentum_mismatch import MomentumMismatch
+   from repeat_attack import RepeatAttack
 
    def test_generates_correct_shape():
        honest = torch.randn(8, 100)
-       byzantine = MomentumMismatch.generate(honest, f=2, scale=2.0)
+       byzantine = RepeatAttack.generate(honest, f=2)
        assert byzantine.shape == (2, 100)
 
    def test_generates_no_byzantine_when_f_is_zero():
        honest = torch.randn(8, 100)
-       byzantine = MomentumMismatch.generate(honest, f=0)
+       byzantine = RepeatAttack.generate(honest, f=0)
        assert byzantine.shape == (0, 100)
 
-   def test_rejects_negative_f():
+   def test_all_byzantine_are_identical():
        honest = torch.randn(8, 100)
-       with pytest.raises(ValueError, match="Invalid f"):
-           MomentumMismatch.generate(honest, f=-1)
+       byzantine = RepeatAttack.generate(honest, f=3)
+       assert torch.allclose(byzantine[0], byzantine[1])
+       assert torch.allclose(byzantine[0], byzantine[2])
 
-   def test_direction_is_opposite():
+   def test_byzantine_matches_first_honest():
        honest = torch.ones(4, 10)
-       byzantine = MomentumMismatch.generate(honest, f=1, scale=1.0)
-       # Byzantine gradient should have negative correlation with honest mean
-       assert torch.dot(byzantine[0], honest.mean(dim=0)) < 0
+       byzantine = RepeatAttack.generate(honest, f=1)
+       assert torch.allclose(byzantine[0], honest[0])
 
 Next steps
 ----------
