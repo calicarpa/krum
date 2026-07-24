@@ -2,9 +2,9 @@ Decentralised simulation walkthrough
 ====================================
 
 **Problem:** Your scenario needs peer-to-peer communication with
-per-worker models instead of a central parameter server. How do you
-set up a simulation where each worker trains its own model and
-exchanges parameters with neighbours?
+per-worker models instead of a central parameter server. Each worker
+trains its own model and the simulation handles model mixing between
+neighbours each round.
 
 Krum ships with one built-in decentralised (peer-to-peer) simulation.
 This tutorial covers the peer-to-peer framework where each worker holds
@@ -30,6 +30,14 @@ Each round runs two phases:
 Minimal example
 ---------------
 
+Data preparation
+^^^^^^^^^^^^^^^^
+
+The ``data`` argument of a decentralised simulation is a **sequence of
+iterables**, one per honest worker. The standard pattern wraps a
+:class:`~torch.utils.data.DataLoader` in an infinite cycle. Without the
+cycle a stream that runs out raises ``StopIteration``:
+
 .. code-block:: python
 
    import random
@@ -38,10 +46,6 @@ Minimal example
    from itertools import cycle
    from torch.utils.data import DataLoader, Subset
    from torchvision import datasets, transforms
-
-   from krum.primitives.models.mlp import Monna2023SmallMnist
-   from krum.primitives.models import Model
-   from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
    seed = 42
@@ -54,6 +58,7 @@ Minimal example
        transforms.Normalize((0.1307,), (0.3081,)),
    ])
    train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+   test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
 
    # One infinite data stream per honest worker
    def cycle_loader(loader):
@@ -68,6 +73,34 @@ Minimal example
        for i in range(n - f)
    ]
 
+Any iterable of ``(inputs, targets)`` tuples also works:
+
+.. code-block:: python
+
+   workers_data = [
+       [(torch.randn(4, 784), torch.randint(0, 10, (4,))) for _ in range(100)]
+       for _ in range(4)
+   ]
+
+The IID ``Subset`` splitting above gives each worker an equal, shuffled
+portion of the dataset. The experiment scripts in
+``experiments/decentralised/`` add a ``split_dirichlet`` variant for
+non-IID data (class-skew controlled by an ``alpha`` parameter).
+
+Model and instantiation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The model is wrapped in a :class:`~krum.primitives.models.Model` container
+that exposes a ``.parameters`` tensor and a ``.module`` (the underlying
+``nn.Module``). Pass the model, data streams, and hyperparameters to
+the simulation constructor:
+
+.. code-block:: python
+
+   from krum.primitives.models.mlp import Monna2023SmallMnist
+   from krum.primitives.models import Model
+   from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
+
    model = Model(Monna2023SmallMnist().to(device))
 
    sim = MonnaSimulation(
@@ -81,16 +114,19 @@ Minimal example
        seed=seed,
    )
 
+Training
+^^^^^^^^
+
+Call ``run(rounds)`` to train. The result is a list of result dicts, one
+per round:
+
+.. code-block:: python
+
    results = sim.run(50)
 
    # results is a list of MonnaStepResult dicts, one per round
    print(f"Ran {len(results)} rounds")
    print(f"Final per-worker losses: {results[-1]['losses']}")
-
-The ``data`` argument is a **sequence of iterables**, one per honest worker.
-Each iterable yields ``(inputs, targets)`` batches. Using :class:`~torch.utils.data.DataLoader`
-wrapped in an infinite iterator (``cycle_loader``) is the standard pattern.
-Without the cycle, a stream that runs out raises ``StopIteration``.
 
 Inspecting the round snapshot
 -----------------------------
@@ -103,7 +139,7 @@ Inspecting the round snapshot
 
    result = sim.step()  # a single round
 
-The returned :class:`~krum.simulations.decentralised.StepResult` dict (or subclass) contains:
+The returned dict contains:
 
 .. list-table::
    :header-rows: 1
@@ -140,16 +176,16 @@ The returned :class:`~krum.simulations.decentralised.StepResult` dict (or subcla
 Byzantine workers
 -----------------
 
-Add Byzantine workers by setting ``f > 0`` and providing an attack. Each round,
-the attack generates ``f`` Byzantine parameter vectors from the honest ones.
-The :attr:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation.byzantine_reach`
+Add Byzantine workers by setting ``f > 0`` and providing an attack. Each
+round the attack generates ``f`` Byzantine parameter vectors from the
+honest ones. The
+:attr:`~krum.simulations.decentralised.monna_icml_2023.MonnaSimulation.byzantine_reach`
 mode controls which workers receive them:
 
-* ``"all"``: every Byzantine model reaches every worker; only the honest
-  responders are sampled. Worst-case adversary.
-* ``"sampled"``: responders drawn uniformly from all other nodes; a worker
-  receives ``0`` to ``f`` Byzantine models. Models gossip where Byzantine
-  reach is random.
+* ``"all"``: every Byzantine model reaches every worker (worst-case
+  adversary).
+* ``"sampled"``: responders are drawn uniformly from all other nodes,
+  so a worker receives ``0`` to ``f`` Byzantine models.
 
 .. code-block:: python
 
@@ -179,8 +215,9 @@ Switching the mixing aggregator
 
 By default ``MonnaSimulation`` uses
 :class:`~krum.primitives.aggregators.nearest_neighbor_average.NearestNeighborAverage`
-with ``num_closest = n - 2f``.  You can override this with any
-:class:`~krum.primitives.aggregators.Aggregator` subclass:
+with ``num_closest = n - 2f``. Override it with any
+:class:`~krum.primitives.aggregators.Aggregator` subclass. Pass extra
+aggregator parameters through ``aggregator_kwargs``:
 
 .. code-block:: python
 
@@ -200,75 +237,13 @@ with ``num_closest = n - 2f``.  You can override this with any
 
    results = sim.run(50)
 
-When specifying a custom aggregator, you must also pass
-``aggregator_kwargs`` if the aggregator requires extra parameters.
-
-Custom data streams
--------------------
-
-Each honest worker gets its own data iterator. The standard pattern wraps a
-:class:`~torch.utils.data.DataLoader` in an infinite cycle:
-
-.. code-block:: python
-
-   from itertools import cycle
-   from torch.utils.data import DataLoader
-
-   def cycle_loader(loader):
-       while True:
-           yield from loader
-
-   workers_data = [
-       cycle_loader(DataLoader(shard, batch_size=64, shuffle=True))
-       for shard in worker_shards
-   ]
-
-You are not limited to :class:`~torch.utils.data.DataLoader`; any iterable of
-``(inputs, targets)`` tuples works:
-
-.. code-block:: python
-
-   workers_data = [
-       [(torch.randn(4, 784), torch.randint(0, 10, (4,))) for _ in range(100)]
-       for _ in range(4)
-   ]
-
-Without a cycle, a stream that runs out raises ``StopIteration``.
-
-Data partitioning
------------------
-
-The minimal example splits the dataset into equal IID shards with
-``Subset``. The experiment scripts shipped with the repository (``experiments/decentralised/``)
-also support a **Dirichlet non-IID** split:
-
-.. code-block:: python
-
-   import random
-   from torch.utils.data import Subset
-
-   def split_iid(dataset, *, num_parts, seed):
-       indices = list(range(len(dataset)))
-       random.Random(seed).shuffle(indices)
-       shards = [indices[i::num_parts] for i in range(num_parts)]
-       return [Subset(dataset, shard) for shard in shards]
-
-``split_iid`` gives each worker an equal, shuffled portion of the dataset.
-The experiment scripts add a ``split_dirichlet`` variant that controls
-class-skew via an ``alpha`` parameter. A lower ``alpha`` produces more
-skewed distributions (less IID), useful for testing robustness under
-data heterogeneity.
-
 Evaluating worker models
--------------------------
+------------------------
 
-In the centralised simulation, ``evaluate()`` reports loss and accuracy
-for the single shared model. In the decentralised setting, each worker
-has its own parameters. The standard approach evaluates every honest
-worker on the same test set and averages the results:
-
-Load each honest worker's parameters into the evaluation model, then run
-the full test set:
+In the decentralised setting each worker has its own parameters.
+Evaluate every honest worker on the same test set and average the
+results. The function below loads each worker's parameter vector into
+the shared model, runs the full test set, and averages across workers:
 
 .. code-block:: python
 
@@ -302,53 +277,32 @@ the full test set:
    )
    print(f"Average test loss: {avg_loss:.4f}, accuracy: {avg_acc:.2%}")
 
-The function iterates over all honest worker parameter vectors
-(``sim.parameters``, shape ``(n-f, d)``), copies each one into the
-shared ``model`` via ``copy_parameters_to_model``, and evaluates on
-the test set.
+Going further
+-------------
 
-Continuing training
--------------------
-
-State persists on the simulation instance, so you can call ``run()``
-multiple times:
+**Continuing training.** State persists on the simulation, so you can
+call ``run()`` multiple times:
 
 .. code-block:: python
-
-   sim = MonnaSimulation(
-       model=model, data=workers_data, loss_fn=nn.CrossEntropyLoss(),
-       n=4, f=0, learning_rate=0.1, seed=42,
-   )
 
    first_50 = sim.run(50)
-   next_50  = sim.run(50)   # continues from round 51
+   next_50  = sim.run(50)
    total_100 = first_50 + next_50
 
-   print(f"Step index after 100 rounds: {sim.step_index}")
-
-Accessing per-worker state
---------------------------
-
-The simulation's ``parameters`` attribute is a ``(n - f, d)`` tensor, one row
-per honest worker:
+**Per-worker state.** The ``parameters`` attribute exposes all honest
+worker parameter vectors:
 
 .. code-block:: python
 
-   # All worker parameters after the last round
-   all_params = sim.parameters  # shape: (n-f, d)
+   all_params = sim.parameters          # shape: (n-f, d)
+   worker_0   = sim.parameters[0]
+   momentum_0 = sim.momentum[0]         # MonnaSimulation only
 
-   # First worker's parameter vector
-   worker_0 = sim.parameters[0]
-
-   # Momentum buffer (MonnaSimulation only)
-   worker_0_momentum = sim.momentum[0]
-
-   # Copy a specific worker's parameters back into the Model to inspect
+   # Copy a worker's parameters back into the Model to inspect
    sim.copy_parameters_to_model(sim.parameters[2])
-   # Now use sim.model.module for evaluation, logging, etc.
 
 Next steps
----------
+----------
 
 * :doc:`centralised_simulation_walkthrough`: try the simpler
   parameter-server simulation first if you haven't.

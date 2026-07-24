@@ -1,25 +1,28 @@
 Centralised simulation walkthrough
 ==================================
 
-**Problem:** You want to reproduce a published Byzantine resilience
-experiment (e.g., Krum NIPS 2017) but don't know how to configure the
-workers, aggregator, attack, or training loop.
+**Problem:** You need to run a parameter-server simulation with
+multiple workers, a gradient aggregator, and Byzantine attacks, but
+you are not sure how to configure the training loop.
 
-Krum ships with ready-to-use centralised (parameter-server) simulations
-that reproduce published protocols. This tutorial shows how to configure
-and run them.
-
-All centralised simulations share the lifecycle:
-**instantiate → setup → step → evaluate**.
+Krum ships with ready-to-use centralised simulations that handle
+the worker loop, gradient computation, and evaluation for you.
 
 .. seealso::
 
    :doc:`/reference/simulations/centralised/index`
-      Full reference for :class:`~krum.simulations.centralised.KrumSimulation`
+      Reference for :class:`~krum.simulations.centralised.KrumSimulation`
       and :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`.
 
 Minimal example
 ---------------
+
+Instantiation
+^^^^^^^^^^^^^
+
+Aggregator and attack are passed as **classes**, not instances.
+The simulation calls their ``__call__`` each round. Extra parameters go
+through ``aggregator_kwargs`` and ``attack_kwargs``:
 
 .. code-block:: python
 
@@ -50,7 +53,30 @@ Minimal example
        lr=0.01,
        seed=42,
    )
+
+Setup
+^^^^^
+
+``setup()`` initialises the model parameters, splits the training set
+into IID shards (one per worker), and seeds all RNG. The result is
+deterministic for a given ``seed``:
+
+.. code-block:: python
+
    sim.setup()
+
+Step
+^^^^
+
+Each call to ``step()`` runs one synchronous round:
+
+* **Broadcast** the model to all :math:`n` workers.
+* **Honest workers** compute gradients on their data shard.
+* **Byzantine workers** generate attack gradients.
+* **Aggregator** combines all :math:`n` gradients into one.
+* **SGD update** is applied.
+
+.. code-block:: python
 
    for round_idx in range(50):
        sim.step()
@@ -58,35 +84,22 @@ Minimal example
            loss, accuracy = sim.evaluate()
            print(f"round {round_idx}: loss={loss:.4f}  accuracy={accuracy:.4f}")
 
-The lifecycle
--------------
+Evaluate
+^^^^^^^^
 
-#. **Instantiation**: pass the model class, datasets, aggregator, attack,
-   and hyperparameters. Aggregator and attack are **classes**, not
-   instances. The simulation calls their classmethods each round. Use
-   ``aggregator_kwargs`` and ``attack_kwargs`` for extra parameters.
-
-#. ``setup()``:
-   initialises the model, splits the training set into IID shards (one per
-   worker), and seeds all RNG. Deterministic for a given ``seed``.
-
-#. ``step()``:
-   runs one synchronous round:
-
-   * Broadcast the model to all workers.
-   * Honest workers compute gradients on their shard.
-   * Byzantine workers generate attack gradients.
-   * The aggregator combines all :math:`n` gradients.
-   * SGD update is applied.
-
-#. ``evaluate()``:
-   returns the metrics specific to the protocol (loss, accuracy, etc.).
+``evaluate()`` returns the metrics specific to the protocol
+(``(test_loss, test_accuracy)`` for :class:`~krum.simulations.centralised.KrumSimulation`,
+``(test_loss, test_error, test_accuracy)`` for
+:class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`).
+You can also read the training loss with ``evaluate_train()``.
 
 Using the ICML 2018 simulation
 ------------------------------
 
-Switch to the other built-in simulation by changing the import and adding
-the parameters it requires:
+Switching to the other built-in simulation changes only the import
+and one extra parameter. The ICML 2018 variant adds Xavier weight
+initialisation, L2 regularisation, and the Robbins-Monro learning-rate
+schedule:
 
 .. code-block:: python
 
@@ -95,21 +108,10 @@ the parameters it requires:
    )
 
    sim = HiddenVulnerabilitySimulation(
-       model_cls=Krum2017MLPMnist,
-       train_set=train_set,
-       test_set=test_set,
-       aggregator=MultiKrum,
-       attack=SignFlipAttack,
-       attack_kwargs={"scale": 1.5},
-       n=10,
-       f=2,
-       batch_size=64,
-       lr=0.01,
+       # same arguments as KrumSimulation ...
        r_eta=10.0,  # required by Robbins-Monro schedule
-       seed=42,
    )
    sim.setup()
-
    for round_idx in range(50):
        sim.step()
        if round_idx % 10 == 0:
@@ -119,19 +121,28 @@ the parameters it requires:
    train_loss = sim.evaluate_train()
    print(f"final training loss: {train_loss:.4f}")
 
-The ICML 2018 variant returns three values: ``(test_loss, test_error,
-test_accuracy)``, applies Xavier weight initialisation and L2 regularisation,
-and uses the Robbins-Monro learning-rate schedule.
-
 Comparing two configurations
 ----------------------------
 
-Create a second simulation with the non-robust ``Average`` aggregator to see
-the effect of Byzantine workers:
+Create a fresh robust simulation alongside a non-robust ``Average``
+baseline to see the effect of Byzantine workers:
 
 .. code-block:: python
 
    from krum.primitives.aggregators.average import Average
+
+   robust = KrumSimulation(
+       model_cls=Krum2017MLPMnist,
+       train_set=train_set,
+       test_set=test_set,
+       aggregator=MultiKrum,
+       attack=SignFlipAttack,
+       attack_kwargs={"scale": 1.5},
+       n=10, f=2, batch_size=64, lr=0.01, seed=42,
+   )
+   robust.setup()
+   for _ in range(50):
+       robust.step()
 
    baseline = KrumSimulation(
        model_cls=Krum2017MLPMnist,
@@ -146,7 +157,7 @@ the effect of Byzantine workers:
    for _ in range(50):
        baseline.step()
 
-   _, robust_acc = sim.evaluate()
+   _, robust_acc = robust.evaluate()
    _, baseline_acc = baseline.evaluate()
    print(f"MultiKrum: {robust_acc:.2%}")
    print(f"Average:   {baseline_acc:.2%}")
