@@ -58,13 +58,22 @@ Minimal example
 
 .. code-block:: python
 
+   import random
    import torch
    import torch.nn as nn
+   from itertools import cycle
+   from torch.utils.data import DataLoader, Subset
    from torchvision import datasets, transforms
 
    from krum.primitives.models.mlp import Monna2023SmallMnist
    from krum.primitives.models import Model
    from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
+
+   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+   seed = 42
+   torch.manual_seed(seed)
+   random.seed(seed)
+   n, f = 6, 0
 
    transform = transforms.Compose([
        transforms.ToTensor(),
@@ -72,17 +81,20 @@ Minimal example
    ])
    train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
 
-   # One data stream per honest worker
-   n, f = 6, 0
+   # One infinite data stream per honest worker
+   def cycle_loader(loader):
+       while True:
+           yield from loader
+
    workers_data = [
-       torch.utils.data.DataLoader(
-           torch.utils.data.Subset(train_set, range(i * 5000, (i + 1) * 5000)),
+       cycle_loader(DataLoader(
+           Subset(train_set, range(i * 5000, (i + 1) * 5000)),
            batch_size=64, shuffle=True,
-       )
+       ))
        for i in range(n - f)
    ]
 
-   model = Model(Monna2023SmallMnist())
+   model = Model(Monna2023SmallMnist().to(device))
 
    sim = MonnaSimulation(
        model=model,
@@ -92,7 +104,7 @@ Minimal example
        f=f,
        learning_rate=0.1,
        beta=0.99,
-       seed=42,
+       seed=seed,
    )
 
    results = sim.run(50)
@@ -103,7 +115,8 @@ Minimal example
 
 The ``data`` argument is a **sequence of iterables**, one per honest worker.
 Each iterable yields ``(inputs, targets)`` batches. Using :class:`~torch.utils.data.DataLoader`
-objects is the most common approach.
+wrapped in an infinite iterator (``cycle_loader``) is the standard pattern.
+Without the cycle, a stream that runs out raises ``StopIteration``.
 
 Inspecting the round snapshot
 -----------------------------
@@ -129,14 +142,14 @@ Inspecting the round snapshot
 
 The keys are:
 
-* ``step`` — round counter (1-indexed)
-* ``parameters`` — the committed parameters after mixing, shape ``(n - f, d)``
-* ``momentum`` — the momentum buffer (``MonnaStepResult`` only)
-* ``honest_gradients`` — computed gradients before local update
-* ``local_parameters`` — parameters after local update, before mixing
-* ``byzantine_parameters`` — the Byzantine models injected this round
-* ``mixed_parameters`` — same as ``parameters`` (already committed)
-* ``losses`` — per-worker scalar losses
+* ``step``: round counter (1-indexed)
+* ``parameters``: the committed parameters after mixing, shape ``(n - f, d)``
+* ``momentum``: the momentum buffer (``MonnaStepResult`` only)
+* ``honest_gradients``: computed gradients before local update
+* ``local_parameters``: parameters after local update, before mixing
+* ``byzantine_parameters``: the Byzantine models injected this round
+* ``mixed_parameters``: same as ``parameters`` (already committed)
+* ``losses``: per-worker scalar losses
 
 Byzantine workers
 -----------------
@@ -207,33 +220,95 @@ When specifying a custom aggregator, you must also pass
 Custom data streams
 -------------------
 
-Each honest worker gets its own data iterator. You are not limited to
-:class:`~torch.utils.data.DataLoader` — any iterable of ``(inputs, targets)``
-tuples works:
+Each honest worker gets its own data iterator. The standard pattern wraps a
+:class:`~torch.utils.data.DataLoader` in an infinite cycle:
 
 .. code-block:: python
 
-   import torch
+   from itertools import cycle
+   from torch.utils.data import DataLoader
+
+   def cycle_loader(loader):
+       while True:
+           yield from loader
+
+   workers_data = [
+       cycle_loader(DataLoader(shard, batch_size=64, shuffle=True))
+       for shard in worker_shards
+   ]
+
+You are not limited to :class:`~torch.utils.data.DataLoader`; any iterable of
+``(inputs, targets)`` tuples works:
+
+.. code-block:: python
 
    workers_data = [
        [(torch.randn(4, 784), torch.randint(0, 10, (4,))) for _ in range(100)]
-       for _ in range(4)  # 4 honest workers
+       for _ in range(4)
    ]
 
-   sim = MonnaSimulation(
-       model=Model(Monna2023SmallMnist()),
-       data=workers_data,
-       loss_fn=nn.CrossEntropyLoss(),
-       n=4,
-       f=0,
-       learning_rate=0.1,
+Without a cycle, a stream that runs out raises ``StopIteration``.
+
+Data partitioning
+-----------------
+
+The minimal example splits the dataset into equal IID shards with
+``Subset``. The experiment scripts also support a **Dirichlet non-IID**
+split, where each worker receives a different class distribution:
+
+.. code-block:: python
+
+   from experiments.decentralised.datasets import split_dataset
+
+   worker_shards = split_dataset(
+       dataset=train_set,
+       partition="dirichlet",
+       num_parts=n - f,
+       dirichlet_alpha=1.0,
+       seed=seed,
    )
 
-   results = sim.run(50)
+A lower ``alpha`` produces more skewed distributions (less IID). This is
+useful for testing robustness under data heterogeneity.
 
-If a stream runs out of batches, the simulation raises ``StopIteration``.
-Use ``itertools.cycle`` or a :class:`~torch.utils.data.DataLoader` with
-``drop_last=False`` to avoid this.
+Evaluating worker models
+-------------------------
+
+In the centralised simulation, ``evaluate()`` reports loss and accuracy
+for the single shared model. In the decentralised setting, each worker
+has its own parameters. The standard approach evaluates every honest
+worker on the same test set and averages the results:
+
+.. code-block:: python
+
+   @torch.no_grad()
+   def evaluate_workers(model, parameters, test_loader, loss_fn):
+       losses, accuracies = [], []
+       for worker_params in parameters:
+           model.parameters.copy_(worker_params)
+           model.module.eval()
+           total_loss = total_correct = total = 0
+           for inputs, targets in test_loader:
+               inputs, targets = inputs.to(device), targets.to(device)
+               logits = model.module(inputs)
+               loss = loss_fn(logits, targets)
+               total_loss += loss.item() * targets.numel()
+               total_correct += (logits.argmax(1) == targets).sum().item()
+               total += targets.numel()
+           losses.append(total_loss / total)
+           accuracies.append(total_correct / total)
+       return sum(losses) / len(losses), sum(accuracies) / len(accuracies)
+
+   test_loader = DataLoader(test_set, batch_size=256, shuffle=False)
+   avg_loss, avg_acc = evaluate_workers(
+       model, sim.parameters, test_loader, nn.CrossEntropyLoss()
+   )
+   print(f"Average test loss: {avg_loss:.4f}, accuracy: {avg_acc:.2%}")
+
+The function iterates over all honest worker parameter vectors
+(``sim.parameters``, shape ``(n-f, d)``), copies each one into the
+shared ``model`` via ``copy_parameters_to_model``, and evaluates on
+the test set.
 
 Continuing training
 -------------------
