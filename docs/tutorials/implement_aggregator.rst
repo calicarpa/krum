@@ -145,8 +145,19 @@ inspect them inside your algorithm:
            print(f"Running with f={f} Byzantine workers")
            ...
 
-To pass your own custom keyword arguments, use ``aggregator_kwargs`` on
-the simulation:
+The simulation passes ``aggregator_kwargs`` directly into
+``**specialized``, so your custom kwargs are accessible via
+``specialized.get("my_param")``:
+
+.. code-block:: python
+
+   class FirstGrad(Aggregator):
+       @classmethod
+       def aggregate(cls, gradients, /, out=None, **specialized):
+           my_param = specialized.get("my_param", "default")
+           ...
+
+To pass kwargs to a simulation:
 
 .. code-block:: python
 
@@ -236,7 +247,7 @@ Pass the **class** (not an instance) to a simulation:
 Testing
 -------
 
-A minimal test suite, run with pytest:
+A minimal test suite. Run with ``pytest first_grad.py``:
 
 .. code-block:: python
 
