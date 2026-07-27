@@ -23,6 +23,7 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
    from krum.primitives.aggregators.bulyan import Bulyan
    from krum.primitives.aggregators.aksel import Aksel
    from krum.primitives.aggregators.geomed import GeoMed
+   from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 
    # Simple average (baseline, no resilience)
    result = Average.aggregate(gradients)
@@ -47,6 +48,9 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
 
    # Aksel (optimal breakdown point, requires n > 2f)
    result = Aksel.aggregate(gradients, f=2)
+
+   # Nearest-neighbor average (model-mixing rule, requires a pivot)
+   result = NearestNeighborAverage.aggregate(gradients, pivot=gradients[0], num_closest=3)
 
 .. seealso::
 
@@ -97,8 +101,11 @@ Resilience guarantees
      - ``f < n / 2`` (exact, exponential cost)
      - ``n >= 2f + 1`` and ``f >= 1``
    * - :class:`~krum.primitives.aggregators.bulyan.Bulyan`
-     - ``4f + 2 < n``
-     - ``n >= 4f + 3``
+      - ``4f + 2 < n``
+      - ``n >= 4f + 3``
+   * - :class:`~krum.primitives.aggregators.nearest_neighbor_average.NearestNeighborAverage`
+      - ``f < (n - num_closest) / 2``
+      - ``n > num_closest``
 
 Two rules deserve a caveat:
 
@@ -106,9 +113,10 @@ Two rules deserve a caveat:
   :math:`\binom{n}{n-f}` subsets to find the most clumped one. It is exact but
   only feasible for small worker counts.
 * :class:`~krum.primitives.aggregators.nearest_neighbor_average.NearestNeighborAverage`
-  (not in the table) averages the ``num_closest`` vectors nearest to a
-  per-worker ``pivot``. It is the default mixing rule of the decentralised
-  MoNNA simulation, not a parameter-server aggregator.
+  is a **model-mixing** rule, not a gradient aggregator. It averages the
+  ``num_closest`` vectors nearest to a per-worker ``pivot``. It is the default
+  mixing rule of the decentralised MoNNA simulation and also works
+  in the parameter-server setting when passed as ``aggregator``.
 
 Attacks
 -------
