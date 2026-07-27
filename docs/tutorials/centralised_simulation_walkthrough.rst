@@ -21,8 +21,9 @@ Instantiation
 ^^^^^^^^^^^^^
 
 Aggregator and attack are passed as **classes**, not instances.
-The simulation calls their ``__call__`` each round. Extra parameters go
-through ``aggregator_kwargs`` and ``attack_kwargs``:
+The simulation calls ``aggregator.aggregate()`` and ``attack.generate()``
+each round. Extra parameters go through ``aggregator_kwargs`` and
+``attack_kwargs``:
 
 .. code-block:: python
 
@@ -41,18 +42,24 @@ through ``aggregator_kwargs`` and ``attack_kwargs``:
    test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
 
    sim = KrumSimulation(
-       model_cls=Krum2017MLPMnist,
-       train_set=train_set,
-       test_set=test_set,
-       aggregator=MultiKrum,
-       attack=SignFlipAttack,
-       attack_kwargs={"scale": 1.5},
-       n=10,
-       f=2,
-       batch_size=64,
-       lr=0.01,
-       seed=42,
-   )
+        model_cls=Krum2017MLPMnist,
+        train_set=train_set,
+        test_set=test_set,
+        aggregator=MultiKrum,
+        attack=SignFlipAttack,
+        attack_kwargs={"scale": 1.5},
+        n=10,
+        f=2,
+        rounds=50,
+        batch_size=64,
+        lr=0.01,
+        seed=42,
+    )
+
+Note that :class:`~krum.simulations.centralised.CentralisedSimulation` does
+**not** provide a ``run(rounds)`` method. The training loop is always
+manual so you can evaluate when you want (compare with the
+:doc:`decentralised_simulation_walkthrough`, which does have ``run``).
 
 Setup
 ^^^^^
@@ -108,9 +115,10 @@ schedule:
    )
 
    sim = HiddenVulnerabilitySimulation(
-       # same arguments as KrumSimulation ...
-       r_eta=10.0,  # required by Robbins-Monro schedule
-   )
+        # same arguments as KrumSimulation ...
+        r_eta=10.0,  # required by Robbins-Monro schedule
+        rounds=50,
+    )
    sim.setup()
    for round_idx in range(50):
        sim.step()
@@ -120,6 +128,16 @@ schedule:
 
    train_loss = sim.evaluate_train()
    print(f"final training loss: {train_loss:.4f}")
+
+``HiddenVulnerabilitySimulation`` also accepts ``stop_attack_at``. This is an
+optional round index after which the Byzantine attack is disabled (used
+by the ICML 2018 paper, Experiment 1). Pass ``stop_attack_at=50`` to
+stop the attack after round 50 while continuing training.
+
+Note that unlike the decentralised simulation, the centralised one
+stores the round count at construction time (``rounds=50`` above) but
+you drive the loop yourself. This lets you evaluate, log, or even change
+hyperparameters between rounds.
 
 Next steps
 ----------

@@ -104,15 +104,19 @@ the simulation constructor:
    model = Model(Monna2023SmallMnist().to(device))
 
    sim = MonnaSimulation(
-       model=model,
-       data=workers_data,
-       loss_fn=nn.CrossEntropyLoss(),
-       n=n,
-       f=f,
-       learning_rate=0.1,
-       beta=0.99,
-       seed=seed,
-   )
+        model=model,
+        data=workers_data,
+        loss_fn=nn.CrossEntropyLoss(),
+        n=n,
+        f=f,
+        learning_rate=0.1,
+        beta=0.99,
+        seed=seed,
+    )
+
+``MonnaSimulation`` also accepts ``weight_decay`` (L2 regularization on
+the honest gradients, ``0.0`` by default). Pass ``weight_decay=1e-4``
+to match the standard SGD-with-momentum recipe.
 
 Training
 ^^^^^^^^
