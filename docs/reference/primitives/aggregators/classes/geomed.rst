@@ -1,7 +1,7 @@
 GeoMed
 ======
 
-.. automodule:: aggregators.geomed
+.. automodule:: krum.primitives.aggregators.geomed
    :members:
    :undoc-members:
    :show-inheritance:

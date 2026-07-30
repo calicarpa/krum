@@ -1,7 +1,7 @@
 MultiKrum
 =========
 
-.. automodule:: aggregators.multikrum
+.. automodule:: krum.primitives.aggregators.multikrum
    :members:
    :undoc-members:
    :show-inheritance:

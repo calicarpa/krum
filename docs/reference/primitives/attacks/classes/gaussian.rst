@@ -1,7 +1,7 @@
 Gaussian
 ========
 
-.. automodule:: attacks.gaussian
+.. automodule:: krum.primitives.attacks.gaussian
    :members:
    :undoc-members:
    :show-inheritance:

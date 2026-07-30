@@ -1,7 +1,7 @@
 Average
 =======
 
-.. automodule:: aggregators.average
+.. automodule:: krum.primitives.aggregators.average
    :members:
    :undoc-members:
    :show-inheritance:

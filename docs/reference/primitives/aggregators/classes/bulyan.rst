@@ -1,7 +1,7 @@
 Bulyan
 ======
 
-.. automodule:: aggregators.bulyan
+.. automodule:: krum.primitives.aggregators.bulyan
    :members:
    :undoc-members:
    :show-inheritance:

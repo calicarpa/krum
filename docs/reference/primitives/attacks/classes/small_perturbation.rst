@@ -1,7 +1,7 @@
 Small Perturbation
 ==================
 
-.. automodule:: attacks.small_perturbation
+.. automodule:: krum.primitives.attacks.small_perturbation
    :members:
    :undoc-members:
    :show-inheritance:

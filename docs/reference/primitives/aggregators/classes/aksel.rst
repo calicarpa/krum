@@ -1,7 +1,7 @@
 AKSEL
 =====
 
-.. automodule:: aggregators.aksel
+.. automodule:: krum.primitives.aggregators.aksel
    :members:
    :undoc-members:
    :show-inheritance:
