@@ -101,11 +101,11 @@ Resilience guarantees
      - ``f < n / 2`` (exact, exponential cost)
      - ``n >= 2f + 1`` and ``f >= 1``
    * - :class:`~krum.primitives.aggregators.bulyan.Bulyan`
-      - ``4f + 2 < n``
-      - ``n >= 4f + 3``
+     - ``4f + 2 < n``
+     - ``n >= 4f + 3``
    * - :class:`~krum.primitives.aggregators.nearest_neighbor_average.NearestNeighborAverage`
-      - ``f < (n - num_closest) / 2``
-      - ``n > num_closest``
+     - ``f < (n - num_closest) / 2``
+     - ``n > num_closest``
 
 Two rules deserve a caveat:
 
