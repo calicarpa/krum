@@ -282,7 +282,7 @@ A minimal test suite. Run with ``pytest repeat_attack.py``:
        assert torch.allclose(byzantine[0], honest[0])
 
 Next steps
----------
+----------
 
 * :doc:`implement_aggregator`: write an aggregation rule that defends
   against your attack.

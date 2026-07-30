@@ -359,7 +359,7 @@ attack docstrings for configuration-specific constraints
 SmallPerturbation).
 
 Next steps
----------
+----------
 
 * :doc:`implement_aggregator`: write your own aggregation rule and
   benchmark it with the patterns from this tutorial.

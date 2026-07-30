@@ -274,7 +274,7 @@ A minimal test suite. Run with ``pytest first_grad.py``:
        assert torch.allclose(result, grads[0])
 
 Next steps
----------
+----------
 
 * :doc:`implement_attack`: write a Byzantine attack to test your
   aggregator against.

@@ -158,7 +158,7 @@ architectures matching their respective papers. See
 architectural details.
 
 Next steps
----------
+----------
 
 * :doc:`using_aggregators_attacks`: see how ``Model`` gradient views
   connect to aggregation rules.

@@ -189,7 +189,7 @@ MultiKrum's because Average includes the flipped values directly,
 while MultiKrum discards the outlier gradients before averaging.
 
 Next steps
----------
+----------
 
 * :doc:`working_with_models`: how aggregators access flat gradient tensors
   and the standard models bundled with Krum.
