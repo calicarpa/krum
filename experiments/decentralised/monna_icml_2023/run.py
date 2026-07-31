@@ -137,7 +137,6 @@ def monna_experiment(
         partition=partition,
         dirichlet_alpha=dirichlet_alpha,
         seed=seed,
-        num_workers=num_workers,
     )
     test_loader = DataLoader(test_set, batch_size=256, shuffle=False, num_workers=num_workers)
 

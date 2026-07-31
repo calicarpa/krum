@@ -1,16 +1,13 @@
-"""Datasets and per-worker batch streams for the MoNNA decentralised experiment."""
+"""Datasets and per-worker dataloaders for the MoNNA decentralised experiment."""
 
-import random
-from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 
-import numpy as np
-import torch
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import datasets, transforms
 
-Batch = tuple[torch.Tensor, torch.Tensor]
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
+from krum.primitives.data_partitioners.iid import IidPartitioner
 
 
 @lru_cache(maxsize=8)
@@ -63,61 +60,6 @@ def limit_dataset(dataset: Dataset, size: int) -> Dataset:
     return Subset(dataset, list(range(size)))
 
 
-def split_iid(dataset: Dataset, *, num_parts: int, seed: int) -> list[Subset]:
-    """Create deterministic IID worker shards."""
-    indices = list(range(len(dataset)))
-    random.Random(seed).shuffle(indices)
-    shards = [indices[i::num_parts] for i in range(num_parts)]
-    return [Subset(dataset, shard) for shard in shards]
-
-
-def dataset_labels(dataset: Dataset) -> list[int]:
-    """Read integer labels from a dataset or subset."""
-    labels = []
-    for index in range(len(dataset)):
-        _, target = dataset[index]
-        labels.append(int(target))
-    return labels
-
-
-def split_dirichlet(dataset: Dataset, *, num_parts: int, alpha: float, seed: int) -> list[Subset]:
-    """Create deterministic non-IID worker shards using class-wise Dirichlet sampling."""
-    if alpha <= 0:
-        raise ValueError(f"Expected positive Dirichlet alpha, got {alpha!r}")
-
-    rng = np.random.default_rng(seed)
-    labels = dataset_labels(dataset)
-    classes = sorted(set(labels))
-    shards: list[list[int]] = [[] for _ in range(num_parts)]
-
-    for label in classes:
-        class_indices = [index for index, target in enumerate(labels) if target == label]
-        rng.shuffle(class_indices)
-        proportions = rng.dirichlet(np.full(num_parts, alpha))
-        cut_points = (np.cumsum(proportions)[:-1] * len(class_indices)).astype(int)
-        for worker_id, split in enumerate(np.split(np.array(class_indices), cut_points)):
-            shards[worker_id].extend(int(index) for index in split.tolist())
-
-    for shard in shards:
-        rng.shuffle(shard)
-    return [Subset(dataset, shard) for shard in shards]
-
-
-def split_dataset(
-    dataset: Dataset, *, partition: str, num_parts: int, dirichlet_alpha: float, seed: int
-) -> list[Subset]:
-    """Split the training dataset across honest workers."""
-    if partition == "iid":
-        return split_iid(dataset, num_parts=num_parts, seed=seed)
-    return split_dirichlet(dataset, num_parts=num_parts, alpha=dirichlet_alpha, seed=seed)
-
-
-def cycle_loader(loader: DataLoader) -> Iterator[Batch]:
-    """Yield batches forever from a finite DataLoader."""
-    while True:
-        yield from loader
-
-
 def make_worker_streams(
     dataset: Dataset,
     *,
@@ -126,27 +68,18 @@ def make_worker_streams(
     partition: str,
     dirichlet_alpha: float,
     seed: int,
-    num_workers: int,
-) -> list[Iterator[Batch]]:
-    """Create one infinite batch stream per honest worker."""
-    shards = split_dataset(
-        dataset, partition=partition, num_parts=num_honest, dirichlet_alpha=dirichlet_alpha, seed=seed
+) -> list[DataLoader]:
+    """Split the training dataset into one ``DataLoader`` per honest worker.
+
+    ``"iid"`` uses :class:`~krum.primitives.data_partitioners.iid.IidPartitioner`;
+    anything else uses
+    :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
+    with the given ``dirichlet_alpha``. The returned loaders are handed
+    directly to :class:`~krum.simulations.decentralised.MonnaSimulation`,
+    which re-iterates each one automatically once its epoch is exhausted.
+    """
+    if partition == "iid":
+        return IidPartitioner.partition(dataset, n=num_honest, batch_size=batch_size, seed=seed)
+    return DirichletPartitioner.partition(
+        dataset, n=num_honest, alpha=dirichlet_alpha, batch_size=batch_size, seed=seed
     )
-    streams = []
-    for worker_id, shard in enumerate(shards):
-        generator = torch.Generator().manual_seed(seed + worker_id)
-        if len(shard) < batch_size:
-            raise ValueError(
-                f"Worker {worker_id} shard has {len(shard)} samples, fewer than batch size {batch_size}. "
-                "Increase TRAIN_SIZE, decrease BATCH_SIZE, or set PARTITION = 'iid'."
-            )
-        loader = DataLoader(
-            shard,
-            batch_size=batch_size,
-            shuffle=True,
-            drop_last=True,
-            num_workers=num_workers,
-            generator=generator,
-        )
-        streams.append(cycle_loader(loader))
-    return streams
