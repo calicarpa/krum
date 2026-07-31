@@ -22,6 +22,7 @@ from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighbor
 from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.primitives.models.mlp import Monna2023SmallMnist
 
+from ..datasets import Partition
 from .run import monna_experiment
 
 # --- Configurable parameters ---
@@ -36,7 +37,7 @@ TRAIN_SIZE = 4096
 TEST_SIZE = 1024
 LEARNING_RATE = 0.5
 BETA = 0.99
-PARTITION = "dirichlet"  # "iid" or "dirichlet"
+PARTITION = Partition.DIRICHLET
 DIRICHLET_ALPHA = 1.0
 SEED = 0
 NUM_WORKERS = 0

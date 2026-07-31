@@ -1,5 +1,6 @@
 """Datasets and per-worker dataloaders for the MoNNA decentralised experiment."""
 
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 
@@ -8,6 +9,13 @@ from torchvision import datasets, transforms
 
 from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
 from krum.primitives.data_partitioners.iid import IidPartitioner
+
+
+class Partition(str, Enum):
+    """Dataset partitioning strategy for the MoNNA decentralised experiment."""
+
+    IID = "iid"
+    DIRICHLET = "dirichlet"
 
 
 @lru_cache(maxsize=8)
@@ -65,21 +73,31 @@ def make_worker_streams(
     *,
     num_honest: int,
     batch_size: int,
-    partition: str,
+    partition: Partition,
     dirichlet_alpha: float,
     seed: int,
 ) -> list[DataLoader]:
     """Split the training dataset into one ``DataLoader`` per honest worker.
 
-    ``"iid"`` uses :class:`~krum.primitives.data_partitioners.iid.IidPartitioner`;
-    anything else uses
+    ``Partition.IID`` uses
+    :class:`~krum.primitives.data_partitioners.iid.IidPartitioner`;
+    ``Partition.DIRICHLET`` uses
     :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
     with the given ``dirichlet_alpha``. The returned loaders are handed
     directly to :class:`~krum.simulations.decentralised.MonnaSimulation`,
     which re-iterates each one automatically once its epoch is exhausted.
+
+    Raises:
+        TypeError: If ``partition`` is not a :class:`Partition`.
+        ValueError: If ``partition`` is a :class:`Partition` member with no
+            partitioner wired up here yet.
     """
-    if partition == "iid":
+    if not isinstance(partition, Partition):
+        raise TypeError(f"Invalid partition, got {partition!r}, expected a Partition")
+    if partition == Partition.IID:
         return IidPartitioner.partition(dataset, n=num_honest, batch_size=batch_size, seed=seed)
-    return DirichletPartitioner.partition(
-        dataset, n=num_honest, alpha=dirichlet_alpha, batch_size=batch_size, seed=seed
-    )
+    if partition == Partition.DIRICHLET:
+        return DirichletPartitioner.partition(
+            dataset, n=num_honest, alpha=dirichlet_alpha, batch_size=batch_size, seed=seed
+        )
+    raise ValueError(f"No partitioner wired up for {partition!r}")

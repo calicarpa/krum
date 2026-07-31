@@ -13,7 +13,7 @@ from krum.primitives.attacks import Attack
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
-from ..datasets import make_datasets, make_worker_streams
+from ..datasets import Partition, make_datasets, make_worker_streams
 
 
 def detect_device() -> torch.device:
@@ -89,7 +89,7 @@ def monna_experiment(
     batch_size: int,
     train_size: int,
     test_size: int,
-    partition: str,
+    partition: Partition,
     dirichlet_alpha: float,
     num_workers: int,
     seed: int,
