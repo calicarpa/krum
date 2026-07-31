@@ -4,11 +4,17 @@ import unittest
 
 import torch
 from torch import nn
+from torch.utils.data import DataLoader, TensorDataset
 
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach, MonnaSimulation
+
+
+def _loader(x: torch.Tensor, y: torch.Tensor) -> DataLoader:
+    """Build a single-batch DataLoader replaying ``(x, y)`` every epoch."""
+    return DataLoader(TensorDataset(x, y), batch_size=x.shape[0])
 
 
 class MonnaProtocolTest(unittest.TestCase):
@@ -28,7 +34,7 @@ class MonnaProtocolTest(unittest.TestCase):
     ) -> MonnaSimulation:
         """Create a tiny simulation for method-level tests."""
         module = nn.Linear(1, 1, bias=False)
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(n - f)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(n - f)]
         return MonnaSimulation(
             model=Model(module),
             data=data,
@@ -48,11 +54,7 @@ class MonnaProtocolTest(unittest.TestCase):
         module = nn.Linear(1, 1, bias=False)
         with torch.no_grad():
             module.weight.fill_(2.0)
-        data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-        ]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
 
         simulation = MonnaSimulation(
             model=Model(module),
@@ -128,8 +130,8 @@ class MonnaProtocolTest(unittest.TestCase):
             module.weight.fill_(0.0)
         model = Model(module)
         data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
+            _loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])),
+            _loader(torch.tensor([[2.0]]), torch.tensor([[2.0]])),
         ]
         simulation = MonnaSimulation(
             model=model,
@@ -162,7 +164,7 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_accepts_aggregator_override(self) -> None:
         """A supplied aggregator replaces the default mixing rule."""
         module = nn.Linear(1, 1, bias=False)
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(3)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
 
         simulation = MonnaSimulation(
             model=Model(module),
@@ -182,8 +184,8 @@ class MonnaProtocolTest(unittest.TestCase):
         """Byzantine rounds need an explicit attack implementation."""
         module = nn.Linear(1, 1, bias=False)
         data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
+            _loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])),
+            _loader(torch.tensor([[2.0]]), torch.tensor([[2.0]])),
         ]
 
         with self.assertRaises(ValueError):
@@ -202,8 +204,8 @@ class MonnaProtocolTest(unittest.TestCase):
         with torch.no_grad():
             module.weight.fill_(0.0)
         data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
+            _loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])),
+            _loader(torch.tensor([[2.0]]), torch.tensor([[2.0]])),
         ]
         simulation = MonnaSimulation(
             model=Model(module),
@@ -306,8 +308,7 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_run_executes_one_step_per_round_in_order(self) -> None:
         """``run`` drives ``step`` once per round and collects the snapshots."""
         module = nn.Linear(1, 1, bias=False)
-        batch = (torch.tensor([[1.0]]), torch.tensor([[1.0]]))
-        data = [[batch, batch, batch] for _ in range(2)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         simulation = MonnaSimulation(
             model=Model(module),
             data=data,

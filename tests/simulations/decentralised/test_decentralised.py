@@ -1,14 +1,20 @@
 """Tests for DecentralisedSimulation base class."""
 
 import unittest
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
 
 from krum.primitives.aggregators.average import Average
 from krum.primitives.models import Model
-from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
+from krum.simulations.decentralised import DecentralisedSimulation, LossFn, StepResult
+
+
+def _loader(x: torch.Tensor, y: torch.Tensor) -> DataLoader:
+    """Build a single-batch DataLoader replaying ``(x, y)`` every epoch."""
+    return DataLoader(TensorDataset(x, y), batch_size=x.shape[0])
 
 
 class _ConcreteSimulation(DecentralisedSimulation[StepResult]):
@@ -51,7 +57,7 @@ def _make_simulation(
     n: int,
     f: int,
     model: Model | None = None,
-    data: Sequence[Iterable[Batch]] | None = None,
+    data: Sequence[DataLoader] | None = None,
     loss_fn: LossFn | None = None,
     attack=None,
     seed: int | None = None,
@@ -60,7 +66,7 @@ def _make_simulation(
     if model is None:
         model = Model(nn.Linear(1, 1, bias=False))
     if data is None:
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(n - f)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(n - f)]
     if loss_fn is None:
         loss_fn = nn.MSELoss()
     return _ConcreteSimulation(
@@ -95,7 +101,7 @@ class DecentralisedSimulationConstructionTest(unittest.TestCase):
 
     def test_rejects_too_few_data_streams(self) -> None:
         """Number of data streams must equal n - f."""
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(2)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         with self.assertRaises(ValueError):
             _make_simulation(n=7, f=1, data=data)
 
@@ -246,12 +252,19 @@ class DecentralisedSimulationRunTest(unittest.TestCase):
 
     def test_run_executes_steps_and_collects_results(self) -> None:
         """Each round produces one result with incremented step."""
-        batch = (torch.tensor([[1.0]]), torch.tensor([[1.0]]))
-        data = [[batch, batch] for _ in range(2)]
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         sim = _make_simulation(n=2, f=0, data=data)
         results = sim.run(2)
         self.assertEqual(len(results), 2)
         self.assertEqual([r["step"] for r in results], [1, 2])
+
+    def test_run_cycles_loader_past_one_epoch(self) -> None:
+        """A single-batch loader is automatically re-iterated across rounds."""
+        data = [_loader(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
+        sim = _make_simulation(n=2, f=0, data=data)
+        results = sim.run(5)
+        self.assertEqual(len(results), 5)
+        self.assertEqual([r["step"] for r in results], [1, 2, 3, 4, 5])
 
 
 if __name__ == "__main__":

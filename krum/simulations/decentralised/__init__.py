@@ -12,10 +12,11 @@ and the communication topology (which models each worker receives).
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Generic, TypedDict, TypeVar
 
 import torch
+from torch.utils.data import DataLoader
 
 from ...primitives.aggregators import Aggregator
 from ...primitives.attacks import Attack
@@ -70,16 +71,17 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
 
     :meth:`run` may be called repeatedly to continue training: all state
     (:attr:`parameters`, :attr:`step_index`, subclass optimiser state, and the
-    worker data streams) lives on the instance and persists across calls.
-    Callers that run more rounds than a finite stream provides should cycle
-    their streams.
+    worker dataloaders) lives on the instance and persists across calls. Each
+    worker's :class:`~torch.utils.data.DataLoader` is automatically
+    re-iterated (a fresh epoch) once exhausted, so :meth:`run` may be called
+    for more rounds than one epoch provides.
     """
 
     def __init__(
         self,
         *,
         model: Model,
-        data: Sequence[Iterable[Batch]],
+        data: Sequence[DataLoader[Any]],
         loss_fn: LossFn,
         n: int,
         f: int,
@@ -93,8 +95,10 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
 
         Args:
             model: Model wrapper whose flat parameters seed every worker.
-            data: One batch stream per honest worker; ``len(data)`` must equal
-                ``n - f``.
+            data: One ``DataLoader`` per honest worker; ``len(data)`` must
+                equal ``n - f``. Each loader is automatically re-iterated (a
+                fresh epoch) once exhausted, so it need not provide as many
+                batches as :meth:`run` will request rounds.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.
             n: Total number of workers; must exceed ``2 * f`` so that honest
                 workers outnumber Byzantine ones.
@@ -145,7 +149,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             raise TypeError(f"Expected seed to be an int or None, got {type(seed).__name__}")
 
         self.model = model
-        self.worker_data_iterators = [iter(worker_data) for worker_data in data]
+        self.worker_data: list[DataLoader[Any]] = list(data)
+        self.worker_data_iterators = [iter(loader) for loader in self.worker_data]
         self.loss_fn = loss_fn
         self.n = n
         self.f = f
@@ -202,12 +207,26 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         return [self.step() for _ in range(rounds)]
 
     def collect_worker_batches(self) -> list[Batch]:
-        """Pull one local batch from every honest worker stream.
+        """Pull one local batch from every honest worker's ``DataLoader``.
+
+        When a worker's loader is exhausted (its current epoch ends), a
+        fresh iterator is created automatically and the first batch of the
+        new epoch is used instead, so callers do not need to pre-cycle
+        their loaders to run more rounds than one epoch provides.
 
         Returns:
             One batch per honest worker, in worker order.
         """
-        return [next(iterator) for iterator in self.worker_data_iterators]
+        batches = []
+        for worker_index, iterator in enumerate(self.worker_data_iterators):
+            try:
+                batch = next(iterator)
+            except StopIteration:
+                iterator = iter(self.worker_data[worker_index])
+                self.worker_data_iterators[worker_index] = iterator
+                batch = next(iterator)
+            batches.append(batch)
+        return batches
 
     def compute_honest_worker_gradients(self, batches: Sequence[Batch]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute gradients at each honest worker's current parameters.

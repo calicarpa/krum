@@ -7,16 +7,17 @@ Reference:
     Conference on Machine Learning (ICML 2023).
 """
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from typing import Any, Literal
 
 import torch
+from torch.utils.data import DataLoader
 
 from ...primitives.aggregators import Aggregator
 from ...primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from ...primitives.attacks import Attack
 from ...primitives.models import Model
-from ..decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
+from ..decentralised import DecentralisedSimulation, LossFn, StepResult
 
 ByzantineReach = Literal["all", "sampled"]
 
@@ -56,7 +57,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         self,
         *,
         model: Model,
-        data: Sequence[Iterable[Batch]],
+        data: Sequence[DataLoader[Any]],
         loss_fn: LossFn,
         n: int,
         f: int,
@@ -74,8 +75,10 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
 
         Args:
             model: Model wrapper whose flat parameters seed every worker.
-            data: One batch stream per honest worker; ``len(data)`` must equal
-                ``n - f``.
+            data: One ``DataLoader`` per honest worker; ``len(data)`` must
+                equal ``n - f``. Each loader is automatically re-iterated (a
+                fresh epoch) once exhausted, so it need not provide as many
+                batches as the simulation will run rounds.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.
             n: Total number of workers; must exceed ``2 * f``.
             f: Number of Byzantine workers; must be non-negative.
