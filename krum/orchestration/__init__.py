@@ -37,6 +37,8 @@ Example::
 from __future__ import annotations
 
 import gc
+import importlib
+import inspect
 import sys
 
 from collections import deque as Deque
@@ -44,9 +46,65 @@ from collections.abc import Callable
 from hashlib import blake2b as Blake2b
 from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec
-from pathlib import Path
-from typing import Self
-from types import ModuleType, TracebackType
+from inspect import Parameter
+from pathlib import Path, PurePath
+from types import CodeType, FrameType, ModuleType, TracebackType
+from typing import Any, Self
+
+class Modules:
+    """Collection of modules for ownership testing purpose."""
+
+    _modules: set[ModuleType]
+
+    __slots__ = tuple(__annotations__)
+
+    @classmethod
+    def build(cls, modules_or_names: Iterable[str | ModuleType]) -> Self:
+        modules = set()
+        # Import names and add modules
+        for module_or_name in modules_or_names:
+            if isinstance(module_or_name, str):
+                module = importlib.import_module(module_or_name)
+            else:
+                module = module_or_name
+            modules.add(module)
+        # Initialize members
+        self._modules = modules
+
+    def __init__(self, modules: set[ModuleType]) -> None:
+        self._modules = modules
+
+    def __contains__(self, obj: Any) -> bool:
+        return inspect.getmodule(obj) in self._modules
+
+class Context:
+    """Playground context."""
+
+    _external: set[ModuleType]
+    _internal: set[CodeType | ObjectRef]
+
+    __slots__ = tuple(__annotations__)
+
+    def trace(self, frame: FrameType, event: str, arg: Any | None) -> Callable | None:
+        # Quickly process non-call events
+        match event:
+            case "call":
+                pass
+            case "line":
+                return self.trace
+            case "return":
+                return
+            case "opcode":
+                return self.trace
+            case "exception":
+                return self.trace
+            case _:
+                raise RuntimeError(f"unknown event {event!r}")
+        # NOTE: Debug
+        return_value = None
+        import code
+        code.interact(local=locals())
+        return return_value
 
 class Dependencies:
     """(Conservative) list of dependencies for a collection of objects."""
@@ -111,15 +169,46 @@ class Dependencies:
         #       Hash other objects based on their pickled stream (optionally with fixed version).
         #       (Acknowledge this is fundamentally an impossible problem, c.f. `exec(random())`.)
         #       The end-user will not like to see everything run again after each micro-change.
-        modules = dict()
-        # Ignore `closure` and hash all loaded modules
-        for name, module in sys.modules.items():
-            spec = module.__spec__
-            if spec is None or not spec.has_location:
+        import code
+        code.interact(local=locals())
+        # Extract function signature
+        signature = inspect.signature(closure)
+        signature.parameters
+        # Process whole referent tree
+        todo = Deque()
+        todo.append(closure)
+        seen = set()
+        origins = set()
+        while True:
+            # Pull next object to process
+            try:
+                obj = todo.popleft()
+            except IndexError:
+                break
+            # Ensure objects are seen at most once
+            oid = id(obj)
+            if oid in seen:
                 continue
-            modules[name] = cls._hash_spec(spec)
-        # Wrap and forward
-        return cls(modules)
+            seen.add(oid)
+            # Print sub-referents
+            refs = gc.get_referents(obj)
+            print(f"Referents of 0x{oid:016x} (type {type(obj).__qualname__}):")
+            cnt = len(refs)
+            spc = 0
+            while cnt > 0:
+                spc += 1
+                cnt //= 10
+            for idx, ref in enumerate(refs):
+                oid = id(ref)
+                addum = ", seen" if oid in seen else ""
+                print(f"- refs[{idx:{spc}}] = 0x{oid:016x} (type {type(ref).__qualname__}{addum})")
+            # Interact with sub-referents
+            import code
+            code.interact(local=locals())
+            # Prepare to process sub-referents
+            todo.extend(refs)
+        # TODO:
+        raise NotImplementedError
 
     def __init__(self, modules: dict[str, int]) -> None:
         # Compute hash
@@ -167,7 +256,7 @@ class InterceptFinder(MetaPathFinder):
         self._finders = sys.meta_path
         sys.meta_path = [self]
 
-    def __exit__(self, exc_type: Optional[type], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
+    def __exit__(self, exc_type: type | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
         sys.meta_path = self._finders
         self._finders = None
 
@@ -177,3 +266,54 @@ class InterceptFinder(MetaPathFinder):
             if spec is not None:
                 self._target.push(fullname, spec)
                 return spec
+
+type RunCallable = Callable[..., None]
+
+class PendingRun:
+    """Information about an enqueued run."""
+
+    _callable: RunCallable
+    _params: dict[str, Any]
+    _key: Hash | None
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, callable: RunCallable, params: dict[str, Any], key: Hash | None = None) -> None:
+        self._callable = callable
+        self._params = params
+        self._key = key
+
+    @property
+    def callable(self) -> RunCallable:
+        return self._callable
+
+    @property
+    def params(self) -> dict[str, Any]:
+        return self._params
+
+    @property
+    def key(self) -> Hash:
+        if self._key is not None:
+            return self._key
+        raise NotImplementedError
+
+class Orchestrator:
+    """Top-most orchestrator instance managing runs and persisting metrics."""
+
+    _root: Path
+    _queue: Deque[PendingRun]
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, root: PathLike) -> None:
+        if not isinstance(root, Path):
+            root = Path(root)
+        self._root = root
+
+    def run(self, callable: Callable[..., Any], **params: Any) -> Any:
+        self._queue.append(PendingRun(callable, params))
+        raise NotImplementedError
+
+    def get(self, metric: str) -> MetricReader:
+        # NOTE: May be blocking
+        raise NotImplementedError
