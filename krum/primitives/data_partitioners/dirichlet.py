@@ -3,7 +3,7 @@
 from typing import Any, Sized, cast
 
 import torch
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import Dataset, Subset
 
 from . import DataPartitioner
 
@@ -28,7 +28,7 @@ class DirichletPartitioner(DataPartitioner):
     A worker can legitimately end up with zero samples of a class, or
     (for small enough :math:`\alpha` and small :math:`n`) even zero samples
     overall — an intentional consequence of extreme skew. Such a worker
-    gets an empty (but valid) ``DataLoader``.
+    gets an empty (but valid) dataset.
     """
 
     @classmethod
@@ -39,10 +39,9 @@ class DirichletPartitioner(DataPartitioner):
         *,
         n: int,
         alpha: float,
-        batch_size: int,
         seed: int = 42,
         **specialized: Any,
-    ) -> list[DataLoader[Any]]:
+    ) -> list[Subset[Any]]:
         r"""Split ``dataset`` across ``n`` workers via per-class Dirichlet skew.
 
         Args:
@@ -53,15 +52,12 @@ class DirichletPartitioner(DataPartitioner):
             alpha: Concentration parameter of the per-class
                 :math:`\mathrm{Dirichlet}(\alpha, \dots, \alpha)` draw.
                 Smaller values produce more extreme label skew.
-            batch_size: Mini-batch size for every worker's ``DataLoader``.
             seed: Random seed for the per-class Dirichlet draws and the
-                within-class shuffle. Worker ``w``'s ``DataLoader``
-                additionally seeds its own mini-batch sampling RNG with
-                ``seed + w``, so the whole split is reproducible.
+                within-class shuffle.
             **specialized: Additional keyword arguments (unused).
 
         Returns:
-            List of ``n`` dataloaders, one per worker.
+            List of ``n`` datasets, one per worker.
 
         Raises:
             ValueError: If ``n < 1`` or ``alpha <= 0``.
@@ -91,19 +87,7 @@ class DirichletPartitioner(DataPartitioner):
                 worker_indices[w].extend(shuffled[start:end].tolist())
                 start = end
 
-        loaders = []
-        for w in range(n):
-            worker_dataset = Subset(dataset, worker_indices[w])
-            worker_generator = torch.Generator().manual_seed(seed + w)
-            # RandomSampler (shuffle=True) requires at least one sample; an empty
-            # shard is a legitimate outcome of extreme skew, so fall back to
-            # shuffle=False rather than crashing on DataLoader construction.
-            shuffle = len(worker_indices[w]) > 0
-            loaders.append(
-                DataLoader(worker_dataset, batch_size=batch_size, shuffle=shuffle, generator=worker_generator)
-            )
-
-        return loaders
+        return [Subset(dataset, worker_indices[w]) for w in range(n)]
 
     @staticmethod
     def _sample_proportions(alpha: float, num_classes: int, n: int, seed: int) -> torch.Tensor:

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import torch
-from torch.utils.data import DataLoader, Dataset, TensorDataset
+from torch.utils.data import Dataset, Subset, TensorDataset
 
 from krum.primitives.data_partitioners import DataPartitioner
 
@@ -20,21 +20,20 @@ class _ConcreteDataPartitioner(DataPartitioner):
         /,
         *,
         n: int,
-        batch_size: int,
         seed: int = 42,
         **specialized: Any,
-    ) -> Sequence[DataLoader[Any]]:
-        return [DataLoader(dataset, batch_size=batch_size) for _ in range(n)]
+    ) -> Sequence[Dataset[Any]]:
+        return [Subset(dataset, []) for _ in range(n)]
 
 
 class DataPartitionerTest(unittest.TestCase):
     """Test DataPartitioner base class."""
 
-    def test_partition_returns_n_loaders(self) -> None:
-        """Partition returns one loader per worker."""
+    def test_partition_returns_n_datasets(self) -> None:
+        """Partition returns one dataset per worker."""
         dataset = TensorDataset(torch.randn(10, 3), torch.randint(0, 2, (10,)))
-        loaders = _ConcreteDataPartitioner.partition(dataset, n=4, batch_size=2)
-        self.assertEqual(len(loaders), 4)
+        datasets = _ConcreteDataPartitioner.partition(dataset, n=4)
+        self.assertEqual(len(datasets), 4)
 
 
 if __name__ == "__main__":

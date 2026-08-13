@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from typing import Any, Literal
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 
 from ...primitives.aggregators import Aggregator
 from ...primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
@@ -57,7 +57,10 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         self,
         *,
         model: Model,
-        data: Sequence[DataLoader[Any]],
+        train_datasets: Sequence[Dataset[Any]],
+        train_batch_size: int | Sequence[int],
+        test_set: Dataset[Any],
+        test_batch_size: int,
         loss_fn: LossFn,
         n: int,
         f: int,
@@ -75,10 +78,15 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
 
         Args:
             model: Model wrapper whose flat parameters seed every worker.
-            data: One ``DataLoader`` per honest worker; ``len(data)`` must
-                equal ``n - f``. Each loader is automatically re-iterated (a
-                fresh epoch) once exhausted, so it need not provide as many
-                batches as the simulation will run rounds.
+            train_datasets: One dataset per worker (honest and Byzantine);
+                ``len(train_datasets)`` must equal ``n``. See
+                :class:`~krum.simulations.decentralised.DecentralisedSimulation`
+                for why the full ``n``-length sequence is required even
+                though only the first ``n - f`` are trained on.
+            train_batch_size: Mini-batch size for every honest worker's
+                ``DataLoader``, or a sequence of ``n - f`` per-worker sizes.
+            test_set: Shared test dataset, evaluated per-worker by :meth:`evaluate`.
+            test_batch_size: Mini-batch size for the test ``DataLoader``.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.
             n: Total number of workers; must exceed ``2 * f``.
             f: Number of Byzantine workers; must be non-negative.
@@ -134,7 +142,10 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
 
         super().__init__(
             model=model,
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=train_batch_size,
+            test_set=test_set,
+            test_batch_size=test_batch_size,
             loss_fn=loss_fn,
             n=n,
             f=f,
@@ -149,6 +160,40 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         self.weight_decay = weight_decay
         self.byzantine_reach = byzantine_reach
         self.momentum = torch.zeros_like(self.parameters)
+
+    @torch.no_grad()
+    def evaluate(self) -> tuple[float, float]:
+        """Evaluate every honest worker's local model on the test set, then average.
+
+        There is no single shared model in the decentralised setting — each
+        honest worker holds its own row of :attr:`parameters` — so each
+        worker's model is loaded in turn via :meth:`copy_parameters_to_model`,
+        evaluated over the full :attr:`test_loader` (size-weighted, so a
+        ragged final batch doesn't skew the result), then averaged across
+        workers.
+
+        Returns:
+            Tuple of ``(mean test loss, mean test accuracy)`` across honest workers.
+        """
+        self.model.module.eval()
+        device = self.parameters.device
+        losses = []
+        accuracies = []
+        for worker_parameters in self.parameters:
+            self.copy_parameters_to_model(worker_parameters)
+            total_loss = 0.0
+            total_correct = 0
+            total = 0
+            for inputs, targets in self.test_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                logits = self.model.module(inputs)
+                loss = self.loss_fn(logits, targets)
+                total_loss += loss.item() * targets.numel()
+                total_correct += (logits.argmax(dim=1) == targets).sum().item()
+                total += targets.numel()
+            losses.append(total_loss / total)
+            accuracies.append(total_correct / total)
+        return sum(losses) / len(losses), sum(accuracies) / len(accuracies)
 
     def local_update(self, gradients: torch.Tensor) -> torch.Tensor:
         """Run MoNNA's momentum-SGD local step and commit the new momentum.

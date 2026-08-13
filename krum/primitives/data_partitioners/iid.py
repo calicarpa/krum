@@ -3,7 +3,7 @@
 from typing import Any, Sized, cast
 
 import torch
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import Dataset, Subset
 
 from . import DataPartitioner
 
@@ -24,25 +24,20 @@ class IidPartitioner(DataPartitioner):
         /,
         *,
         n: int,
-        batch_size: int,
         seed: int = 42,
         **specialized: Any,
-    ) -> list[DataLoader[Any]]:
+    ) -> list[Subset[Any]]:
         r"""Shuffle ``dataset`` and split it into ``n`` equal-size shards.
 
         Args:
             dataset: Full dataset to partition across workers.
             n: Number of workers to split the dataset across.
-            batch_size: Mini-batch size for every worker's ``DataLoader``.
-            seed: Random seed for the shard permutation. Worker ``w``'s
-                ``DataLoader`` additionally seeds its own mini-batch
-                sampling RNG with ``seed + w``, so shard assignment and
-                per-worker batching are both reproducible.
+            seed: Random seed for the shard permutation.
             **specialized: Additional keyword arguments (unused).
 
         Returns:
-            List of ``n`` dataloaders, each shuffling mini-batches from an
-            equal-size, disjoint, uniformly random shard.
+            List of ``n`` datasets, each an equal-size, disjoint, uniformly
+            random shard.
 
         Raises:
             ValueError: If ``n < 1``.
@@ -54,13 +49,6 @@ class IidPartitioner(DataPartitioner):
         shard_size = dataset_size // n
         shard_indices = torch.randperm(dataset_size, generator=torch.Generator().manual_seed(seed))
 
-        loaders = []
-        for w in range(n):
-            indices = shard_indices[w * shard_size : (w + 1) * shard_size]
-            worker_dataset = Subset(dataset, indices.tolist())
-            worker_generator = torch.Generator().manual_seed(seed + w)
-            loaders.append(
-                DataLoader(worker_dataset, batch_size=batch_size, shuffle=True, generator=worker_generator)
-            )
-
-        return loaders
+        return [
+            Subset(dataset, shard_indices[w * shard_size : (w + 1) * shard_size].tolist()) for w in range(n)
+        ]

@@ -32,7 +32,8 @@ ROUNDS = 200
 EVAL_EVERY = 10
 N = 16
 F_VALUES = [0, 5]  # 5 ~= n/3
-BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 32
+TEST_BATCH_SIZE = 256
 TRAIN_SIZE = 4096
 TEST_SIZE = 1024
 LEARNING_RATE = 0.5
@@ -40,7 +41,6 @@ BETA = 0.99
 PARTITION = Partition.DIRICHLET
 DIRICHLET_ALPHA = 1.0
 SEED = 0
-NUM_WORKERS = 0
 
 # Aggregators to compare: NNA is MoNNA's default (num_closest = n - 2f,
 # injected by MonnaSimulation), Average is the non-robust baseline.
@@ -77,12 +77,12 @@ def main() -> None:
                 aggregator=aggregator,
                 rounds=ROUNDS,
                 eval_every=EVAL_EVERY,
-                batch_size=BATCH_SIZE,
+                train_batch_size=TRAIN_BATCH_SIZE,
+                test_batch_size=TEST_BATCH_SIZE,
                 train_size=TRAIN_SIZE,
                 test_size=TEST_SIZE,
                 partition=PARTITION,
                 dirichlet_alpha=DIRICHLET_ALPHA,
-                num_workers=NUM_WORKERS,
                 seed=SEED,
             )
 
