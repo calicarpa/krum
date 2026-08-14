@@ -78,6 +78,20 @@ class IidPartitionerTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             IidPartitioner.partition(dataset, n=0)
 
+    def test_rejects_nonempty_dataset_smaller_than_n(self) -> None:
+        """A nonempty dataset with fewer than n samples is rejected, unlike the empty case."""
+        dataset = _dummy_dataset(10)
+        with self.assertRaises(ValueError):
+            IidPartitioner.partition(dataset, n=50)
+
+    def test_handles_fully_empty_dataset(self) -> None:
+        """An empty input dataset yields n empty datasets rather than raising."""
+        dataset = Subset(_dummy_dataset(10), [])
+        datasets = IidPartitioner.partition(dataset, n=5)
+        self.assertEqual(len(datasets), 5)
+        for ds in datasets:
+            self.assertEqual(len(ds), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -141,7 +141,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
 
         Raises:
             ValueError: If a worker count or dataset count is out of range,
-                or an attack is missing while ``f > 0``.
+                any honest worker's dataset is empty, or an attack is
+                missing while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
@@ -160,6 +161,12 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             raise TypeError("Expected loss_fn to be callable")
         if len(train_datasets) != n:
             raise ValueError(f"Expected {n} train datasets, got {len(train_datasets)!r}")
+        for w in range(n - f):
+            if len(cast(Sized, train_datasets[w])) == 0:
+                raise ValueError(
+                    f"Worker {w} has an empty train_dataset (0 samples) and cannot train; "
+                    f"check n against the partitioner's configuration (e.g. alpha)."
+                )
         if f and attack is None:
             raise ValueError("An attack is required when f > 0")
         if attack is not None and not (isinstance(attack, type) and issubclass(attack, Attack)):
@@ -190,13 +197,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         for w in range(self.num_honest):
             worker_dataset = self.train_datasets[w]
             worker_generator = None if seed is None else torch.Generator().manual_seed(seed + w)
-            # RandomSampler (shuffle=True) requires at least one sample; an empty
-            # worker dataset is a legitimate outcome of some partitioners (e.g.
-            # extreme-skew Dirichlet), so fall back to shuffle=False rather than
-            # crashing on DataLoader construction.
-            shuffle = len(cast(Sized, worker_dataset)) > 0
             self.worker_data.append(
-                DataLoader(worker_dataset, batch_size=train_batch_size, shuffle=shuffle, generator=worker_generator)
+                DataLoader(worker_dataset, batch_size=train_batch_size, shuffle=True, generator=worker_generator)
             )
         self.worker_data_iterators = [iter(loader) for loader in self.worker_data]
         self.test_loader: DataLoader[Any] = DataLoader(test_set, batch_size=test_batch_size, shuffle=False)
@@ -279,6 +281,12 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             try:
                 batch = next(iterator)
             except StopIteration:
+                # __init__ already rejects any honest worker with an empty
+                # train_dataset, so a StopIteration here can only mean "this
+                # epoch just ended" -- never "this loader was never going to
+                # yield anything." Without that guarantee, the retry below
+                # would raise StopIteration again immediately and propagate
+                # uncaught, since it isn't wrapped in a further try/except.
                 iterator = iter(self.worker_data[worker_index])
                 self.worker_data_iterators[worker_index] = iterator
                 batch = next(iterator)

@@ -40,12 +40,17 @@ class IidPartitioner(DataPartitioner):
             random shard.
 
         Raises:
-            ValueError: If ``n < 1``.
+            ValueError: If ``n < 1``, or ``dataset`` is nonempty but has
+                fewer than ``n`` samples.
         """
         if n < 1:
             raise ValueError(f"Invalid number of workers, got {n=!r}, expected n >= 1")
 
         dataset_size = len(cast(Sized, dataset))
+        if 0 < dataset_size < n:
+            raise ValueError(
+                f"Expected at least n={n} samples to split across n workers, got dataset_size={dataset_size}"
+            )
         shard_size = dataset_size // n
         shard_indices = torch.randperm(dataset_size, generator=torch.Generator().manual_seed(seed))
 

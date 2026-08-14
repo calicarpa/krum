@@ -121,6 +121,18 @@ class DecentralisedSimulationConstructionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             _make_simulation(n=7, f=1, train_datasets=train_datasets)
 
+    def test_rejects_empty_honest_worker_dataset(self) -> None:
+        """An honest worker with an empty train_dataset is rejected at construction.
+
+        Regression test: this used to succeed at construction (via a
+        shuffle=False fallback) and then crash later, deep inside step(),
+        with an uncaught StopIteration from collect_worker_batches.
+        """
+        empty = TensorDataset(torch.empty(0, 1), torch.empty(0, dtype=torch.long))
+        nonempty = _dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]]))
+        with self.assertRaises(ValueError):
+            _make_simulation(n=2, f=0, train_datasets=[nonempty, empty])
+
     def test_requires_attack_when_f_greater_than_zero(self) -> None:
         """An attack is required when f > 0."""
         with self.assertRaises(ValueError):
