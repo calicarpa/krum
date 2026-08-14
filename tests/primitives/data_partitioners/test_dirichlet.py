@@ -95,6 +95,19 @@ class DirichletPartitionerTest(unittest.TestCase):
         empty_datasets = [ds for ds in datasets if len(ds) == 0]
         self.assertGreater(len(empty_datasets), 0)
 
+    def test_handles_fully_empty_dataset(self) -> None:
+        """An empty input dataset yields n empty datasets rather than crashing.
+
+        torch.distributions.Dirichlet rejects a zero-sized batch dimension, so
+        this is handled with an explicit early return before ever constructing
+        one; regression test for that path.
+        """
+        dataset = Subset(_balanced_dataset(), [])
+        datasets = DirichletPartitioner.partition(dataset, n=5, alpha=0.5)
+        self.assertEqual(len(datasets), 5)
+        for ds in datasets:
+            self.assertEqual(len(ds), 0)
+
     def test_rejects_n_less_than_one(self) -> None:
         """Check raises ValueError when n < 1."""
         dataset = _balanced_dataset()

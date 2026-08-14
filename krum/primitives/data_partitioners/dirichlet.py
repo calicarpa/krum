@@ -28,7 +28,8 @@ class DirichletPartitioner(DataPartitioner):
     A worker can legitimately end up with zero samples of a class, or
     (for small enough :math:`\alpha` and small :math:`n`) even zero samples
     overall — an intentional consequence of extreme skew. Such a worker
-    gets an empty (but valid) dataset.
+    gets an empty (but valid) dataset. An empty ``dataset`` is handled the
+    same way: every worker gets an empty dataset.
     """
 
     @classmethod
@@ -69,6 +70,11 @@ class DirichletPartitioner(DataPartitioner):
 
         labels = cls._extract_labels(dataset)
         classes = torch.unique(labels)
+        if classes.numel() == 0:
+            # torch.distributions.Dirichlet rejects a zero-sized batch dimension
+            # (an internal reshape ambiguity), and there is nothing to draw
+            # proportions for anyway when the dataset itself is empty.
+            return [Subset(dataset, []) for _ in range(n)]
 
         proportions = cls._sample_proportions(alpha, classes.numel(), n, seed)
         generator = torch.Generator().manual_seed(seed)
