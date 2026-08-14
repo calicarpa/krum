@@ -54,6 +54,4 @@ class IidPartitioner(DataPartitioner):
         shard_size = dataset_size // n
         shard_indices = torch.randperm(dataset_size, generator=torch.Generator().manual_seed(seed))
 
-        return [
-            Subset(dataset, shard_indices[w * shard_size : (w + 1) * shard_size].tolist()) for w in range(n)
-        ]
+        return [Subset(dataset, shard_indices[w * shard_size : (w + 1) * shard_size].tolist()) for w in range(n)]
