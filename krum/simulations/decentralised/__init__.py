@@ -86,7 +86,7 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         *,
         model: Model,
         train_datasets: Sequence[Dataset[Any]],
-        train_batch_size: int | Sequence[int],
+        train_batch_size: int,
         test_set: Dataset[Any],
         test_batch_size: int,
         loss_fn: LossFn,
@@ -114,7 +114,7 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
                 it need not provide as many batches as :meth:`run` will
                 request rounds.
             train_batch_size: Mini-batch size for every honest worker's
-                ``DataLoader``, or a sequence of ``n - f`` per-worker sizes.
+                ``DataLoader``.
             test_set: Shared test dataset, evaluated per-worker by
                 :meth:`evaluate`.
             test_batch_size: Mini-batch size for the test ``DataLoader``.
@@ -140,8 +140,8 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
                 ``seed + w``). ``None`` disables both.
 
         Raises:
-            ValueError: If a worker count or dataset/batch-size count is out
-                of range, or an attack is missing while ``f > 0``.
+            ValueError: If a worker count or dataset count is out of range,
+                or an attack is missing while ``f > 0``.
             TypeError: If ``model`` or ``loss_fn`` has the wrong type, ``attack``
                 is not an :class:`~krum.primitives.attacks.Attack` subclass,
                 ``aggregator`` is not an
@@ -160,8 +160,6 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             raise TypeError("Expected loss_fn to be callable")
         if len(train_datasets) != n:
             raise ValueError(f"Expected {n} train datasets, got {len(train_datasets)!r}")
-        if not isinstance(train_batch_size, int) and len(train_batch_size) != n - f:
-            raise ValueError(f"Expected {n - f} train batch sizes, got {len(train_batch_size)!r}")
         if f and attack is None:
             raise ValueError("An attack is required when f > 0")
         if attack is not None and not (isinstance(attack, type) and issubclass(attack, Attack)):
@@ -191,7 +189,6 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
         self.worker_data: list[DataLoader[Any]] = []
         for w in range(self.num_honest):
             worker_dataset = self.train_datasets[w]
-            worker_batch_size = train_batch_size if isinstance(train_batch_size, int) else train_batch_size[w]
             worker_generator = None if seed is None else torch.Generator().manual_seed(seed + w)
             # RandomSampler (shuffle=True) requires at least one sample; an empty
             # worker dataset is a legitimate outcome of some partitioners (e.g.
@@ -199,7 +196,7 @@ class DecentralisedSimulation(ABC, Generic[StepResultT]):
             # crashing on DataLoader construction.
             shuffle = len(cast(Sized, worker_dataset)) > 0
             self.worker_data.append(
-                DataLoader(worker_dataset, batch_size=worker_batch_size, shuffle=shuffle, generator=worker_generator)
+                DataLoader(worker_dataset, batch_size=train_batch_size, shuffle=shuffle, generator=worker_generator)
             )
         self.worker_data_iterators = [iter(loader) for loader in self.worker_data]
         self.test_loader: DataLoader[Any] = DataLoader(test_set, batch_size=test_batch_size, shuffle=False)

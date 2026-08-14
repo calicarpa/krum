@@ -58,7 +58,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
         *,
         model: Model,
         train_datasets: Sequence[Dataset[Any]],
-        train_batch_size: int | Sequence[int],
+        train_batch_size: int,
         test_set: Dataset[Any],
         test_batch_size: int,
         loss_fn: LossFn,
@@ -84,7 +84,7 @@ class MonnaSimulation(DecentralisedSimulation[MonnaStepResult]):
                 for why the full ``n``-length sequence is required even
                 though only the first ``n - f`` are trained on.
             train_batch_size: Mini-batch size for every honest worker's
-                ``DataLoader``, or a sequence of ``n - f`` per-worker sizes.
+                ``DataLoader``.
             test_set: Shared test dataset, evaluated per-worker by :meth:`evaluate`.
             test_batch_size: Mini-batch size for the test ``DataLoader``.
             loss_fn: Callable mapping ``(predictions, targets)`` to a scalar loss.

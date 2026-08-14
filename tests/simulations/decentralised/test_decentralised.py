@@ -66,7 +66,7 @@ def _make_simulation(
     f: int,
     model: Model | None = None,
     train_datasets: Sequence[Dataset] | None = None,
-    train_batch_size: int | Sequence[int] = 1,
+    train_batch_size: int = 1,
     test_set: Dataset | None = None,
     test_batch_size: int = 1,
     loss_fn: LossFn | None = None,
@@ -120,11 +120,6 @@ class DecentralisedSimulationConstructionTest(unittest.TestCase):
         train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         with self.assertRaises(ValueError):
             _make_simulation(n=7, f=1, train_datasets=train_datasets)
-
-    def test_rejects_too_few_train_batch_sizes(self) -> None:
-        """A per-worker train_batch_size sequence must have length n - f."""
-        with self.assertRaises(ValueError):
-            _make_simulation(n=4, f=0, train_batch_size=[1, 1])
 
     def test_requires_attack_when_f_greater_than_zero(self) -> None:
         """An attack is required when f > 0."""
