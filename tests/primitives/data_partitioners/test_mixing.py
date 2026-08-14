@@ -1,6 +1,7 @@
 """Tests for the mixing partitioner."""
 
 import unittest
+from typing import Any, Sized, cast
 
 import torch
 from torch.utils.data import Dataset, TensorDataset
@@ -18,7 +19,7 @@ def _dummy_dataset(size: int = 100) -> TensorDataset:
 
 def _values(dataset: Dataset) -> list[int]:
     """Read back the distinctive x-value of every sample, regardless of nesting."""
-    return [int(dataset[i][0].item()) for i in range(len(dataset))]  # type: ignore[arg-type]
+    return [int(dataset[i][0].item()) for i in range(len(cast(Sized, dataset)))]
 
 
 class MixingPartitionerTest(unittest.TestCase):
@@ -68,7 +69,13 @@ class MixingPartitionerTest(unittest.TestCase):
     def test_partition_is_deterministic_given_seed(self) -> None:
         """Same seed produces the same per-worker assignment."""
         dataset = _dummy_dataset(100)
-        kwargs = {"n": 10, "p1": IidPartitioner, "p2": DirichletPartitioner, "gamma": 0.5, "p2_kwargs": {"alpha": 1.0}}
+        kwargs: dict[str, Any] = {
+            "n": 10,
+            "p1": IidPartitioner,
+            "p2": DirichletPartitioner,
+            "gamma": 0.5,
+            "p2_kwargs": {"alpha": 1.0},
+        }
         datasets_a = MixingPartitioner.partition(dataset, seed=7, **kwargs)
         datasets_b = MixingPartitioner.partition(dataset, seed=7, **kwargs)
         for a, b in zip(datasets_a, datasets_b, strict=True):
@@ -77,7 +84,13 @@ class MixingPartitionerTest(unittest.TestCase):
     def test_partition_differs_across_seeds(self) -> None:
         """Different seeds produce different assignments."""
         dataset = _dummy_dataset(100)
-        kwargs = {"n": 10, "p1": IidPartitioner, "p2": DirichletPartitioner, "gamma": 0.5, "p2_kwargs": {"alpha": 1.0}}
+        kwargs: dict[str, Any] = {
+            "n": 10,
+            "p1": IidPartitioner,
+            "p2": DirichletPartitioner,
+            "gamma": 0.5,
+            "p2_kwargs": {"alpha": 1.0},
+        }
         datasets_a = MixingPartitioner.partition(dataset, seed=1, **kwargs)
         datasets_b = MixingPartitioner.partition(dataset, seed=2, **kwargs)
         values_a = [_values(ds) for ds in datasets_a]
@@ -111,13 +124,13 @@ class MixingPartitionerTest(unittest.TestCase):
         """Check raises TypeError when p1 is not a DataPartitioner subclass."""
         dataset = _dummy_dataset(100)
         with self.assertRaises(TypeError):
-            MixingPartitioner.partition(dataset, n=10, p1=object, p2=IidPartitioner, gamma=0.5)  # type: ignore[arg-type]
+            MixingPartitioner.partition(dataset, n=10, p1=object, p2=IidPartitioner, gamma=0.5)  # ty:ignore[invalid-argument-type]
 
     def test_rejects_non_partitioner_p2(self) -> None:
         """Check raises TypeError when p2 is not a DataPartitioner subclass."""
         dataset = _dummy_dataset(100)
         with self.assertRaises(TypeError):
-            MixingPartitioner.partition(dataset, n=10, p1=IidPartitioner, p2=object, gamma=0.5)  # type: ignore[arg-type]
+            MixingPartitioner.partition(dataset, n=10, p1=IidPartitioner, p2=object, gamma=0.5)  # ty:ignore[invalid-argument-type]
 
 
 if __name__ == "__main__":
