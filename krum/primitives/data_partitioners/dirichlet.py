@@ -1,11 +1,11 @@
 """Dirichlet dataset partitioning: per-class label-skew split."""
 
-from typing import Any, Sized, cast
+from typing import Any
 
 import torch
 from torch.utils.data import Dataset, Subset
 
-from . import DataPartitioner
+from . import DataPartitioner, _extract_labels
 
 
 class DirichletPartitioner(DataPartitioner):
@@ -68,7 +68,7 @@ class DirichletPartitioner(DataPartitioner):
         if alpha <= 0:
             raise ValueError(f"Invalid alpha, got {alpha=!r}, expected alpha > 0")
 
-        labels = cls._extract_labels(dataset)
+        labels = _extract_labels(dataset)
         classes = torch.unique(labels)
         if classes.numel() == 0:
             # torch.distributions.Dirichlet rejects a zero-sized batch dimension
@@ -120,23 +120,3 @@ class DirichletPartitioner(DataPartitioner):
             torch.manual_seed(seed)
             concentration = torch.full((num_classes, n), alpha, dtype=torch.float64)
             return torch.distributions.Dirichlet(concentration).sample()
-
-    @staticmethod
-    def _extract_labels(dataset: Dataset[Any]) -> torch.Tensor:
-        """Read the per-sample class label of every example in ``dataset``.
-
-        Uses ``dataset.targets`` when available (as for the torchvision
-        datasets), avoiding a full pass through ``__getitem__`` (which
-        would needlessly apply any configured transform). Falls back to
-        indexing every sample otherwise.
-
-        Args:
-            dataset: Dataset to read labels from.
-
-        Returns:
-            1-D tensor of length ``len(dataset)`` with one label per sample.
-        """
-        targets = getattr(dataset, "targets", None)
-        if targets is not None:
-            return torch.as_tensor(targets)
-        return torch.tensor([dataset[i][1] for i in range(len(cast(Sized, dataset)))])

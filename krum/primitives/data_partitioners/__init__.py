@@ -19,8 +19,9 @@ partitioner-specific hyperparameters are keyword-only.
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Sized, cast
 
+import torch
 from torch.utils.data import Dataset
 
 
@@ -61,3 +62,25 @@ class DataPartitioner(ABC):
             NotImplementedError: If the subclass does not implement this method.
         """
         raise NotImplementedError
+
+
+def _extract_labels(dataset: Dataset[Any]) -> torch.Tensor:
+    """Read the per-sample class label of every example in ``dataset``.
+
+    Uses ``dataset.targets`` when available (as for the torchvision
+    datasets), avoiding a full pass through ``__getitem__`` (which would
+    needlessly apply any configured transform). Falls back to indexing
+    every sample otherwise. Shared by every label-aware partitioner (e.g.
+    :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`,
+    :class:`~krum.primitives.data_partitioners.per_labels.PerLabelsPartitioner`).
+
+    Args:
+        dataset: Dataset to read labels from.
+
+    Returns:
+        1-D tensor of length ``len(dataset)`` with one label per sample.
+    """
+    targets = getattr(dataset, "targets", None)
+    if targets is not None:
+        return torch.as_tensor(targets)
+    return torch.tensor([dataset[i][1] for i in range(len(cast(Sized, dataset)))])
