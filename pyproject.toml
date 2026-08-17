@@ -72,10 +72,6 @@ include = ["krum", "tests"]
 where = ["."]
 include = ["krum*"]
 
-# Include C++ / CUDA headers and build artefacts in the native extension
-[tool.setuptools.package-data]
-"krum.native" = ["**/*.hpp", "**/*.cpp", "**/*.cu", "**/*.h", "**/*.deps", "**/.placeholder"]
-
 # ── Linter & formatter (ruff)
 [tool.ruff]
 target-version = "py310"
