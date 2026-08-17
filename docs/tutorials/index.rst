@@ -3,8 +3,9 @@ Tutorials
 
 Step-by-step guides to help you get the most out of Krum.
 
-Start with :doc:`using_aggregators_attacks` and
-:doc:`working_with_models` to learn the basics. Next,
+Start with :doc:`using_aggregators_attacks`,
+:doc:`working_with_models` and :doc:`working_with_data_partitioners` to
+learn the basics. Next,
 :doc:`implement_aggregator` and :doc:`implement_attack` show you how to
 extend Krum. Then run full simulations with
 :doc:`centralised_simulation_walkthrough` or
@@ -20,6 +21,7 @@ Available Tutorials
 
    using_aggregators_attacks
    working_with_models
+   working_with_data_partitioners
    implement_aggregator
    implement_attack
    centralised_simulation_walkthrough
@@ -27,7 +29,7 @@ Available Tutorials
    structured_experiments
 
 Detailed Tutorials
------------------
+------------------
 
 .. list-table::
    :widths: 25 75
@@ -43,6 +45,12 @@ Detailed Tutorials
        standard models from the literature (Krum NIPS 2017, MONNA ICML 2023).
 
        See :doc:`/reference/primitives/models/index`.
+   * - :doc:`working_with_data_partitioners`
+     - The ``DataPartitioner`` family: IID shards, Dirichlet label skew,
+       sort-by-label interpolation, and mixing any two partitioners, plus
+       wiring them into a simulation.
+
+       See :doc:`/reference/primitives/data_partitioners/index`.
    * - :doc:`implement_aggregator`
      - Subclass ``Aggregator`` and implement ``aggregate``, with tests.
        Build from gradients-only to fully parameterised.
