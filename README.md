@@ -4,7 +4,8 @@
 
 Krum provides a modular framework for implementing, comparing, and evaluating
 Byzantine-resilient Gradient Aggregation Rules (GARs) for distributed learning.
-It ships with state-of-the-art aggregation rules and attack strategies.
+It ships with state-of-the-art aggregation rules, attack strategies, and
+IID/non-IID data partitioning.
 
 ## Documentation
 
@@ -30,6 +31,28 @@ naive = Average.aggregate(gradients)
 
 print(f"Krum result norm:   {robust.norm().item():.4f}")
 print(f"Average result norm: {naive.norm().item():.4f}")
+```
+
+### Partitioning data across workers
+
+```python
+import torch
+from torch.utils.data import TensorDataset
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
+from krum.primitives.data_partitioners.iid import IidPartitioner
+
+# 1000 synthetic samples, 10 classes
+X = torch.randn(1000, 4)
+y = torch.randint(0, 10, (1000,))
+dataset = TensorDataset(X, y)
+
+# Dirichlet label skew across 10 workers (non-IID)
+workers = DirichletPartitioner.partition(dataset, n=10, alpha=0.5, seed=42)
+
+# IID baseline
+iid_workers = IidPartitioner.partition(dataset, n=10, seed=42)
+
+print([len(w) for w in workers])
 ```
 
 ## Installation
@@ -87,10 +110,14 @@ This installs all linting, type-checking, and documentation tools.
 - **8 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
   Bulyan, Brute, GeoMed
 - **5 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoSmallPerturbation
+- **Data partitioning**: IID and non-IID per-worker splits via a single
+  `DataPartitioner` interface — `IidPartitioner`, `DirichletPartitioner`,
+  `PerLabelsPartitioner`, `MixingPartitioner` — returning one
+  `Sequence[Dataset]` per worker from a stateless `partition()` classmethod
 - **Zero-copy model wrapper**: Flat parameter/gradient views via
   `krum.primitives.Model`
-- **Stateless design**: Aggregators and attacks are classmethods, no
-  instantiation needed
+- **Stateless design**: Aggregators, attacks, and partitioners are
+  classmethods, no instantiation needed
 
 ## Contributing
 
