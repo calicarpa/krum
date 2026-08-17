@@ -1,4 +1,11 @@
-"""IID dataset partitioning: shuffle, then split into equal-size shards."""
+"""IID dataset partitioning: shuffle, then split into equal-size shards.
+
+Reference:
+    Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
+    "Communication-Efficient Learning of Deep Networks from Decentralized Data."
+    In Proceedings of the 20th International Conference on Artificial Intelligence
+    and Statistics (AISTATS 2017).
+"""
 
 from typing import Any, Sized, cast
 
@@ -11,10 +18,9 @@ from . import DataPartitioner
 class IidPartitioner(DataPartitioner):
     """IID partitioner: shuffle the dataset, then split into ``n`` equal shards.
 
-    Matches the IID baseline of McMahan et al. (AISTATS 2017): the dataset
-    is shuffled and cut into ``n`` equal-size, disjoint, uniformly random
-    shards, one per worker. Any remainder (``len(dataset) % n`` samples) is
-    dropped.
+    The dataset is shuffled and cut into ``n`` equal-size, disjoint,
+    uniformly random shards, one per worker. Any remainder
+    (``len(dataset) % n`` samples) is dropped.
     """
 
     @classmethod
@@ -44,7 +50,8 @@ class IidPartitioner(DataPartitioner):
                 fewer than ``n`` samples.
         """
         if n < 1:
-            raise ValueError(f"Invalid number of workers, got {n=!r}, expected n >= 1")
+            msg = f"Invalid number of workers, got {n=!r}, expected n >= 1"
+            raise ValueError(msg)
 
         dataset_size = len(cast(Sized, dataset))
         if 0 < dataset_size < n:

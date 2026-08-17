@@ -1,4 +1,10 @@
-"""Dirichlet dataset partitioning: per-class label-skew split."""
+"""Dirichlet dataset partitioning: per-class label-skew split.
+
+Reference:
+    Tzu-Ming Harry Hsu, Hang Qi, and Matthew Brown. "Measuring the Effects of
+    Non-Identical Data Distribution for Federated Visual Classification." In
+    NeurIPS Workshop on Federated Learning (2019).
+"""
 
 from typing import Any
 
@@ -21,9 +27,7 @@ class DirichletPartitioner(DataPartitioner):
     :math:`\alpha` controls the skew: as :math:`\alpha \to \infty`, every
     :math:`p_k` collapses to :math:`(1/n, \dots, 1/n)` (near-IID); as
     :math:`\alpha \to 0`, every :math:`p_k` collapses to a one-hot vector
-    (each class goes almost entirely to a single worker). Matches the
-    scheme of Hsu, Qi & Brown (2019), "Measuring the Effects of
-    Non-Identical Data Distribution for Federated Visual Classification".
+    (each class goes almost entirely to a single worker).
 
     A worker can legitimately end up with zero samples of a class, or
     (for small enough :math:`\alpha` and small :math:`n`) even zero samples
@@ -64,9 +68,11 @@ class DirichletPartitioner(DataPartitioner):
             ValueError: If ``n < 1`` or ``alpha <= 0``.
         """
         if n < 1:
-            raise ValueError(f"Invalid number of workers, got {n=!r}, expected n >= 1")
+            msg = f"Invalid number of workers, got {n=!r}, expected n >= 1"
+            raise ValueError(msg)
         if alpha <= 0:
-            raise ValueError(f"Invalid alpha, got {alpha=!r}, expected alpha > 0")
+            msg = f"Invalid alpha, got {alpha=!r}, expected alpha > 0"
+            raise ValueError(msg)
 
         labels = _extract_labels(dataset)
         classes = torch.unique(labels)

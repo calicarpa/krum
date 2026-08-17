@@ -46,14 +46,14 @@ class DataPartitioner(ABC):
         seed: int = 42,
         **specialized: Any,
     ) -> Sequence[Dataset[Any]]:
-        """Split ``dataset`` into ``n`` per-worker datasets.
+        r"""Split ``dataset`` into ``n`` per-worker datasets.
 
         Args:
             dataset: Full dataset to partition across workers.
             n: Number of workers to split the dataset across.
             seed: Random seed for reproducibility.
             **specialized: Keyword-only arguments specific to each
-                partitioning strategy.
+                partitioning strategy (e.g. :math:`\alpha` for label skew).
 
         Returns:
             Sequence of ``n`` datasets, one per worker.
