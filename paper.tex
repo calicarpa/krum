@@ -1,0 +1,928 @@
+\documentclass[twoside,11pt]{article}
+
+\usepackage{blindtext}
+
+% Any additional packages needed should be included after jmlr2e.
+% Note that jmlr2e.sty includes epsfig, amssymb, natbib and graphicx,
+% and defines many common macros, such as 'proof' and 'example'.
+%
+% It also sets the bibliographystyle to plainnat; for more information on
+% natbib citation styles, see the natbib documentation, a copy of which
+% is archived at http://www.jmlr.org/format/natbib.pdf
+
+% Available options for package jmlr2e are:
+%
+%   - abbrvbib : use abbrvnat for the bibliography style
+%   - nohyperref : do not load the hyperref package
+%   - preprint : remove JMLR specific information from the template,
+%         useful for example for posting to preprint servers.
+%
+% Example of using the package with custom options:
+%
+% \usepackage[abbrvbib, preprint]{jmlr2e}
+
+\usepackage[preprint]{jmlr2e}
+\usepackage{xcolor}
+% \usepackage[suppress]{color-edits} % Without comments
+ \usepackage{color-edits}           % With comments
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}
+
+\addauthor{pbl}{red}
+\addauthor{seb}{blue}
+\addauthor{arthur}{teal}
+\addauthor{ammar}{brown}
+\addauthor{elm}{cyan}
+
+% Definitions of handy macros can go here
+
+
+
+% Heading arguments are {volume}{year}{pages}{date submitted}{date published}{paper id}{author-full-names}
+
+\usepackage{lastpage}
+\jmlrheading{23}{2026}{1-\pageref{LastPage}}{1/21; Revised 5/22}{9/22}{21-0000}{Co-authors of Krum, the library}
+
+% Short headings should be running head and authors last names
+
+\ShortHeadings{}{}
+\firstpageno{1}
+
+\begin{document}
+
+\title{Krum, the library}
+
+\author{
+    \name Sébastien Rouault \email sebastien@calicarpa.com \\
+    \AND
+    \name Arthur Danjou \email ToDo \\
+    \AND
+    \name Mohammad Ammar Said \email ToDo \\
+    \AND
+    \name Peva Blanchard \email ToDo \\
+    \AND
+    \name El Mahdi El Mhamdi \email ToDo}
+
+\editor{My editor}
+
+\maketitle
+
+\begin{abstract}%   <- trailing '%' for backward compatibility of .sty file
+
+\arthurcomment{
+\textbf{Abstract}:
+\begin{itemize}
+    \item What: Krum is a Python library for Byzantine-resilient distributed ML built on PyTorch
+    \begin{itemize}
+        \item Open-source, released under the MIT license
+        \item Available at \url{https://github.com/calicarpa/krum}
+        \item Target audience: researchers in Byzantine-resilient distributed machine learning
+        \item Goal: make experiments easy to set up, extend, and reproduce
+    \end{itemize}
+    \item Why this library is needed
+    \begin{itemize}
+        \item Robust ML research requires running many (up to thousands of) experiment simulations
+        \item The number of experimental parameters grows: model architecture, dataset, number of workers, number of Byzantine workers, communication topology, attack strategy, aggregation rule, learning rate schedule, initialization scheme, ...
+        \item Each paper makes distinct implementation choices that are rarely isolated in reusable components
+        \item Reproducing results across different papers becomes increasingly difficult
+        \item Existing libraries each cover only part of the stack: some offer aggregators without attacks or simulation harnesses, others focus on a single protocol
+        \item None provides a unified framework spanning aggregation rules, attacks, experimental protocols, and parameter-sweep orchestration
+    \end{itemize}
+    \item What it contains
+    \begin{itemize}
+        \item Primitives
+        \begin{itemize}
+            \item 10 aggregation rules: Average, Median, TrimmedMean, Krum, MultiKrum, Bulyan, Brute, GeoMed, Aksel, NearestNeighborAverage
+            \item 5 attacks: SignFlip, ALIE, Gaussian, FullGradientNegation, SmallPerturbation
+            \item Model wrapper providing zero-copy flat tensor views of parameters and gradients (shares memory with the underlying torch module)
+            \item Standard architectures from the literature: Krum2017CNN, Monna2023CNNMnist, ...
+            \item Management of i.i.d. and non-i.i.d. data partitioning scenarios
+            \item Stateless classmethod interface with consistent signature for aggregators and attacks
+            \item Extensibility via abstract base classes (Aggregator, Attack) with a single method to override
+        \end{itemize}
+        \item Simulations
+        \begin{itemize}
+            \item Faithful reproductions of experimental protocols from seminal papers
+            \item Centralized (parameter server) and decentralized (peer-to-peer) topologies
+            \item NeurIPS 2017 Krum protocol: synchronous rounds, fixed learning rate, no scheduler
+            \item ICML 2018 hidden vulnerability protocol: Robbins-Monro schedule $\eta(t) = r_\eta \cdot \eta_0 / (t + r_\eta)$, L2 regularization $10^{-4}$, Xavier initialization
+            \item ICML 2023 MoNNA protocol: local momentum SGD + nearest neighbor average over the $n - 2f$ closest models, with all/sampled Byzantine reach modes
+        \end{itemize}
+        \item Orchestration (key differentiator)
+        \begin{itemize}
+            \item Declare experiment parameters programmatically (aggregator, attack, dataset, model, hyperparameters)
+            \item Collect typed metrics over time (loss, accuracy, round number)
+            \item Produce pandas DataFrames from full parameter sweeps
+            \item Accepts user-defined experiment functions
+            \item Re-run only modified or failed experiments
+            \item Scales to thousands of experiment simulations with full reproducibility
+            \item Programmatic Python API vs JSON configuration files (ByzFL) or CLI (FL-Byz-Lib)
+        \end{itemize}
+    \end{itemize}
+    \item What it interfaces with: faithful reproductions of NeurIPS 2017, ICML 2018, ICML 2023 protocols + orchestration API
+    \item License + repo: MIT license, available at \url{https://github.com/calicarpa/krum}
+\end{itemize}
+}
+
+\end{abstract}
+
+\begin{keywords}
+distributed learning, Byzantine fault tolerance, reproducibility, experiment orchestration, PyTorch
+\end{keywords}
+
+\section{Introduction}
+
+\pblcomment{
+\begin{itemize}
+    \item Introduction: intention, ease realisation of experiments in robust machine learning, open-source (MIT license) lib
+    \item The problem
+        \begin{itemize}
+            \item Managing lots (up to 1000's) experiment simulations
+            \begin{itemize}
+                \item Research requires iterating a lot
+                \item and results to be reproducible
+            \end{itemize}
+            \item Researcher in byz ml has everything available at hand
+            \item Integrated to pytorch \sebcomment{risk of confusion as ``Pytorch integrated our code in their mainline''}
+            \item support past and (most importantly) future research experiments
+        \end{itemize}
+    \item Our solution
+    \begin{itemize}
+        \item for the past: explain how primitives, simulations, orchestration help solve the problem
+        \begin{itemize}
+            \item orchestration takes a user-defined function
+        \end{itemize}
+        \item for the future: easy to extend, easy to customize
+        \item well-documented: explicit ref to papers, tutorials
+    \end{itemize}
+    \item Comparison to other libs
+    \begin{itemize}
+        \item on par with attacks and aggregators
+        \item competitive advantage: orchestration
+    \end{itemize}
+\end{itemize}
+}
+
+\arthurcomment{
+\textbf{Introduction}:
+\begin{itemize}
+    \item Introduction: intention and positioning of the paper
+    \begin{itemize}
+        \item Ease the realisation of experiments in robust machine learning
+        \item Open-source library, released under the MIT license
+        \item Contribution: organise the full range of aggregation rules, attacks, experimental protocols, and parameter-sweep orchestration into a single codebase
+    \end{itemize}
+    \item The problem
+    \begin{itemize}
+        \item Managing lots (up to 1000's) of experiment simulations
+        \begin{itemize}
+            \item Research requires iterating a lot
+            \item Results must be reproducible
+            \item Manual bookkeeping of parameters and metrics does not scale
+        \end{itemize}
+        \item The Byzantine-ML researcher has everything available at hand
+        \begin{itemize}
+            \item Deep learning frameworks (PyTorch) for training and models
+            \item Datasets and standard architectures
+            \item Rich landscape of aggregation rules, attacks, theoretical guarantees
+        \end{itemize}
+        \item The field has matured: the number of experimental parameters grows
+        \begin{itemize}
+            \item Model architecture, dataset, number of workers, number of Byzantine workers
+            \item Communication topology, attack strategy, aggregation rule
+            \item Learning rate schedule, initialization scheme, ...
+        \end{itemize}
+        \item Reproducing results across different papers becomes increasingly difficult
+        \begin{itemize}
+            \item Each paper makes distinct implementation choices
+            \item These choices are rarely isolated in reusable components
+        \end{itemize}
+        \item Existing libraries address parts of the problem, but each has its own scope and design philosophy
+        \begin{itemize}
+            \item Some offer a collection of aggregation rules without attacks or simulation harnesses
+            \item Others focus on a single protocol
+            \item None, to our knowledge, provides a unified framework spanning aggregation rules, attacks, experimental protocols, and parameter-sweep orchestration
+        \end{itemize}
+        \item Support past and (most importantly) future research experiments
+        \item Integrated to pytorch \sebcomment{risk of confusion as ``PyTorch integrated our code in their mainline''}
+    \end{itemize}
+    \item Our solution: Krum, a Python library for Byzantine-resilient distributed ML built on PyTorch, organized in three layers
+    \begin{itemize}
+        \item for the past: primitives, simulations, orchestration help solve the problem
+        \begin{itemize}
+            \item Primitives: comprehensive collection of gradient aggregation rules (10), attacks (5), data partitioners (IID and non-IID), model wrapper with zero-copy flat tensor views
+            \item Simulations: faithful reproductions of experimental protocols
+            \begin{itemize}
+                \item NIPS 2017 parameter-server protocol
+                \item ICML 2018 hidden-vulnerability protocol
+                \item ICML 2023 decentralized MoNNA protocol
+            \end{itemize}
+            \item Orchestration: accept user-defined experiment functions, track parameters and metrics
+            \begin{itemize}
+                \item Declare experiment parameters programmatically
+                \item Collect typed metrics over time
+                \item Produce pandas DataFrames from full parameter sweeps
+                \item Automatically tracks all run parameters
+                \item Enables managing thousands of experiments with full reproducibility
+                \item Programmatic Python API rather than configuration files
+            \end{itemize}
+        \end{itemize}
+        \item for the future: easy to extend, easy to customize
+        \begin{itemize}
+            \item Combine any aggregation rule with any attack within a simulation faithful to a specific paper
+            \item Sweep over hyperparameters in a reproducible way
+            \item New aggregation rules, attacks, or protocols without modifying the orchestration code
+        \end{itemize}
+        \item Well-documented: explicit reference to papers, tutorials
+        \item Open-source: source code and tutorials at \url{https://github.com/calicarpa/krum}
+    \end{itemize}
+    \item Comparison to other libraries
+    \begin{itemize}
+        \item On par for attacks and aggregators (10 aggregators, 5 attacks)
+        \item Competitive advantage: orchestration layer
+        \begin{itemize}
+            \item Accepts user-defined experiment functions
+            \item Automatically tracks parameters and metrics
+            \item Scales to thousands of experiments
+        \end{itemize}
+        \item Limitations: fewer aggregators than FL-Byz-Lib (36) and ByzFL (12 + 4 pre), no pre-aggregators, sequential synchronous execution
+    \end{itemize}
+    \item Paper outline
+    \begin{itemize}
+        \item The library's design and features (Section~\ref{sec:library}, primitives / simulations / orchestration / engineering)
+        \item A comparison to related software (Section~\ref{sec:comparison})
+        \item Conclusion (Section~\ref{sec:conclusion})
+    \end{itemize}
+\end{itemize}
+}
+
+\pblcomment{
+todo: sota of existing libs
+\begin{itemize}
+    \item byzfl
+\end{itemize}
+}
+
+\arthurcomment{
+cf: \href{https://github.com/calicarpa/krum/tree/53-notes-sota-analysis-benchmark-krum-against-byzfl-fedlab-and-related-libraries/notes}{Notes SOTA}
+}
+
+Byzantine-resilient distributed machine learning has produced a rich
+landscape of gradient aggregation rules, attack strategies, and
+theoretical guarantees over the past decade.  As the field matures,
+however, the number of experimental parameters
+grows, such as model architecture, dataset, number of workers, number of
+Byzantine workers, communication topology, attack strategy, aggregation
+rule, learning rate schedule, initialization scheme, and so on.
+Reproducing results across different papers becomes increasingly
+difficult: each paper makes distinct implementation choices that are
+rarely isolated in reusable components.
+
+Existing software libraries address parts of this challenge, but each has
+its own scope and design philosophy.  Some offer a collection of
+aggregation rules without attacks or simulation harnesses; others focus
+on a single protocol.  None, to our knowledge, provides a unified
+framework that spans the full range of aggregation rules, attacks,
+experimental protocols, and parameter-sweep orchestration.
+
+We introduce {\bf Krum}, a Python library for Byzantine-resilient
+distributed machine learning built on PyTorch.  Krum organizes its
+functionality into three layers:
+\begin{enumerate}
+  \item {\bf Primitives.} A comprehensive collection of gradient
+    aggregation rules (Average, Median, TrimmedMean, Krum, MultiKrum,
+    Bulyan, Brute, GeoMed, Aksel, NearestNeighborAverage), attacks
+    (SignFlip, ALIE, Gaussian, FullGradientNegation, SmallPerturbation),
+    and a model wrapper that provides zero-copy flat tensor views of
+    parameters and gradients.
+  \item {\bf Simulations.} Faithful reproductions of experimental
+    protocols from seminal papers, including the NIPS~2017
+    parameter-server protocol~\cite{blanchard2017machine}, the ICML~2018
+    hidden-vulnerability protocol~\cite{elmhamdi2018hidden}, and the
+    ICML~2023 decentralized MoNNA protocol~\cite{farhadkhani2023monna}.
+  \item {\bf Orchestration.} A lightweight system for declaring
+    experiment parameters, collecting typed metrics over time, and
+    producing pandas DataFrames from full parameter sweeps. \arthurcomment{to adapt to orchestration v2}
+\end{enumerate}
+Krum is designed for researchers working on Byzantine-resilient
+distributed machine learning.  Its three-layer architecture makes it
+straightforward to combine any aggregation rule with any attack within a
+simulation faithful to a specific paper, and to sweep over
+hyperparameters in a reproducible way. The orchestration layer is a key differentiator: it accepts user-defined experiment functions and automatically tracks all parameters and metrics, enabling researchers to manage thousands of experiment simulations with full reproducibility. This programmatic approach contrasts with configuration-file-based alternatives and makes it trivial to extend experiments to new aggregation rules, attacks, or protocols without modifying the orchestration code.
+
+Krum is open-source software released under the MIT license.  Its source
+code, documentation and tutorials are publicly available at
+\url{https://github.com/calicarpa/krum}.  The remainder of this paper
+presents the library's design and features
+(Section~\ref{sec:library}) and a comparison to related software
+(Section~\ref{sec:comparison}), and concludes in
+Section~\ref{sec:conclusion}.
+
+% State of the art:
+% - 
+% - FedLab: A Flexible Federated Learning Framework
+% - ByzFL: ...
+
+% To prepare: delta with ByzFL
+
+\section{The Krum Library}
+\label{sec:library}
+
+\subsection{Primitives}
+
+\arthurcomment{
+A table summarizing the whole library's features and the motivation of choice of ADR.
+
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{5.6cm} >{\raggedright\arraybackslash}p{4.8cm}}
+    \toprule
+    \textbf{Feature} & \textbf{What it does} & \textbf{Motivation / ADR} \\
+    \midrule
+    Stateless primitives (aggregators, attacks) & Rules invoked via \texttt{@classmethod}, no instance state, no hidden parameters & Composition and functional reuse; no object lifecycle to manage \\
+    Zero-copy \texttt{Model} wrapper & Flat 1-D tensor views of parameters and gradients sharing memory with the underlying \texttt{nn.Module}; write back unpacks to per-param \texttt{.grad} in place & No per-round gradient copies or allocation overhead; \texttt{relink\_*()} restore shared storage after \texttt{zero\_grad(set\_to\_none=True)} \\
+    Fully-typed classes with \texttt{\_\_slots\_\_} & Instantiable primitives declare \texttt{\_\_slots\_\_} and member type \texttt{\_\_annotations\_\_} & Memory efficiency and type safety for end users \\
+    Stateless signature with keyword-only hyperparams & $f$, $n$, $m$ are keyword-only for every aggregator/attack & Uniform API, prevents positional mistakes \\
+    Abstract base classes \texttt{Aggregator}, \texttt{Attack} & Single abstract method (\texttt{aggregate} / \texttt{generate}) to override; base classes handle out buffers and specialized kwargs & Extension without touching simulations \\
+    Faithful simulations of papers & Exact LR schedule, init, weight decay, metrics per paper (NIPS 2017, ICML 2018, ICML 2023) & Reproducibility; a curated reproduction suite, not a generic FL loop \\
+    Decentralised (P2P) simulations & MoNNA protocol, Byzantine reach modes \texttt{all} / \texttt{sampled} & Only library with built-in P2P Byzantine resilience \\
+    Simulations take \texttt{Sequence[Dataset]} & Both centralised and decentralised simulations accept per-worker datasets & Data partitioning is the caller's responsibility; consistent data contract (ADR 2026-08-07) \\
+    Data partitioners & \texttt{IidPartitioner}, \texttt{PerLabelsPartitioner}, \texttt{DirichletPartitioner}, \texttt{MixingPartitioner} behind \texttt{DataPartitioner.partition()} & i.i.d and non-i.i.d scenarios with a single seam (ADR 2026-08-07) \\
+    Lightweight orchestration & \texttt{Orchestrator.run()} resolves runs against function signatures; \texttt{Metric.push()} tags data with current parameters & Simple in-memory MVP, no persistence in v0.1 (ADR 2026-06-12) \\
+    pandas.DataFrame output & Metrics returned as \texttt{pd.DataFrame}; slicing, groupby, plotting for free & Leverage battle-tested pandas instead of a custom \texttt{MetricDataFrame} (ADR 2026-06-12-design) \\
+    Fail-fast runs & If one run in a sweep fails, the whole orchestration fails loudly & No silent partial results (ADR 2026-06-19) \\
+    Re-run modified or failed runs & Orchestration tracks parameter/experiment fingerprints & Only invalidated runs are re-executed (planned for v2) \\
+    ADR documentation & Design decisions recorded as dated markdown notes under \texttt{notes/} & Traceability of every design choice \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\footnotesize ADR = architecture decision record; ADR files live under \texttt{notes/adr-*.md}.
+}
+
+
+
+\arthurcomment{
+\textbf{Section 2.1 Primitives}:
+\begin{itemize}
+    \item Intro: the \texttt{primitives} package provides three stateless building blocks for Byzantine-resilient distributed learning
+    \begin{itemize}
+        \item Stateless: no instance state, no hidden parameters
+        \item Built on PyTorch tensors
+    \end{itemize}
+    \item Building block 1: Aggregators (10)
+    \begin{itemize}
+        \item What: gradient aggregation rules taking one gradient per worker and producing a single aggregated gradient robust to up to $f$ Byzantine outliers
+        \item Concrete rules
+        \begin{itemize}
+            \item Average
+            \item Median
+            \item Trimmed Mean
+            \item Krum
+            \item Multi Krum
+            \item Bulyan
+            \item Brute
+            \item GeoMed
+            \item Aksel
+            \item Nearest Neighbor Average
+        \end{itemize}
+        \item Design: stateless classmethod invoked directly on the class
+        \item Specialized hyperparameters such as $f$, $n$, and $m$ are keyword only
+        \item Short example
+        \begin{itemize}
+            \item \texttt{from krum.primitives.aggregators import Krum}
+            \item \texttt{aggregated = Krum.aggregate(gradients, f=2, n=10)}
+        \end{itemize}
+        \item See Appendix~\ref{app:algorithms} for mathematical definitions and references to the original papers
+    \end{itemize}
+    \item Building block 2: Attacks (5)
+    \begin{itemize}
+        \item Definition: Byzantine attack strategies that generate adversarial gradients from the honest workers' gradients
+        \item Concrete strategies
+        \begin{itemize}
+            \item Sign flip (negation of the honest gradient)
+            \item ALIE (alignment attack)
+            \item Gaussian (gradients drawn from a Gaussian centered on the honest mean)
+            \item Full gradient negation
+            \item Small perturbation
+        \end{itemize}
+        \item Design: same stateless classmethod convention as aggregators (one \texttt{generate} method)
+    \end{itemize}
+    \item Building block 3: Model wrapper
+    \begin{itemize}
+        \item \texttt{Model} class wraps any \texttt{torch.nn.Module}
+        \item Flat tensor views of parameters and gradients with zero copy
+        \begin{itemize}
+            \item Reading \texttt{model.parameters} or \texttt{model.gradients} returns a 1-D tensor of shape $(d,)$ that shares memory with the underlying module
+            \item Writing to \texttt{model.gradients} unpacks the flat vector back into each parameter gradient in place
+            \item No data copy between the wrapper and the module
+        \end{itemize}
+        \item Provides standard architectures from the literature
+        \begin{itemize}
+            \item Krum2017MLPMnist, Krum2017MLPSpambase, Krum2017CNN (NIPS 2017 protocols)
+            \item Monna2023SmallMnist, Monna2023CNNMnist, Monna2023CNNCifar10 (ICML 2023 MoNNA protocol)
+        \end{itemize}
+    \end{itemize}
+    \item Data partitioning: management of i.i.d and non-i.i.d scenarios via \texttt{IidPartitioner}, \texttt{PerLabelsPartitioner}, \texttt{DirichletPartitioner}, \texttt{MixingPartitioner}
+    \item Extensibility
+    \begin{itemize}
+        \item \texttt{Aggregator} and \texttt{Attack} are abstract base classes
+        \item Each requires a single classmethod to override: \texttt{aggregate} for aggregators, \texttt{generate} for attacks
+        \item Researchers implement custom rules or strategies by inheriting and overriding the single abstract method
+        \item The base classes enforce a consistent signature and handle the plumbing: out buffers, specialized kwargs
+        \item Extensions integrate seamlessly with the simulation layer
+    \end{itemize}
+    \item Value story for the paper: a table summarizing the whole library's features and the motivation for design choices (ADR)
+\end{itemize}
+}
+
+The \texttt{primitives} package provides three stateless building blocks for Byzantine-resilient distributed learning:
+
+\paragraph{Aggregators (10).}
+Gradient aggregation rules that take one gradient per worker and produce a single aggregated gradient robust to up to $f$ Byzantine outliers. Krum implements Average, Median, Trimmed Mean, Krum, Multi Krum, Bulyan, Brute, GeoMed, Aksel, and Nearest Neighbor Average. Each rule is a stateless classmethod invoked directly on the class without instance state or hidden parameters. Specialized hyperparameters such as $f$, $n$, and $m$ are keyword only:
+\begin{verbatim}
+from krum.primitives.aggregators import Krum
+aggregated = Krum.aggregate(gradients, f=2, n=10)
+\end{verbatim}
+
+\paragraph{Attacks (5).}
+Byzantine attack strategies that generate adversarial gradients from the honest workers' gradients. Krum implements sign flip, ALIE, Gaussian, full gradient negation, and small perturbation attacks. Attacks follow the same stateless classmethod convention as aggregators.
+
+\paragraph{Model wrapper.}
+The Model class wraps any torch.nn.Module and provides flat tensor views of parameters and gradients without copying. Reading model.parameters or model.gradients returns a one dimensional tensor of shape $(d,)$ that shares memory with the underlying module. Writing to model.gradients unpacks the flat vector back into each parameter gradient in place. Krum also provides standard architectures from the literature such as Krum2017CNN and Monna2023CNNMnist for the simulation protocols below.
+
+\arthurcomment{
+\textbf{Data partitioning}:
+\begin{itemize}
+    \item Goal: distribute the training data across workers, identically or not
+    \begin{itemize}
+        \item Partitioning is the caller's responsibility, before constructing a simulation
+        \item One seam: \texttt{DataPartitioner.partition(dataset, /, *, n, seed, **specialized)}
+        \item Returns \texttt{Sequence[Dataset]}, one per worker; batching is the simulation's job
+    \end{itemize}
+    \item Four strategies, same stateless classmethod convention as aggregators and attacks
+    \begin{itemize}
+        \item \texttt{IidPartitioner}: shuffle, then split into equal-size shards
+        \item \texttt{PerLabelsPartitioner}: sort by label, shard with granularity controlled by $\lambda \in [0,1]$; $\lambda = 1$ recovers IID, $\lambda = 0$ is pathological label skew
+        \item \texttt{DirichletPartitioner}: per-class $\mathrm{Dirichlet}(\alpha)$ proportion vectors, from near-IID to extreme imbalance
+        \item \texttt{MixingPartitioner}: interpolate between any two partitioners via a $\gamma \in [0,1]$ split
+    \end{itemize}
+    \item Example
+    \begin{itemize}
+        \item \texttt{from krum.primitives.data\_partitioners.dirichlet import DirichletPartitioner}
+        \item \texttt{worker\_datasets = DirichletPartitioner.partition(train\_set, n=n, alpha=0.5, seed=42)}
+    \end{itemize}
+\end{itemize}
+}
+
+\paragraph{Extensibility.}
+Both Aggregator and Attack are abstract base classes with a single required classmethod (aggregate for aggregators, generate for attacks). Researchers can implement custom aggregation rules or attack strategies by inheriting from these interfaces and overriding the single abstract method. The base classes enforce a consistent signature and handle the plumbing (out buffers, specialized kwargs), so extensions integrate seamlessly with the simulation layer.
+
+\subsection{Simulations}
+
+\arthurcomment{
+\textbf{Section 2.2 Simulations}:
+\begin{itemize}
+    \item Goal: faithful reproductions of experimental protocols from seminal papers
+    \begin{itemize}
+        \item Three protocols: NIPS 2017, ICML 2018, ICML 2023
+        \item Reproduce the exact experimental setup of each paper so results are comparable
+        \item Distinguishing feature vs competitors: faithful, paper-by-paper protocols
+    \end{itemize}
+    \item Topologies
+    \begin{itemize}
+        \item Centralised: parameter server aggregates the $n$ worker gradients
+        \item Decentralised: peer-to-peer, no parameter server
+    \end{itemize}
+    \item Protocol 1: NIPS 2017 Krum simulation \citep{blanchard2017machine}
+    \begin{itemize}
+        \item One configuration: aggregator, attack, dataset, model
+        \item Run over multiple synchronous rounds
+        \item Fixed learning rate, no scheduler
+        \item Metrics reported: misclassification error and cross entropy loss on the test set
+        \item Reproduces the experimental protocol of the original Krum paper
+    \end{itemize}
+    \item Protocol 2: ICML 2018 Hidden Vulnerability simulation \citep{elmhamdi2018hidden}
+    \begin{itemize}
+        \item Synchronous rounds
+        \item Robbins-Monro learning rate schedule $\eta(t) = r_\eta \cdot \eta_0 / (t + r_\eta)$
+        \item L2 regularization of weight $10^{-4}$
+        \item Xavier weight initialization (Section 5.1 of the original paper)
+        \item Metrics: test loss, test error, test accuracy per evaluation
+    \end{itemize}
+    \item Protocol 3: ICML 2023 MoNNA simulation \citep{farhadkhani2023monna}
+    \begin{itemize}
+        \item Decentralized (peer-to-peer) setting
+        \item Each honest worker runs one local momentum SGD step
+        \item Then replaces its model with a nearest neighbor average over the $n - 2f$ closest models received from $n - f$ neighbors
+        \item Byzantine reach: how Byzantine models propagate
+        \begin{itemize}
+            \item \textbf{all}: worst case, every Byzantine model reaches every worker
+            \item \textbf{sampled}: gossip style, workers receive a random subset of Byzantine models
+        \end{itemize}
+    \end{itemize}
+    \item Metrics reported
+    \begin{itemize}
+        \item NIPS 2017: misclassification error, cross entropy loss (test set)
+        \item ICML 2018: test loss, test error, test accuracy per evaluation
+        \item ICML 2023: (to complete, e.g. accuracy/loss over rounds)
+    \end{itemize}
+\end{itemize}
+}
+
+The simulations package provides faithful reproductions of experimental protocols from seminal papers. Two topologies are supported: centralised where a parameter server aggregates $n$ worker gradients, and decentralised in a peer to peer fashion.
+
+\paragraph{NIPS 2017 Krum simulation.}
+Reproduction of \citet{blanchard2017machine}: one configuration of aggregator, attack, dataset, and model run over multiple synchronous rounds with a fixed learning rate and no scheduler. Reports misclassification error and cross entropy loss on the test set.
+
+\paragraph{ICML 2018 Hidden Vulnerability simulation.}
+Reproduction of \citet{elmhamdi2018hidden}: synchronous rounds with the Robbins Monro learning rate schedule $\eta(t) = r_\eta \cdot \eta_0 / (t + r_\eta)$, L2 regularization of weight $10^{-4}$, and Xavier weight initialization as described in Section 5.1 of the original paper. Reports test loss, test error, and test accuracy per evaluation.
+
+\paragraph{ICML 2023 MoNNA simulation.}
+Reproduction of \citet{farhadkhani2023monna}: decentralized peer to peer protocol where each honest worker runs one local momentum stochastic gradient descent step and replaces its model with a nearest neighbor average over the $n - 2f$ closest models received from $n - f$ neighbors. Supports two Byzantine reach modes: all (worst case where every Byzantine model reaches every worker) and sampled (gossip style where workers receive a random subset of Byzantine models).
+
+\subsection{Orchestration}
+
+% Parameter declaration, typed metrics, pandas DataFrame output.
+% Short code snippet (differentiator; extended version in Appendix~\ref{app:example-code}).
+
+\arthurcomment{
+\textbf{Section 2.3 Orchestration}:
+\begin{itemize}
+    \item Role: lightweight system to manage experiment simulations
+    \item Parameter declaration
+    \begin{itemize}
+        \item Declare experiment parameters programmatically: aggregator, attack, dataset, model, hyperparameters
+        \item Python API, no config files
+    \end{itemize}
+    \item Metric collection
+    \begin{itemize}
+        \item Typed metrics over time (loss, accuracy, round number)
+        \item Values pushed at each step/time point
+    \end{itemize}
+    \item DataFrame output
+    \begin{itemize}
+        \item pandas DataFrame from full parameter sweeps
+        \item All run parameters automatically merged with the metrics
+    \end{itemize}
+    \item User-defined experiment functions
+    \begin{itemize}
+        \item Orchestrator accepts a user-defined function (e.g. \texttt{my\_experiment})
+        \item No need to modify orchestration code when adding new experiments
+    \end{itemize}
+    \item Code snippet: short example showing how to run a sweep over aggregators and attacks
+    \begin{itemize}
+        \item in the paper (short excerpt)
+        \item extended version in Appendix~\ref{app:example-code}
+    \end{itemize}
+    \item Differentiator: programmatic Python API vs JSON configs (ByzFL) or CLI (FL-Byz-Lib)
+    \item Features beyond basic sweeps (v2)
+    \begin{itemize}
+        \item Re-run only modified or failed experiments
+        \item Parallel execution \arthurcomment{UPDATE for v2 once parallelism is added}
+    \end{itemize}
+\end{itemize}
+}
+
+\subsection{Engineering}
+
+% Models/datasets (auto-download, provided list), checkpointing (one-liner),
+% plotting, batch execution, documentation/tutorials, tests and CI.
+
+\arthurcomment{
+\textbf{Section 2.4 Engineering}:
+\begin{itemize}
+    \item Datasets
+    \begin{itemize}
+        \item Auto-download on first use
+        \item Provided list: MNIST, CIFAR-10, Spambase, etc.
+        \item Non-IID scenarios: \texttt{IidPartitioner}, \texttt{PerLabelsPartitioner}, \texttt{DirichletPartitioner}, \texttt{MixingPartitioner}
+    \end{itemize}
+    \item Checkpointing
+    \begin{itemize}
+        \item One-liner to save/load model state
+        \item Saves/restores weights, optimizer state, round etc. \arthurcomment{confirm what is persisted}
+    \end{itemize}
+    \item Plotting
+    \begin{itemize}
+        \item Manual plotting with matplotlib/seaborn
+        \item No built-in visualization layer (unlike ByzFL)
+    \end{itemize}
+    \item Documentation
+    \begin{itemize}
+        \item ADRs (architecture decision records)
+        \item Tutorials, explicit references to papers
+        \item Docstrings and examples in the repo
+    \end{itemize}
+    \item Tests
+    \begin{itemize}
+        \item Comprehensive test suite
+        \item Edge cases: f=0, n=f, minimal configuration
+    \end{itemize}
+    \item CI/CD
+    \begin{itemize}
+        \item GitHub Actions
+        \item Type checking with \texttt{ty}
+        \item Linting with \texttt{ruff}
+    \end{itemize}
+    \item PyTorch integration
+    \begin{itemize}
+        \item Built on PyTorch
+        \item Not integrated into the PyTorch core
+    \end{itemize}
+\end{itemize}
+}
+
+\section{Comparison to Related Software}
+\label{sec:comparison}
+
+\arthurcomment{
+\textbf{Section 3 Comparison}:
+\begin{itemize}
+    \item Context: several open source libraries address parts of the Byzantine-resilient distributed learning stack
+    \item Krum's distinguishing features
+    \begin{itemize}
+        \item Protocol-faithful simulations
+        \item Zero-copy model wrapper
+        \item Programmatic orchestration layer for reproducible parameter sweeps
+    \end{itemize}
+    \item Overview table
+    \begin{itemize}
+        \item Table~\ref{tab:comparison} summarizes feature coverage across Krum, ByzFL, FedLab, Blades, FL-Byz-Lib, ByzPy
+        \item Rows: robust aggregators, attacks, topology, data partitioning, training protocols, zero-copy wrapper, orchestration, parallel execution
+        \item Counts as of July 2026
+    \end{itemize}
+    \item ByzFL \citep{byzfl} (closest competitor in scope)
+    \begin{itemize}
+        \item What it offers
+        \begin{itemize}
+            \item 12 aggregation rules + 4 pre-aggregators
+            \item 9 attack strategies
+            \item Parameter server and decentralized topologies
+        \end{itemize}
+        \item What it lacks
+        \begin{itemize}
+            \item No zero-copy model wrapper
+            \item Decentralized simulation limited to a generic framework, not paper-faithful reproductions
+            \item Benchmark module relies on JSON configuration files rather than a Python API
+        \end{itemize}
+        \item Consequence of JSON approach
+        \begin{itemize}
+            \item Researchers must manually edit config files to modify experiments
+            \item Krum's orchestration accepts user-defined functions and standard Python loops
+            \item Easy to integrate new aggregation rules or attacks without touching the orchestration layer
+        \end{itemize}
+        \item Trade-off: fewer aggregators (10 vs 12+4) for protocol fidelity + orchestration at scale (thousands of experiments)
+    \end{itemize}
+    \item FedLab
+    \begin{itemize}
+        \item Only other JMLR MLOSS publication in federated learning
+        \item 10 federated learning algorithm baselines
+        \item 9 data partitioning schemes
+        \item 3 deployment modes: standalone, cross process, hierarchical hybrid
+        \item General-purpose federated learning framework with zero Byzantine resilience
+        \item Aggregator module: weighted averaging and staleness-weighted averaging only, neither robust to Byzantine workers
+        \item Orthogonal problems: communication efficiency and algorithm reproduction vs Byzantine robustness and protocol fidelity
+    \end{itemize}
+    \item Other libraries
+    \begin{itemize}
+        \item Blades: benchmark suite for attacks and defenses
+        \item FL Byzantine Library: extensive aggregator and attack collection
+        \item ByzPy: distributed execution with an actor-based runtime
+        \item None combines protocol-faithful simulations + zero-copy model wrappers + programmatic orchestration
+    \end{itemize}
+    \item Limitations
+    \begin{itemize}
+        \item 10 aggregators vs 36 (FL-Byz-Lib) and 12+4 pre (ByzFL)
+        \item No pre-aggregators (nearest neighbor filtering, bucketing, clipping)
+        \item Synchronous and sequential execution, no multiprocessing or distributed backends (UPDATE v2 once parallel execution is added)
+        \item Reframe: these are planned future work, not design oversights
+        \begin{itemize}
+            \item The 10 aggregators cover the most widely used rules in the literature (Krum, Multi Krum, Bulyan, Trimmed Mean, Median and variants)
+            \item The 3 simulation protocols reproduce the foundational experiments of the field
+        \end{itemize}
+    \end{itemize}
+    \item Orchestration line in the table: add a line \texttt{"re-run only modified or failed experiments"}
+    \item Parallel execution line: specify it (\textbf{---} for now, update in v2) \arthurcomment{This actually belongs in the table caption; add the "re-run only modified/failed" row too.}
+\end{itemize}
+}
+
+Several open source libraries address parts of the Byzantine-resilient distributed learning stack. Table~\ref{tab:comparison} summarizes their feature coverage. Krum distinguishes itself through its combination of protocol faithful simulations, zero copy model wrappers, and a programmatic orchestration layer for reproducible parameter sweeps.
+
+ByzFL~\citep{byzfl} is the closest competitor in terms of scope. It implements twelve aggregation rules plus four pre aggregators, nine attack strategies, and supports both parameter server and decentralized topologies. However, ByzFL does not provide a zero copy model wrapper, its decentralized simulation is limited to a generic framework rather than paper faithful reproductions, and its benchmark module relies on JSON configuration files for experiment orchestration rather than a programmatic Python API. This JSON-based approach limits flexibility: researchers must manually edit configuration files to modify experiments, whereas Krum's orchestration accepts user-defined functions and enables parameter sweeps with standard Python loops, making it straightforward to integrate new aggregation rules or attacks without modifying the orchestration layer. Krum trades breadth of coverage (ten aggregators versus twelve plus four) for fidelity to the original experimental protocols from NIPS 2017, ICML 2018, and ICML 2023, and for an orchestration layer that scales to thousands of reproducible experiments.
+
+FedLab~\citep{fedlab} is the only other JMLR MLOSS publication in the federated learning domain. It offers ten federated learning algorithm baselines, nine data partitioning schemes, and three deployment modes (standalone, cross process, hierarchical hybrid). FedLab is a general purpose federated learning framework with zero Byzantine resilience. Its aggregator module contains only weighted averaging and staleness weighted averaging, neither of which is robust to any number of Byzantine workers. FedLab and Krum address orthogonal problems: communication efficiency and algorithm reproduction versus Byzantine robustness and protocol fidelity.
+
+Other libraries address narrower aspects of the Byzantine-resilient learning stack: Blades~\citep{blades} provides a benchmark suite for attacks and defenses, FL Byzantine Library~\citep{flbyzlib} offers an extensive aggregator and attack collection, and ByzPy~\citep{byzpy} explores distributed execution with an actor based runtime. However, none of them combines protocol faithful simulations, zero copy model wrappers, and programmatic orchestration for reproducible parameter sweeps.
+
+\paragraph{Limitations.}
+Krum currently implements ten aggregation rules compared to thirty six in FL Byzantine Library and twelve plus four pre aggregators in ByzFL. Krum does not provide pre aggregators such as nearest neighbor filtering, bucketing, or clipping. Execution is synchronous and sequential with no multiprocessing or distributed execution backends. These gaps represent planned future work rather than design oversights. The ten implemented aggregators cover the most widely used rules in the literature (Krum, Multi Krum, Bulyan, Trimmed Mean, Median, and their variants), and the three simulation protocols reproduce the foundational experiments that established Byzantine-resilient distributed learning as a research field. \arthurcomment{UPDATE for v2: remove the sequential-execution sentence once parallelism is added to orchestration v2.}
+
+\begin{table}[!htbp]
+  \caption{Feature comparison of Krum with ByzFL~\citep{byzfl},
+  FedLab~\citep{fedlab}, Blades~\citep{blades},
+  FL-Byzantine-Library~\citep{flbyzlib} and ByzPy~\citep{byzpy}
+  (counts as of July 2026).}
+  \label{tab:comparison}
+\centering
+  \scriptsize
+  \setlength{\tabcolsep}{1.5pt}
+  \renewcommand{\arraystretch}{1.15}
+  \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+  \begin{tabular}{P{2.1cm}P{1.7cm}P{1.9cm}P{1.7cm}P{1.9cm}P{2.0cm}P{1.7cm}}
+    \toprule
+    & \textbf{Krum} & ByzFL & FedLab & Blades & FL-Byz-Lib & ByzPy \\
+    \midrule
+    Robust aggregators & 10 & 12+4 pre & 0 & 9 & \textbf{36} & 12+4 pre \\
+    Aggregators total  & 10 & 12+4 pre & 2 & 9 & \textbf{36} & 12+4 pre \\
+    Attacks            & 5 & 9 & 0 & 10 & \textbf{23} & 8 \\
+    Pre-aggregators    & --- & 4 & --- & --- & --- & 4 \\
+    Unique aggregators & \textbf{Bulyan, Brute, Aksel} & CAF, SMEA, MeaMed, MDA & --- & ClippedClustering & FedSECA, FoundationFL & --- \\
+    Unique attacks     & \textbf{FullGradNeg, SmallPerturb} & Opt-IPM, Mimic, LabelFlip & --- & AdaptiveAdv, SignGuardAdv & ROP, sparse/pruning & Empire, Inf \\
+    Topology           & \textbf{PS+P2P} & PS & PS & PS & PS & \textbf{PS+P2P} \\
+    Byzantine reach    & \textbf{all / sampled} & --- & --- & --- & --- & --- \\
+    Data partitioning  & IID, PerLabels, Dirichlet, Mixing & IID, Dir, $\gamma$ & \textbf{9 schemes} & Dir, shard & IID, Dir, sort & IID, Dir \\
+    Partitioners      & \texttt{Iid}, \texttt{PerLabels}, \texttt{Dirichlet}, \texttt{Mixing} & --- & --- & --- & --- & --- \\
+    Training protocols & \textbf{3 faithful} & 2 generic & 10 baselines & FedAvg+DP & 1 generic & PS+P2P \\
+    Zero-copy wrapper  & \checkmark & --- & --- & --- & --- & --- \\
+    Model wrapper      & \textbf{zero-copy flat views} & std flatten & none & std & std & std \\
+    Compression        & --- & --- & \checkmark & --- & --- & --- \\
+    Orchestration      & \textbf{Python API} & JSON configs & ServerHandler & YAML + Ray & CLI dataclass & DAG sched. \\
+    Re-run failed/modified & \checkmark & --- & --- & --- & --- & --- \\
+    Parallel execution & --- & multiproc. & \textbf{3 deploy modes} & Ray & --- & \textbf{actors} \\
+    Persistence        & in-memory & filesystem & filesystem & filesystem & filesystem & filesystem \\ % Remove the line
+    Type annotations   & \textbf{full (ty)} & partial & partial & partial & partial & partial \\
+    Tests              & \textbf{comprehensive} & basic & moderate & moderate & basic & basic \\
+    CI / checks        & \textbf{Ruff+ty+pytest} & none & Codecov & flake8 & none & pytest \\
+    Visualization      & manual & \textbf{curves+heatmap} & manual & manual & manual & manual \\
+    Publication        & this paper & arXiv 2025 & \textbf{JMLR 2023} & \textbf{IoTDI 2024} & TIFS 2024 & --- \\
+    License            & MIT & MIT & Apache-2.0 & --- & --- & MIT \\
+    Community (stars)  & --- & 36 & \textbf{828} & 156 & 12 & 2 \\ % Remove
+    \bottomrule
+  \end{tabular}
+  {\footnotesize PS = parameter server; P2P = peer-to-peer;
+  Dir = Dirichlet; Mix = interpolation between two partitioners;
+  $\gamma$ = gamma similarity; pre = pre-aggregators.
+  Bold marks best-in-category (or Krum differentiators where bolded for Krum).}
+\end{table}
+
+\arthurcomment{
+On the orchestration line, or below, show the re-run only modified or failed experiments
+Specify the parallel execution line. 
+}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% 3--4 lines; limitations reframed as future work.
+
+\arthurcomment{
+\textbf{Section 4 Conclusion}:
+\begin{itemize}
+    \item Summary of the paper
+    \begin{itemize}
+        \item Krum: a Python library for Byzantine-resilient distributed ML built on PyTorch
+        \item Three layers: primitives, simulations, orchestration
+        \item MIT license, open source, available at \url{https://github.com/calicarpa/krum}
+    \end{itemize}
+    \item Contributions
+    \begin{itemize}
+        \item 10 aggregation rules, 5 attacks, 4 data partitioners (IID and non-IID), zero-copy model wrapper
+        \item Faithful reproductions of NIPS 2017, ICML 2018, ICML 2023 protocols
+        \item Programmatic orchestration for reproducible parameter sweeps at scale
+    \end{itemize}
+    \item Limitations reframed as future work
+    \begin{itemize}
+        \item Sequential synchronous execution -> add parallel execution backends, multiprocessing
+        \item No pre-aggregators (nearest neighbor filtering, bucketing, clipping)
+        \item Extend to more aggregation rules and attack strategies
+    \end{itemize}
+    \item Call to action / invitation
+    \begin{itemize}
+        \item We invite researchers to use Krum for their experiments
+        \item We welcome contributions: new aggregators, attacks, simulation protocols
+    \end{itemize}
+\end{itemize}
+}
+
+% Acknowledgements and Disclosure of Funding should go at the end, before appendices and references
+
+\acks{All acknowledgements go at the end of the paper before appendices and references.
+Moreover, you are required to declare funding (financial activities supporting the
+submitted work) and competing interests (related financial activities outside the submitted work).
+More information about this disclosure can be found on the JMLR website.}
+
+\appendix
+\section{Implemented Algorithms}
+\label{app:algorithms}
+
+\subsection*{Aggregation Rules (10)}
+
+\begin{itemize}
+    \item \textbf{Average}: simple arithmetic mean of worker gradients.
+    \item \textbf{Median}: coordinate-wise median, robust to up to $f < n/2$ Byzantine workers.
+    \item \textbf{Trimmed Mean}: coordinate-wise trimmed mean with parameter $m$, removes the $m$ smallest and $m$ largest values per coordinate.
+    \item \textbf{Krum}: selects the gradient closest to its neighbors in $L_2$ distance, robust to $f < n/2$ Byzantine workers \citep{blanchard2017machine}.
+    \item \textbf{Multi Krum}: variant of Krum that selects the $n - 2f$ gradients with smallest scores \citep{blanchard2017machine}.
+    \item \textbf{Bulyan}: two-stage procedure combining Krum (or Multi Krum) with a trimmed mean or median for final aggregation, robust to $f < n/4$ Byzantine workers \citep{elmhamdi2018hidden}.
+    \item \textbf{Brute}: combinatorial search for the subset of $n - f$ gradients with minimum diameter, theoretically optimal but computationally expensive.
+    \item \textbf{GeoMed}: geometric median, iterative Weiszfeld algorithm for robust aggregation.
+    \item \textbf{Aksel}: linear-time median-pivot aggregator with $O(nd)$ complexity.
+    \item \textbf{Nearest Neighbor Average}: each worker averages the $n - 2f$ closest gradients in $L_2$ distance, used in MoNNA \citep{farhadkhani2023monna}.
+\end{itemize}
+
+\subsection*{Attack Strategies (5)}
+
+\begin{itemize}
+    \item \textbf{Sign Flip}: Byzantine workers send the negation of their true gradient, $g_{\text{byz}} = -g_{\text{honest}}$.
+    \item \textbf{ALIE}: Alignment Attack that maximizes the inner product with honest gradients while maintaining bounded norm.
+    \item \textbf{Gaussian}: Byzantine gradients drawn from a Gaussian distribution centered on the honest mean with controlled variance.
+    \item \textbf{Full Gradient Negation}: Byzantine workers send the negation of the full honest gradient, requiring knowledge of all honest gradients \citep{elmhamdi2018hidden}.
+    \item \textbf{Small Perturbation}: Byzantine workers add small perturbations to their honest gradients to exploit curse-of-dimensionality effects \citep{elmhamdi2018hidden}.
+\end{itemize}
+
+\subsection*{Standard Models (6)}
+
+Pre-defined architectures from the literature for reproducible experiments:
+
+\begin{itemize}
+    \item \texttt{Krum2017MLPMnist}: 2-layer MLP (784 → 100 → 10) for MNIST \citep{blanchard2017machine}.
+    \item \texttt{Krum2017MLPSpambase}: 3-layer MLP (57 → 20 → 20 → 2) for Spambase \citep{blanchard2017machine}.
+    \item \texttt{Krum2017CNN}: CNN for CIFAR-10 (3×32×32 → 10) \citep{blanchard2017machine}.
+    \item \texttt{Monna2023SmallMnist}: small CNN for MNIST in decentralized setting \citep{farhadkhani2023monna}.
+    \item \texttt{Monna2023CNNMnist}: CNN for MNIST in decentralized setting \citep{farhadkhani2023monna}.
+    \item \texttt{Monna2023CNNCifar10}: CNN for CIFAR-10 in decentralized setting \citep{farhadkhani2023monna}.
+\end{itemize}
+
+\section{Extended Code Example}
+\label{app:example-code}
+
+The following example demonstrates the orchestration layer: running a parameter sweep over aggregators and attacks, collecting metrics, and producing pandas DataFrames for analysis.
+
+\begin{verbatim}
+from krum.simulation import KrumSimulation
+from krum.orchestration import Metric, Orchestrator
+from krum.primitives.aggregators.average import Average
+from krum.primitives.aggregators.bulyan import Bulyan
+from krum.primitives.aggregators.krum import Krum
+from krum.primitives.attacks.alie import ALIEAttack
+from krum.primitives.attacks.sign_flip import SignFlipAttack
+
+def my_experiment(n, f, aggregator, attack, n_steps):
+    """Run one Byzantine-resilient training simulation."""
+    sim = KrumSimulation(n=n, f=f, aggregator=aggregator, attack=attack)
+    loss = Metric("loss")
+    accuracy = Metric("accuracy")
+    
+    for step in range(n_steps):
+        sim.step()
+        loss.push(step, sim.loss())
+        accuracy.push(step, sim.accuracy())
+
+# Parameter sweep: 2 x 2 x 3 x 3 = 36 experiments
+orch = Orchestrator("krum_byzantine_study")
+for n in [10, 20]:
+    for f in [2, 3]:
+        for agg in [Krum, Bulyan, Average]:
+            for atk in [ALIEAttack, SignFlipAttack, None]:
+                orch.run(my_experiment, n=n, f=f,
+                         aggregator=agg, attack=atk, n_steps=100)
+
+# Retrieve results as pandas DataFrames
+loss_df = orch.get("loss")      # columns: [step, value, n, f, aggregator, attack]
+acc_df = orch.get("accuracy")
+
+# Analysis with pandas
+final_loss = loss_df[loss_df["step"] >= 90] \
+    .groupby(["aggregator", "attack"])["value"].mean() \
+    .sort_values()
+\end{verbatim}
+
+The orchestrator automatically tracks all run parameters and merges them with the collected metrics, enabling filtering and aggregation with standard pandas operations.
+
+\section{Reproduction Graphs}
+\label{app:example-graphs}
+
+The following figures demonstrate Krum's ability to faithfully reproduce foundational results from the Byzantine-resilient distributed learning literature.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{multikrum_vs_mean.png}
+  \caption{Reproduction of \citet{blanchard2017machine}: comparison of MultiKrum and Mean under sign-flip Byzantine attacks on Spambase. MultiKrum resists Byzantine workers (reaches approximately 83 percent accuracy even with 6 adversaries), while Mean diverges catastrophically. The experiment uses 20 workers with 6 Byzantine workers, demonstrating that Byzantine-resilient aggregation rules are essential for robust distributed learning.}
+  \label{fig:krum_nips_2017}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{multikrum_vs_bulyan.png}
+  \caption{Reproduction of \citet{elmhamdi2018hidden}: comparison of MultiKrum and Bulyan under the small-perturbation attack on MNIST. The attack shifts a single coordinate by a fixed perturbation strength. MultiKrum (which selects the gradient closest to its neighbors) admits the Byzantine vector and every training step is poisoned. Bulyan's coordinate-wise trimmed mean detects the outlying coordinate and filters it out, matching the unattacked baseline. This experiment demonstrates the hidden vulnerability of Krum-like rules and the robustness of two-stage aggregation procedures.}
+  \label{fig:hidden_vulnerability_icml_2018}
+\end{figure}
+
+These reproductions validate that Krum's simulation layer faithfully implements the experimental protocols from the original papers, enabling researchers to reproduce foundational results with minimal effort.
+
+\vskip 0.2in
+\bibliography{biblio}
+
+\end{document}

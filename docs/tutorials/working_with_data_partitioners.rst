@@ -137,14 +137,35 @@ Using partitioners in a simulation
 Simulations consume the ``Sequence[Dataset]`` shape directly. For
 example, :class:`~krum.simulations.decentralised.DecentralisedSimulation`
 takes the per-worker datasets as ``train_datasets`` and wraps each honest
-worker's dataset into a ``DataLoader`` itself:
+worker's dataset into a ``DataLoader`` itself. Putting the pieces
+together: load MNIST, split the train set with a Dirichlet skew, then run
+a MoNNA simulation on the resulting per-worker datasets.
 
 .. code-block:: python
 
+   import torch
+   import torch.nn as nn
+   from torchvision import datasets, transforms
+
+   from krum.primitives.attacks.sign_flip import SignFlipAttack
+   from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
    from krum.primitives.models import Model
    from krum.primitives.models.mlp import Monna2023SmallMnist
    from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
+   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+   n, f, seed = 10, 2, 42
+
+   # 1. Load the data: one shared train set and one test set
+   transform = transforms.ToTensor()
+   train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+   test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+
+   # 2. Partition the train set across the n workers (Dirichlet label skew)
+   train_datasets = DirichletPartitioner.partition(train_set, n=n, alpha=0.5, seed=seed)
+
+   # 3. Build the simulation from the per-worker datasets
+   #    (the f Byzantine workers apply the sign-flip attack)
    model = Model(Monna2023SmallMnist().to(device))
 
    sim = MonnaSimulation(
@@ -156,11 +177,17 @@ worker's dataset into a ``DataLoader`` itself:
        loss_fn=nn.CrossEntropyLoss(),
        n=n,
        f=f,
+       attack=SignFlipAttack,
        learning_rate=0.1,
        seed=seed,
    )
 
+   # 4. Train for 50 rounds
    results = sim.run(50)
+
+Any of the four strategies from this tutorial can be dropped in at step 2:
+``train_datasets`` is always a ``Sequence[Dataset]``, one per worker, no
+matter which partitioner produced it.
 
 The ``Sequence[Dataset]`` shape is the contract of the decentralised
 simulations; the partitioning choice is entirely the caller's
