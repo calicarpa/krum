@@ -131,6 +131,83 @@ Whether a sample can be dropped depends on ``p1``/``p2`` themselves: an
 ``IidPartitioner`` drops a remainder within its own slice, a
 ``DirichletPartitioner`` never does.
 
+Writing your own partitioner
+----------------------------
+
+The ``DataPartitioner`` interface is a single abstract classmethod, so any
+strategy that maps one dataset to ``n`` per-worker datasets can plug in.
+Subclass ``DataPartitioner`` and implement ``partition`` with the same
+shape: the dataset is the sole positional argument, ``n``, ``seed``, and
+any strategy-specific hyperparameters are keyword-only, and the return
+value is one :class:`~torch.utils.data.Dataset` per worker. Building the
+per-worker datasets with :class:`~torch.utils.data.Subset` keeps them as
+cheap views over the original dataset — no copies.
+
+For example, a pathological label-skew strategy that gives every sample
+of class ``k`` to worker ``k % n``:
+
+.. code-block:: python
+
+   from typing import Any
+
+   import torch
+   from torch.utils.data import Dataset, Subset
+
+   from krum.primitives.data_partitioners import DataPartitioner
+
+
+   class OneClassPerWorkerPartitioner(DataPartitioner):
+       """Pathological non-IID: every sample of class k goes to worker k % n."""
+
+       @classmethod
+       def partition(
+           cls,
+           dataset: Dataset[Any],
+           /,
+           *,
+           n: int,
+           seed: int = 42,
+           **specialized: Any,
+       ) -> list[Subset[Any]]:
+           # Read labels without a full data pass: torchvision datasets expose
+           # them as ``.targets``; fall back to indexing for anything else
+           # (e.g. the ``Subset`` views built by ``MixingPartitioner``).
+           targets = getattr(dataset, "targets", None)
+           if targets is None:
+               labels = torch.tensor([dataset[i][1] for i in range(len(dataset))])
+           else:
+               labels = torch.as_tensor(targets)
+
+           workers = [Subset(dataset, []) for _ in range(n)]
+           for k in range(int(labels.max()) + 1):
+               indices = torch.nonzero(labels == k).flatten().tolist()
+               workers[k % n] = Subset(dataset, indices)
+           return workers
+
+   # Use it anywhere a built-in partitioner can be used
+   train_datasets = OneClassPerWorkerPartitioner.partition(dataset, n=10)
+
+The custom class is interchangeable with the built-in strategies: it can
+feed a simulation directly, and it can even be the ``p1``/``p2`` half of
+a ``MixingPartitioner``. Note that label-aware partitioners must read
+labels the way the example does — via ``.targets`` when available, with a
+fallback to indexing — because ``MixingPartitioner`` hands its halves a
+``Subset`` view of the dataset, which has no ``.targets`` attribute:
+
+.. code-block:: python
+
+   from krum.primitives.data_partitioners.iid import IidPartitioner
+   from krum.primitives.data_partitioners.mixing import MixingPartitioner
+
+   # 30% IID, 70% one-class-per-worker
+   train_datasets = MixingPartitioner.partition(
+       dataset,
+       n=10,
+       p1=IidPartitioner,
+       p2=OneClassPerWorkerPartitioner,
+       gamma=0.7,
+   )
+
 Using partitioners in a simulation
 ----------------------------------
 
