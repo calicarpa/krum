@@ -40,9 +40,8 @@ the whole training run is reproducible end to end.
 IidPartitioner: equal-size shards
 ---------------------------------
 
-The IID baseline of McMahan et al. (AISTATS 2017): the dataset is shuffled
-and cut into ``n`` equal-size, disjoint, uniformly random shards. Any
-remainder (``len(dataset) % n`` samples) is dropped:
+The dataset is shuffled and cut into ``n`` equal-size, disjoint, uniformly
+random shards. Any remainder (``len(dataset) % n`` samples) is dropped:
 
 .. code-block:: python
 

@@ -1,11 +1,4 @@
-"""IID dataset partitioning: shuffle, then split into equal-size shards.
-
-Reference:
-    Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
-    "Communication-Efficient Learning of Deep Networks from Decentralized Data."
-    In Proceedings of the 20th International Conference on Artificial Intelligence
-    and Statistics (AISTATS 2017).
-"""
+"""IID dataset partitioning: shuffle, then split into equal-size shards."""
 
 from typing import Any, Sized, cast
 
