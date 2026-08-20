@@ -16,13 +16,13 @@ The reference documentation is available at
 
 ```python
 import torch
-from krum.primitives.aggregators import Krum, Average
-from krum.primitives.attacks.gaussian import Gaussian
+from krum.primitives.aggregators.average import Average
+from krum.primitives.aggregators.krum import Krum
+from krum.primitives.attacks.gaussian import GaussianAttack
 
 # Simulate gradients from 10 workers (8 honest, 2 Byzantine)
 honest = torch.randn(8, 100)
-attack = Gaussian(std=10.0)
-byzantine = attack.generate(honest, f=2)
+byzantine = GaussianAttack.generate(honest, f=2, std=10.0)
 gradients = torch.cat([honest, byzantine], dim=0)
 
 # Compare robust vs naive aggregation
@@ -31,28 +31,6 @@ naive = Average.aggregate(gradients)
 
 print(f"Krum result norm:   {robust.norm().item():.4f}")
 print(f"Average result norm: {naive.norm().item():.4f}")
-```
-
-### Partitioning data across workers
-
-```python
-import torch
-from torch.utils.data import TensorDataset
-from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
-from krum.primitives.data_partitioners.iid import IidPartitioner
-
-# 1000 synthetic samples, 10 classes
-X = torch.randn(1000, 4)
-y = torch.randint(0, 10, (1000,))
-dataset = TensorDataset(X, y)
-
-# Dirichlet label skew across 10 workers (non-IID)
-workers = DirichletPartitioner.partition(dataset, n=10, alpha=0.5, seed=42)
-
-# IID baseline
-iid_workers = IidPartitioner.partition(dataset, n=10, seed=42)
-
-print([len(w) for w in workers])
 ```
 
 ## Installation
@@ -107,9 +85,10 @@ This installs all linting, type-checking, and documentation tools.
 
 ## Features
 
-- **8 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
-  Bulyan, Brute, GeoMed
-- **5 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoSmallPerturbation
+- **10 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
+  Bulyan, Brute, GeoMed, Aksel, Nearest Neighbor Average
+- **5 attack strategies**: SignFlip, ALIE, Gaussian, FullGradientNegation,
+  SmallPerturbation
 - **Data partitioning**: IID and non-IID per-worker splits via a single
   `DataPartitioner` interface — `IidPartitioner`, `DirichletPartitioner`,
   `PerLabelsPartitioner`, `MixingPartitioner` — returning one
