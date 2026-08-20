@@ -9,10 +9,11 @@ from torch import nn
 from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
+from krum.primitives.data_partitioners import DataPartitioner
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import MonnaSimulation
 
-from ..datasets import Partition, make_datasets, make_worker_streams
+from ..datasets import make_datasets, make_worker_streams
 
 
 def detect_device() -> torch.device:
@@ -49,8 +50,8 @@ def monna_experiment(
     test_batch_size: int,
     train_size: int,
     test_size: int,
-    partition: Partition,
-    dirichlet_alpha: float,
+    partitioner: type[DataPartitioner],
+    partitioner_kwargs: dict[str, Any] | None = None,
     seed: int,
     byzantine_reach: str = "all",
     device: torch.device | None = None,
@@ -93,8 +94,8 @@ def monna_experiment(
     worker_datasets = make_worker_streams(
         train_set,
         n=n,
-        partition=partition,
-        dirichlet_alpha=dirichlet_alpha,
+        partitioner=partitioner,
+        partitioner_kwargs=partitioner_kwargs,
         seed=seed,
     )
 

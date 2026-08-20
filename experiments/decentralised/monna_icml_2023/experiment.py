@@ -20,9 +20,9 @@ from krum.orchestration import Orchestrator
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
 from krum.primitives.models.mlp import Monna2023SmallMnist
 
-from ..datasets import Partition
 from .run import monna_experiment
 
 # --- Configurable parameters ---
@@ -38,8 +38,8 @@ TRAIN_SIZE = 4096
 TEST_SIZE = 1024
 LEARNING_RATE = 0.5
 BETA = 0.99
-PARTITION = Partition.DIRICHLET
-DIRICHLET_ALPHA = 1.0
+PARTITIONER = DirichletPartitioner
+PARTITIONER_KWARGS = {"alpha": 1.0}
 SEED = 0
 
 # Aggregators to compare: NNA is MoNNA's default (num_closest = n - 2f,
@@ -81,8 +81,8 @@ def main() -> None:
                 test_batch_size=TEST_BATCH_SIZE,
                 train_size=TRAIN_SIZE,
                 test_size=TEST_SIZE,
-                partition=PARTITION,
-                dirichlet_alpha=DIRICHLET_ALPHA,
+                partitioner=PARTITIONER,
+                partitioner_kwargs=PARTITIONER_KWARGS,
                 seed=SEED,
             )
 

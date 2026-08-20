@@ -1,21 +1,13 @@
 """Datasets and per-worker dataloaders for the MoNNA decentralised experiment."""
 
-from enum import Enum
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from torch.utils.data import Dataset, Subset
 from torchvision import datasets, transforms
 
-from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
-from krum.primitives.data_partitioners.iid import IidPartitioner
-
-
-class Partition(str, Enum):
-    """Dataset partitioning strategy for the MoNNA decentralised experiment."""
-
-    IID = "iid"
-    DIRICHLET = "dirichlet"
+from krum.primitives.data_partitioners import DataPartitioner
 
 
 @lru_cache(maxsize=8)
@@ -72,31 +64,21 @@ def make_worker_streams(
     dataset: Dataset,
     *,
     n: int,
-    partition: Partition,
-    dirichlet_alpha: float,
+    partitioner: type[DataPartitioner],
+    partitioner_kwargs: dict[str, Any] | None = None,
     seed: int,
 ) -> list[Dataset]:
     """Split the training dataset into one dataset per worker (honest and Byzantine).
 
-    ``Partition.IID`` uses
-    :class:`~krum.primitives.data_partitioners.iid.IidPartitioner`;
-    ``Partition.DIRICHLET`` uses
-    :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
-    with the given ``dirichlet_alpha``. The returned datasets are handed
-    directly to :class:`~krum.simulations.decentralised.MonnaSimulation` as
+    ``partitioner`` is invoked directly (e.g.
+    :class:`~krum.primitives.data_partitioners.iid.IidPartitioner` or
+    :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`),
+    with ``partitioner_kwargs`` forwarded as its strategy-specific keyword
+    arguments (e.g. ``{"alpha": ...}`` for ``DirichletPartitioner``). The
+    returned datasets are handed directly to
+    :class:`~krum.simulations.decentralised.MonnaSimulation` as
     ``train_datasets``, which wraps each honest worker's dataset into its own
     ``DataLoader`` (batch size, shuffling) and re-iterates it automatically
     once its epoch is exhausted.
-
-    Raises:
-        TypeError: If ``partition`` is not a :class:`Partition`.
-        ValueError: If ``partition`` is a :class:`Partition` member with no
-            partitioner wired up here yet.
     """
-    if not isinstance(partition, Partition):
-        raise TypeError(f"Invalid partition, got {partition!r}, expected a Partition")
-    if partition == Partition.IID:
-        return IidPartitioner.partition(dataset, n=n, seed=seed)
-    if partition == Partition.DIRICHLET:
-        return DirichletPartitioner.partition(dataset, n=n, alpha=dirichlet_alpha, seed=seed)
-    raise ValueError(f"No partitioner wired up for {partition!r}")
+    return partitioner.partition(dataset, n=n, seed=seed, **(partitioner_kwargs or {}))
