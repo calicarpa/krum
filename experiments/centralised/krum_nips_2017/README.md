@@ -58,6 +58,7 @@ model collapses to random guessing.
 | Weight init         | Xavier uniform    |
 | Random seed         | 42                |
 | MultiKrum `m`       | 18 (no attack) / 12 (attack) |
+| Data partitioner    | IID (default)      |
 
 **Note on MultiKrum `m`:** the attack case uses `m = 12`, well above the
 theoretical resilience bound `n − 2f − 3 = 5`. This intentionally

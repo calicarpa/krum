@@ -1,14 +1,20 @@
 """Tests for DecentralisedSimulation base class."""
 
 import unittest
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset, TensorDataset
 
 from krum.primitives.aggregators.average import Average
 from krum.primitives.models import Model
-from krum.simulations.decentralised import Batch, DecentralisedSimulation, LossFn, StepResult
+from krum.simulations.decentralised import DecentralisedSimulation, LossFn, StepResult
+
+
+def _dataset(x: torch.Tensor, y: torch.Tensor) -> TensorDataset:
+    """Build a single-sample dataset."""
+    return TensorDataset(x, y)
 
 
 class _ConcreteSimulation(DecentralisedSimulation[StepResult]):
@@ -45,13 +51,24 @@ class _ConcreteSimulation(DecentralisedSimulation[StepResult]):
             "losses": losses.detach().clone(),
         }
 
+    def evaluate(self) -> tuple[float]:
+        total = 0.0
+        for worker_parameters in self.parameters:
+            self.copy_parameters_to_model(worker_parameters)
+            for inputs, targets in self.test_loader:
+                total += self.loss_fn(self.model.module(inputs), targets).item()
+        return (total / self.num_honest,)
+
 
 def _make_simulation(
     *,
     n: int,
     f: int,
     model: Model | None = None,
-    data: Sequence[Iterable[Batch]] | None = None,
+    train_datasets: Sequence[Dataset] | None = None,
+    train_batch_size: int = 1,
+    test_set: Dataset | None = None,
+    test_batch_size: int = 1,
     loss_fn: LossFn | None = None,
     attack=None,
     seed: int | None = None,
@@ -59,13 +76,18 @@ def _make_simulation(
     """Factory for a tiny concrete simulation."""
     if model is None:
         model = Model(nn.Linear(1, 1, bias=False))
-    if data is None:
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(n - f)]
+    if train_datasets is None:
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(n)]
+    if test_set is None:
+        test_set = _dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]]))
     if loss_fn is None:
         loss_fn = nn.MSELoss()
     return _ConcreteSimulation(
         model=model,
-        data=data,
+        train_datasets=train_datasets,
+        train_batch_size=train_batch_size,
+        test_set=test_set,
+        test_batch_size=test_batch_size,
         loss_fn=loss_fn,
         n=n,
         f=f,
@@ -93,11 +115,23 @@ class DecentralisedSimulationConstructionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             _make_simulation(n=4, f=3)
 
-    def test_rejects_too_few_data_streams(self) -> None:
-        """Number of data streams must equal n - f."""
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(2)]
+    def test_rejects_too_few_train_datasets(self) -> None:
+        """Number of train datasets must equal n."""
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         with self.assertRaises(ValueError):
-            _make_simulation(n=7, f=1, data=data)
+            _make_simulation(n=7, f=1, train_datasets=train_datasets)
+
+    def test_rejects_empty_honest_worker_dataset(self) -> None:
+        """An honest worker with an empty train_dataset is rejected at construction.
+
+        Regression test: this used to succeed at construction (via a
+        shuffle=False fallback) and then crash later, deep inside step(),
+        with an uncaught StopIteration from collect_worker_batches.
+        """
+        empty = TensorDataset(torch.empty(0, 1), torch.empty(0, dtype=torch.long))
+        nonempty = _dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]]))
+        with self.assertRaises(ValueError):
+            _make_simulation(n=2, f=0, train_datasets=[nonempty, empty])
 
     def test_requires_attack_when_f_greater_than_zero(self) -> None:
         """An attack is required when f > 0."""
@@ -227,6 +261,13 @@ class DecentralisedSimulationMethodTest(unittest.TestCase):
         new_params.fill_(0.0)
         self.assertFalse(torch.equal(sim.parameters, new_params))
 
+    def test_evaluate_is_never_called_by_step(self) -> None:
+        """step() does not touch the test loader; evaluate() is a separate call."""
+        sim = self.make_simulation(n=2)
+        sim.step()
+        loss = sim.evaluate()
+        self.assertIsInstance(loss[0], float)
+
 
 class DecentralisedSimulationRunTest(unittest.TestCase):
     """Test run driver."""
@@ -246,12 +287,19 @@ class DecentralisedSimulationRunTest(unittest.TestCase):
 
     def test_run_executes_steps_and_collects_results(self) -> None:
         """Each round produces one result with incremented step."""
-        batch = (torch.tensor([[1.0]]), torch.tensor([[1.0]]))
-        data = [[batch, batch] for _ in range(2)]
-        sim = _make_simulation(n=2, f=0, data=data)
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
+        sim = _make_simulation(n=2, f=0, train_datasets=train_datasets)
         results = sim.run(2)
         self.assertEqual(len(results), 2)
         self.assertEqual([r["step"] for r in results], [1, 2])
+
+    def test_run_cycles_loader_past_one_epoch(self) -> None:
+        """A single-sample dataset is automatically re-iterated across rounds."""
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
+        sim = _make_simulation(n=2, f=0, train_datasets=train_datasets)
+        results = sim.run(5)
+        self.assertEqual(len(results), 5)
+        self.assertEqual([r["step"] for r in results], [1, 2, 3, 4, 5])
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ Core Abstractions
    models/index
    aggregators/index
    attacks/index
+   data_partitioners/index
 
 Zero-copy flat-tensor view
 --------------------------

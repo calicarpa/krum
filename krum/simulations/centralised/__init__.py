@@ -8,16 +8,17 @@ Each synchronous round follows the same pattern:
 #. The aggregated update is applied via an SGD step.
 
 The :class:`CentralisedSimulation` implements the full lifecycle (model
-initialisation, data sharding, training loop). Evaluation is defined by
-subclasses overriding :meth:`evaluate` — each protocol reports its own set
-of metrics.
+initialisation, per-worker data loading, training loop). Evaluation is
+defined by subclasses overriding :meth:`evaluate` — each protocol reports
+its own set of metrics.
 """
 
+from collections.abc import Sequence
 from typing import Any, Callable, Literal, Sized, cast
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from ...primitives.aggregators import Aggregator
 from ...primitives.attacks import Attack
@@ -29,9 +30,9 @@ class CentralisedSimulation:
     r"""Parameter-server distributed SGD simulation with Byzantine workers.
 
     One instance = one (aggregator, attack, dataset, model) configuration run
-    over ``rounds`` synchronous rounds. The training set is IID-sharded across
-    :math:`n` workers, of which :math:`f` are Byzantine (up to the tolerance of the
-    chosen aggregator).
+    over ``rounds`` synchronous rounds. Each of the :math:`n` workers — of
+    which :math:`f` are Byzantine (up to the tolerance of the chosen
+    aggregator) — brings its own training dataset, IID or not.
 
     Evaluation is defined by subclasses overriding :meth:`evaluate`. Each
     protocol reports its own set of metrics — e.g.
@@ -42,7 +43,16 @@ class CentralisedSimulation:
 
     Args:
         model_cls: ``nn.Module`` subclass to instantiate for training.
-        train_set: Full training dataset (will be IID-sharded across workers).
+        train_datasets: One dataset per worker (honest and Byzantine);
+            ``len(train_datasets)`` must equal ``n``. Only the first
+            ``n - f`` (the honest workers) are ever wrapped into a
+            ``DataLoader`` and trained on — Byzantine workers craft their
+            gradients from the honest ones via ``attack``, not from local
+            data — but the full ``n``-length sequence is required so a
+            future data-consuming attack (e.g. label-flipping) has
+            something to read. Splitting a full dataset into per-worker
+            datasets (IID or not) is the caller's responsibility, via a
+            :class:`~krum.primitives.data_partitioners.DataPartitioner`.
         test_set: Test dataset (evaluated via full-batch loader).
         aggregator: Gradient aggregation rule class (e.g. ``Average``, ``Krum``).
             Pass the class itself — :meth:`~CentralisedSimulation.step` calls
@@ -107,15 +117,17 @@ class CentralisedSimulation:
             experiment scripts, not enforced by the simulation).
 
     Raises:
-        ValueError: If ``lr_schedule`` is invalid or required
-            hyperparameters (:math:`r_eta`) are missing.
+        ValueError: If ``lr_schedule`` is invalid, required
+            hyperparameters (:math:`r_eta`) are missing, the number of
+            train datasets does not equal ``n``, or an honest worker's
+            dataset is empty.
     """
 
     def __init__(
         self,
         *,
         model_cls: type[nn.Module],
-        train_set: Dataset[Any],
+        train_datasets: Sequence[Dataset[Any]],
         test_set: Dataset[Any],
         aggregator: type[Aggregator] | None = None,
         aggregator_kwargs: dict[str, Any] | None = None,
@@ -161,9 +173,17 @@ class CentralisedSimulation:
                 "the Byzantine gradients would have nowhere to go. Either set f=0, "
                 "drop the attack, or pass an aggregator."
             )
+        if len(train_datasets) != n:
+            raise ValueError(f"Expected {n} train datasets, got {len(train_datasets)!r}")
+        for w in range(n - f):
+            if len(cast(Sized, train_datasets[w])) == 0:
+                raise ValueError(
+                    f"Worker {w} has an empty train_dataset (0 samples) and cannot train; "
+                    f"check n against the partitioner's configuration (e.g. alpha)."
+                )
 
         self.model_cls = model_cls
-        self.train_set = train_set
+        self.train_datasets: list[Dataset[Any]] = list(train_datasets)
         self.test_set = test_set
         self.aggregator = aggregator
         self._aggregator_kwargs = aggregator_kwargs or {}
@@ -207,12 +227,14 @@ class CentralisedSimulation:
         return self._model
 
     def setup(self) -> None:
-        """Initialise the model, learning rate, IID data shards, and dataloaders.
+        """Initialise the model, learning rate, and per-worker dataloaders.
 
-        The training set is evenly split into ``n`` shards (the remaining
-        ``len(train_set) % n`` samples are dropped).  Each worker receives a
+        Each honest worker's ``train_datasets`` entry is wrapped into a
         dedicated :class:`~torch.utils.data.DataLoader` with its own RNG
-        generator, so mini-batch sampling is reproducible across runs.
+        generator, so mini-batch sampling is reproducible across runs. The
+        datasets are used as-is — splitting a full dataset into per-worker
+        datasets (IID or not) is the caller's responsibility, via a
+        :class:`~krum.primitives.data_partitioners.DataPartitioner`.
 
         The learning rate is initialised to ``self.lr``. The
         Robbins-Monro schedule updates it each round inside
@@ -228,10 +250,10 @@ class CentralisedSimulation:
 
         Determinism: ``setup()`` is fully deterministic for a given
         ``seed``. Local :class:`torch.Generator` instances are used for
-        the shard permutation, the per-worker dataloaders, and (when
-        enabled) the Xavier re-initialization, so the global RNG state
-        is left untouched and re-running ``setup()`` reproduces the
-        exact same model, weights, and dataloaders.
+        the per-worker dataloaders and (when enabled) the Xavier
+        re-initialization, so the global RNG state is left untouched and
+        re-running ``setup()`` reproduces the exact same model, weights,
+        and dataloaders.
 
         Safe to call multiple times — each call resets all internal state.
         """
@@ -241,20 +263,16 @@ class CentralisedSimulation:
             self._xavier_init_(self._model.module)
         self._current_lr = self.lr
 
-        train_size = len(cast(Sized, self.train_set))
-        shard_size = train_size // self.n
-        shard_indices = torch.randperm(train_size, generator=torch.Generator().manual_seed(self.seed))
-
+        num_honest = self.n - self.f
         self._worker_loaders = []
-        for w in range(self.n):
-            indices = shard_indices[w * shard_size : (w + 1) * shard_size]
-            worker_ds = Subset(self.train_set, indices.tolist())
+        for w in range(num_honest):
             worker_gen = torch.Generator().manual_seed(self.seed + w)
             self._worker_loaders.append(
-                DataLoader(worker_ds, batch_size=self.batch_size, shuffle=True, generator=worker_gen)
+                DataLoader(self.train_datasets[w], batch_size=self.batch_size, shuffle=True, generator=worker_gen)
             )
 
-        self._full_loader = DataLoader(self.train_set, batch_size=len(cast(Sized, self.train_set)), shuffle=False)
+        full_set = ConcatDataset(self.train_datasets)
+        self._full_loader = DataLoader(full_set, batch_size=len(full_set), shuffle=False)
         self._test_loader = DataLoader(self.test_set, batch_size=len(cast(Sized, self.test_set)), shuffle=False)
         self._current_round = 0
 
@@ -392,7 +410,7 @@ class CentralisedSimulation:
         tensor from the :class:`~krum.primitives.models.Model`.
 
         Args:
-            loader: DataLoader yielding mini-batches from the worker's IID shard.
+            loader: DataLoader yielding mini-batches from the worker's dataset.
 
         Returns:
             Cloned flat gradient tensor of shape ``(d,)``.

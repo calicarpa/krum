@@ -33,24 +33,25 @@ Minimal example
 Data preparation
 ^^^^^^^^^^^^^^^^
 
-The ``data`` argument of a decentralised simulation is a **sequence of
-iterables**, one per honest worker. The standard pattern wraps a
-:class:`~torch.utils.data.DataLoader` in an infinite cycle. Without the
-cycle a stream that runs out raises ``StopIteration``:
+The ``train_datasets`` argument of a decentralised simulation is a
+**sequence of :class:`~torch.utils.data.Dataset` instances**, one per
+worker. The simulation wraps each honest worker's dataset into its own
+:class:`~torch.utils.data.DataLoader` (batch size, shuffling) and
+re-iterates it automatically once an epoch is exhausted, so a stream
+never runs out:
 
 .. code-block:: python
 
-   import random
    import torch
    import torch.nn as nn
-   from itertools import cycle
-   from torch.utils.data import DataLoader, Subset
+   from torch.utils.data import DataLoader
    from torchvision import datasets, transforms
+
+   from krum.primitives.data_partitioners.iid import IidPartitioner
 
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
    seed = 42
    torch.manual_seed(seed)
-   random.seed(seed)
    n, f = 6, 0
 
    transform = transforms.Compose([
@@ -60,40 +61,31 @@ cycle a stream that runs out raises ``StopIteration``:
    train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
    test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
 
-   # One infinite data stream per honest worker
-   def cycle_loader(loader):
-       while True:
-           yield from loader
+   # One dataset per worker: IidPartitioner gives each worker an equal,
+   # shuffled portion of the training set
+   train_datasets = IidPartitioner.partition(train_set, n=n, seed=seed)
 
-   workers_data = [
-       cycle_loader(DataLoader(
-           Subset(train_set, range(i * 5000, (i + 1) * 5000)),
-           batch_size=64, shuffle=True,
-       ))
-       for i in range(n - f)
-   ]
+``len(train_datasets)`` must equal ``n``, including Byzantine workers:
+only the first ``n - f`` are ever trained on (Byzantine workers craft
+their models from the honest ones via the attack), but the full
+``n``-length sequence is required.
 
-Any iterable of ``(inputs, targets)`` tuples also works:
-
-.. code-block:: python
-
-   workers_data = [
-       [(torch.randn(4, 784), torch.randint(0, 10, (4,))) for _ in range(100)]
-       for _ in range(4)
-   ]
-
-The IID ``Subset`` splitting above gives each worker an equal, shuffled
-portion of the dataset. The experiment scripts in
-``experiments/decentralised/`` add a ``split_dirichlet`` variant for
-non-IID data (class-skew controlled by an ``alpha`` parameter).
+For non-IID data,
+:class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
+produces per-class label skew (controlled by an ``alpha`` parameter).
+See :doc:`working_with_data_partitioners` for the full partitioner
+family; the experiment scripts in ``experiments/decentralised/`` use
+:class:`~krum.primitives.data_partitioners.iid.IidPartitioner` and
+:class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
+directly.
 
 Instantiation
 ^^^^^^^^^^^^^
 
 The model is wrapped in a :class:`~krum.primitives.models.Model` container
 that exposes a ``.parameters`` tensor and a ``.module`` (the underlying
-``nn.Module``). Pass the model, data streams, and hyperparameters to
-the simulation constructor:
+``nn.Module``). Pass the model, the per-worker datasets, the test set,
+and the hyperparameters to the simulation constructor:
 
 .. code-block:: python
 
@@ -105,7 +97,10 @@ the simulation constructor:
 
    sim = MonnaSimulation(
         model=model,
-        data=workers_data,
+        train_datasets=train_datasets,
+        train_batch_size=64,
+        test_set=test_set,
+        test_batch_size=256,
         loss_fn=nn.CrossEntropyLoss(),
         n=n,
         f=f,
@@ -195,15 +190,19 @@ mode controls which workers receive them:
 
    from krum.primitives.attacks.sign_flip import SignFlipAttack
 
+   byzantine_datasets = IidPartitioner.partition(train_set, n=8, seed=seed)
+
    sim_all = MonnaSimulation(
-       model=model, data=workers_data, loss_fn=nn.CrossEntropyLoss(),
+       model=model, train_datasets=byzantine_datasets, train_batch_size=64,
+       test_set=test_set, test_batch_size=256, loss_fn=nn.CrossEntropyLoss(),
        n=8, f=2, learning_rate=0.1,
        attack=SignFlipAttack, attack_kwargs={"scale": 1.5},
        byzantine_reach="all", seed=42,
    )
 
    sim_sampled = MonnaSimulation(
-       model=model, data=workers_data, loss_fn=nn.CrossEntropyLoss(),
+       model=model, train_datasets=byzantine_datasets, train_batch_size=64,
+       test_set=test_set, test_batch_size=256, loss_fn=nn.CrossEntropyLoss(),
        n=8, f=2, learning_rate=0.1,
        attack=SignFlipAttack, attack_kwargs={"scale": 1.5},
        byzantine_reach="sampled", seed=42,
@@ -229,7 +228,10 @@ aggregator parameters through ``aggregator_kwargs``:
 
    sim = MonnaSimulation(
        model=model,
-       data=workers_data,
+       train_datasets=byzantine_datasets,
+       train_batch_size=64,
+       test_set=test_set,
+       test_batch_size=256,
        loss_fn=nn.CrossEntropyLoss(),
        n=8,
        f=2,

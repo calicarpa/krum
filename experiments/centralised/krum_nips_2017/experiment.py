@@ -12,6 +12,7 @@ from krum.orchestration.dataframe import MetricDataFrame
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.data_partitioners.iid import IidPartitioner
 from krum.primitives.models.mlp import Krum2017MLPSpambase
 
 from .run import krum_experiment
@@ -27,6 +28,8 @@ SEED = 42
 EVAL_EVERY = 15
 XAVIER_INIT = True
 WEIGHT_DECAY = 1e-4
+PARTITIONER = IidPartitioner
+PARTITIONER_KWARGS = None
 
 
 def _plot_panel(
@@ -118,6 +121,8 @@ def main() -> None:
             batch_size=BATCH_SIZE,
             lr=LR,
             seed=SEED,
+            partitioner=PARTITIONER,
+            partitioner_kwargs=PARTITIONER_KWARGS,
             eval_every=EVAL_EVERY,
             xavier_init=XAVIER_INIT,
             weight_decay=WEIGHT_DECAY,

@@ -10,24 +10,38 @@ one process per run.
 Example::
 
     from krum.orchestration import Metric, Orchestrator
+    from krum.primitives.aggregators.average import Average
+    from krum.primitives.aggregators.krum import Krum
+    from krum.primitives.aggregators.bulyan import Bulyan
+    from krum.primitives.attacks.alie import ALIEAttack
+    from krum.primitives.attacks.sign_flip import SignFlipAttack
+    from krum.primitives.data_partitioners.iid import IidPartitioner
+    from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
-    def my_experiment(n, f, aggregator, attack, n_steps):
-        simulation = KrumSimulation(n=n, f=f, aggregator=aggregator, attack=attack)
+    def my_experiment(n, f, aggregator, attack, seed):
+        train_set, test_set = ...  # e.g. torchvision datasets
+        worker_datasets = IidPartitioner.partition(train_set, n=n, seed=seed)
+        simulation = KrumSimulation(
+            model_cls=..., train_datasets=worker_datasets, test_set=test_set,
+            aggregator=aggregator, attack=attack,
+            n=n, f=f, rounds=100, batch_size=32, lr=0.1, seed=seed,
+        )
+        simulation.setup()
         loss = Metric("loss", dtype=float)
-        for step in range(n_steps):
+        for step in range(100):
             simulation.step()
-            loss.push(step, simulation.loss())
+            if step % 10 == 0:
+                test_loss, _test_accuracy = simulation.evaluate()
+                loss.push(step, test_loss)
 
     orch = Orchestrator("byzantine_study")
-    for n in [10, 20]:
-        for f in [2, 3]:
-            for aggregator in [Average, Krum, Bulyan]:
-                for attack in [ALIEAttack, SignFlipAttack, None]:
-                    orch.run(
-                        my_experiment,
-                        n=n, f=f, aggregator=aggregator, attack=attack,
-                        n_steps=100,
-                    )
+    for n, f in [(10, 2), (20, 3)]:
+        for aggregator in [Average, Krum, Bulyan]:
+            for attack in [ALIEAttack, SignFlipAttack]:
+                orch.run(
+                    my_experiment,
+                    n=n, f=f, aggregator=aggregator, attack=attack, seed=42,
+                )
 
     loss = orch.get("loss")               # MetricDataFrame
     krum_alie = loss.filter(aggregator=Krum, attack=ALIEAttack)  # narrowed MetricDataFrame

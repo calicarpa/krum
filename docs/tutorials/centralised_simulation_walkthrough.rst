@@ -14,6 +14,43 @@ the worker loop, gradient computation, and evaluation for you.
       Reference for :class:`~krum.simulations.centralised.KrumSimulation`
       and :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`.
 
+Data preparation
+----------------
+
+Each of the ``n`` workers (honest and Byzantine) brings its own training
+dataset. The caller is responsible for splitting a full dataset into
+per-worker datasets — this can be IID or non-IID. The built-in
+:mod:`~krum.primitives.data_partitioners` strategies handle this:
+
+.. code-block:: python
+
+   from torchvision import datasets, transforms
+
+   from krum.primitives.data_partitioners.iid import IidPartitioner
+
+   transform = transforms.Compose([
+       transforms.ToTensor(),
+       transforms.Normalize((0.1307,), (0.3081,)),
+   ])
+   train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+   test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+
+   # One dataset per worker: IidPartitioner gives each worker an equal,
+   # shuffled portion of the training set
+   train_datasets = IidPartitioner.partition(train_set, n=10, seed=42)
+
+For non-IID data,
+:class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
+produces per-class label skew (controlled by an ``alpha`` parameter).
+See :doc:`working_with_data_partitioners` for the full partitioner
+family.
+
+``len(train_datasets)`` must equal ``n``, including Byzantine workers:
+only the first ``n - f`` are ever trained on (Byzantine workers craft
+their gradients from the honest ones via the attack), but the full
+``n``-length sequence is required so a future data-consuming attack
+(e.g. label-flipping) has something to read.
+
 Minimal example
 ---------------
 
@@ -31,6 +68,7 @@ each round. Extra parameters go through ``aggregator_kwargs`` and
 
    from krum.primitives.aggregators.multikrum import MultiKrum
    from krum.primitives.attacks.sign_flip import SignFlipAttack
+   from krum.primitives.data_partitioners.iid import IidPartitioner
    from krum.primitives.models.mlp import Krum2017MLPMnist
    from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
@@ -41,9 +79,12 @@ each round. Extra parameters go through ``aggregator_kwargs`` and
    train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
    test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
 
+   # Partition the training set into one dataset per worker
+   train_datasets = IidPartitioner.partition(train_set, n=10, seed=42)
+
    sim = KrumSimulation(
         model_cls=Krum2017MLPMnist,
-        train_set=train_set,
+        train_datasets=train_datasets,
         test_set=test_set,
         aggregator=MultiKrum,
         attack=SignFlipAttack,
@@ -64,8 +105,9 @@ manual so you can evaluate when you want (compare with the
 Setup
 ^^^^^
 
-``setup()`` initialises the model parameters, splits the training set
-into IID shards (one per worker), and seeds all RNG. The result is
+``setup()`` initialises the model parameters, wraps each honest
+worker's dataset into a dedicated :class:`~torch.utils.data.DataLoader`
+(batch size, shuffling), and seeds all RNG. The result is
 deterministic for a given ``seed``:
 
 .. code-block:: python
@@ -78,7 +120,7 @@ Step
 Each call to ``step()`` runs one synchronous round:
 
 * **Broadcast** the model to all :math:`n` workers.
-* **Honest workers** compute gradients on their data shard.
+* **Honest workers** compute gradients on their local data shard.
 * **Byzantine workers** generate attack gradients.
 * **Aggregator** combines all :math:`n` gradients into one.
 * **SGD update** is applied.
@@ -114,13 +156,25 @@ schedule:
        HiddenVulnerabilitySimulation,
    )
 
+   # Same data preparation as above
+   train_datasets = IidPartitioner.partition(train_set, n=39, seed=42)
+
    sim = HiddenVulnerabilitySimulation(
-        # same arguments as KrumSimulation ...
-        r_eta=10.0,  # required by Robbins-Monro schedule
-        rounds=50,
-    )
+        model_cls=Krum2017MLPMnist,
+        train_datasets=train_datasets,
+        test_set=test_set,
+        aggregator=Bulyan,
+        attack=SmallPerturbationAttack,
+        n=39,
+        f=9,
+        r_eta=10_000,
+        rounds=100,
+        batch_size=32,
+        lr=0.1,
+        seed=42,
+   )
    sim.setup()
-   for round_idx in range(50):
+   for round_idx in range(100):
        sim.step()
        if round_idx % 10 == 0:
            loss, error, accuracy = sim.evaluate()

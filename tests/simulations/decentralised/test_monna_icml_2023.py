@@ -4,11 +4,22 @@ import unittest
 
 import torch
 from torch import nn
+from torch.utils.data import TensorDataset
 
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
+from krum.primitives.data_partitioners.iid import IidPartitioner
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach, MonnaSimulation
+
+
+def _dataset(x: torch.Tensor, y: torch.Tensor) -> TensorDataset:
+    """Build a single-sample dataset."""
+    return TensorDataset(x, y)
+
+
+_TEST_SET = _dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]]))
 
 
 class MonnaProtocolTest(unittest.TestCase):
@@ -28,10 +39,13 @@ class MonnaProtocolTest(unittest.TestCase):
     ) -> MonnaSimulation:
         """Create a tiny simulation for method-level tests."""
         module = nn.Linear(1, 1, bias=False)
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(n - f)]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(n)]
         return MonnaSimulation(
             model=Model(module),
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=n,
             f=f,
@@ -48,15 +62,14 @@ class MonnaProtocolTest(unittest.TestCase):
         module = nn.Linear(1, 1, bias=False)
         with torch.no_grad():
             module.weight.fill_(2.0)
-        data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-        ]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
 
         simulation = MonnaSimulation(
             model=Model(module),
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=3,
             f=0,
@@ -127,13 +140,16 @@ class MonnaProtocolTest(unittest.TestCase):
         with torch.no_grad():
             module.weight.fill_(0.0)
         model = Model(module)
-        data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
+        train_datasets = [
+            _dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])),
+            _dataset(torch.tensor([[2.0]]), torch.tensor([[2.0]])),
         ]
         simulation = MonnaSimulation(
             model=model,
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=2,
             f=0,
@@ -152,6 +168,37 @@ class MonnaProtocolTest(unittest.TestCase):
         self.assertTrue(torch.allclose(result["mixed_parameters"], expected_mixed_parameters))
         self.assertTrue(torch.allclose(simulation.parameters, expected_mixed_parameters))
 
+    def test_evaluate_averages_loss_and_accuracy_across_honest_workers(self) -> None:
+        """evaluate() loads each worker's params in turn and averages the test metrics."""
+        module = nn.Linear(1, 2, bias=False)
+        test_set = TensorDataset(torch.tensor([[1.0], [2.0]]), torch.tensor([0, 1]))
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([1])) for _ in range(2)]
+        simulation = MonnaSimulation(
+            model=Model(module),
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=test_set,
+            test_batch_size=2,
+            loss_fn=nn.CrossEntropyLoss(),
+            n=2,
+            f=0,
+            learning_rate=0.1,
+        )
+
+        loss, accuracy = simulation.evaluate()
+
+        self.assertIsInstance(loss, float)
+        self.assertIsInstance(accuracy, float)
+        self.assertGreaterEqual(accuracy, 0.0)
+        self.assertLessEqual(accuracy, 1.0)
+
+    def test_evaluate_not_called_by_step(self) -> None:
+        """step() never touches the test loader."""
+        simulation = self.make_simulation(n=2, f=0, learning_rate=0.1)
+        simulation.step()
+        # Should not raise, and should be independently callable.
+        simulation.evaluate()
+
     def test_defaults_to_nearest_neighbor_average_sized_to_n_minus_2f(self) -> None:
         """MoNNA owns the mixing rule: default NNA keeps n - 2f."""
         simulation = self.make_simulation(n=7, f=2, learning_rate=0.1, attack=SignFlipAttack)
@@ -162,11 +209,14 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_accepts_aggregator_override(self) -> None:
         """A supplied aggregator replaces the default mixing rule."""
         module = nn.Linear(1, 1, bias=False)
-        data = [[(torch.tensor([[1.0]]), torch.tensor([[1.0]]))] for _ in range(3)]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
 
         simulation = MonnaSimulation(
             model=Model(module),
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=3,
             f=0,
@@ -181,15 +231,15 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_simulation_requires_attack_when_byzantine_workers_are_configured(self) -> None:
         """Byzantine rounds need an explicit attack implementation."""
         module = nn.Linear(1, 1, bias=False)
-        data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
-        ]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
 
         with self.assertRaises(ValueError):
             MonnaSimulation(
                 model=Model(module),
-                data=data,
+                train_datasets=train_datasets,
+                train_batch_size=1,
+                test_set=_TEST_SET,
+                test_batch_size=1,
                 loss_fn=nn.MSELoss(),
                 n=3,
                 f=1,
@@ -201,13 +251,13 @@ class MonnaProtocolTest(unittest.TestCase):
         module = nn.Linear(1, 1, bias=False)
         with torch.no_grad():
             module.weight.fill_(0.0)
-        data = [
-            [(torch.tensor([[1.0]]), torch.tensor([[1.0]]))],
-            [(torch.tensor([[2.0]]), torch.tensor([[2.0]]))],
-        ]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(3)]
         simulation = MonnaSimulation(
             model=Model(module),
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=3,
             f=1,
@@ -306,11 +356,13 @@ class MonnaProtocolTest(unittest.TestCase):
     def test_run_executes_one_step_per_round_in_order(self) -> None:
         """``run`` drives ``step`` once per round and collects the snapshots."""
         module = nn.Linear(1, 1, bias=False)
-        batch = (torch.tensor([[1.0]]), torch.tensor([[1.0]]))
-        data = [[batch, batch, batch] for _ in range(2)]
+        train_datasets = [_dataset(torch.tensor([[1.0]]), torch.tensor([[1.0]])) for _ in range(2)]
         simulation = MonnaSimulation(
             model=Model(module),
-            data=data,
+            train_datasets=train_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
             loss_fn=nn.MSELoss(),
             n=2,
             f=0,
@@ -337,6 +389,52 @@ class MonnaProtocolTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             simulation.run(-1)
+
+    def test_step_with_iid_partitioner(self) -> None:
+        """IidPartitioner output works as train_datasets."""
+        dataset = TensorDataset(torch.randn(200, 1), torch.randint(0, 2, (200,)))
+        worker_datasets = IidPartitioner.partition(dataset, n=4, seed=42)
+
+        simulation = MonnaSimulation(
+            model=Model(nn.Linear(1, 1, bias=False)),
+            train_datasets=worker_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
+            loss_fn=nn.MSELoss(),
+            n=4,
+            f=0,
+            learning_rate=0.1,
+            beta=0.99,
+            seed=42,
+        )
+        result = simulation.step()
+        self.assertEqual(result["step"], 1)
+
+    def test_step_with_dirichlet_partitioner(self) -> None:
+        """DirichletPartitioner output works as train_datasets (non-IID)."""
+        dataset = TensorDataset(torch.randn(400, 1), torch.randint(0, 2, (400,)))
+        worker_datasets = DirichletPartitioner.partition(dataset, n=4, alpha=1.0, seed=42)
+
+        # Verify no honest worker got an empty shard
+        for ds in worker_datasets:
+            self.assertGreater(len(ds), 0)
+
+        simulation = MonnaSimulation(
+            model=Model(nn.Linear(1, 1, bias=False)),
+            train_datasets=worker_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
+            loss_fn=nn.MSELoss(),
+            n=4,
+            f=0,
+            learning_rate=0.1,
+            beta=0.99,
+            seed=42,
+        )
+        result = simulation.step()
+        self.assertEqual(result["step"], 1)
 
 
 if __name__ == "__main__":

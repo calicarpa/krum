@@ -58,10 +58,10 @@ class KrumSimulation(CentralisedSimulation):
 
         Note:
             Reads the full training set in a single ``no_grad`` pass
-            (``self._full_loader`` is built with ``batch_size=len(train_set)``).
-            OK for the small datasets used by the bundled experiments
-            (Spambase ≈ 4.5k rows); for larger datasets, sample a
-            fixed-size subset instead.
+            (``self._full_loader`` batches the concatenation of every
+            worker's dataset at once). OK for the small datasets used by
+            the bundled experiments (Spambase ≈ 4.5k rows); for larger
+            datasets, sample a fixed-size subset instead.
         """
         assert self._model is not None and self._full_loader is not None
         self._model.module.eval()

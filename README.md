@@ -4,7 +4,8 @@
 
 Krum provides a modular framework for implementing, comparing, and evaluating
 Byzantine-resilient Gradient Aggregation Rules (GARs) for distributed learning.
-It ships with state-of-the-art aggregation rules and attack strategies.
+It ships with state-of-the-art aggregation rules, attack strategies, and
+IID/non-IID data partitioning.
 
 ## Documentation
 
@@ -15,13 +16,13 @@ The reference documentation is available at
 
 ```python
 import torch
-from krum.primitives.aggregators import Krum, Average
-from krum.primitives.attacks.gaussian import Gaussian
+from krum.primitives.aggregators.average import Average
+from krum.primitives.aggregators.krum import Krum
+from krum.primitives.attacks.gaussian import GaussianAttack
 
 # Simulate gradients from 10 workers (8 honest, 2 Byzantine)
 honest = torch.randn(8, 100)
-attack = Gaussian(std=10.0)
-byzantine = attack.generate(honest, f=2)
+byzantine = GaussianAttack.generate(honest, f=2, std=10.0)
 gradients = torch.cat([honest, byzantine], dim=0)
 
 # Compare robust vs naive aggregation
@@ -84,13 +85,18 @@ This installs all linting, type-checking, and documentation tools.
 
 ## Features
 
-- **8 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
-  Bulyan, Brute, GeoMed
-- **5 attack strategies**: SignFlip, ALIE, Gaussian, Omniscient, NoSmallPerturbation
+- **10 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
+  Bulyan, Brute, GeoMed, Aksel, Nearest Neighbor Average
+- **5 attack strategies**: SignFlip, ALIE, Gaussian, FullGradientNegation,
+  SmallPerturbation
+- **Data partitioning**: IID and non-IID per-worker splits via a single
+  `DataPartitioner` interface — `IidPartitioner`, `DirichletPartitioner`,
+  `PerLabelsPartitioner`, `MixingPartitioner` — returning one
+  `Sequence[Dataset]` per worker from a stateless `partition()` classmethod
 - **Zero-copy model wrapper**: Flat parameter/gradient views via
   `krum.primitives.Model`
-- **Stateless design**: Aggregators and attacks are classmethods, no
-  instantiation needed
+- **Stateless design**: Aggregators, attacks, and partitioners are
+  classmethods, no instantiation needed
 
 ## Contributing
 
