@@ -30,6 +30,11 @@ def _dummy_dataset(n: int = 32, d: int = 10, classes: int = 2) -> TensorDataset:
     return TensorDataset(x, y)
 
 
+def _worker_datasets(count: int = 4, samples: int = 8, d: int = 10, classes: int = 2) -> list[TensorDataset]:
+    """Return one synthetic dataset per worker."""
+    return [_dummy_dataset(n=samples, d=d, classes=classes) for _ in range(count)]
+
+
 class KrumSimulationConstructionTest(unittest.TestCase):
     """Construction and default values."""
 
@@ -39,7 +44,7 @@ class KrumSimulationConstructionTest(unittest.TestCase):
             dict[str, Any],
             {
                 "model_cls": _DummyModel,
-                "train_set": _dummy_dataset(),
+                "train_datasets": _worker_datasets(),
                 "test_set": _dummy_dataset(),
                 "aggregator": Average,
                 "n": 4,
@@ -71,7 +76,7 @@ class KrumSimulationLifecycleTest(unittest.TestCase):
         """Set up a simulation instance for lifecycle testing."""
         self.sim = KrumSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(),
+            train_datasets=_worker_datasets(),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -114,7 +119,7 @@ class KrumSimulationLRScheduleTest(unittest.TestCase):
         """Default LR schedule should be none (fixed learning rate, NIPS 2017 protocol)."""
         sim = KrumSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(),
+            train_datasets=_worker_datasets(),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,

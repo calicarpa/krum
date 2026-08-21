@@ -227,12 +227,25 @@ Pass the **class** (not an instance) to a simulation:
 .. code-block:: python
 
    from krum.primitives.attacks.sign_flip import SignFlipAttack
+   from krum.primitives.data_partitioners.iid import IidPartitioner
    from krum.primitives.models.mlp import Krum2017MLPMnist
    from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
+   from torchvision import datasets, transforms
+
+   transform = transforms.Compose([
+       transforms.ToTensor(),
+       transforms.Normalize((0.1307,), (0.3081,)),
+   ])
+   train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+   test_set = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+
+   # Partition the training set into one dataset per worker
+   train_datasets = IidPartitioner.partition(train_set, n=10, seed=42)
+
    sim = KrumSimulation(
        model_cls=Krum2017MLPMnist,
-       train_set=train_set,
+       train_datasets=train_datasets,
        test_set=test_set,
        aggregator=FirstGrad,
        attack=SignFlipAttack,

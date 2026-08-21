@@ -8,6 +8,8 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 
 from krum.primitives.aggregators.average import Average
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
+from krum.primitives.data_partitioners.iid import IidPartitioner
 from krum.simulations.centralised import CentralisedSimulation
 
 
@@ -30,6 +32,11 @@ def _dummy_dataset(n: int = 32, d: int = 10, classes: int = 2) -> TensorDataset:
     return TensorDataset(x, y)
 
 
+def _worker_datasets(count: int = 4, samples: int = 8, d: int = 10, classes: int = 2) -> list[TensorDataset]:
+    """Return one synthetic dataset per worker."""
+    return [_dummy_dataset(n=samples, d=d, classes=classes) for _ in range(count)]
+
+
 class CentralisedSimulationConstructionTest(unittest.TestCase):
     """Test construction validation."""
 
@@ -38,7 +45,7 @@ class CentralisedSimulationConstructionTest(unittest.TestCase):
             dict[str, Any],
             {
                 "model_cls": _DummyModel,
-                "train_set": _dummy_dataset(),
+                "train_datasets": _worker_datasets(),
                 "test_set": _dummy_dataset(),
                 "aggregator": Average,
                 "n": 4,
@@ -56,6 +63,19 @@ class CentralisedSimulationConstructionTest(unittest.TestCase):
         sim = self._make_sim()
         self.assertEqual(sim.n, 4)
         self.assertEqual(sim.f, 0)
+
+    def test_wrong_number_of_train_datasets_raises(self) -> None:
+        """``len(train_datasets)`` must equal ``n``."""
+        with self.assertRaises(ValueError):
+            self._make_sim(train_datasets=_worker_datasets(count=3), n=4)
+
+    def test_empty_honest_worker_dataset_raises(self) -> None:
+        """An honest worker with an empty train_dataset is rejected at construction."""
+        empty = TensorDataset(torch.empty(0, 10), torch.empty(0, dtype=torch.long))
+        datasets = _worker_datasets(count=4)
+        datasets[0] = empty
+        with self.assertRaises(ValueError):
+            self._make_sim(train_datasets=datasets)
 
     def test_invalid_lr_schedule_raises(self) -> None:
         """Invalid ``lr_schedule`` should raise ``ValueError``."""
@@ -100,7 +120,7 @@ class CentralisedSimulationLifecycleTest(unittest.TestCase):
         """Set up a simulation instance for lifecycle testing."""
         self.sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(),
+            train_datasets=_worker_datasets(),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -122,9 +142,29 @@ class CentralisedSimulationLifecycleTest(unittest.TestCase):
         self.assertIsNotNone(self.sim._model.module)
 
     def test_setup_creates_worker_loaders(self) -> None:
-        """:meth:`setup` should create one data loader per worker."""
+        """:meth:`setup` should create one data loader per honest worker."""
         self.sim.setup()
         self.assertEqual(len(self.sim._worker_loaders), 4)
+
+    def test_setup_creates_loaders_for_honest_workers_only(self) -> None:
+        """:meth:`setup` should create ``n - f`` loaders when Byzantines exist."""
+        from krum.primitives.attacks.gaussian import GaussianAttack
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_datasets=_worker_datasets(count=4),
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            attack=GaussianAttack,
+            attack_kwargs={"std": 1.0},
+            n=4,
+            f=1,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        self.assertEqual(len(sim._worker_loaders), 3)
 
     def test_setup_is_idempotent(self) -> None:
         """Calling :meth:`setup` twice should be safe."""
@@ -152,7 +192,7 @@ class CentralisedSimulationStepTest(unittest.TestCase):
         """Step without attack should update model parameters."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -174,7 +214,7 @@ class CentralisedSimulationStepTest(unittest.TestCase):
 
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             attack=GaussianAttack,
@@ -195,7 +235,7 @@ class CentralisedSimulationStepTest(unittest.TestCase):
 
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             attack=GaussianAttack,
@@ -221,7 +261,7 @@ class CentralisedSimulationStepTest(unittest.TestCase):
         """
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=128),
+            train_datasets=_worker_datasets(count=4, samples=32),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -246,7 +286,7 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
         """The ``"none"`` schedule should keep the learning rate constant."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -264,7 +304,7 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
         """The ``"exponential"`` schedule should decay the learning rate."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -283,7 +323,7 @@ class CentralisedSimulationLRScheduleTest(unittest.TestCase):
         """The ``"robbins_monro"`` schedule should follow ``r_eta * lr / (t + 1)``."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -307,7 +347,7 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
         """Step with ``weight_decay`` should complete successfully."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -325,7 +365,7 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
         """Xavier initialisation should zero the biases."""
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=4, samples=16),
             test_set=_dummy_dataset(),
             aggregator=Average,
             n=4,
@@ -351,7 +391,7 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
         """
         kwargs: dict[str, Any] = {
             "model_cls": _DummyModel,
-            "train_set": _dummy_dataset(n=32),
+            "train_datasets": _worker_datasets(count=4, samples=8),
             "test_set": _dummy_dataset(),
             "aggregator": Average,
             "n": 4,
@@ -373,7 +413,7 @@ class CentralisedSimulationWeightDecayTest(unittest.TestCase):
         """Consuming the global RNG before ``setup()`` must not perturb Xavier weights."""
         kwargs: dict[str, Any] = {
             "model_cls": _DummyModel,
-            "train_set": _dummy_dataset(n=32),
+            "train_datasets": _worker_datasets(count=4, samples=8),
             "test_set": _dummy_dataset(),
             "aggregator": Average,
             "n": 4,
@@ -415,7 +455,7 @@ class CentralisedSimulationAggregatorOverrideTest(unittest.TestCase):
 
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=10, samples=8),
             test_set=_dummy_dataset(),
             aggregator=_SpyAggregator,  # ty:ignore[invalid-argument-type]
             aggregator_kwargs={"f": 5},
@@ -442,7 +482,7 @@ class CentralisedSimulationAggregatorOverrideTest(unittest.TestCase):
 
         sim = CentralisedSimulation(
             model_cls=_DummyModel,
-            train_set=_dummy_dataset(n=64),
+            train_datasets=_worker_datasets(count=10, samples=8),
             test_set=_dummy_dataset(),
             aggregator=_SpyAggregator,  # ty:ignore[invalid-argument-type]
             aggregator_kwargs={"n": 99},
@@ -456,6 +496,98 @@ class CentralisedSimulationAggregatorOverrideTest(unittest.TestCase):
         sim.step()
         self.assertEqual(captured["n"], 99)
         self.assertEqual(captured["f"], 2)
+
+
+class CentralisedSimulationPartitionerTest(unittest.TestCase):
+    """Integration tests with DataPartitioner (IID and non-IID)."""
+
+    def test_setup_and_step_with_iid_partitioner(self) -> None:
+        """IidPartitioner output works as train_datasets."""
+        dataset = _dummy_dataset(n=200, d=10, classes=2)
+        worker_datasets = IidPartitioner.partition(dataset, n=4, seed=42)
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_datasets=worker_datasets,
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            n=4,
+            f=0,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        assert sim._model is not None
+        params_before = sim._model.parameters.clone()
+        sim.step()
+        params_after = sim._model.parameters
+        self.assertFalse(torch.equal(params_before, params_after))
+
+    def test_setup_and_step_with_dirichlet_partitioner(self) -> None:
+        """DirichletPartitioner output works as train_datasets (non-IID)."""
+        # Use a larger dataset and alpha=1.0 to ensure non-empty shards
+        dataset = _dummy_dataset(n=400, d=10, classes=2)
+        worker_datasets = DirichletPartitioner.partition(dataset, n=4, alpha=1.0, seed=42)
+
+        # Verify no honest worker got an empty shard
+        for ds in worker_datasets:
+            self.assertGreater(len(ds), 0)
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_datasets=worker_datasets,
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            n=4,
+            f=0,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        assert sim._model is not None
+        params_before = sim._model.parameters.clone()
+        sim.step()
+        params_after = sim._model.parameters
+        self.assertFalse(torch.equal(params_before, params_after))
+
+    def test_manual_non_iid_datasets(self) -> None:
+        """Manually constructed non-IID datasets (class skew) work."""
+        # Worker 0: only class 0; Worker 1: only class 1; etc.
+        x0 = torch.randn(16, 10)
+        y0 = torch.zeros(16, dtype=torch.long)
+        x1 = torch.randn(16, 10)
+        y1 = torch.ones(16, dtype=torch.long)
+        x2 = torch.randn(16, 10)
+        y2 = torch.full((16,), 1, dtype=torch.long)  # still class 1
+        x3 = torch.randn(16, 10)
+        y3 = torch.zeros(16, dtype=torch.long)
+
+        worker_datasets = [
+            TensorDataset(x0, y0),
+            TensorDataset(x1, y1),
+            TensorDataset(x2, y2),
+            TensorDataset(x3, y3),
+        ]
+
+        sim = CentralisedSimulation(
+            model_cls=_DummyModel,
+            train_datasets=worker_datasets,
+            test_set=_dummy_dataset(),
+            aggregator=Average,
+            n=4,
+            f=0,
+            rounds=5,
+            batch_size=8,
+            lr=0.1,
+        )
+        sim.setup()
+        assert sim._model is not None
+        params_before = sim._model.parameters.clone()
+        sim.step()
+        params_after = sim._model.parameters
+        self.assertFalse(torch.equal(params_before, params_after))
 
 
 if __name__ == "__main__":

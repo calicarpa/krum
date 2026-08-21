@@ -8,6 +8,8 @@ from torch.utils.data import TensorDataset
 
 from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 from krum.primitives.attacks.sign_flip import SignFlipAttack
+from krum.primitives.data_partitioners.dirichlet import DirichletPartitioner
+from krum.primitives.data_partitioners.iid import IidPartitioner
 from krum.primitives.models import Model
 from krum.simulations.decentralised.monna_icml_2023 import ByzantineReach, MonnaSimulation
 
@@ -387,6 +389,52 @@ class MonnaProtocolTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             simulation.run(-1)
+
+    def test_step_with_iid_partitioner(self) -> None:
+        """IidPartitioner output works as train_datasets."""
+        dataset = TensorDataset(torch.randn(200, 1), torch.randint(0, 2, (200,)))
+        worker_datasets = IidPartitioner.partition(dataset, n=4, seed=42)
+
+        simulation = MonnaSimulation(
+            model=Model(nn.Linear(1, 1, bias=False)),
+            train_datasets=worker_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
+            loss_fn=nn.MSELoss(),
+            n=4,
+            f=0,
+            learning_rate=0.1,
+            beta=0.99,
+            seed=42,
+        )
+        result = simulation.step()
+        self.assertEqual(result["step"], 1)
+
+    def test_step_with_dirichlet_partitioner(self) -> None:
+        """DirichletPartitioner output works as train_datasets (non-IID)."""
+        dataset = TensorDataset(torch.randn(400, 1), torch.randint(0, 2, (400,)))
+        worker_datasets = DirichletPartitioner.partition(dataset, n=4, alpha=1.0, seed=42)
+
+        # Verify no honest worker got an empty shard
+        for ds in worker_datasets:
+            self.assertGreater(len(ds), 0)
+
+        simulation = MonnaSimulation(
+            model=Model(nn.Linear(1, 1, bias=False)),
+            train_datasets=worker_datasets,
+            train_batch_size=1,
+            test_set=_TEST_SET,
+            test_batch_size=1,
+            loss_fn=nn.MSELoss(),
+            n=4,
+            f=0,
+            learning_rate=0.1,
+            beta=0.99,
+            seed=42,
+        )
+        result = simulation.step()
+        self.assertEqual(result["step"], 1)
 
 
 if __name__ == "__main__":

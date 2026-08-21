@@ -83,38 +83,40 @@ it lands in the ``Orchestrator``'s internal store tagged with run
 parameters, and you retrieve a filtered view via ``Orchestrator.get()``
 which returns a ``MetricDataFrame``.
 
-The flow::
+The flow:
+
+.. code-block:: text
 
    Orchestrator.run(fn, label="A", seed=42, …)
-          │
-          ▼
-   ┌────────────────────────────────────────┐
-   │ fn(**params)                           │
-   │                                        │
-   │  Metric("acc").push(step, 0.95)        │
-   │         │                              │
-   │         │  thread-local context        │
-   │         ▼                              │
-   │  Orchestrator._record()                │
-   │         │                              │
-   │         ▼                              │
-   │  Internal store                        │
-   │  ┌─────┬──────┬──────┬───────┬──────┐  │
-   │  │name │ step │  val │ label │ seed │  │
-   │  ├─────┼──────┼──────┼───────┼──────┤  │
-   │  │ acc │   0  │ 0.92 │   A   │  42  │  │
-   │  │ acc │  10  │ 0.95 │   A   │  42  │  │
-   │  │ acc │  20  │ 0.96 │   A   │  42  │  │
-   │  │ acc │  10  │ 0.88 │   B   │  43  │  │
-   │  └─────┴──────┴──────┴───────┴──────┘  │
-   └────────────────────────────────────────┘
-          │
-          ▼
+            │
+            ▼
+   ┌──────────────────────────────────────┐
+   │ fn(**params)                         │
+   │   Metric("acc").push(step, 0.95)     │
+   │         │                            │
+   │         │  thread-local context      │
+   │         ▼                            │
+   │   Orchestrator._record()             │
+   │         │                            │
+   │         ▼                            │
+   │   Internal store                     │
+   │   ┌─────┬──────┬──────┬───────┬────┐ │
+   │   │name │ step │  val │ label │seed│ │
+   │   ├─────┼──────┼──────┼───────┼────┤ │
+   │   │ acc │   0  │ 0.92 │   A   │ 42 │ │
+   │   │ acc │  10  │ 0.95 │   A   │ 42 │ │
+   │   │ acc │  20  │ 0.96 │   A   │ 42 │ │
+   │   │ acc │  10  │ 0.88 │   B   │ 43 │ │
+   │   └─────┴──────┴──────┴───────┴────┘ │
+   └──────────────────────────────────────┘
+            │
+            ▼
    Orchestrator.get("acc")
-          │
-          ▼
-   MetricDataFrame  ─── .filter(label="A")
-                        .to_pandas()  ───►  pandas.DataFrame
+            │
+            ▼
+   MetricDataFrame ──► .filter(label="A")
+                         .to_pandas()
+                         ──► pandas.DataFrame
 
 Key design decisions:
 
@@ -132,7 +134,7 @@ aggregator and once with the Average baseline, collecting the results as
 structured metrics.
 
 Setup
-^^^^^
+^^^^^^
 
 Imports, MNIST, and an MLP:
 
@@ -142,6 +144,7 @@ Imports, MNIST, and an MLP:
    from krum.primitives.aggregators.average import Average
    from krum.primitives.aggregators.multikrum import MultiKrum
    from krum.primitives.attacks.sign_flip import SignFlipAttack
+   from krum.primitives.data_partitioners.iid import IidPartitioner
    from krum.primitives.models.mlp import Krum2017MLPMnist
    from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
@@ -157,6 +160,9 @@ Imports, MNIST, and an MLP:
    test_set = datasets.MNIST(
        root="./data", train=False, download=True, transform=transform
    )
+
+   # Partition the training set into one dataset per worker
+   train_datasets = IidPartitioner.partition(train_set, n=10, seed=42)
 
 Experiment function
 ^^^^^^^^^^^^^^^^^^^
@@ -183,7 +189,7 @@ can be driven by the ``Orchestrator``:
    ) -> None:
        sim = KrumSimulation(
            model_cls=Krum2017MLPMnist,
-           train_set=train_set, test_set=test_set,
+           train_datasets=train_datasets, test_set=test_set,
            aggregator=aggregator, attack=attack,
            attack_kwargs=attack_kwargs,
            n=n, f=f, rounds=rounds,

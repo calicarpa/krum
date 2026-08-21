@@ -266,12 +266,9 @@ Any of the four strategies from this tutorial can be dropped in at step 2:
 matter which partitioner produced it.
 
 The ``Sequence[Dataset]`` shape is the contract of the decentralised
-simulations; the partitioning choice is entirely the caller's
-responsibility — pick any strategy above and pass its output straight
-in. (For the parameter-server setup,
-:class:`~krum.simulations.centralised.CentralisedSimulation` takes a
-single ``train_set`` instead — the dataset is shared and each worker's
-minibatches are drawn from it internally.)
+simulations **and** the centralised simulations; the partitioning choice
+is entirely the caller's responsibility — pick any strategy above and
+pass its output straight in.
 
 .. seealso::
 

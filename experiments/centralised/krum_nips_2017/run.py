@@ -7,8 +7,10 @@ import torch.nn as nn
 from krum.orchestration import Metric
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.attacks import Attack
+from krum.primitives.data_partitioners import DataPartitioner
 from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
+from ..datasets import make_worker_streams
 from .datasets import make_datasets
 
 
@@ -26,6 +28,8 @@ def krum_experiment(
     batch_size: int,
     lr: float,
     seed: int,
+    partitioner: type[DataPartitioner],
+    partitioner_kwargs: dict[str, Any] | None = None,
     eval_every: int = 10,
     train_size: int = 0,
     test_size: int = 0,
@@ -37,13 +41,23 @@ def krum_experiment(
 
     The datasets are built from the hashable ``dataset`` name (and optional
     ``train_size``/``test_size``) *inside* this function, so the run is
-    identified by those parameters rather than by the dataset objects.
+    identified by those parameters rather than by the dataset objects. The
+    training set is then split into one dataset per worker via
+    ``partitioner`` (IID or not), with ``partitioner_kwargs`` forwarded as
+    its strategy-specific keyword arguments.
     """
     print(f"\n=== {label} ===")
     train_set, test_set = make_datasets(dataset, train_size, test_size)
+    worker_datasets = make_worker_streams(
+        train_set,
+        n=n,
+        partitioner=partitioner,
+        partitioner_kwargs=partitioner_kwargs,
+        seed=seed,
+    )
     krum_simulation = KrumSimulation(
         model_cls=model_cls,
-        train_set=train_set,
+        train_datasets=worker_datasets,
         test_set=test_set,
         aggregator=aggregator,
         aggregator_kwargs=aggregator_kwargs,

@@ -74,8 +74,10 @@ For non-IID data,
 :class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
 produces per-class label skew (controlled by an ``alpha`` parameter).
 See :doc:`working_with_data_partitioners` for the full partitioner
-family; the experiment scripts in ``experiments/decentralised/`` expose
-the same two variants as ``Partition.IID`` and ``Partition.DIRICHLET``.
+family; the experiment scripts in ``experiments/decentralised/`` use
+:class:`~krum.primitives.data_partitioners.iid.IidPartitioner` and
+:class:`~krum.primitives.data_partitioners.dirichlet.DirichletPartitioner`
+directly.
 
 Instantiation
 ^^^^^^^^^^^^^
