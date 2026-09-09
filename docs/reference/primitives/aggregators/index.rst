@@ -18,6 +18,7 @@ Available aggregators
    classes/bulyan
    classes/brute
    classes/geomed
+   classes/medoid
    classes/nearest_neighbor_average
    classes/aksel
 

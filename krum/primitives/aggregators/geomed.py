@@ -1,27 +1,35 @@
-"""GeoMed aggregation rule, vector-level medoid.
+"""GeoMed aggregation rule, geometric median via smoothed Weiszfeld iterations.
 
-Reference:
-    Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
-    "Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates."
-    In Proceedings of the 35th International Conference on Machine Learning (ICML 2018).
+References:
+    Endre Weiszfeld.
+    "Sur le point pour lequel la somme des distances de n points donnes est minimum."
+    Tohoku Mathematical Journal 43 (1937): 355-386.
+
+    Krishna Pillutla, Sham M. Kakade, and Zaid Harchaoui.
+    "Robust Aggregation for Federated Learning."
+    IEEE Transactions on Signal Processing 70 (2022): 1142-1154.
+    Uses the smoothed Weiszfeld oracle (RFA) to approximate the minimiser.
 """
 
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, stack
+from torch import Tensor, clamp, mean, stack
+from torch.linalg import vector_norm
 
 from . import Aggregator
 
 
 class GeoMed(Aggregator):
-    r"""GeoMed aggregation rule, vector-level medoid.
+    r"""GeoMed aggregation rule, geometric median of the gradients.
 
-    The geometric median is the gradient :math:`V_i` that minimises
-    :math:`\sum_j \|V_i - V_j\|`. Ties are broken by the smallest index.
-    This is a vector-level operator (one of the submitted vectors is
-    selected as-is) — distinct from the coordinate-wise median, which
-    computes a median per coordinate.
+    The geometric median is the unconstrained minimiser
+    :math:`\arg\min_{y \in \mathbb{R}^d} \sum_i \|y - V_i\|`, computed here
+    with smoothed Weiszfeld iterations (RFA oracle): starting from the mean,
+    each step reweights the gradients by the inverse of their distance to
+    the current estimate, floored at :math:`\nu` for numerical stability.
+    Unlike :class:`Medoid`, the result is a synthetic point and generally
+    not one of the submitted vectors.
     """
 
     @classmethod
@@ -33,9 +41,12 @@ class GeoMed(Aggregator):
         *,
         n: int,
         f: int,
+        nu: float = 0.1,
+        tol: float = 1e-6,
+        max_iter: int = 100,
         **specialized: Any,
     ) -> Tensor:
-        r"""Aggregate gradients by selecting the geometric median.
+        r"""Aggregate gradients by approximating their geometric median.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
@@ -43,14 +54,19 @@ class GeoMed(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. :math:`f` is accepted for
                 API uniformity with other aggregators but is not consulted
-                here (the geometric median is defined for any :math:`n \ge 1`).
+                here (the geometric median is defined for any :math:`n \ge 1`
+                and tolerates any minority of outliers).
+            nu: Smoothing floor on distances. Must be positive.
+            tol: Stop when an iteration moves the estimate by at most ``tol``.
+            max_iter: Maximum number of Weiszfeld iterations. Must be at least 1.
             **specialized: Additional keyword arguments.
 
         Returns:
-            Selected worker gradient of shape ``(d,)``.
+            Approximate geometric median of shape ``(d,)``.
 
         Raises:
-            ValueError: If :math:`n`, :math:`f`, or the gradients count is invalid.
+            ValueError: If :math:`n`, :math:`f`, the gradients count, ``nu``,
+                ``tol`` or ``max_iter`` is invalid.
         """
         if n < 1:
             raise ValueError(f"Expected a list of at least one gradient to aggregate, got {n!r}")
@@ -60,6 +76,12 @@ class GeoMed(Aggregator):
             raise ValueError(
                 f"Invalid number of Byzantine gradients to tolerate, got f = {f!r}, expected f ≤ n = {n!r}"
             )
+        if nu <= 0:
+            raise ValueError(f"Expected smoothing nu to be positive, got {nu!r}")
+        if tol < 0:
+            raise ValueError(f"Expected tolerance to be non-negative, got {tol!r}")
+        if max_iter < 1:
+            raise ValueError(f"Expected at least one Weiszfeld iteration, got {max_iter!r}")
 
         if not isinstance(gradients, Tensor):
             gradients = stack(list(gradients))
@@ -67,9 +89,16 @@ class GeoMed(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        distances = cdist(gradients, gradients, p=2.0)
-        scores = distances.sum(dim=1)
-        best_index = int(scores.argmin().item())
+        estimate = mean(gradients, dim=0)
+        for _ in range(max_iter):
+            distances = vector_norm(gradients - estimate, dim=1)
+            weights = 1.0 / clamp(distances, min=nu)
+            updated = (weights.unsqueeze(1) * gradients).sum(dim=0) / weights.sum()
+            if vector_norm(updated - estimate).item() <= tol:
+                estimate = updated
+                break
+            estimate = updated
+
         if out is not None:
-            return out.copy_(gradients[best_index])
-        return gradients[best_index]
+            return out.copy_(estimate)
+        return estimate
