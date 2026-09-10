@@ -13,3 +13,10 @@ The package is organized in two layers:
 The :mod:`krum.simulations` package ships the original training simulations
 from the papers that introduced each rule.
 """
+
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("krum")
+except PackageNotFoundError:
+    __version__ = "0.0.0"  # Running from source without installation
