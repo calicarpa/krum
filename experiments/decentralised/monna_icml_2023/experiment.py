@@ -86,19 +86,41 @@ def main() -> None:
                 seed=SEED,
             )
 
-    metrics = ["train_loss", "test_loss", "test_accuracy"]
+    metrics = [("train_loss", "train loss"), ("test_loss", "test loss"), ("test_accuracy", "test accuracy")]
+    palette = ["tab:orange", "tab:green", "tab:blue", "tab:red", "tab:purple", "tab:brown"]
+    styles: dict[str, dict] = {}
+    for i, f in enumerate(F_VALUES):
+        for j, (_, agg_label) in enumerate(AGGREGATORS):
+            label = f"{agg_label}_f{f}"
+            if f == 0:
+                linestyle = "-" if agg_label == "NNA" else ":"
+            else:
+                linestyle = "--"
+            styles[label] = {
+                "color": palette[(i * len(AGGREGATORS) + j) % len(palette)],
+                "linestyle": linestyle,
+            }
     fig, axes = plt.subplots(1, len(metrics), figsize=(14, 4))
-    for ax, name in zip(axes, metrics, strict=True):
+    for ax, (name, pretty) in zip(axes, metrics, strict=True):
         frame = orchestrator.get(name).to_pandas()
         for run_label, group in frame.groupby("label", sort=False):
             group = group.sort_values("step")
-            ax.plot(group["step"], group["value"], label=run_label)
+            ax.plot(group["step"], group["value"], label=run_label, **styles.get(run_label, {}), linewidth=1.5)
         ax.set_xlabel("round")
-        ax.set_ylabel(name)
-        ax.set_title(name)
+        ax.set_ylabel(pretty)
+        ax.set_title(pretty)
+        ax.legend(fontsize=8, loc="best")
         ax.grid(True, linestyle=":", alpha=0.5)
-    axes[-1].legend(fontsize=8, loc="best")
-    fig.tight_layout()
+        if name == "test_accuracy":
+            ax.set_ylim(0.0, 1.0)
+    alpha = (PARTITIONER_KWARGS or {}).get("alpha")
+    partitioner_label = PARTITIONER.__name__ if alpha is None else f"{PARTITIONER.__name__}(α={alpha})"
+    fig.suptitle(
+        f"MoNNA (NNA) vs Mean — sign-flip attack — {partitioner_label} — {DATASET} "
+        f"(n={N}, f in {F_VALUES}, rounds={ROUNDS})",
+        fontsize=12,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
     plt.show()
 
     print("\nSmall experiment done.")

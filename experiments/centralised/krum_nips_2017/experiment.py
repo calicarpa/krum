@@ -82,15 +82,21 @@ def plot_comparison(
     mean_f_label = f"Mean_f{f_byz}"
 
     _plot_panel(fig.add_subplot(gs[0, 0]), frame_tl, styles, "loss", "test loss")
-    _plot_panel(fig.add_subplot(gs[0, 1]), frame_tl, styles, "loss", "test loss (excl. Mean_f6)", exclude=mean_f_label)
+    _plot_panel(
+        fig.add_subplot(gs[0, 1]), frame_tl, styles, "loss", f"test loss (excl. {mean_f_label})", exclude=mean_f_label
+    )
     _plot_panel(fig.add_subplot(gs[1, 0]), frame_trl, styles, "loss", "train loss")
     _plot_panel(
-        fig.add_subplot(gs[1, 1]), frame_trl, styles, "loss", "train loss (excl. Mean_f6)", exclude=mean_f_label
+        fig.add_subplot(gs[1, 1]), frame_trl, styles, "loss", f"train loss (excl. {mean_f_label})", exclude=mean_f_label
     )
     _plot_panel(fig.add_subplot(gs[2, :]), frame_ta, styles, "accuracy", "test accuracy")
     fig.axes[-1].set_ylim(0.0, 1.0)
 
-    fig.suptitle("MultiKrum vs Mean — sign-flip attack", fontsize=12)
+    fig.suptitle(
+        f"MultiKrum vs Mean — sign-flip attack — {PARTITIONER.__name__} — {DATASET} "
+        f"(n={N}, f={f_byz}, rounds={ROUNDS})",
+        fontsize=12,
+    )
     plt.show()
 
 
