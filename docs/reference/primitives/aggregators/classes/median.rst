@@ -9,4 +9,5 @@ Median
 .. seealso::
 
    For a simple mean baseline, see :doc:`average`.
-   For distance-based selection, see :doc:`krum`.
+   For coordinate-wise trimming, see :doc:`trimmed_mean`.
+   For the vector-level median, see :doc:`geometric_median`.

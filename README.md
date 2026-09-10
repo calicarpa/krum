@@ -85,8 +85,8 @@ This installs all linting, type-checking, and documentation tools.
 
 ## Features
 
-- **10 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
-  Bulyan, Brute, GeoMed, Aksel, Nearest Neighbor Average
+- **11 aggregation rules**: Average, Median, Trimmed Mean, Krum, MultiKrum,
+  Bulyan, Brute, GeometricMedian, Medoid, Aksel, Nearest Neighbor Average
 - **5 attack strategies**: SignFlip, ALIE, Gaussian, FullGradientNegation,
   SmallPerturbation
 - **Data partitioning**: IID and non-IID per-worker splits via a single

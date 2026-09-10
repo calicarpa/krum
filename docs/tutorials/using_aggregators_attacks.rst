@@ -22,7 +22,7 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
    from krum.primitives.aggregators.multikrum import MultiKrum
    from krum.primitives.aggregators.bulyan import Bulyan
    from krum.primitives.aggregators.aksel import Aksel
-   from krum.primitives.aggregators.geomed import GeoMed
+   from krum.primitives.aggregators.geometric_median import GeometricMedian
    from krum.primitives.aggregators.nearest_neighbor_average import NearestNeighborAverage
 
    # Simple average (baseline, no resilience)
@@ -32,7 +32,7 @@ Aggregators are **stateless** gradient aggregation rules. Call them as classmeth
    result = Median.aggregate(gradients)
 
    # Geometric median (basic resilience; n and f accepted for API uniformity)
-   result = GeoMed.aggregate(gradients, n=10, f=2)
+   result = GeometricMedian.aggregate(gradients, n=10, f=2)
 
    # Trimmed mean (basic resilience, requires 2f+1 workers)
    result = TrimmedMean.aggregate(gradients, f=2)
@@ -82,7 +82,7 @@ Resilience guarantees
    * - :class:`~krum.primitives.aggregators.median.Median`
      - ``f < n / 2``
      - ``n >= 1``
-   * - :class:`~krum.primitives.aggregators.geomed.GeoMed`
+   * - :class:`~krum.primitives.aggregators.geometric_median.GeometricMedian`
      - ``f < n / 2``
      - ``n >= 1``
    * - :class:`~krum.primitives.aggregators.trimmed_mean.TrimmedMean`

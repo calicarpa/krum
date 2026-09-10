@@ -1,9 +1,9 @@
-"""GeoMed aggregation rule, vector-level medoid.
+"""Medoid aggregation rule, vector-level medoid.
 
 Reference:
-    Dong Yin, Yudong Chen, Kannan Ramchandran, and Peter Bartlett.
-    "Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates."
-    In Proceedings of the 35th International Conference on Machine Learning (ICML 2018).
+    Cong Xie, Oluwasanmi Koyejo, and Indranil Gupta.
+    "Generalized Byzantine-tolerant SGD."
+    arXiv preprint arXiv:1802.10116 (2018).
 """
 
 from collections.abc import Sequence
@@ -14,14 +14,19 @@ from torch import Tensor, cdist, stack
 from . import Aggregator
 
 
-class GeoMed(Aggregator):
-    r"""GeoMed aggregation rule, vector-level medoid.
+class Medoid(Aggregator):
+    r"""Medoid aggregation rule, vector-level medoid.
 
-    The geometric median is the gradient :math:`V_i` that minimises
+    The medoid is the submitted gradient :math:`V_i` that minimises
     :math:`\sum_j \|V_i - V_j\|`. Ties are broken by the smallest index.
     This is a vector-level operator (one of the submitted vectors is
     selected as-is) — distinct from the coordinate-wise median, which
-    computes a median per coordinate.
+    computes a median per coordinate, and from the true geometric median
+    (:class:`~krum.primitives.aggregators.geometric_median.GeometricMedian`),
+    which is the unconstrained minimiser in
+    :math:`\mathbb{R}^d`. The medoid carries no
+    :math:`(\alpha, f)`-Byzantine-resilience guarantee; it is kept here
+    as a literature baseline.
     """
 
     @classmethod
@@ -35,7 +40,7 @@ class GeoMed(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        r"""Aggregate gradients by selecting the geometric median.
+        r"""Aggregate gradients by selecting the medoid.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
@@ -43,7 +48,7 @@ class GeoMed(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. :math:`f` is accepted for
                 API uniformity with other aggregators but is not consulted
-                here (the geometric median is defined for any :math:`n \ge 1`).
+                here (the medoid is defined for any :math:`n \ge 1`).
             **specialized: Additional keyword arguments.
 
         Returns:

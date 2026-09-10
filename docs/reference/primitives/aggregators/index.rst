@@ -17,7 +17,8 @@ Available aggregators
    classes/multikrum
    classes/bulyan
    classes/brute
-   classes/geomed
+   classes/geometric_median
+   classes/medoid
    classes/nearest_neighbor_average
    classes/aksel
 

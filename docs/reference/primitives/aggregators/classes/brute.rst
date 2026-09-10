@@ -8,5 +8,6 @@ Brute
 
 .. seealso::
 
-   For a vector-level medoid, see :doc:`geomed`.
+   For a vector-level medoid, see :doc:`medoid`.
+   For score-based subset averaging, see :doc:`multikrum`.
    For stronger two-stage resilience, see :doc:`bulyan`.
