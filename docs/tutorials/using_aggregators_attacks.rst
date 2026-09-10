@@ -82,7 +82,7 @@ Resilience guarantees
    * - :class:`~krum.primitives.aggregators.median.Median`
      - ``f < n / 2``
      - ``n >= 1``
-   * - :class:`~krum.primitives.aggregators.geomed.GeoMed`
+   * - :class:`~krum.primitives.aggregators.geometric_median.GeometricMedian`
      - ``f < n / 2``
      - ``n >= 1``
    * - :class:`~krum.primitives.aggregators.trimmed_mean.TrimmedMean`

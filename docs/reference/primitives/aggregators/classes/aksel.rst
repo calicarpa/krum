@@ -8,6 +8,6 @@ AKSEL
 
 .. seealso::
 
-   For a simple mean baseline, see :doc:`average`.
-   For coordinate-wise median, see :doc:`median`.
-   For distance-based selection, see :doc:`krum` or :doc:`bulyan`.
+   For the coordinate-wise median used as pivot, see :doc:`median`.
+   For the unconstrained vector-level median, see :doc:`geometric_median`.
+   For plain pivot-based nearest-neighbor averaging, see :doc:`nearest_neighbor_average`.

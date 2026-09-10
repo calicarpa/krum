@@ -8,5 +8,4 @@ Average
 
 .. seealso::
 
-   For coordinate-wise robustness, see :doc:`median`.
-   For distance-based selection, see :doc:`krum` or :doc:`bulyan`.
+   For coordinate-wise robustness, see :doc:`median` or :doc:`trimmed_mean`.

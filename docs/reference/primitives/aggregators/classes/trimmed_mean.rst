@@ -10,4 +10,4 @@ Trimmed Mean
 
    For a simple mean baseline, see :doc:`average`.
    For coordinate-wise median, see :doc:`median`.
-   For distance-based selection, see :doc:`krum` or :doc:`bulyan`.
+   For the two-stage rule built on trimmed mean, see :doc:`bulyan`.

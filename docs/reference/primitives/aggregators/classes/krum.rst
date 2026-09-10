@@ -10,3 +10,4 @@ Krum
 
    For multi-gradient averaging, see :doc:`multikrum`.
    For stronger two-stage resilience, see :doc:`bulyan`.
+   For distance-based single-vector selection, see :doc:`medoid`.
