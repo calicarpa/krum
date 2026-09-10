@@ -10,7 +10,7 @@ from krum.primitives.aggregators.medoid import Medoid
 class MedoidTest(unittest.TestCase):
     """Test Medoid aggregator."""
 
-    def test_aggregate_selects_geometric_medoid(self) -> None:
+    def test_aggregate_selects_medoid(self) -> None:
         """Medoid selects the gradient minimizing the sum of distances to all others."""
         grads = torch.tensor([[0.0], [0.5], [1.0], [100.0]])
         result = Medoid.aggregate(grads, n=4, f=1)

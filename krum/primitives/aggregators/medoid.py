@@ -1,19 +1,9 @@
 """Medoid aggregation rule, vector-level medoid.
 
-References:
+Reference:
     Cong Xie, Oluwasanmi Koyejo, and Indranil Gupta.
     "Generalized Byzantine-tolerant SGD."
-    arXiv preprint arXiv:1802.10116 (2018), Definition 9 in Section 5.
-    Defines the medoid as a computation-efficient version of the
-    geometric median (Endre Weiszfeld. Tohoku Mathematical Journal 43
-    (1937): 355-386) restricted to the submitted vectors.
-
-    Peva Blanchard, El Mahdi El Mhamdi, Rachid Guerraoui, and Julien
-    Stainer. "Machine learning with adversaries: Byzantine tolerant
-    gradient descent." In Advances in Neural Information Processing
-    Systems 30 (NIPS 2017).
-    Shows the medoid is not (alpha, f)-Byzantine-resilient; kept here as
-    a literature baseline with weaker relaxed guarantees.
+    arXiv preprint arXiv:1802.10116 (2018).
 """
 
 from collections.abc import Sequence
@@ -32,8 +22,11 @@ class Medoid(Aggregator):
     This is a vector-level operator (one of the submitted vectors is
     selected as-is) — distinct from the coordinate-wise median, which
     computes a median per coordinate, and from the true geometric median
-    (:class:`GeoMed`), which is the unconstrained minimiser in
-    :math:`\mathbb{R}^d`.
+    (:class:`~krum.primitives.aggregators.geometric_median.GeometricMedian`),
+    which is the unconstrained minimiser in
+    :math:`\mathbb{R}^d`. The medoid carries no
+    :math:`(\alpha, f)`-Byzantine-resilience guarantee; it is kept here
+    as a literature baseline.
     """
 
     @classmethod
@@ -47,7 +40,7 @@ class Medoid(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        r"""Aggregate gradients by selecting the geometric medoid.
+        r"""Aggregate gradients by selecting the medoid.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.

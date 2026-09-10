@@ -1,14 +1,9 @@
-"""GeoMed aggregation rule, geometric median via smoothed Weiszfeld iterations.
+"""GeometricMedian aggregation rule, geometric median via smoothed Weiszfeld iterations.
 
-References:
-    Endre Weiszfeld.
-    "Sur le point pour lequel la somme des distances de n points donnes est minimum."
-    Tohoku Mathematical Journal 43 (1937): 355-386.
-
+Reference:
     Krishna Pillutla, Sham M. Kakade, and Zaid Harchaoui.
     "Robust Aggregation for Federated Learning."
     IEEE Transactions on Signal Processing 70 (2022): 1142-1154.
-    Uses the smoothed Weiszfeld oracle (RFA) to approximate the minimiser.
 """
 
 from collections.abc import Sequence
@@ -20,15 +15,15 @@ from torch.linalg import vector_norm
 from . import Aggregator
 
 
-class GeoMed(Aggregator):
-    r"""GeoMed aggregation rule, geometric median of the gradients.
+class GeometricMedian(Aggregator):
+    r"""GeometricMedian aggregation rule, geometric median of the gradients.
 
     The geometric median is the unconstrained minimiser
     :math:`\arg\min_{y \in \mathbb{R}^d} \sum_i \|y - V_i\|`, computed here
     with smoothed Weiszfeld iterations (RFA oracle): starting from the mean,
     each step reweights the gradients by the inverse of their distance to
     the current estimate, floored at :math:`\nu` for numerical stability.
-    Unlike :class:`Medoid`, the result is a synthetic point and generally
+    Unlike :class:`~krum.primitives.aggregators.medoid.Medoid`, the result is a synthetic point and generally
     not one of the submitted vectors.
     """
 
