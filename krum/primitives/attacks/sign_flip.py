@@ -1,10 +1,10 @@
 r"""Sign-flip gradient attack.
 
 Reference:
-    Cong Xie, Sanmi Koyejo, and Indranil Gupta.
-    "Fall of Empires: Breaking Byzantine-tolerant SGD by Tailored Attacks."
-    In Proceedings of the 22nd International Conference on Artificial Intelligence
-    and Statistics (AISTATS 2019).
+    Cong Xie, Sanmi Koyejo, and Indranil Gupta. "Fall of Empires: Breaking
+    Byzantine-tolerant SGD by Inner Product Manipulation." In Proceedings of
+    the 35th Uncertainty in Artificial Intelligence Conference (UAI), PMLR
+    115:261--270, 2020.
 """
 
 from collections.abc import Sequence
