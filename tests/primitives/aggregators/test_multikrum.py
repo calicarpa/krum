@@ -4,6 +4,8 @@ import unittest
 
 import torch
 
+from krum.primitives.aggregators.average import Average
+from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 
 
@@ -32,6 +34,18 @@ class MultiKrumTest(unittest.TestCase):
         result = MultiKrum.aggregate(grads, n=5, f=1, m=1)
         honest = grads[:4]
         self.assertTrue(any(torch.equal(result, g) for g in honest))
+
+    def test_aggregate_m_equals_one_matches_krum(self) -> None:
+        """MultiKrum with m=1 selects the same vector as Krum."""
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
+        result = MultiKrum.aggregate(grads, n=5, f=1, m=1)
+        self.assertTrue(torch.equal(result, Krum.aggregate(grads, n=5, f=1)))
+
+    def test_aggregate_m_equals_n_matches_average(self) -> None:
+        """MultiKrum with m=n averages every gradient like Average."""
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
+        result = MultiKrum.aggregate(grads, n=5, f=1, m=5)
+        self.assertTrue(torch.allclose(result, Average.aggregate(grads)))
 
     def test_aggregate_preserves_dtype(self) -> None:
         """Aggregate preserves the input dtype."""
