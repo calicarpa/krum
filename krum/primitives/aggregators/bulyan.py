@@ -10,6 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
+import torch
 from torch import Tensor, stack, topk
 
 from . import Aggregator
@@ -35,15 +36,11 @@ class Bulyan(Aggregator):
 
     .. note::
 
-        Krum scores are computed once on the full candidate set and
-        removed gradients are masked with ``inf`` rather than
-        recomputing pairwise distances at every iteration. This is an
-        approximation of Algorithm 1 in the paper: a removed gradient
-        still appears in the distance matrix of the remaining workers,
-        so individual scores do not get updated after each removal.
-        The selection order may therefore differ slightly from the
-        paper, though the impact on the final trimmed mean is minimal
-        when the honest majority forms a tight cluster.
+        Krum scores are recomputed at every iteration on the remaining
+        candidates, following Algorithm 1 in the paper: removed
+        gradients leave the distance matrix, so each iteration scores
+        the :math:`n - i` remaining candidates on their
+        :math:`n - i - f - 2` closest peers.
     """
 
     @classmethod
@@ -104,16 +101,16 @@ class Bulyan(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = MultiKrum.score(gradients, n=n, f=f, num_peers=m)
-
         theta = n - 2 * f - 2
         selected = gradients.new_empty((theta, gradients.size(1)))
+        remaining = torch.ones(n, dtype=torch.bool, device=gradients.device)
 
         for i in range(theta):
+            scores = MultiKrum.score(gradients, n=n, f=f, num_peers=n - i - f - 2, valid_mask=remaining)
             m_cur = min(m, n - f - 2 - i)
             _, top = topk(scores, m_cur, largest=False)
             selected[i] = gradients[top].mean(dim=0)
             closest = top[(gradients[top] - selected[i]).norm(dim=1).argmin()]
-            scores[closest] = float("inf")
+            remaining[closest] = False
 
         return TrimmedMean.aggregate(selected, out=out, f=f)
