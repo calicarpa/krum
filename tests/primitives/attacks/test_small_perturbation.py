@@ -8,6 +8,7 @@ import torch
 
 from krum.primitives.aggregators import Aggregator
 from krum.primitives.aggregators.brute import Brute
+from krum.primitives.aggregators.krum import Krum
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.small_perturbation import SmallPerturbationAttack
 
@@ -228,6 +229,26 @@ class SmallPerturbationAttackTest(unittest.TestCase):
         with unittest.mock.patch.object(MultiKrum, "score", wraps=MultiKrum.score) as spy:
             SmallPerturbationAttack._is_selected(honest, honest_mean, MultiKrum, 8, 2, {"m": 1})
             spy.assert_called_once()
+            # Scoring always uses the n - f - 2 Krum neighborhood, never m.
+            self.assertEqual(spy.call_args.kwargs["num_peers"], 8 - 2 - 2)
+
+    def test_selection_size_mirrors_the_target_default(self) -> None:
+        """Without m, Krum mirrors m = 1 and MultiKrum mirrors n - 2f - 3."""
+        honest = torch.randn(18, 10)
+        honest_mean = honest.mean(dim=0)
+
+        with unittest.mock.patch("krum.primitives.attacks.small_perturbation.topk", wraps=torch.topk) as spy:
+            SmallPerturbationAttack._is_selected(honest, honest_mean, Krum, 20, 2, {})
+            self.assertEqual(spy.call_args.args[1], 1)
+
+            SmallPerturbationAttack._is_selected(honest, honest_mean, MultiKrum, 20, 2, {})
+            self.assertEqual(spy.call_args.args[1], 20 - 2 * 2 - 3)
+
+    def test_selection_size_accepts_explicit_none_m(self) -> None:
+        """aggregator_kwargs={"m": None} falls back to the target's default."""
+        honest = torch.randn(18, 10)
+        result = SmallPerturbationAttack._is_selected(honest, honest.mean(dim=0), MultiKrum, 20, 2, {"m": None})
+        self.assertIsInstance(result, bool)
 
     def test_multikrum_target_finds_nontrivial_gamma(self) -> None:
         """The search also produces a non-trivial perturbation for MultiKrum."""

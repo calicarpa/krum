@@ -77,4 +77,4 @@ class Medoid(Aggregator):
         best_index = int(scores.argmin().item())
         if out is not None:
             return out.copy_(gradients[best_index])
-        return gradients[best_index]
+        return gradients[best_index].clone()

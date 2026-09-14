@@ -11,7 +11,7 @@ class KrumTest(unittest.TestCase):
     """Test Krum aggregator."""
 
     def test_aggregate_selects_best_gradient(self) -> None:
-        """Krum selects a gradient with the smallest sum of distances to its nearest peer."""
+        """Krum selects a gradient with the smallest sum of distances to its n - f - 2 nearest peers."""
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
         result = Krum.aggregate(grads, n=5, f=1)
         self.assertEqual(result.shape, (2,))

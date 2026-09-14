@@ -56,10 +56,11 @@ class BruteTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Brute.aggregate(torch.tensor([[1.0]]), n=5, f=10)
 
-    def test_check_rejects_zero_f(self) -> None:
-        """Check raises ValueError when f = 0 (requires f >= 1)."""
-        with self.assertRaises(ValueError):
-            Brute.aggregate(torch.tensor([[1.0], [2.0], [3.0]]), n=3, f=0)
+    def test_aggregate_accepts_zero_f(self) -> None:
+        """F = 0 selects the whole set and returns its mean."""
+        grads = torch.tensor([[1.0], [2.0], [3.0]])
+        result = Brute.aggregate(grads, n=3, f=0)
+        self.assertTrue(torch.allclose(result, torch.tensor([2.0])))
 
     def test_check_rejects_insufficient_workers(self) -> None:
         """Check raises ValueError when n < 2f + 1."""
