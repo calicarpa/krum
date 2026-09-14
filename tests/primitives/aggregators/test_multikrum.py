@@ -178,6 +178,17 @@ class MultiKrumTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             MultiKrum.aggregate(torch.tensor([[1.0], [2.0], [3.0]]), n=3, f=1, m=1)
 
+    def test_check_rejects_insufficient_workers_for_any_m(self) -> None:
+        """Check enforces n >= 2f + 3 for every m, not only m = 1.
+
+        Regression: larger m used to bypass the check, and n - f - 2 <= 0 then
+        produced all-zero scores or a wrong distance slice.
+        """
+        with self.assertRaises(ValueError):
+            MultiKrum.aggregate(torch.randn(6, 3), n=6, f=4, m=3)
+        with self.assertRaises(ValueError):
+            MultiKrum.aggregate(torch.randn(6, 3), n=6, f=2, m=5)
+
     def test_check_rejects_invalid_m_too_small(self) -> None:
         """Check raises ValueError when m < 1."""
         with self.assertRaises(ValueError):

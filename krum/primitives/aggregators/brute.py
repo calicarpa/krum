@@ -39,13 +39,14 @@ class Brute(Aggregator):
         f: int,
         **specialized: Any,
     ) -> Tensor:
-        """Aggregate gradients by selecting the most-clumped :math:`n - f` subset.
+        r"""Aggregate gradients by selecting the most-clumped :math:`n - f` subset.
 
         Args:
             gradients: Sequence of 1-D tensors containing gradients from workers.
             out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers.
-            f: Number of Byzantine workers to tolerate.
+            f: Number of Byzantine workers to tolerate. Must satisfy
+                :math:`0 \le f \le (n - 1) // 2`.
             **specialized: Additional keyword arguments.
 
         Returns:

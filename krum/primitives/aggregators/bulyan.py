@@ -62,7 +62,7 @@ class Bulyan(Aggregator):
             out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
             f: Number of Byzantine workers to tolerate. Must satisfy
-                ``1 <= f <= (n - 3) // 4``.
+                ``0 <= f <= (n - 3) // 4``.
             m: Number of gradients selected by Multi-Krum at each iteration.
                 Defaults to :math:`n - f`.
             **specialized: Additional keyword arguments.
