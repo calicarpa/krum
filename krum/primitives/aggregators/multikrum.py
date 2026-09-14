@@ -74,10 +74,6 @@ class MultiKrum(Aggregator):
             )
         if m is None:
             m = n - 2 * f - 3
-        # m is intentionally free in [1, n]: values above n - 2f - 3 leave the
-        # Multi-Krum resilience bound (documented in the docstring) but remain
-        # meaningful, since larger m averages more gradients and m = n recovers
-        # Average. Only the honest-majority premise n >= 2f + 3 is enforced.
         if m < 1 or m > n:
             raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n}")
 
