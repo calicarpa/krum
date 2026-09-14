@@ -84,7 +84,7 @@ class MultiKrum(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = cls.score(gradients, n=n, f=f, num_peers=m)
+        scores = cls.score(gradients, n=n, f=f, num_peers=n - f - 2)
         _, top_indices = topk(scores, m, largest=False)
 
         return mean(gradients[top_indices], dim=0, out=out)
@@ -104,8 +104,8 @@ class MultiKrum(Aggregator):
         0 (set via :meth:`~torch.Tensor.fill_diagonal_`), so column 0
         is always the worker itself. Columns :math:`1` through
         ``num_peers`` give the ``num_peers`` closest *other* workers.
-        When ``num_peers`` is ``None`` it defaults to :math:`n - f`,
-        the standard Krum score from Blanchard et al.
+        When ``num_peers`` is ``None`` it defaults to :math:`n - f - 2`,
+        the Krum neighborhood from Blanchard et al.
 
         The ``num_peers`` closest-peers sum approximates how surrounded a
         gradient is by the (presumed honest) majority; lower scores
@@ -119,7 +119,7 @@ class MultiKrum(Aggregator):
             stacked: Tensor of shape :math:`(n, d)` containing the stacked worker gradients.
             n: Total number of workers (rows of ``stacked``).
             f: Number of Byzantine workers to tolerate.
-            num_peers: Number of closest peers to consider. Defaults to :math:`n - f`.
+            num_peers: Number of closest peers to consider. Defaults to :math:`n - f - 2`.
             valid_mask: Optional boolean tensor of shape :math:`(n,)``;
                 ``False`` entries are excluded from selection.
 
@@ -127,7 +127,7 @@ class MultiKrum(Aggregator):
             Tensor of shape :math:`(n,)` containing the Krum score of each worker.
         """
         if num_peers is None:
-            num_peers = n - f
+            num_peers = n - f - 2
         distances = cdist(stacked, stacked, p=2.0).square()
         if valid_mask is not None:
             distances[~valid_mask] = float("inf")

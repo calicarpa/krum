@@ -23,7 +23,7 @@ class MultiKrumTest(unittest.TestCase):
         ])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
         self.assertEqual(result.shape, (2,))
-        expected = torch.tensor([0.5, 0.0])
+        expected = torch.tensor([5.0, 0.0])
         self.assertTrue(torch.allclose(result, expected))
 
     def test_aggregate_m_equals_one_is_krum(self) -> None:
@@ -54,7 +54,7 @@ class MultiKrumTest(unittest.TestCase):
             [1000.0, 1000.0],
         ])
         result = MultiKrum.aggregate(grads, n=7, f=1, m=2)
-        expected = torch.tensor([0.5, 0.0])
+        expected = torch.tensor([5.0, 0.0])
         self.assertTrue(torch.allclose(result, expected))
 
     def test_aggregate_high_dimensional(self) -> None:
@@ -78,7 +78,7 @@ class MultiKrumTest(unittest.TestCase):
         out = torch.empty(2, dtype=torch.float32)
         result = MultiKrum.aggregate(grads, out, n=7, f=1, m=2)
         self.assertIs(result, out)
-        self.assertTrue(torch.allclose(result, torch.tensor([0.5, 0.0])))
+        self.assertTrue(torch.allclose(result, torch.tensor([5.0, 0.0])))
 
     def test_aggregate_accepts_sequence_of_per_worker_vectors(self) -> None:
         """A sequence of 1-D vectors gives the same result as the stacked tensor."""
@@ -104,10 +104,9 @@ class MultiKrumTest(unittest.TestCase):
         scores = MultiKrum.score(grads, n=5, f=1)
         self.assertEqual(scores.shape, (5,))
         self.assertEqual(int(scores.argmax().item()), 4)
+        self.assertEqual(scores[1].item(), scores[2].item())
         self.assertLess(scores[1].item(), scores[0].item())
-        self.assertLess(scores[2].item(), scores[0].item())
-        self.assertLess(scores[3].item(), scores[1].item())
-        self.assertLess(scores[2].item(), scores[1].item())
+        self.assertEqual(scores[0].item(), scores[3].item())
 
     def test_score_with_mask_excludes_workers(self) -> None:
         """MultiKrum.score with valid_mask treats masked workers as infinitely far."""
