@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import torch
-from torch import Tensor, stack, topk
+from torch import Tensor, argsort, stack
 
 from . import Aggregator
 from .multikrum import MultiKrum
@@ -31,7 +31,7 @@ class Bulyan(Aggregator):
     :math:`\beta = \theta - 2f = n - 4f - 2` values per coordinate.
 
     This implementation uses ``Bulyan(MultiKrum)`` — i.e. the base
-    aggregator is Multi-Krum with :math:`m = n - f - 2` by default.
+    aggregator is Multi-Krum with :math:`m = n - f` by default.
     With :math:`m = 1` it reduces to ``Bulyan(Krum)``.
 
     .. note::
@@ -108,7 +108,8 @@ class Bulyan(Aggregator):
         for i in range(theta):
             scores = MultiKrum.score(gradients, n=n, f=f, num_peers=n - i - f - 2, valid_mask=remaining)
             m_cur = min(m, n - f - 2 - i)
-            _, top = topk(scores, m_cur, largest=False)
+            # Stable order: score ties resolve to the smallest indices.
+            top = argsort(scores, stable=True)[:m_cur]
             selected[i] = gradients[top].mean(dim=0)
             closest = top[(gradients[top] - selected[i]).norm(dim=1).argmin()]
             remaining[closest] = False

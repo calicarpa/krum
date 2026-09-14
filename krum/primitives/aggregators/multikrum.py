@@ -10,7 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, mean, sort, stack, topk
+from torch import Tensor, argsort, cdist, mean, sort, stack
 
 from . import Aggregator
 
@@ -44,10 +44,11 @@ class MultiKrum(Aggregator):
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. Must satisfy
                 ``1 <= f <= (n - 3) // 2``.
-            m: Number of selected gradients to average. ``m = 1`` requires
-                :math:`n \ge 2f + 3` (the Krum resilience bound). ``m > 1``
-                requires :math:`1 \le m \le n - 2f - 3` (the Multi-Krum
-                resilience bound). If ``None``, defaults to :math:`n - 2f - 3`.
+            m: Number of selected gradients to average, with :math:`1 \le m \le n`.
+                Values above :math:`n - 2f - 3` leave the Multi-Krum resilience
+                bound. ``m = 1`` additionally requires :math:`n \ge 2f + 3`
+                (the Krum resilience bound). If ``None``, defaults to
+                :math:`n - 2f - 3`.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -85,7 +86,8 @@ class MultiKrum(Aggregator):
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
         scores = cls.score(gradients, n=n, f=f, num_peers=n - f - 2)
-        _, top_indices = topk(scores, m, largest=False)
+        # Stable order: score ties resolve to the smallest indices.
+        top_indices = argsort(scores, stable=True)[:m]
 
         return mean(gradients[top_indices], dim=0, out=out)
 

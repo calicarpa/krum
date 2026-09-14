@@ -35,6 +35,12 @@ class MultiKrumTest(unittest.TestCase):
         honest = grads[:4]
         self.assertTrue(any(torch.equal(result, g) for g in honest))
 
+    def test_aggregate_breaks_score_ties_by_smallest_index(self) -> None:
+        """Tied Krum scores resolve to the smallest indices."""
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
+        result = MultiKrum.aggregate(grads, n=5, f=1, m=1)
+        self.assertTrue(torch.equal(result, grads[1]))
+
     def test_aggregate_m_equals_one_matches_krum(self) -> None:
         """MultiKrum with m=1 selects the same vector as Krum."""
         grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [100.0, 100.0]])
