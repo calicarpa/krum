@@ -262,9 +262,8 @@ class SmallPerturbationAttack(Attack):
 
         if hasattr(aggregator, "score"):
             m = aggregator_kwargs.get("m", n - f - 2)
-            if m < 1 or m > n - f - 2:
-                m = min(max(m, 1), n - f - 2)
-            scores = aggregator.score(stacked_with, n=n, f=f, num_peers=m)  # ty:ignore[call-non-callable]
+            m = min(max(m, 1), n - f - 2)
+            scores = aggregator.score(stacked_with, n=n, f=f, num_peers=n - f - 2)  # ty:ignore[call-non-callable]
             _, top_indices = topk(scores, m, largest=False)
             byz_indices = arange(n - f, n, device=stacked_with.device, dtype=top_indices.dtype)
             return bool(isin(top_indices, byz_indices).any().item())
