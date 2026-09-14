@@ -87,9 +87,9 @@ class Bulyan(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
-        if f < 1 or n < 4 * f + 3:
+        if n < 4 * f + 3:
             raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
+                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f ≤ {(n - 3) // 4}"
             )
         m = m if m is not None else n - f
         if m < 1 or m > n:

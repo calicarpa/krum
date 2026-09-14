@@ -12,7 +12,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, mean, stack
+from torch import Tensor, mean, quantile, stack
 from torch.linalg import vector_norm
 
 from . import Aggregator
@@ -67,7 +67,9 @@ class Aksel(Aggregator):
         if gradients.size(0) <= 2 * f:
             raise ValueError(f"At least 2f+1 = {2 * f + 1} gradients required, got {gradients.size(0)}")
 
-        pivot = gradients.median(dim=0).values
+        # quantile at q=0.5, consistent with Median: averages the two middle
+        # values for an even worker count instead of torch.median's lower one.
+        pivot = quantile(gradients, 0.5, dim=0)
         distances = vector_norm(gradients - pivot, dim=1)
         num_to_keep = gradients.size(0) - f
         _, closest = distances.topk(num_to_keep, largest=False)

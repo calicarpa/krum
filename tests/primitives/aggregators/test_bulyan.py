@@ -145,6 +145,13 @@ class BulyanTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             Bulyan.aggregate(torch.tensor([[1.0], [2.0], [3.0], [4.0], [5.0]]), n=5, f=1)
 
+    def test_aggregate_accepts_zero_f(self) -> None:
+        """F = 0 is valid: no trimming, finite output."""
+        grads = torch.tensor([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0]])
+        result = Bulyan.aggregate(grads, n=3, f=0)
+        self.assertEqual(result.shape, (2,))
+        self.assertTrue(torch.isfinite(result).all())
+
     def test_check_rejects_invalid_m(self) -> None:
         """Check raises ValueError when m is out of bounds."""
         with self.assertRaises(ValueError):
