@@ -49,6 +49,7 @@ from typing import Any
 from torch import Tensor, arange, argmax, cat, isin, ones, stack, topk, zeros
 
 from ..aggregators import Aggregator
+from ..aggregators.krum import Krum
 from . import Attack
 
 
@@ -100,7 +101,10 @@ class SmallPerturbationAttack(Attack):
             n: Total number of workers.
             p: Target norm.
             coordinate: Index of the poisoned coordinate.
-            aggregator_kwargs: Extra keyword arguments for the aggregator.
+            aggregator_kwargs: Extra keyword arguments for the aggregator. For
+                Krum-family targets, pass the same ``m`` as the target run to
+                mirror its selection size; when omitted, the class default is
+                used (``1`` for Krum, ``n - 2f - 3`` for MultiKrum).
             gamma: If provided, use this exact value for :math:`\gamma` instead of
                 running the boundary search. This is useful when the caller knows
                 the desired perturbation magnitude or wants to compare aggregators
@@ -261,7 +265,12 @@ class SmallPerturbationAttack(Attack):
         stacked_with = cat([honest_gradients, byz_with], dim=0)
 
         if hasattr(aggregator, "score"):
-            m = aggregator_kwargs.get("m", n - f - 2)
+            # Mirror the target's selection size: Krum keeps exactly one
+            # vector, MultiKrum defaults to n - 2f - 3. The scoring
+            # neighborhood is always n - f - 2.
+            default_m = 1 if issubclass(aggregator, Krum) else n - 2 * f - 3
+            configured_m = aggregator_kwargs.get("m")
+            m = default_m if configured_m is None else configured_m
             m = min(max(m, 1), n - f - 2)
             scores = aggregator.score(stacked_with, n=n, f=f, num_peers=n - f - 2)  # ty:ignore[call-non-callable]
             _, top_indices = topk(scores, m, largest=False)
