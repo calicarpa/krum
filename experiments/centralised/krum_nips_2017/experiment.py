@@ -70,10 +70,10 @@ def plot_comparison(
     frame_trl = train_loss.to_pandas()
 
     styles = {
-        "Mean_f0": {"color": "tab:green", "linestyle": "-"},
+        "Mean_f0": {"color": "tab:green", "linestyle": "--"},
         f"Mean_f{f_byz}": {"color": "tab:red", "linestyle": "--"},
-        "MultiKrum_f0": {"color": "tab:orange", "linestyle": "-"},
-        f"MultiKrum_f{f_byz}": {"color": "tab:blue", "linestyle": "--"},
+        "MultiKrum_f0": {"color": "tab:orange", "linestyle": ":"},
+        f"MultiKrum_f{f_byz}": {"color": "tab:blue", "linestyle": ":"},
     }
 
     fig = plt.figure(figsize=(16, 10))
@@ -107,8 +107,8 @@ def main() -> None:
     configs = [
         (Average, "Mean_f0", 0, None),
         (Average, f"Mean_f{F}", F, None),
-        (MultiKrum, "MultiKrum_f0", 0, {"m": N - 2}),
-        (MultiKrum, f"MultiKrum_f{F}", F, {"m": N - F - 2}),
+        (MultiKrum, "MultiKrum_f0", 0, {"m": N - 0}),
+        (MultiKrum, f"MultiKrum_f{F}", F, {"m": N - F}),
     ]
 
     for agg, label, f_val, agg_kw in configs:
