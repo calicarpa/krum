@@ -7,9 +7,10 @@ Each run is a *job*, identified by its parameters and by the code it executes
 (see :mod:`krum.orchestration.hashing`), and owning a folder under the
 orchestrator's root (see :mod:`krum.orchestration.storage`). A job is
 re-executed only when it has no recorded result, when its last attempt failed,
-or when the environment it was recorded in no longer matches; otherwise its
-stored output stands. `Orchestrator.plan` reports what a sweep would do, and
-why, without running any of it.
+when the environment it was recorded in no longer matches, or when one of the
+functions it called has since changed; otherwise its stored output stands.
+`Orchestrator.plan` reports what a sweep would do, and why, without running
+any of it.
 
 Execution is synchronous and fail-fast: the first failing job stops the sweep,
 and the remaining jobs stay queued. One process per job, and re-running a job
@@ -569,6 +570,9 @@ class Orchestrator:
             re-check them on a later pass. This closes the gap a static read of
             the code leaves open, a dependency reached only at runtime being
             invisible to a job's key; see :mod:`krum.orchestration.tracing`.
+            On by default: the cost is one callback per distinct function, and
+            the alternative is keeping a stale result. Turn it off for a sweep
+            that must share monitoring with a debugger or a profiler.
     """
 
     _store: JobStore
@@ -593,7 +597,7 @@ class Orchestrator:
         source: PathLike | None = None,
         force: bool = False,
         isolate: bool = False,
-        trace: bool = False,
+        trace: bool = True,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)

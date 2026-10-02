@@ -123,12 +123,24 @@ Two hooks feed the content side of the fingerprint:
   100-round simulation would be punishing; call-only is tolerable, and
   monitoring is markedly cheaper than `sys.settrace`. It needs Python 3.12,
   which is the project minimum, so there is no need to fall back on
-  `settrace`. Tracing stays behind a flag; the static pass carries most of the
-  weight.
+  `settrace`.
 
-Residual false negative: a dependency reached only through a branch not taken,
-changed, while the function body is unchanged. Accepted, per the
-false-positive/false-negative trade-off in [adr-2026-07-31.md].
+  A callback returning `DISABLE` stops that function reporting again, so the
+  cost is one callback per distinct function rather than one per call. That is
+  cheap enough that tracing is **on by default** rather than kept behind an
+  opt-in flag, as first planned: the alternative to paying for it is keeping a
+  stale result, which is the outcome this design rules out. The flag remains,
+  to be turned off for a sweep that must share monitoring with a debugger or a
+  profiler.
+
+Residual false negatives, both accepted per the false-positive/false-negative
+trade-off in [adr-2026-07-31.md]:
+
+- A dependency reached only through a branch not taken, changed, while the
+  function body is unchanged.
+- A module imported at runtime and read only for data, never called into. No
+  function of it is entered, so call tracing does not see it. The meta path
+  hook above is what would close this.
 
 ## Storage
 

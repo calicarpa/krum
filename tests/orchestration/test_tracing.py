@@ -228,6 +228,19 @@ class RuntimeDependencyTest(unittest.TestCase):
         decision, _ = self.sweep(trace=True)
         self.assertFalse(decision.runs)
 
+    def test_tracing_is_on_by_default(self) -> None:
+        """A sweep records its callees without being asked to.
+
+        The cost is one callback per distinct function, and the alternative is
+        keeping a result whose dependency has since changed.
+        """
+        orch = Orchestrator(self.root, source=self.home, owned=("__main__", self.MODULE, "orchestration"))
+        key = orch.run(experiment_importing_at_runtime, amount=21)
+        orch.drain()
+        called = orch.store.folder_for(key).called()
+        assert called is not None, "tracing is on by default"
+        self.assertIn(f"{self.MODULE}:compute", called)
+
     def test_callees_are_recorded_only_when_traced(self) -> None:
         """An untraced job records no callees, and is told apart from one that called none."""
         orch = self.orchestrator(trace=False)
