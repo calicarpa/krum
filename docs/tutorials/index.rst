@@ -74,8 +74,8 @@ Detailed Tutorials
        See :doc:`/reference/simulations/decentralised/index`.
    * - :doc:`structured_experiments`
      - Collect metrics with ``Metric`` and ``Orchestrator``, analyse
-       with filtering and plotting, run N×M benchmarks.
+       with pandas and plotting, run N×M benchmarks that skip the runs
+       already recorded.
 
-       See :doc:`/reference/orchestration/index` and
-       :doc:`/reference/orchestration/metricdataframe`.
+       See :doc:`/reference/orchestration/index`.
 
