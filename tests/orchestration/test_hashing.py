@@ -1,0 +1,548 @@
+"""Tests for the orchestration hashing primitives.
+
+The invariants pinned here are the contract the orchestrator relies on to
+decide what to re-run: a cosmetic edit must keep a job's key, and any change
+reaching the job's behaviour through owned code must change it.
+"""
+
+import unittest
+from textwrap import dedent
+from typing import Any
+
+from krum.orchestration.hashing import Hash, Hasher, HashError, Location, Modules, static_key
+
+OWNED = "krum_hashing_fixture"
+OTHER = "third_party_fixture"
+
+
+def build(source: str, *, name: str = "target", module: str = OWNED, filename: str = "<fixture>") -> Any:
+    """Compile a source snippet in a fresh namespace and return one of its objects.
+
+    Args:
+        source: The snippet to compile, dedented first.
+        name: The name to pull out of the resulting namespace.
+        module: The `__name__` the namespace reports, which drives ownership.
+        filename: The compiled filename, which must never reach a hash.
+
+    Returns:
+        The named object, with a `__globals__` scoped to the snippet.
+    """
+    namespace: dict[str, Any] = {"__name__": module}
+    exec(compile(dedent(source), filename, "exec"), namespace)  # noqa: S102
+    return namespace[name]
+
+
+def key(obj: Any, *, owned: tuple[str, ...] = (OWNED,)) -> Hash:
+    """Hash a single object under the given owned module prefixes."""
+    hasher = Hasher(owned)
+    hasher.push(obj)
+    return hasher.digest()
+
+
+class LocationTest(unittest.TestCase):
+    """Test the Location helper."""
+
+    def test_fetch_round_trips_a_type(self) -> None:
+        """A type's location fetches the type back."""
+        self.assertIs(Location.of_type(Hasher).fetch(), Hasher)
+
+    def test_str_renders_dotted_path(self) -> None:
+        """A location renders as its dotted path."""
+        self.assertEqual(str(Location("a.b", "C.d")), "a.b.C.d")
+
+
+class ModulesTest(unittest.TestCase):
+    """Test module ownership by prefix."""
+
+    def test_owns_module_matches_prefix_and_submodules(self) -> None:
+        """A prefix owns itself and its submodules, not a merely similar name."""
+        modules = Modules(("krum",))
+        self.assertTrue(modules.owns_module("krum"))
+        self.assertTrue(modules.owns_module("krum.primitives.aggregators.krum"))
+        self.assertFalse(modules.owns_module("krumble"))
+        self.assertFalse(modules.owns_module("torch"))
+        self.assertFalse(modules.owns_module(None))
+
+
+class CosmeticChangeTest(unittest.TestCase):
+    """Changes that must NOT change a key."""
+
+    def test_comment_above_function_keeps_key(self) -> None:
+        """Adding a comment above a function keeps its key.
+
+        This is the invariant that keeps a micro-edit from re-running a sweep:
+        `co_firstlineno` and the line table are excluded from the hash.
+        """
+        plain = build("""
+            def target(n):
+                return n + 1
+            """)
+        commented = build("""
+            # a note for the reader
+            # spanning two lines
+
+            def target(n):
+                return n + 1
+            """)
+        self.assertEqual(key(plain), key(commented))
+
+    def test_inline_comment_and_blank_lines_keep_key(self) -> None:
+        """Comments inside a body, and blank lines, keep the key."""
+        plain = build("""
+            def target(n):
+                total = n + 1
+                return total
+            """)
+        annotated = build("""
+            def target(n):
+                # running total
+
+                total = n + 1
+
+                return total  # done
+            """)
+        self.assertEqual(key(plain), key(annotated))
+
+    def test_comment_above_class_keeps_key(self) -> None:
+        """Adding a comment above a class keeps the key of its dependents.
+
+        Regression guard for `__firstlineno__`, which Python 3.13 added to
+        every class `__dict__`: left in, it would re-run every job depending on
+        a class merely because a line was inserted above it.
+        """
+        plain = build("""
+            class Aggregator:
+                @classmethod
+                def aggregate(cls, values):
+                    return sum(values)
+
+            def target(n):
+                return Aggregator.aggregate(range(n))
+            """)
+        shifted = build("""
+            # a note for the reader
+            # spanning two lines
+
+            class Aggregator:
+                @classmethod
+                def aggregate(cls, values):
+                    return sum(values)
+
+            def target(n):
+                return Aggregator.aggregate(range(n))
+            """)
+        self.assertEqual(key(plain), key(shifted))
+
+    def test_class_body_change_still_changes_key(self) -> None:
+        """Skipping line provenance does not mask a real change to a class body."""
+        source = """
+            class Aggregator:
+                @classmethod
+                def aggregate(cls, values):
+                    return sum(values) * {factor}
+
+            def target(n):
+                return Aggregator.aggregate(range(n))
+            """
+        before = build(source.format(factor=1))
+        after = build(source.format(factor=2))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_filename_keeps_key(self) -> None:
+        """Moving a function to another file keeps its key."""
+        source = """
+            def target(n):
+                return n + 1
+            """
+        here = build(source, filename="<here>")
+        there = build(source, filename="<there>")
+        self.assertEqual(key(here), key(there))
+
+    def test_hashing_is_deterministic(self) -> None:
+        """Hashing the same function twice yields the same digest."""
+        target = build("""
+            HELPER_SCALE = 3
+
+            def helper(x):
+                return x * HELPER_SCALE
+
+            def target(n):
+                return helper(n)
+            """)
+        self.assertEqual(key(target), key(target))
+
+
+class CodeChangeTest(unittest.TestCase):
+    """Changes to the callable itself that must change a key."""
+
+    def test_body_change_changes_key(self) -> None:
+        """Changing a function body changes its key."""
+        before = build("""
+            def target(n):
+                return n + 1
+            """)
+        after = build("""
+            def target(n):
+                return n + 2
+            """)
+        self.assertNotEqual(key(before), key(after))
+
+    def test_parameter_rename_changes_key(self) -> None:
+        """Renaming a parameter changes the key, though the body is equivalent."""
+        before = build("""
+            def target(n):
+                return 1
+            """)
+        after = build("""
+            def target(n_workers):
+                return 1
+            """)
+        self.assertNotEqual(key(before), key(after))
+
+    def test_function_rename_changes_key(self) -> None:
+        """Renaming the function changes the key."""
+        before = build("""
+            def target(n):
+                return n
+            """)
+        after = build(
+            """
+            def renamed(n):
+                return n
+            """,
+            name="renamed",
+        )
+        self.assertNotEqual(key(before), key(after))
+
+    def test_default_value_change_changes_key(self) -> None:
+        """Changing a default argument changes the key."""
+        before = build("""
+            def target(n=10):
+                return n
+            """)
+        after = build("""
+            def target(n=20):
+                return n
+            """)
+        self.assertNotEqual(key(before), key(after))
+
+    def test_docstring_change_changes_key(self) -> None:
+        """Changing a docstring changes the key.
+
+        Docstrings live in `co_consts`, and are kept rather than stripped: the
+        conservative direction is a needless re-run, never a stale result.
+        """
+        before = build('''
+            def target(n):
+                """One thing."""
+                return n
+            ''')
+        after = build('''
+            def target(n):
+                """Another thing."""
+                return n
+            ''')
+        self.assertNotEqual(key(before), key(after))
+
+    def test_nested_function_body_change_changes_key(self) -> None:
+        """Changing the body of a nested function changes the key."""
+        before = build("""
+            def target(n):
+                def inner(x):
+                    return x + 1
+                return inner(n)
+            """)
+        after = build("""
+            def target(n):
+                def inner(x):
+                    return x + 2
+                return inner(n)
+            """)
+        self.assertNotEqual(key(before), key(after))
+
+    def test_closure_value_change_changes_key(self) -> None:
+        """Changing a captured value changes the key."""
+        make = build("""
+            def make(scale):
+                def target(n):
+                    return n * scale
+                return target
+            """, name="make")
+        self.assertNotEqual(key(make(2)), key(make(3)))
+
+
+class DependencyChangeTest(unittest.TestCase):
+    """Changes reached transitively through owned code that must change a key."""
+
+    HELPER_SOURCE = """
+        def helper(x):
+            return x * {factor}
+
+        def target(n):
+            return helper(n)
+        """
+
+    def test_helper_change_changes_key(self) -> None:
+        """Changing a helper the callable names changes the callable's key.
+
+        The helper is reached by resolving `co_names` against `__globals__`,
+        with no need to execute the callable.
+        """
+        before = build(self.HELPER_SOURCE.format(factor=2))
+        after = build(self.HELPER_SOURCE.format(factor=3))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_constant_change_changes_key(self) -> None:
+        """Changing a module-level constant the callable names changes its key."""
+        source = """
+            ROUNDS = {rounds}
+
+            def target(n):
+                return ROUNDS
+            """
+        before = build(source.format(rounds=100))
+        after = build(source.format(rounds=200))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_transitive_helper_change_changes_key(self) -> None:
+        """A change two hops away, through another helper, changes the key."""
+        source = """
+            def deep(x):
+                return x * {factor}
+
+            def helper(x):
+                return deep(x) + 1
+
+            def target(n):
+                return helper(n)
+            """
+        before = build(source.format(factor=2))
+        after = build(source.format(factor=3))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_helper_named_only_inside_a_lambda_changes_key(self) -> None:
+        """A dependency named only by nested code is still reached.
+
+        A lambda resolves its globals against the enclosing function's
+        `__globals__`, so `_code_names` has to walk nested code objects.
+        """
+        source = """
+            def helper(x):
+                return x * {factor}
+
+            def target(n):
+                apply = lambda v: helper(v)
+                return apply(n)
+            """
+        before = build(source.format(factor=2))
+        after = build(source.format(factor=3))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_method_change_changes_key(self) -> None:
+        """Changing a method of a class the callable names changes the key."""
+        source = """
+            class Aggregator:
+                @classmethod
+                def aggregate(cls, values):
+                    return sum(values) * {factor}
+
+            def target(n):
+                return Aggregator.aggregate(range(n))
+            """
+        before = build(source.format(factor=1))
+        after = build(source.format(factor=2))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_base_class_method_change_changes_key(self) -> None:
+        """Changing an inherited method changes the key of the subclass."""
+        source = """
+            class Base:
+                @classmethod
+                def scale(cls):
+                    return {factor}
+
+            class Derived(Base):
+                pass
+
+            def target(n):
+                return Derived.scale() * n
+            """
+        before = build(source.format(factor=1))
+        after = build(source.format(factor=2))
+        self.assertNotEqual(key(before), key(after))
+
+    def test_slotted_class_hashes(self) -> None:
+        """A class using __slots__ hashes without tripping on its descriptors."""
+        target = build("""
+            class Holder:
+                __slots__ = ("value",)
+
+                def __init__(self, value):
+                    self.value = value
+
+            def target(n):
+                return Holder(n)
+            """)
+        self.assertEqual(len(key(target)), 64)
+
+
+class OwnershipBoundaryTest(unittest.TestCase):
+    """The recursion must stop outside the owned modules."""
+
+    def test_unowned_helper_change_keeps_key(self) -> None:
+        """A change inside an unowned module does not change the key.
+
+        Dependency versions are deliberately not folded in here: they belong to
+        the environment fingerprint, keyed on `uv.lock`.
+        """
+        source = """
+            def helper(x):
+                return x * {factor}
+
+            def target(n):
+                return helper(n)
+            """
+        before = build(source.format(factor=2), module=OTHER)
+        after = build(source.format(factor=3), module=OTHER)
+        self.assertEqual(key(before), key(after))
+
+    def test_unowned_helper_change_changes_key_once_owned(self) -> None:
+        """The same change does change the key once that module is owned."""
+        source = """
+            def helper(x):
+                return x * {factor}
+
+            def target(n):
+                return helper(n)
+            """
+        before = build(source.format(factor=2), module=OTHER)
+        after = build(source.format(factor=3), module=OTHER)
+        self.assertNotEqual(key(before, owned=(OTHER,)), key(after, owned=(OTHER,)))
+
+    def test_external_class_is_hashed_by_location(self) -> None:
+        """An unowned class folds in as its location, not its body."""
+        source = """
+            class Thing:
+                def method(self):
+                    return {value}
+            """
+        before = build(source.format(value=1), name="Thing", module=OTHER)
+        after = build(source.format(value=2), name="Thing", module=OTHER)
+        self.assertEqual(key(before), key(after))
+        # The same two classes differ once their module is owned
+        self.assertNotEqual(key(before, owned=(OTHER,)), key(after, owned=(OTHER,)))
+
+
+class CycleTest(unittest.TestCase):
+    """Cyclic object graphs must terminate."""
+
+    def test_mutual_recursion_terminates(self) -> None:
+        """Two mutually recursive functions hash without recursing forever."""
+        target = build("""
+            def target(n):
+                return 0 if n <= 0 else other(n - 1)
+
+            def other(n):
+                return target(n - 1)
+            """)
+        self.assertEqual(len(key(target)), 64)
+
+    def test_self_recursion_terminates(self) -> None:
+        """A self-recursive function hashes without recursing forever."""
+        target = build("""
+            def target(n):
+                return 0 if n <= 0 else target(n - 1)
+            """)
+        self.assertEqual(len(key(target)), 64)
+
+
+class ContainerTest(unittest.TestCase):
+    """Container hashing must not depend on insertion order."""
+
+    def test_dict_order_does_not_matter(self) -> None:
+        """Two dicts with the same items hash alike regardless of order."""
+        self.assertEqual(key({"a": 1, "b": 2}), key({"b": 2, "a": 1}))
+
+    def test_set_order_does_not_matter(self) -> None:
+        """Two sets with the same members hash alike."""
+        self.assertEqual(key({1, 2, 3}), key({3, 1, 2}))
+
+    def test_list_order_matters(self) -> None:
+        """A list's order is part of its value."""
+        self.assertNotEqual(key([1, 2]), key([2, 1]))
+
+
+class StaticKeyTest(unittest.TestCase):
+    """Test the run identity derived from a callable and its parameters."""
+
+    SOURCE = """
+        def target(n, f, seed=42):
+            return n + f + seed
+        """
+
+    def setUp(self) -> None:
+        """Build the fixture callable."""
+        self.target = build(self.SOURCE)
+
+    def test_same_inputs_give_same_key(self) -> None:
+        """The same callable and parameters give the same key."""
+        first = static_key(self.target, {"n": 10, "f": 2}, (OWNED,))
+        second = static_key(self.target, {"n": 10, "f": 2}, (OWNED,))
+        self.assertEqual(first, second)
+
+    def test_parameter_value_change_changes_key(self) -> None:
+        """Changing a hyper parameter value changes the key."""
+        first = static_key(self.target, {"n": 10, "f": 2}, (OWNED,))
+        second = static_key(self.target, {"n": 10, "f": 3}, (OWNED,))
+        self.assertNotEqual(first, second)
+
+    def test_defaults_are_applied(self) -> None:
+        """Passing a default explicitly gives the same key as omitting it."""
+        implicit = static_key(self.target, {"n": 10, "f": 2}, (OWNED,))
+        explicit = static_key(self.target, {"n": 10, "f": 2, "seed": 42}, (OWNED,))
+        self.assertEqual(implicit, explicit)
+
+    def test_parameter_rename_changes_key(self) -> None:
+        """Renaming a hyper parameter changes the key, at equal values."""
+        renamed = build("""
+            def target(n, n_byzantine, seed=42):
+                return n + n_byzantine + seed
+            """)
+        first = static_key(self.target, {"n": 10, "f": 2}, (OWNED,))
+        second = static_key(renamed, {"n": 10, "n_byzantine": 2}, (OWNED,))
+        self.assertNotEqual(first, second)
+
+    def test_class_parameter_is_keyed_by_location(self) -> None:
+        """Two distinct classes passed as parameters give distinct keys."""
+        source = """
+            class Krum:
+                pass
+
+            class Average:
+                pass
+            """
+        krum = build(source, name="Krum")
+        average = build(source, name="Average")
+        first = static_key(self.target, {"n": 10, "f": krum}, (OWNED,))
+        second = static_key(self.target, {"n": 10, "f": average}, (OWNED,))
+        self.assertNotEqual(first, second)
+
+    def test_unknown_parameter_is_rejected(self) -> None:
+        """A parameter the callable does not accept raises early."""
+        with self.assertRaises(TypeError):
+            static_key(self.target, {"n": 10, "f": 2, "nope": 1}, (OWNED,))
+
+    def test_unhashable_dependency_is_reported(self) -> None:
+        """A dependency that cannot be hashed reproducibly raises HashError."""
+        target = build("""
+            HANDLE = (value for value in (1, 2))
+
+            def target(n):
+                return HANDLE
+            """)
+        with self.assertRaises(HashError):
+            static_key(target, {"n": 1}, (OWNED,))
+
+
+if __name__ == "__main__":
+    unittest.main()

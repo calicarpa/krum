@@ -51,7 +51,6 @@ Example::
 from __future__ import annotations
 
 import gc
-import importlib
 import inspect
 import sys
 
@@ -65,31 +64,9 @@ from pathlib import Path, PurePath
 from types import CodeType, FrameType, ModuleType, TracebackType
 from typing import Any, Self
 
-class Modules:
-    """Collection of modules for ownership testing purpose."""
+from .hashing import Hash, Hasher, HashError, Location, Modules, static_key
 
-    _modules: set[ModuleType]
-
-    __slots__ = tuple(__annotations__)
-
-    @classmethod
-    def build(cls, modules_or_names: Iterable[str | ModuleType]) -> Self:
-        modules = set()
-        # Import names and add modules
-        for module_or_name in modules_or_names:
-            if isinstance(module_or_name, str):
-                module = importlib.import_module(module_or_name)
-            else:
-                module = module_or_name
-            modules.add(module)
-        # Initialize members
-        self._modules = modules
-
-    def __init__(self, modules: set[ModuleType]) -> None:
-        self._modules = modules
-
-    def __contains__(self, obj: Any) -> bool:
-        return inspect.getmodule(obj) in self._modules
+__all__ = ["Hash", "HashError", "Hasher", "Location", "Modules", "Orchestrator", "static_key"]
 
 class Context:
     """Playground context."""
