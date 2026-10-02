@@ -362,46 +362,45 @@ class JobFolder:
         return sorted(metric_name(entry.name) for entry in directory.iterdir() if entry.name.endswith(".csv"))
 
 
-class JobWriter:
-    """Builds one job in a staging directory, then promotes it atomically.
+class MetricRecorder:
+    """Where a running job writes its metrics: a directory and its open sinks.
+
+    This is the half of a job that a child process can own. It knows the
+    directory being built and the metrics registered in it, but nothing about
+    promoting that directory, which stays with the parent.
 
     Metrics are flushed as they are pushed, so a crashed job's partial output
-    stays readable in the staging directory, without ever being promoted to the
+    stays readable where it was staged, without ever being promoted to the
     job's final path where the read path would pick it up.
     """
 
-    _store: JobStore
-    _key: str
     _path: Path
-    _manifest: dict[str, Any]
     _metrics: dict[str, dict[str, Any]]
     _sinks: dict[str, Any]
-    _started: float
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, store: JobStore, key: str, manifest: Mapping[str, Any]) -> None:
-        """Create the staging directory for a job and record its manifest."""
-        self._store = store
-        self._key = key
-        self._path = store.staging_path(key)
-        if self._path.exists():
-            shutil.rmtree(self._path)
-        (self._path / METRICS).mkdir(parents=True)
-        self._manifest = dict(manifest)
+    def __init__(self, path: PathLike, create: bool = False) -> None:
+        """Record into a directory, optionally creating it afresh.
+
+        Args:
+            path: The job directory being built.
+            create: Replace the directory and its metrics subdirectory. The
+                parent passes True to stage a job; a child attaches to the
+                directory the parent already staged.
+        """
+        self._path = Path(path)
+        if create:
+            if self._path.exists():
+                shutil.rmtree(self._path)
+            (self._path / METRICS).mkdir(parents=True)
         self._metrics = {}
         self._sinks = {}
-        self._started = perf_counter()
 
     @property
     def path(self) -> Path:
-        """The staging directory this job is being built in."""
+        """The directory this job is being built in."""
         return self._path
-
-    @property
-    def key(self) -> str:
-        """The job key."""
-        return self._key
 
     @property
     def sinks(self) -> dict[str, Any]:
@@ -412,10 +411,54 @@ class JobWriter:
         """
         return self._sinks
 
+    @property
+    def metrics(self) -> dict[str, dict[str, Any]]:
+        """The metrics registered so far, by name."""
+        return self._metrics
+
     def metric_path(self, name: str, dtype: str) -> Path:
         """Register a metric and return the file it writes to."""
         self._metrics[name] = {"dtype": dtype, "file": metric_filename(name)}
         return self._path / METRICS / metric_filename(name)
+
+    def close(self) -> dict[str, dict[str, Any]]:
+        """Close every open sink and return what was registered.
+
+        A child process returns this to its parent, which is how a job run out
+        of process still ends up with its metrics named in the manifest.
+        """
+        for sink in self._sinks.values():
+            sink.close()
+        self._sinks.clear()
+        return dict(self._metrics)
+
+
+class JobWriter(MetricRecorder):
+    """Builds one job in a staging directory, then promotes it atomically."""
+
+    _store: JobStore
+    _key: str
+    _manifest: dict[str, Any]
+    _started: float
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, store: JobStore, key: str, manifest: Mapping[str, Any]) -> None:
+        """Create the staging directory for a job and record its manifest."""
+        super().__init__(store.staging_path(key), create=True)
+        self._store = store
+        self._key = key
+        self._manifest = dict(manifest)
+        self._started = perf_counter()
+
+    @property
+    def key(self) -> str:
+        """The job key."""
+        return self._key
+
+    def adopt(self, metrics: Mapping[str, dict[str, Any]]) -> None:
+        """Take on the metrics a child process registered on our behalf."""
+        self._metrics.update(metrics)
 
     def finish(self, status: str, error: str | None = None) -> JobFolder:
         """Write the manifest, the marker and the fingerprint, then promote.
@@ -427,8 +470,7 @@ class JobWriter:
         Returns:
             The promoted job folder, at its final path.
         """
-        for sink in self._sinks.values():
-            sink.close()
+        self.close()
         manifest = dict(self._manifest)
         manifest["status"] = status
         manifest["metrics"] = dict(sorted(self._metrics.items()))
@@ -536,20 +578,20 @@ class JobStore:
         return removed
 
 
-_CURRENT: ContextVar[JobWriter | None] = ContextVar("krum_current_job", default=None)
+_CURRENT: ContextVar[MetricRecorder | None] = ContextVar("krum_current_job", default=None)
 
 
-def current_job() -> JobWriter | None:
+def current_job() -> MetricRecorder | None:
     """The job being executed in this context, if any."""
     return _CURRENT.get()
 
 
 @contextmanager
-def bind_job(writer: JobWriter) -> Iterator[JobWriter]:
+def bind_job(recorder: MetricRecorder) -> Iterator[MetricRecorder]:
     """Make a job current for the duration of a block."""
-    token = _CURRENT.set(writer)
+    token = _CURRENT.set(recorder)
     try:
-        yield writer
+        yield recorder
     finally:
         _CURRENT.reset(token)
 

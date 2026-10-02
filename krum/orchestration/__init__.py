@@ -56,13 +56,13 @@ from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from time import perf_counter
-from traceback import format_exc
 from types import CodeType, FrameType, ModuleType, TracebackType
 from typing import Any, Self
 from warnings import warn
 
 import pandas
 
+from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, Metric, NoActiveJob, collect, reserved
 from .storage import (
@@ -78,9 +78,11 @@ from .storage import (
 )
 
 __all__ = [
+    "Executed",
     "Hash",
     "HashError",
     "Hasher",
+    "InlineRunner",
     "JobDecision",
     "JobFolder",
     "JobOutcome",
@@ -93,7 +95,10 @@ __all__ = [
     "PendingRun",
     "RunFailed",
     "RunSummary",
+    "SubprocessRunner",
+    "bind_job",
     "current_job",
+    "execute_job",
     "static_key",
 ]
 
@@ -552,6 +557,11 @@ class Orchestrator:
             whose commit is recorded with every job; the current directory by
             default.
         force: Re-run every job, whatever is already recorded.
+        isolate: Run each job in a fresh interpreter of its own, which keeps
+            one job's leftover state from reaching the next. This requires the
+            experiment and its parameters to be picklable, and a sweep
+            script's top level to be guarded by `if __name__ == "__main__":`;
+            see :mod:`krum.orchestration.execution`.
     """
 
     _store: JobStore
@@ -560,6 +570,7 @@ class Orchestrator:
     _lock: PathLike | None
     _source: PathLike | None
     _force: bool
+    _isolate: bool
     _witnesses: dict[str, Any] | None
     _warned: bool
 
@@ -573,6 +584,7 @@ class Orchestrator:
         lock: PathLike | None = None,
         source: PathLike | None = None,
         force: bool = False,
+        isolate: bool = False,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
@@ -581,6 +593,7 @@ class Orchestrator:
         self._lock = lock
         self._source = source
         self._force = force
+        self._isolate = isolate
         self._witnesses = None
         self._warned = False
 
@@ -639,6 +652,10 @@ class Orchestrator:
         key = static_key(callable, params, self._owned_for(callable))
         self._queue.append(PendingRun(callable, params, key))
         return key
+
+    def runner(self) -> Runner:
+        """How this orchestrator executes a job's body."""
+        return SubprocessRunner() if self._isolate else InlineRunner()
 
     def witnesses(self) -> dict[str, Any]:
         """The facts the current environment would stamp on a result.
@@ -705,6 +722,11 @@ class Orchestrator:
         Raises:
             RunFailed: If a run raised, after recording its traceback.
         """
+        with self.runner() as runner:
+            return self._drain(runner, force)
+
+    def _drain(self, runner: Runner, force: bool | None) -> RunSummary:
+        """Execute the queue with a prepared runner."""
         outcomes: list[JobOutcome] = []
         while self._queue:
             pending = self._queue[0]
@@ -726,22 +748,23 @@ class Orchestrator:
             writer = self._store.writer(key, manifest)
             started = perf_counter()
             try:
-                with bind_job(writer):
-                    pending.callable(**pending.params)
-            except Exception as error:
-                report = format_exc()
+                executed = runner.run(writer, pending.callable, pending.params)
+            except BaseException:
+                # Interrupted rather than failed: leave no marker, so that the
+                # next drain reads this job as "not done" and runs it again.
+                writer.discard()
+                raise
+            if not executed.ok:
+                report = executed.error or "the job failed without a traceback"
                 failed = writer.finish("failed", report)
                 outcomes.append(
                     JobOutcome(key, "failed", perf_counter() - started, failed.path, report, decision.reasons)
                 )
                 summary = RunSummary(outcomes, pending=len(self._queue) - 1)
                 self._queue.clear()
-                raise RunFailed(summary, f"job {key[:16]} failed: {error!r}\n{summary.report()}") from error
-            except BaseException:
-                # Interrupted rather than failed: leave no marker, so that the
-                # next drain reads this job as "not done" and runs it again.
-                writer.discard()
-                raise
+                raise RunFailed(
+                    summary, f"job {key[:16]} failed\n{report}\n{summary.report()}"
+                ) from executed.exception
             done = writer.finish("done")
             self._queue.popleft()
             outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path, reasons=decision.reasons))
