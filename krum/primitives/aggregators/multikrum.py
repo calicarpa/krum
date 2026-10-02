@@ -10,7 +10,7 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, cdist, mean, sort, stack, topk
+from torch import Tensor, argsort, cdist, mean, sort, stack
 
 from . import Aggregator
 
@@ -43,11 +43,11 @@ class MultiKrum(Aggregator):
             out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers.
             f: Number of Byzantine workers to tolerate. Must satisfy
-                ``1 <= f <= (n - 3) // 2``.
-            m: Number of selected gradients to average. ``m = 1`` requires
-                :math:`n \ge 2f + 3` (the Krum resilience bound). ``m > 1``
-                requires :math:`1 \le m \le n - 2f - 3` (the Multi-Krum
-                resilience bound). If ``None``, defaults to :math:`n - 2f - 3`.
+                ``0 <= f <= (n - 3) // 2``.
+            m: Number of selected gradients to average, with :math:`1 \le m \le n`.
+                Values above :math:`n - 2f - 3` leave the Multi-Krum resilience
+                bound; :math:`m = n` recovers :class:`Average`. If ``None``,
+                defaults to :math:`n - 2f - 3`.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -68,14 +68,13 @@ class MultiKrum(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
+        if n < 2 * f + 3:
+            raise ValueError(
+                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f ≤ {(n - 3) // 2}"
+            )
         if m is None:
             m = n - 2 * f - 3
-        if m == 1:
-            if n < 2 * f + 3:
-                raise ValueError(
-                    f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 2}"
-                )
-        elif m < 1 or m > n:
+        if m < 1 or m > n:
             raise ValueError(f"Invalid number of selected gradients, got {m=!r}, expected 1 ≤ m ≤ {n}")
 
         if not isinstance(gradients, Tensor):
@@ -84,8 +83,9 @@ class MultiKrum(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = cls.score(gradients, n=n, f=f, num_peers=m)
-        _, top_indices = topk(scores, m, largest=False)
+        scores = cls.score(gradients, n=n, f=f, num_peers=n - f - 2)
+        # Stable order: score ties resolve to the smallest indices.
+        top_indices = argsort(scores, stable=True)[:m]
 
         return mean(gradients[top_indices], dim=0, out=out)
 
@@ -104,8 +104,8 @@ class MultiKrum(Aggregator):
         0 (set via :meth:`~torch.Tensor.fill_diagonal_`), so column 0
         is always the worker itself. Columns :math:`1` through
         ``num_peers`` give the ``num_peers`` closest *other* workers.
-        When ``num_peers`` is ``None`` it defaults to :math:`n - f`,
-        the standard Krum score from Blanchard et al.
+        When ``num_peers`` is ``None`` it defaults to :math:`n - f - 2`,
+        the Krum neighborhood from Blanchard et al.
 
         The ``num_peers`` closest-peers sum approximates how surrounded a
         gradient is by the (presumed honest) majority; lower scores
@@ -119,7 +119,7 @@ class MultiKrum(Aggregator):
             stacked: Tensor of shape :math:`(n, d)` containing the stacked worker gradients.
             n: Total number of workers (rows of ``stacked``).
             f: Number of Byzantine workers to tolerate.
-            num_peers: Number of closest peers to consider. Defaults to :math:`n - f`.
+            num_peers: Number of closest peers to consider. Defaults to :math:`n - f - 2`.
             valid_mask: Optional boolean tensor of shape :math:`(n,)``;
                 ``False`` entries are excluded from selection.
 
@@ -127,7 +127,7 @@ class MultiKrum(Aggregator):
             Tensor of shape :math:`(n,)` containing the Krum score of each worker.
         """
         if num_peers is None:
-            num_peers = n - f
+            num_peers = n - f - 2
         distances = cdist(stacked, stacked, p=2.0).square()
         if valid_mask is not None:
             distances[~valid_mask] = float("inf")

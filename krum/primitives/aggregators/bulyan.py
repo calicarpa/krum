@@ -10,7 +10,8 @@ Reference:
 from collections.abc import Sequence
 from typing import Any
 
-from torch import Tensor, stack, topk
+import torch
+from torch import Tensor, argsort, stack
 
 from . import Aggregator
 from .multikrum import MultiKrum
@@ -30,20 +31,16 @@ class Bulyan(Aggregator):
     :math:`\beta = \theta - 2f = n - 4f - 2` values per coordinate.
 
     This implementation uses ``Bulyan(MultiKrum)`` — i.e. the base
-    aggregator is Multi-Krum with :math:`m = n - f - 2` by default.
+    aggregator is Multi-Krum with :math:`m = n - f` by default.
     With :math:`m = 1` it reduces to ``Bulyan(Krum)``.
 
     .. note::
 
-        Krum scores are computed once on the full candidate set and
-        removed gradients are masked with ``inf`` rather than
-        recomputing pairwise distances at every iteration. This is an
-        approximation of Algorithm 1 in the paper: a removed gradient
-        still appears in the distance matrix of the remaining workers,
-        so individual scores do not get updated after each removal.
-        The selection order may therefore differ slightly from the
-        paper, though the impact on the final trimmed mean is minimal
-        when the honest majority forms a tight cluster.
+        Krum scores are recomputed at every iteration on the remaining
+        candidates, following Algorithm 1 in the paper: removed
+        gradients leave the distance matrix, so each iteration scores
+        the :math:`n - i` remaining candidates on their
+        :math:`n - i - f - 2` closest peers.
     """
 
     @classmethod
@@ -65,7 +62,7 @@ class Bulyan(Aggregator):
             out: Optional pre-allocated tensor to write the result into.
             n: Total number of workers. Must satisfy :math:`n \ge 4f + 3`.
             f: Number of Byzantine workers to tolerate. Must satisfy
-                ``1 <= f <= (n - 3) // 4``.
+                ``0 <= f <= (n - 3) // 4``.
             m: Number of gradients selected by Multi-Krum at each iteration.
                 Defaults to :math:`n - f`.
             **specialized: Additional keyword arguments.
@@ -90,9 +87,9 @@ class Bulyan(Aggregator):
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f")
         if f > n:
             raise ValueError(f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected f ≤ n = {n!r}")
-        if f < 1 or n < 4 * f + 3:
+        if n < 4 * f + 3:
             raise ValueError(
-                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 1 ≤ f ≤ {(n - 3) // 4}"
+                f"Invalid number of Byzantine gradients to tolerate, got {f=!r}, expected 0 ≤ f ≤ {(n - 3) // 4}"
             )
         m = m if m is not None else n - f
         if m < 1 or m > n:
@@ -104,16 +101,17 @@ class Bulyan(Aggregator):
         if gradients.size(0) != n:
             raise ValueError(f"Expected {n} gradients, got {gradients.size(0)}")
 
-        scores = MultiKrum.score(gradients, n=n, f=f, num_peers=m)
-
         theta = n - 2 * f - 2
         selected = gradients.new_empty((theta, gradients.size(1)))
+        remaining = torch.ones(n, dtype=torch.bool, device=gradients.device)
 
         for i in range(theta):
+            scores = MultiKrum.score(gradients, n=n, f=f, num_peers=n - i - f - 2, valid_mask=remaining)
             m_cur = min(m, n - f - 2 - i)
-            _, top = topk(scores, m_cur, largest=False)
+            # Stable order: score ties resolve to the smallest indices.
+            top = argsort(scores, stable=True)[:m_cur]
             selected[i] = gradients[top].mean(dim=0)
             closest = top[(gradients[top] - selected[i]).norm(dim=1).argmin()]
-            scores[closest] = float("inf")
+            remaining[closest] = False
 
         return TrimmedMean.aggregate(selected, out=out, f=f)

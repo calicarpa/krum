@@ -57,14 +57,16 @@ model collapses to random guessing.
 | Weight decay        | 1e-4              |
 | Weight init         | Xavier uniform    |
 | Random seed         | 42                |
-| MultiKrum `m`       | 18 (no attack) / 12 (attack) |
+| MultiKrum `m`       | 20 (no attack) / 14 (attack) |
 | Data partitioner    | IID (default)      |
 
-**Note on MultiKrum `m`:** the attack case uses `m = 12`, well above the
-theoretical resilience bound `n − 2f − 3 = 5`. This intentionally
-demonstrates MultiKrum's robustness under a conservative (closer-to-Average)
-aggregator rather than the worst-case selector, so the experiment isolates
-Byzantine-resilience behaviour from Krum's strict selection rule.
+**Note on MultiKrum `m`:** both cases follow the paper (Section 6, Figure 6):
+`m = n − f`. The attack case therefore runs at `m = 14`, above the theoretical
+resilience bound `n − 2f − 3 = 5` — the paper sets `m = n − f` there too. The
+no-attack case gives `m = n = 20`, where MultiKrum coincides with Average by
+design. Above the bound the resilience guarantee no longer applies, but
+far-from-honest byzantine gradients still receive large Krum scores and stay
+excluded from the average.
 
 ## Results
 
@@ -72,30 +74,30 @@ Four curves across three panels: test loss, train loss, and test accuracy.
 
 ### Loss curves (test and train)
 
-- **Mean_f0** (green, solid) and **MultiKrum_f0** (orange, solid): steady
-  convergence — loss decreases smoothly from ~0.79 to ~0.42 over 300 rounds.
-  Both aggregators perform equivalently when no attack is present.
+- **Mean_f0** (green, solid) and **MultiKrum_f0** (orange, solid): the two
+  curves coincide exactly — with `m = n = 20` MultiKrum *is* Average — and
+  converge smoothly from ~0.81 to ~0.44 over 300 rounds.
 
-- **Mean_f6** (red, dashed): diverges explosively. Loss climbs from 0.80 to
-  infinity within ~75 rounds, then becomes NaN. The sign-flip attack amplifies
-  gradients in the wrong direction, and plain averaging offers no protection.
+- **Mean_f6** (red, dashed): diverges explosively. Loss climbs from 0.82 to
+  124.8 by round 45, leaves the frame before round 50, and the weights become
+  NaN from round 60. The sign-flip attack amplifies gradients in the wrong
+  direction, and plain averaging offers no protection.
 
 - **MultiKrum_f6** (blue, dashed): converges normally despite 6 Byzantine
-  workers. Loss decreases to ~0.44 — only marginally higher than the no-attack
-  baseline. MultiKrum's scoring-based selection filters out adversarial
-  gradients.
+  workers. Loss decreases to ~0.50 — slightly above the no-attack baseline.
+  MultiKrum's scoring-based selection filters out adversarial gradients even
+  at `m = n − f = 14`, above the resilience bound.
 
 ### Accuracy curve
 
-- **Mean_f0** and **MultiKrum_f0**: both reach ~85% accuracy by step 285. The
+- **Mean_f0** and **MultiKrum_f0**: both reach ~82% accuracy by step 285. The
   model is still improving — training has not fully converged.
 
-- **Mean_f6**: stays at ~40% (the proportion of spam in the dataset) while
-  weights remain finite — the exploding loss drives the model to always predict
-  the spam class. After step 75, when weights become NaN, `argmax` on NaN
-  tensors defaults to class 0 (non-spam, ~60% of the data), producing a
-  spurious jump to ~60% accuracy with no actual learning.
+- **Mean_f6**: starts around 42%, stays at ~40% (the proportion of spam in the
+  dataset) while weights remain finite, then jumps to a flat ~60% plateau once
+  the weights become NaN at step 60 — `argmax` on NaN tensors defaults to
+  class 0 (non-spam, ~60% of the data). This is an artifact, not learning.
 
-- **MultiKrum_f6**: reaches ~83% accuracy, only 1-2 percentage points behind
+- **MultiKrum_f6**: reaches ~77% accuracy, about five percentage points behind
   the attack-free runs. Demonstrates that MultiKrum is Byzantine-resilient up
   to f < n/2.
