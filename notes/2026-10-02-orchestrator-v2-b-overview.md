@@ -1,8 +1,8 @@
 # How the orchestrator works
 
 A high-level tour of `krum.orchestration`. For *why* it is built this way, and
-for the details each decision turns on, see [orchestrator-v2-design.md] and
-[adr-2026-07-31.md].
+for the details each decision turns on, see
+[2026-10-02-orchestrator-v2-a-design.md] and [adr-2026-07-31.md].
 
 ## The problem it solves
 

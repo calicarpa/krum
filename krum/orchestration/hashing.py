@@ -2,7 +2,7 @@
 
 The entry point is :func:`static_key`, which derives a run's identity from the
 user callable's code and its bound parameters without executing anything. See
-`notes/orchestrator-v2-design.md` for the surrounding design.
+`notes/2026-10-02-orchestrator-v2-a-design.md` for the surrounding design.
 
 Two properties are deliberate:
 

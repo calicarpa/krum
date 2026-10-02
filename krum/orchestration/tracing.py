@@ -17,7 +17,7 @@ renamed, removed or edited makes the stored result stale.
 distinct function rather than one per call, which is what makes watching a
 hundred-round simulation affordable at all.
 
-See `notes/orchestrator-v2-design.md`.
+See `notes/2026-10-02-orchestrator-v2-a-design.md`.
 """
 
 from __future__ import annotations
