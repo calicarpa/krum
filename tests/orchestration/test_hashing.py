@@ -9,7 +9,16 @@ import unittest
 from textwrap import dedent
 from typing import Any
 
-from krum.orchestration.hashing import Hash, Hasher, HashError, Location, Modules, static_key
+from krum.orchestration.hashing import (
+    Hash,
+    Hasher,
+    HashError,
+    Location,
+    Modules,
+    code_of,
+    shallow_key,
+    static_key,
+)
 
 OWNED = "krum_hashing_fixture"
 OTHER = "third_party_fixture"
@@ -51,6 +60,103 @@ class LocationTest(unittest.TestCase):
     def test_str_renders_dotted_path(self) -> None:
         """A location renders as its dotted path."""
         self.assertEqual(str(Location("a.b", "C.d")), "a.b.C.d")
+
+    def test_encoding_separates_module_from_qualname(self) -> None:
+        """The encoded form can be parsed back, where a dotted one could not.
+
+        `a.b.C.d` does not say whether the module is `a` or `a.b`; the colon
+        does.
+        """
+        location = Location("a.b", "C.d")
+        self.assertEqual(location.encode(), "a.b:C.d")
+        decoded = Location.decode(location.encode())
+        self.assertEqual(decoded.module, "a.b")
+        self.assertEqual(decoded.qualname, "C.d")
+
+    def test_encoding_round_trips_an_ambiguous_name(self) -> None:
+        """Two locations that share a dotted form stay distinguishable."""
+        first = Location("a", "b.C.d")
+        second = Location("a.b", "C.d")
+        self.assertEqual(str(first), str(second))
+        self.assertNotEqual(first.encode(), second.encode())
+
+
+class ShallowKeyTest(unittest.TestCase):
+    """Test hashing one callable's own code, apart from what it refers to."""
+
+    SOURCE = """
+        def helper(x):
+            return x * {factor}
+
+        def target(n):
+            return helper(n)
+        """
+
+    def test_body_change_changes_the_shallow_key(self) -> None:
+        """A function's own edit changes its shallow key."""
+        before = build("def target(n):\n    return n + 1\n")
+        after = build("def target(n):\n    return n + 2\n")
+        self.assertNotEqual(shallow_key(before), shallow_key(after))
+
+    def test_a_comment_does_not_change_the_shallow_key(self) -> None:
+        """Line provenance is excluded here too."""
+        plain = build("def target(n):\n    return n + 1\n")
+        shifted = build("# a note\n\ndef target(n):\n    return n + 1\n")
+        self.assertEqual(shallow_key(plain), shallow_key(shifted))
+
+    def test_a_changed_helper_does_not_change_the_caller(self) -> None:
+        """A shallow key covers one function, which is what attributes a change.
+
+        The full key folds in everything an experiment reaches, so it moves
+        when a helper does; a shallow key stays put, so a change can be
+        reported against the function it actually happened in.
+        """
+        before = build(self.SOURCE.format(factor=2))
+        after = build(self.SOURCE.format(factor=3))
+        self.assertNotEqual(key(before), key(after))
+        self.assertEqual(shallow_key(before), shallow_key(after))
+
+    def test_code_of_sees_through_wrappers(self) -> None:
+        """Methods, class methods and wrapped functions all yield their code."""
+        holder = build(
+            """
+            import functools
+
+            class Holder:
+                @classmethod
+                def as_class_method(cls):
+                    return 1
+
+                @staticmethod
+                def as_static_method():
+                    return 2
+
+                def as_method(self):
+                    return 3
+
+            def decorate(function):
+                @functools.wraps(function)
+                def wrapper(*args, **kwargs):
+                    return function(*args, **kwargs)
+                return wrapper
+
+            @decorate
+            def decorated():
+                return 4
+            """,
+            name="Holder",
+        )
+        for accessor in ("as_class_method", "as_static_method", "as_method"):
+            with self.subTest(accessor=accessor):
+                self.assertIsNotNone(code_of(getattr(holder, accessor)))
+
+    def test_code_of_returns_none_for_a_builtin(self) -> None:
+        """A function implemented in C has no code object to find."""
+        self.assertIsNone(code_of(len))
+
+    def test_an_object_without_code_still_hashes(self) -> None:
+        """Something with no code falls back on hashing the object."""
+        self.assertEqual(len(shallow_key("not a callable")), DIGEST_SIZE)
 
 
 class ModulesTest(unittest.TestCase):

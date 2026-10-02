@@ -340,10 +340,22 @@ class JobFolder:
 
     def witnesses(self) -> dict[str, Any]:
         """The witnesses recorded with this job, empty if it has none."""
+        return self._fingerprint().get("witnesses", {})
+
+    def called(self) -> dict[str, str] | None:
+        """The functions this job entered, or None if it was not traced.
+
+        An untraced job is not the same as a job that called nothing, so the
+        two are told apart: there is nothing to verify in the first case.
+        """
+        return self._fingerprint().get("called")
+
+    def _fingerprint(self) -> dict[str, Any]:
+        """Read `deps.json`, or nothing if the job has none."""
         path = self._path / DEPS
         if not path.is_file():
             return {}
-        return json.loads(path.read_text()).get("witnesses", {})
+        return json.loads(path.read_text())
 
     def traceback(self) -> str | None:
         """The recorded traceback of a failed job, if any."""
@@ -439,6 +451,7 @@ class JobWriter(MetricRecorder):
     _store: JobStore
     _key: str
     _manifest: dict[str, Any]
+    _called: dict[str, str] | None
     _started: float
 
     __slots__ = tuple(__annotations__)
@@ -449,6 +462,7 @@ class JobWriter(MetricRecorder):
         self._store = store
         self._key = key
         self._manifest = dict(manifest)
+        self._called = None
         self._started = perf_counter()
 
     @property
@@ -459,6 +473,10 @@ class JobWriter(MetricRecorder):
     def adopt(self, metrics: Mapping[str, dict[str, Any]]) -> None:
         """Take on the metrics a child process registered on our behalf."""
         self._metrics.update(metrics)
+
+    def record_called(self, called: Mapping[str, str] | None) -> None:
+        """Record the functions the job entered, when it was traced."""
+        self._called = None if called is None else dict(called)
 
     def finish(self, status: str, error: str | None = None) -> JobFolder:
         """Write the manifest, the marker and the fingerprint, then promote.
@@ -481,7 +499,9 @@ class JobWriter(MetricRecorder):
         }
         (self._path / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=False) + "\n")
         environment = manifest.get("environment", {})
-        fingerprint = {"witnesses": witnesses_of(environment), "environment": environment}
+        fingerprint: dict[str, Any] = {"witnesses": witnesses_of(environment), "environment": environment}
+        if self._called is not None:
+            fingerprint["called"] = self._called
         (self._path / DEPS).write_text(json.dumps(fingerprint, indent=2) + "\n")
         marker = DONE if status == "done" else FAILED
         (self._path / marker).write_text(error or "")

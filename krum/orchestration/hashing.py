@@ -96,10 +96,30 @@ class Location:
         path = (".").join(self._path)
         return f"{self._module}.{path}"
 
+    @classmethod
+    def decode(cls, encoded: str) -> Self:
+        """Rebuild a location from its string form."""
+        module, _, path = encoded.partition(":")
+        return cls(module, path)
+
+    def encode(self) -> str:
+        """Render the location so that it can be parsed back.
+
+        The module and the qualified name are separated by a colon, a dotted
+        form being ambiguous: `a.b.C.d` could be module `a.b` or module `a`.
+        """
+        path = (".").join(self._path)
+        return f"{self._module}:{path}"
+
     @property
     def module(self) -> str:
         """The dotted name of the module holding the object."""
         return self._module
+
+    @property
+    def qualname(self) -> str:
+        """The qualified name of the object within its module."""
+        return (".").join(self._path)
 
     def fetch(self) -> Any:
         """Import and return the located object."""
@@ -239,7 +259,8 @@ class Hasher:
     def write(self, data: Buffer) -> int:
         """Fold raw bytes in, so that `pickle.dump` can write to this hasher."""
         self._state.update(data)
-        return len(data)
+        # A buffer need not be sized; a memoryview of it always is
+        return memoryview(data).nbytes
 
     def _push_length(self, size: int) -> None:
         self._state.update(self._LENGHT.pack(size % self._MODLEN))
@@ -457,6 +478,49 @@ class Hasher:
     def digest(self) -> Hash:
         """The hash of everything folded in so far."""
         return self._state.digest()
+
+
+def code_of(obj: Any) -> CodeType | None:
+    """Find the code object behind a callable, unwrapping what hides it.
+
+    Methods, class and static methods, and functions wrapped by
+    `functools.wraps` all stand between a name and the code it runs.
+
+    Args:
+        obj: The callable to look through.
+
+    Returns:
+        Its code object, or None if it has none, as for a builtin.
+    """
+    for _ in range(16):
+        code = getattr(obj, "__code__", None)
+        if code is not None:
+            return code if isinstance(code, CodeType) else None
+        following = getattr(obj, "__func__", None) or getattr(obj, "__wrapped__", None)
+        if following is None:
+            return None
+        obj = following
+    return None
+
+
+def shallow_key(obj: Any) -> Hash:
+    """Hash a callable's own code, and nothing it refers to.
+
+    Where :func:`static_key` folds in everything an experiment reaches, this
+    isolates one function, so that a change can be attributed to it rather
+    than to the whole closure around it. Line provenance is excluded here too,
+    so reformatting is not a change.
+
+    Args:
+        obj: The callable to hash.
+
+    Returns:
+        The hash of its code, or of the object itself when it has none.
+    """
+    hasher = Hasher(())
+    code = code_of(obj)
+    hasher.push(obj if code is None else code)
+    return hasher.digest()
 
 
 def bind_params(callable: Any, params: Mapping[str, Any]) -> dict[str, Any]:

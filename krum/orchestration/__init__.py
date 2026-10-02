@@ -76,8 +76,10 @@ from .storage import (
     environment_fingerprint,
     witnesses_of,
 )
+from .tracing import DependencyTracker, TracingUnavailable, verify_called
 
 __all__ = [
+    "DependencyTracker",
     "Executed",
     "Hash",
     "HashError",
@@ -96,6 +98,7 @@ __all__ = [
     "RunFailed",
     "RunSummary",
     "SubprocessRunner",
+    "TracingUnavailable",
     "bind_job",
     "current_job",
     "execute_job",
@@ -562,6 +565,10 @@ class Orchestrator:
             experiment and its parameters to be picklable, and a sweep
             script's top level to be guarded by `if __name__ == "__main__":`;
             see :mod:`krum.orchestration.execution`.
+        trace: Record which owned functions each job actually entered, and
+            re-check them on a later pass. This closes the gap a static read of
+            the code leaves open, a dependency reached only at runtime being
+            invisible to a job's key; see :mod:`krum.orchestration.tracing`.
     """
 
     _store: JobStore
@@ -571,6 +578,7 @@ class Orchestrator:
     _source: PathLike | None
     _force: bool
     _isolate: bool
+    _trace: bool
     _witnesses: dict[str, Any] | None
     _warned: bool
 
@@ -585,6 +593,7 @@ class Orchestrator:
         source: PathLike | None = None,
         force: bool = False,
         isolate: bool = False,
+        trace: bool = False,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
@@ -594,6 +603,7 @@ class Orchestrator:
         self._source = source
         self._force = force
         self._isolate = isolate
+        self._trace = trace
         self._witnesses = None
         self._warned = False
 
@@ -653,9 +663,27 @@ class Orchestrator:
         self._queue.append(PendingRun(callable, params, key))
         return key
 
-    def runner(self) -> Runner:
-        """How this orchestrator executes a job's body."""
-        return SubprocessRunner() if self._isolate else InlineRunner()
+    def runner(self, owned: Iterable[str] = ()) -> Runner:
+        """How this orchestrator executes a job's body.
+
+        Args:
+            owned: Module prefixes whose functions are worth recording, when
+                tracing. A sweep is normally one experiment, so this is taken
+                from the first enqueued run.
+
+        Returns:
+            The runner, configured for isolation and tracing.
+        """
+        prefixes = tuple(owned)
+        if self._isolate:
+            return SubprocessRunner(prefixes, self._trace)
+        return InlineRunner(prefixes, self._trace)
+
+    def _owned_prefixes(self) -> tuple[str, ...]:
+        """The owned prefixes a traced sweep records against."""
+        if not self._queue:
+            return ()
+        return tuple(sorted(self._owned_for(self._queue[0].callable)))
 
     def witnesses(self) -> dict[str, Any]:
         """The facts the current environment would stamp on a result.
@@ -691,6 +719,7 @@ class Orchestrator:
         if self._force if force is None else force:
             return JobDecision(key, "run", ("forced",))
         reasons = drift(folder.witnesses(), self.witnesses())
+        reasons += verify_called(folder.called() or {})
         return JobDecision(key, "run" if reasons else "skip", reasons)
 
     def plan(self, force: bool | None = None) -> list[JobDecision]:
@@ -722,7 +751,7 @@ class Orchestrator:
         Raises:
             RunFailed: If a run raised, after recording its traceback.
         """
-        with self.runner() as runner:
+        with self.runner(self._owned_prefixes()) as runner:
             return self._drain(runner, force)
 
     def _drain(self, runner: Runner, force: bool | None) -> RunSummary:
@@ -754,6 +783,7 @@ class Orchestrator:
                 # next drain reads this job as "not done" and runs it again.
                 writer.discard()
                 raise
+            writer.record_called(executed.called)
             if not executed.ok:
                 report = executed.error or "the job failed without a traceback"
                 failed = writer.finish("failed", report)

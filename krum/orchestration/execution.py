@@ -20,15 +20,17 @@ See `notes/orchestrator-v2-design.md`.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
+from contextlib import ExitStack
 from multiprocessing import get_context
 from traceback import format_exc
 from types import TracebackType
 from typing import Any, Self
 
 from .storage import JobWriter, MetricRecorder, PathLike, bind_job
+from .tracing import DependencyTracker
 
 
 class Executed:
@@ -36,10 +38,16 @@ class Executed:
 
     _error: str | None
     _exception: BaseException | None
+    _called: dict[str, str] | None
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, error: str | None = None, exception: BaseException | None = None) -> None:
+    def __init__(
+        self,
+        error: str | None = None,
+        exception: BaseException | None = None,
+        called: dict[str, str] | None = None,
+    ) -> None:
         """Record a body's outcome, with the traceback if it failed.
 
         Args:
@@ -48,9 +56,13 @@ class Executed:
                 A job run in a child leaves only its traceback behind, so this
                 is None there, and the orchestrator chains onto it only when
                 there is something to chain onto.
+            called: The functions the job entered, when it was traced. None
+                means the job was not traced, which is not the same as a job
+                that was traced and called nothing.
         """
         self._error = error
         self._exception = exception
+        self._called = called
 
     def __repr__(self) -> str:
         """Render the outcome as a constructor call."""
@@ -71,8 +83,19 @@ class Executed:
         """The exception itself, for a job that ran in this process."""
         return self._exception
 
+    @property
+    def called(self) -> dict[str, str] | None:
+        """The functions the job entered, or None if it was not traced."""
+        return self._called
 
-def execute_job(path: PathLike, callable: Callable[..., Any], params: Mapping[str, Any]) -> dict[str, Any]:
+
+def execute_job(
+    path: PathLike,
+    callable: Callable[..., Any],
+    params: Mapping[str, Any],
+    owned: tuple[str, ...] = (),
+    trace: bool = False,
+) -> dict[str, Any]:
     """Run one job's body, recording its metrics into an already staged directory.
 
     This is the child process entry point, so it is a module-level function
@@ -84,28 +107,52 @@ def execute_job(path: PathLike, callable: Callable[..., Any], params: Mapping[st
         path: The staged directory to record into.
         callable: The user-defined function to execute.
         params: The parameters to execute it on.
+        owned: Module prefixes whose functions are worth recording.
+        trace: Record which owned functions the job entered.
 
     Returns:
-        The formatted traceback, if any, and the metrics that were registered.
+        The formatted traceback if any, the metrics that were registered, and
+        the functions entered when tracing was asked for.
     """
     recorder = MetricRecorder(path)
     error = None
+    tracker = DependencyTracker(owned) if trace else None
     try:
-        with bind_job(recorder):
+        with ExitStack() as stack:
+            if tracker is not None:
+                stack.enter_context(tracker)
+            stack.enter_context(bind_job(recorder))
             callable(**params)
     except Exception:
         error = format_exc()
-    return {"error": error, "metrics": recorder.close()}
+    return {
+        "error": error,
+        "metrics": recorder.close(),
+        "called": None if tracker is None else tracker.called(),
+    }
 
 
 class InlineRunner:
-    """Runs each job in the orchestrator's own process."""
+    """Runs each job in the orchestrator's own process.
 
-    __slots__ = ()
+    Args:
+        owned: Module prefixes whose functions are worth recording.
+        trace: Record which owned functions each job entered.
+    """
+
+    _owned: tuple[str, ...]
+    _trace: bool
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, owned: Iterable[str] = (), trace: bool = False) -> None:
+        """Prepare to run jobs in this process."""
+        self._owned = tuple(owned)
+        self._trace = trace
 
     def __repr__(self) -> str:
         """Render the runner as a constructor call."""
-        return f"{type(self).__qualname__}()"
+        return f"{type(self).__qualname__}({self._owned!r}, trace={self._trace})"
 
     def run(self, writer: JobWriter, callable: Callable[..., Any], params: Mapping[str, Any]) -> Executed:
         """Execute a job's body here and now.
@@ -114,12 +161,16 @@ class InlineRunner:
         the staged directory rather than promote a marker for a job that never
         finished.
         """
+        tracker = DependencyTracker(self._owned) if self._trace else None
         try:
-            with bind_job(writer):
+            with ExitStack() as stack:
+                if tracker is not None:
+                    stack.enter_context(tracker)
+                stack.enter_context(bind_job(writer))
                 callable(**params)
         except Exception as error:
-            return Executed(format_exc(), error)
-        return Executed()
+            return Executed(format_exc(), error, None if tracker is None else tracker.called())
+        return Executed(called=None if tracker is None else tracker.called())
 
     def close(self) -> None:
         """Nothing to release."""
@@ -142,21 +193,25 @@ class SubprocessRunner:
     one for now, the orchestrator still being fail-fast and sequential.
     """
 
+    _owned: tuple[str, ...]
+    _trace: bool
     _workers: int
     _executor: ProcessPoolExecutor | None
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, workers: int = 1) -> None:
+    def __init__(self, owned: Iterable[str] = (), trace: bool = False, workers: int = 1) -> None:
         """Prepare to run jobs out of process, without starting anything yet."""
         if workers < 1:
             raise ValueError(f"workers must be at least 1, got {workers}")
+        self._owned = tuple(owned)
+        self._trace = trace
         self._workers = workers
         self._executor = None
 
     def __repr__(self) -> str:
         """Render the runner as a constructor call."""
-        return f"{type(self).__qualname__}(workers={self._workers})"
+        return f"{type(self).__qualname__}({self._owned!r}, trace={self._trace}, workers={self._workers})"
 
     @property
     def workers(self) -> int:
@@ -181,7 +236,10 @@ class SubprocessRunner:
         and the death is reported as that job failing.
         """
         try:
-            result = self.executor().submit(execute_job, str(writer.path), callable, params).result()
+            submitted = self.executor().submit(
+                execute_job, str(writer.path), callable, params, self._owned, self._trace
+            )
+            result = submitted.result()
         except BrokenProcessPool:
             self.close()
             return Executed(f"{format_exc()}\nthe child process running this job died")
@@ -196,7 +254,7 @@ class SubprocessRunner:
                 "at module level rather than defined inside another function"
             ) from error
         writer.adopt(result["metrics"])
-        return Executed(result["error"])
+        return Executed(result["error"], called=result["called"])
 
     def close(self) -> None:
         """Shut the pool down, abandoning anything still queued."""
