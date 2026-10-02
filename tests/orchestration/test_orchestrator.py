@@ -6,7 +6,7 @@ import warnings
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from krum.orchestration import Metric, NoActiveJob, Orchestrator, RunFailed
+from krum.orchestration import Metric, Modules, NoActiveJob, Orchestrator, RunFailed
 
 ROUNDS = 3
 # Set by a test to make the same experiment fail on demand. This lives in the
@@ -97,6 +97,18 @@ class IdentityTest(OrchestratorTestCase):
         with self.assertRaises(TypeError):
             orch.run(experiment, n=10, f=2, aggregator=Krum, nope=1)
         self.assertEqual(orch.queued, 0)
+
+    def test_an_ownership_test_may_be_given_instead_of_prefixes(self) -> None:
+        """Ownership may be given as a `Modules`, which carries exclusions.
+
+        Prefixes alone cannot own `krum` while disowning a subpackage of it, so
+        the richer form is accepted wherever prefixes are.
+        """
+        owned = Modules(("orchestration", "krum"), exclude=("krum.primitives",))
+        orch = Orchestrator(self.root, source=self.home, owned=owned)
+        key = orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        self.assertEqual(orch.store.folder_for(key).manifest()["owned"], ["krum", "orchestration"])
 
     def test_enqueueing_runs_nothing(self) -> None:
         """`run` only enqueues; nothing is executed until the queue is drained."""

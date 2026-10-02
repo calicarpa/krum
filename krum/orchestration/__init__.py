@@ -47,17 +47,11 @@ Example::
 
 from __future__ import annotations
 
-import gc
-import inspect
-import sys
 from collections import deque as Deque
-from collections.abc import Callable, Iterable, Iterator, Mapping
-from hashlib import blake2b as Blake2b
-from importlib.abc import MetaPathFinder
-from importlib.machinery import ModuleSpec
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from time import perf_counter
-from types import CodeType, FrameType, ModuleType, TracebackType
+from types import TracebackType
 from typing import Any, Self
 from warnings import warn
 
@@ -105,196 +99,6 @@ __all__ = [
     "execute_job",
     "static_key",
 ]
-
-class Context:
-    """Playground context."""
-
-    _external: set[ModuleType]
-    _internal: set[CodeType | ObjectRef]
-
-    __slots__ = tuple(__annotations__)
-
-    def trace(self, frame: FrameType, event: str, arg: Any | None) -> Callable | None:
-        # Quickly process non-call events
-        match event:
-            case "call":
-                pass
-            case "line":
-                return self.trace
-            case "return":
-                return None
-            case "opcode":
-                return self.trace
-            case "exception":
-                return self.trace
-            case _:
-                raise RuntimeError(f"unknown event {event!r}")
-        # NOTE: Debug
-        return_value = None
-        import code
-        code.interact(local=locals())
-        return return_value
-
-class Dependencies:
-    """(Conservative) list of dependencies for a collection of objects."""
-
-    _modules: dict[str, int]
-    _hash: int | None
-
-    __slots__ = tuple(__annotations__)
-
-    # Fixed hash size (in bytes)
-    _HASH_SIZE: int = 16
-    # Runtime hash of the current interpreter (computed by `__preinit__`)
-    _HASH_BASE: int
-
-    @classmethod
-    def _bytes_to_int(cls, data: bytes) -> int:
-        value = 0
-        for byte in data[:cls._HASH_SIZE]:
-            value = value * 2**8 + byte
-        return value
-
-    @classmethod
-    def _hash_spec(cls, spec: ModuleSpec) -> int:
-        # Recover actual location and open file
-        origin = Path(spec.origin)
-        while True:
-            try:
-                fd = origin.open("rb")
-                break
-            except NotADirectoryError:
-                # Handle ZIP container (e.g. /path/to/container.zip/package/submodule.py)
-                origin = origin.parent
-        # Hash module name and "content" together
-        with fd:
-            b2b = Blake2b()
-            b2b.update(spec.name.encode())
-            b2b.update(b"\x00")
-            buf = memoryview(bytearray(65536))
-            while True:
-                read = fd.readinto(buf)
-                if read == 0:
-                    del buf
-                    break
-                b2b.update(buf[:read])
-        # Digest and forward
-        return cls._bytes_to_int(b2b.digest())
-
-    @classmethod
-    def __preinit__(cls) -> None:
-        # Hash about current interpreter
-        b2b = Blake2b()
-        b2b.update(sys.version.encode())
-        b2b.update(b"\xfe" if __debug__ else b"\xff")
-        cls._HASH_BASE = cls._bytes_to_int(b2b.digest())
-
-    @classmethod
-    def derive(cls, closure: Callable) -> Self:
-        # TODO: Do something more relevant than only hashing code; only resort to hashing code
-        #       for native functions (and just-in-time imports, for lack of a better solution).
-        #       Process non-native closures/generators by discovering relevant referent objects,
-        #       and only hashing bytecode (which should be stable for each interpreter version).
-        #       Hash other objects based on their pickled stream (optionally with fixed version).
-        #       (Acknowledge this is fundamentally an impossible problem, c.f. `exec(random())`.)
-        #       The end-user will not like to see everything run again after each micro-change.
-        import code
-        code.interact(local=locals())
-        # Extract function signature
-        signature = inspect.signature(closure)
-        signature.parameters
-        # Process whole referent tree
-        todo = Deque()
-        todo.append(closure)
-        seen = set()
-        origins = set()
-        while True:
-            # Pull next object to process
-            try:
-                obj = todo.popleft()
-            except IndexError:
-                break
-            # Ensure objects are seen at most once
-            oid = id(obj)
-            if oid in seen:
-                continue
-            seen.add(oid)
-            # Print sub-referents
-            refs = gc.get_referents(obj)
-            print(f"Referents of 0x{oid:016x} (type {type(obj).__qualname__}):")
-            cnt = len(refs)
-            spc = 0
-            while cnt > 0:
-                spc += 1
-                cnt //= 10
-            for idx, ref in enumerate(refs):
-                oid = id(ref)
-                addum = ", seen" if oid in seen else ""
-                print(f"- refs[{idx:{spc}}] = 0x{oid:016x} (type {type(ref).__qualname__}{addum})")
-            # Interact with sub-referents
-            import code
-            code.interact(local=locals())
-            # Prepare to process sub-referents
-            todo.extend(refs)
-        # TODO:
-        raise NotImplementedError
-
-    def __init__(self, modules: dict[str, int]) -> None:
-        # Compute hash
-        hash = self._HASH_BASE
-        for module in modules.values():
-            hash ^= module
-        # Initialize members
-        self._modules = modules
-        self._hash = hash
-
-    @property
-    def hash(self) -> int:
-        return self._hash
-
-    def modules(self) -> Iterator[str]:
-        return iter(self._modules)
-
-    def push(self, module: str, spec: ModuleSpec) -> None:
-        hash = self._hash_spec(spec)
-        prev = self._modules.get(module)
-        if prev is None:
-            self._modules[module] = hash
-            self._hash ^= hash
-        elif hash != prev:
-            raise RuntimeError(f"trying to overwrite hash of {module!r}")
-
-# Finalize class initialization
-Dependencies.__preinit__()
-
-class InterceptFinder(MetaPathFinder):
-    """Meta path finder intercepting and integrating new imports."""
-
-    _target: Dependencies
-    _finders: list[MetaPathFinder] | None
-
-    __slots__ = tuple(__annotations__)
-
-    def __init__(self, target: Dependencies) -> None:
-        self._target = target
-        self._finders = None
-
-    def __enter__(self) -> None:
-        if self._finders is not None:
-            raise RuntimeError("unsupported reentrancy")
-        self._finders = sys.meta_path
-        sys.meta_path = [self]
-
-    def __exit__(self, exc_type: type | None, exc_value: BaseException | None, traceback: TracebackType | None) -> None:
-        sys.meta_path = self._finders
-        self._finders = None
-
-    def find_spec(self, fullname: str, path: str | None, target: ModuleType | None = None) -> ModuleSpec | None:
-        for finder in self._finders:
-            spec = finder.find_spec(fullname, path, target)
-            if spec is not None:
-                self._target.push(fullname, spec)
-                return spec
 
 type RunCallable = Callable[..., None]
 
@@ -553,8 +357,9 @@ class Orchestrator:
 
     Args:
         root: The directory holding one folder per job.
-        owned: Module prefixes a job's identity is computed over; guessed per
-            run from the callable's own package by default.
+        owned: What a job's identity is computed over, as module prefixes or
+            as a :class:`Modules` carrying its own exclusions; guessed per run
+            from the callable's own package by default.
         lock: The lock file fingerprinting the environment; discovered from the
             current directory by default.
         source: A directory inside the repository holding the code being run,
@@ -592,7 +397,7 @@ class Orchestrator:
         self,
         root: PathLike,
         *,
-        owned: Iterable[str] | None = None,
+        owned: Modules | Iterable[str] | None = None,
         lock: PathLike | None = None,
         source: PathLike | None = None,
         force: bool = False,
@@ -634,9 +439,19 @@ class Orchestrator:
         """How many runs are enqueued."""
         return len(self._queue)
 
-    def _owned_for(self, callable: RunCallable) -> set[str] | Iterable[str]:
-        """The owned module prefixes for one run."""
+    def _owned_for(self, callable: RunCallable) -> Modules | Iterable[str]:
+        """What a run's identity is computed over, as given."""
         return owned_for(callable) if self._owned is None else self._owned
+
+    def _prefixes_for(self, callable: RunCallable) -> tuple[str, ...]:
+        """The owned module prefixes for one run, as plain names.
+
+        An ownership test carries exclusions that plain prefixes cannot, so it
+        is accepted as given and unwrapped here, where the manifest and the
+        tracer both want names.
+        """
+        owned = self._owned_for(callable)
+        return tuple(sorted(owned.prefixes if isinstance(owned, Modules) else owned))
 
     def run(self, callable: RunCallable, **params: Any) -> Hash:
         """Enqueue one run, computing its identity now.
@@ -687,7 +502,7 @@ class Orchestrator:
         """The owned prefixes a traced sweep records against."""
         if not self._queue:
             return ()
-        return tuple(sorted(self._owned_for(self._queue[0].callable)))
+        return self._prefixes_for(self._queue[0].callable)
 
     def witnesses(self) -> dict[str, Any]:
         """The facts the current environment would stamp on a result.
@@ -773,7 +588,7 @@ class Orchestrator:
                 key,
                 pending.callable,
                 pending.bound_params,
-                owned=self._owned_for(pending.callable),
+                owned=self._prefixes_for(pending.callable),
                 lock=self._lock,
                 start=self._source,
             )
