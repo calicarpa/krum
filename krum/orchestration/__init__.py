@@ -1,51 +1,44 @@
-"""Run experiments over parameter ranges and collect their metrics.
+"""Run experiments over parameter ranges, persisting their metrics.
 
 The user writes an experiment as a single run, sweeps it with ordinary Python
-loops, and reads the results back per metric.
+loops, and reads the results back per metric as a tidy `pandas.DataFrame`.
 
-Metric values are collected in memory and not persisted. Execution is
-synchronous and fail-fast in this version; the near-term plan is multi-process,
-one process per run.
+Each run is a *job*, identified by its parameters and by the code it executes
+(see :mod:`krum.orchestration.hashing`), and owning a folder under the
+orchestrator's root (see :mod:`krum.orchestration.storage`). A job whose folder
+is already marked done is skipped rather than re-executed.
+
+Execution is synchronous and fail-fast: the first failing job stops the sweep,
+and the remaining jobs stay queued. One process per job, and re-running a job
+whose dependencies changed, are the next two steps in
+`notes/orchestrator-v2-design.md`.
 
 Example::
 
     from krum.orchestration import Metric, Orchestrator
     from krum.primitives.aggregators.average import Average
     from krum.primitives.aggregators.krum import Krum
-    from krum.primitives.aggregators.bulyan import Bulyan
     from krum.primitives.attacks.alie import ALIEAttack
     from krum.primitives.attacks.sign_flip import SignFlipAttack
-    from krum.primitives.data_partitioners.iid import IidPartitioner
-    from krum.simulations.centralised.krum_nips_2017 import KrumSimulation
 
     def my_experiment(n, f, aggregator, attack, seed):
-        train_set, test_set = ...  # e.g. torchvision datasets
-        worker_datasets = IidPartitioner.partition(train_set, n=n, seed=seed)
-        simulation = KrumSimulation(
-            model_cls=..., train_datasets=worker_datasets, test_set=test_set,
-            aggregator=aggregator, attack=attack,
-            n=n, f=f, rounds=100, batch_size=32, lr=0.1, seed=seed,
-        )
-        simulation.setup()
+        simulation = ...  # e.g. a krum.simulations class
         loss = Metric("loss", dtype=float)
         for step in range(100):
             simulation.step()
             if step % 10 == 0:
-                test_loss, _test_accuracy = simulation.evaluate()
+                test_loss, _accuracy = simulation.evaluate()
                 loss.push(step, test_loss)
 
-    orch = Orchestrator("byzantine_study")
-    for n, f in [(10, 2), (20, 3)]:
-        for aggregator in [Average, Krum, Bulyan]:
-            for attack in [ALIEAttack, SignFlipAttack]:
-                orch.run(
-                    my_experiment,
-                    n=n, f=f, aggregator=aggregator, attack=attack, seed=42,
-                )
+    with Orchestrator("byzantine_study") as orch:
+        for n, f in [(10, 2), (20, 3)]:
+            for aggregator in [Average, Krum]:
+                for attack in [ALIEAttack, SignFlipAttack]:
+                    orch.run(my_experiment, n=n, f=f, aggregator=aggregator, attack=attack, seed=42)
 
-    loss = orch.get("loss")               # MetricDataFrame
-    krum_alie = loss.filter(aggregator=Krum, attack=ALIEAttack)  # narrowed MetricDataFrame
-    frame = krum_alie.to_pandas()         # pandas.DataFrame for plotting/analysis
+    loss = orch.get("loss")  # columns: step, value, n, f, aggregator, attack, seed, job_key
+    krum_alie = loss[(loss["aggregator"] == "Krum") & (loss["attack"] == "ALIEAttack")]
+    mean_loss = loss.groupby(["aggregator", "attack", "step"])["value"].mean()
 """
 
 from __future__ import annotations
@@ -53,20 +46,42 @@ from __future__ import annotations
 import gc
 import inspect
 import sys
-
 from collections import deque as Deque
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from hashlib import blake2b as Blake2b
 from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec
-from inspect import Parameter
-from pathlib import Path, PurePath
+from pathlib import Path
+from time import perf_counter
+from traceback import format_exc
 from types import CodeType, FrameType, ModuleType, TracebackType
 from typing import Any, Self
+from warnings import warn
 
-from .hashing import Hash, Hasher, HashError, Location, Modules, static_key
+import pandas
 
-__all__ = ["Hash", "HashError", "Hasher", "Location", "Modules", "Orchestrator", "static_key"]
+from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
+from .metrics import RESERVED_COLUMNS, Metric, NoActiveJob, collect, reserved
+from .storage import JobFolder, JobStore, PathLike, bind_job, build_manifest, current_job
+
+__all__ = [
+    "Hash",
+    "HashError",
+    "Hasher",
+    "JobFolder",
+    "JobOutcome",
+    "JobStore",
+    "Location",
+    "Metric",
+    "Modules",
+    "NoActiveJob",
+    "Orchestrator",
+    "PendingRun",
+    "RunFailed",
+    "RunSummary",
+    "current_job",
+    "static_key",
+]
 
 class Context:
     """Playground context."""
@@ -84,7 +99,7 @@ class Context:
             case "line":
                 return self.trace
             case "return":
-                return
+                return None
             case "opcode":
                 return self.trace
             case "exception":
@@ -260,6 +275,22 @@ class InterceptFinder(MetaPathFinder):
 
 type RunCallable = Callable[..., None]
 
+def owned_for(callable: Any) -> set[str]:
+    """Guess the module prefixes a run's identity should be computed over.
+
+    The user's own package and `krum` are what a change should invalidate on;
+    everything else is a dependency, and belongs to the environment
+    fingerprint rather than to the key.
+
+    Args:
+        callable: The user-defined function a run executes.
+
+    Returns:
+        The owned module prefixes.
+    """
+    module = getattr(callable, "__module__", None) or "__main__"
+    return {"__main__", "krum", module.partition(".")[0]}
+
 class PendingRun:
     """Information about an enqueued run."""
 
@@ -270,41 +301,356 @@ class PendingRun:
     __slots__ = tuple(__annotations__)
 
     def __init__(self, callable: RunCallable, params: dict[str, Any], key: Hash | None = None) -> None:
+        """Enqueue a callable with its parameters, and optionally its key."""
         self._callable = callable
         self._params = params
         self._key = key
 
+    def __repr__(self) -> str:
+        """Render the run as its callable and parameters."""
+        name = getattr(self._callable, "__qualname__", repr(self._callable))
+        return f"{type(self).__qualname__}({name}, {self._params!r})"
+
     @property
     def callable(self) -> RunCallable:
+        """The user-defined function this run executes."""
         return self._callable
 
     @property
     def params(self) -> dict[str, Any]:
+        """The hyper parameter values this run was enqueued with."""
         return self._params
 
     @property
+    def bound_params(self) -> dict[str, Any]:
+        """The parameters in signature order, defaults included.
+
+        This is what the key was computed from, and so what the manifest
+        records: a default left unstated still identifies the job.
+        """
+        return bind_params(self._callable, self._params)
+
+    @property
     def key(self) -> Hash:
-        if self._key is not None:
-            return self._key
-        raise NotImplementedError
+        """The run's static identity, computed on first access."""
+        if self._key is None:
+            self._key = static_key(self._callable, self._params, owned_for(self._callable))
+        return self._key
 
-class Orchestrator:
-    """Top-most orchestrator instance managing runs and persisting metrics."""
+class JobOutcome:
+    """What became of one enqueued run during a drain."""
 
-    _root: Path
-    _queue: Deque[PendingRun]
+    _key: str
+    _status: str
+    _seconds: float | None
+    _path: Path | None
+    _error: str | None
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, root: PathLike) -> None:
-        if not isinstance(root, Path):
-            root = Path(root)
-        self._root = root
+    def __init__(
+        self,
+        key: str,
+        status: str,
+        seconds: float | None = None,
+        path: Path | None = None,
+        error: str | None = None,
+    ) -> None:
+        """Record one run's outcome."""
+        self._key = key
+        self._status = status
+        self._seconds = seconds
+        self._path = path
+        self._error = error
 
-    def run(self, callable: Callable[..., Any], **params: Any) -> Any:
-        self._queue.append(PendingRun(callable, params))
-        raise NotImplementedError
+    def __repr__(self) -> str:
+        """Render the outcome as a constructor call."""
+        return f"{type(self).__qualname__}({self._key[:12]!r}, {self._status!r})"
 
-    def get(self, metric: str) -> MetricReader:
-        # NOTE: May be blocking
-        raise NotImplementedError
+    @property
+    def key(self) -> str:
+        """The job key."""
+        return self._key
+
+    @property
+    def status(self) -> str:
+        """One of `done`, `skipped` or `failed`."""
+        return self._status
+
+    @property
+    def seconds(self) -> float | None:
+        """How long the job took, or None if it was skipped."""
+        return self._seconds
+
+    @property
+    def path(self) -> Path | None:
+        """The job's folder, once it has one."""
+        return self._path
+
+    @property
+    def error(self) -> str | None:
+        """The traceback of a failed job."""
+        return self._error
+
+class RunSummary:
+    """A report on one drain of the queue."""
+
+    _outcomes: tuple[JobOutcome, ...]
+    _pending: int
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, outcomes: Iterable[JobOutcome], pending: int = 0) -> None:
+        """Summarize a drain, with the number of runs left unstarted."""
+        self._outcomes = tuple(outcomes)
+        self._pending = pending
+
+    @property
+    def outcomes(self) -> tuple[JobOutcome, ...]:
+        """Every run's outcome, in execution order."""
+        return self._outcomes
+
+    @property
+    def pending(self) -> int:
+        """How many runs were left unstarted, after a failure stopped the drain."""
+        return self._pending
+
+    def count(self, status: str) -> int:
+        """How many runs ended in a given status."""
+        return sum(1 for outcome in self._outcomes if outcome.status == status)
+
+    @property
+    def failed(self) -> tuple[JobOutcome, ...]:
+        """The runs that failed."""
+        return tuple(outcome for outcome in self._outcomes if outcome.status == "failed")
+
+    def __len__(self) -> int:
+        """How many runs this drain accounted for."""
+        return len(self._outcomes)
+
+    def __repr__(self) -> str:
+        """Render the summary on one line."""
+        return f"{type(self).__qualname__}({self!s})"
+
+    def __str__(self) -> str:
+        """Render the per-status counts."""
+        parts = [f"{self.count(status)} {status}" for status in ("done", "skipped", "failed") if self.count(status)]
+        if self._pending:
+            parts.append(f"{self._pending} not started")
+        return ", ".join(parts) or "nothing to run"
+
+    def report(self) -> str:
+        """Render a line per run, for a human reading the end of a sweep."""
+        lines = [str(self)]
+        for outcome in self._outcomes:
+            timing = "" if outcome.seconds is None else f"  {outcome.seconds:8.3f}s"
+            lines.append(f"  {outcome.status:<8} {outcome.key[:16]}{timing}")
+        return "\n".join(lines)
+
+class RunFailed(RuntimeError):
+    """Raised when a run fails, stopping the sweep.
+
+    Carries the summary of the drain, so the caller sees what ran, what was
+    skipped and what was left unstarted alongside the failure itself.
+    """
+
+    _summary: RunSummary
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, summary: RunSummary, message: str) -> None:
+        """Wrap a drain's summary with the failing job's message."""
+        super().__init__(message)
+        self._summary = summary
+
+    @property
+    def summary(self) -> RunSummary:
+        """The summary of the drain this failure stopped."""
+        return self._summary
+
+class Orchestrator:
+    """Top-most orchestrator instance managing runs and persisting metrics.
+
+    Args:
+        root: The directory holding one folder per job.
+        owned: Module prefixes a job's identity is computed over; guessed per
+            run from the callable's own package by default.
+        lock: The lock file fingerprinting the environment; discovered from the
+            current directory by default.
+        source: A directory inside the repository holding the code being run,
+            whose commit is recorded with every job; the current directory by
+            default.
+    """
+
+    _store: JobStore
+    _queue: Deque[PendingRun]
+    _owned: Modules | Iterable[str] | None
+    _lock: PathLike | None
+    _source: PathLike | None
+    _warned: bool
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(
+        self,
+        root: PathLike,
+        *,
+        owned: Iterable[str] | None = None,
+        lock: PathLike | None = None,
+        source: PathLike | None = None,
+    ) -> None:
+        """Open a store at `root`, creating it if needed."""
+        self._store = JobStore(root)
+        self._queue = Deque()
+        self._owned = owned
+        self._lock = lock
+        self._source = source
+        self._warned = False
+
+    def __repr__(self) -> str:
+        """Render the orchestrator with its root and queue depth."""
+        return f"{type(self).__qualname__}({str(self._store.root)!r}, queued={len(self._queue)})"
+
+    def __enter__(self) -> Self:
+        """Enter a sweep; the queue is drained on a clean exit."""
+        return self
+
+    def __exit__(self, exc_type: type | None, exc_value: BaseException | None, tb: TracebackType | None) -> None:
+        """Drain the queue, unless the block is already unwinding."""
+        if exc_type is None:
+            self.drain()
+
+    @property
+    def store(self) -> JobStore:
+        """The job store this orchestrator reads and writes."""
+        return self._store
+
+    @property
+    def queued(self) -> int:
+        """How many runs are enqueued."""
+        return len(self._queue)
+
+    def _owned_for(self, callable: RunCallable) -> set[str] | Iterable[str]:
+        """The owned module prefixes for one run."""
+        return owned_for(callable) if self._owned is None else self._owned
+
+    def run(self, callable: RunCallable, **params: Any) -> Hash:
+        """Enqueue one run, computing its identity now.
+
+        The key is computed eagerly so that an ill-fitting parameter, or a
+        dependency that cannot be hashed, is reported at the call site rather
+        than after a long sweep has already started.
+
+        Args:
+            callable: The user-defined function to execute.
+            **params: The hyper parameter values to execute it on.
+
+        Returns:
+            The run's key, which names its output folder.
+
+        Raises:
+            TypeError: If the parameters do not fit the callable's signature.
+            ValueError: If a parameter name is one a metric frame owns.
+        """
+        clashing = reserved(bind_params(callable, params))
+        if clashing:
+            raise ValueError(
+                f"parameter names {clashing} are reserved: a metric frame's own columns are "
+                f"{list(RESERVED_COLUMNS)}, so such a parameter could not be told apart from "
+                "the metric it was recorded against; rename it"
+            )
+        key = static_key(callable, params, self._owned_for(callable))
+        self._queue.append(PendingRun(callable, params, key))
+        return key
+
+    def drain(self) -> RunSummary:
+        """Execute every enqueued run that is not already done.
+
+        A run whose folder is marked done is skipped. A run that fails stops
+        the drain, and the queue is abandoned: the results that did complete
+        stay readable, which they would not be if a later `get` re-ran the
+        failing job. Re-enqueueing retries it, its folder being marked failed
+        rather than done.
+
+        Returns:
+            The summary of this drain.
+
+        Raises:
+            RunFailed: If a run raised, after recording its traceback.
+        """
+        outcomes: list[JobOutcome] = []
+        while self._queue:
+            pending = self._queue[0]
+            key = self._store.name_for(pending.key)
+            folder = self._store.folder_for(key)
+            if folder.done:
+                self._queue.popleft()
+                outcomes.append(JobOutcome(key, "skipped", path=folder.path))
+                continue
+            manifest = build_manifest(
+                key,
+                pending.callable,
+                pending.bound_params,
+                owned=self._owned_for(pending.callable),
+                lock=self._lock,
+                start=self._source,
+            )
+            self._warn_if_dirty(manifest)
+            writer = self._store.writer(key, manifest)
+            started = perf_counter()
+            try:
+                with bind_job(writer):
+                    pending.callable(**pending.params)
+            except Exception as error:
+                report = format_exc()
+                failed = writer.finish("failed", report)
+                outcomes.append(
+                    JobOutcome(key, "failed", perf_counter() - started, failed.path, report)
+                )
+                summary = RunSummary(outcomes, pending=len(self._queue) - 1)
+                self._queue.clear()
+                raise RunFailed(summary, f"job {key[:16]} failed: {error!r}\n{summary.report()}") from error
+            except BaseException:
+                # Interrupted rather than failed: leave no marker, so that the
+                # next drain reads this job as "not done" and runs it again.
+                writer.discard()
+                raise
+            done = writer.finish("done")
+            self._queue.popleft()
+            outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path))
+        return RunSummary(outcomes)
+
+    def _warn_if_dirty(self, manifest: Mapping[str, Any]) -> None:
+        """Warn once if results are being produced from a modified working tree."""
+        if self._warned:
+            return
+        git = manifest.get("git")
+        if git is not None and git.get("dirty"):
+            self._warned = True
+            warn(
+                f"recording results from a dirty working tree at {git.get('commit', '?')[:12]}; "
+                "the stored commit will not reproduce them",
+                stacklevel=3,
+            )
+
+    def get(self, metric: str) -> pandas.DataFrame:
+        """Read one metric back across every completed job.
+
+        Drains the queue first, so that a sweep need not be run explicitly.
+
+        Args:
+            metric: The metric name.
+
+        Returns:
+            A tidy frame of `[step, value, *params, job_key]`.
+
+        Raises:
+            KeyError: If no completed job recorded that metric.
+            RunFailed: If draining the queue hit a failing run.
+        """
+        self.drain()
+        return collect(self._store, metric)
+
+    def metrics(self) -> list[str]:
+        """Every metric name recorded by a completed job, sorted."""
+        return self._store.metric_names()

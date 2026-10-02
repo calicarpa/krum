@@ -24,6 +24,7 @@ import importlib
 import inspect
 import pickle
 from collections.abc import Buffer, Iterable, Iterator, Mapping
+from contextvars import ContextVar
 from hashlib import blake2b as Blake2b
 from struct import Struct
 from types import (
@@ -114,30 +115,48 @@ class Modules:
     Owned modules are folded in by content: bytecode, closures, referenced
     globals, class bodies. Everything else stops at its :class:`Location`,
     which is what keeps a hash of a user experiment from walking into pytorch.
+
+    Exclusions override the prefixes, which is what lets a broad prefix like
+    `krum` be owned while a subpackage within it is not. The orchestration
+    package itself is always excluded: it *runs* a job rather than defining
+    what the job computes, so folding it in would both change every key
+    whenever the harness is edited and drag in runtime state, such as the
+    context variable naming the current job, that has no reproducible hash.
     """
 
     _prefixes: tuple[str, ...]
+    _exclude: tuple[str, ...]
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, prefixes: Iterable[str]) -> None:
-        """Build an ownership test from a collection of dotted module prefixes."""
+    @staticmethod
+    def _matches(name: str, prefixes: Iterable[str]) -> bool:
+        return any(name == prefix or name.startswith(f"{prefix}.") for prefix in prefixes)
+
+    def __init__(self, prefixes: Iterable[str], exclude: Iterable[str] = ()) -> None:
+        """Build an ownership test from dotted module prefixes and exclusions."""
         self._prefixes = tuple(sorted(set(prefixes)))
+        self._exclude = tuple(sorted({*exclude, __name__.rpartition(".")[0]}))
 
     def __repr__(self) -> str:
         """Render the ownership test as a constructor call."""
-        return f"{type(self).__qualname__}({self._prefixes!r})"
+        return f"{type(self).__qualname__}({self._prefixes!r}, {self._exclude!r})"
 
     @property
     def prefixes(self) -> tuple[str, ...]:
         """The owned module prefixes, sorted."""
         return self._prefixes
 
+    @property
+    def exclude(self) -> tuple[str, ...]:
+        """The excluded module prefixes, sorted, which override the owned ones."""
+        return self._exclude
+
     def owns_module(self, name: str | None) -> bool:
-        """Whether a dotted module name falls under one of the owned prefixes."""
+        """Whether a dotted module name is owned, exclusions taking precedence."""
         if not name:
             return False
-        return any(name == prefix or name.startswith(f"{prefix}.") for prefix in self._prefixes)
+        return self._matches(name, self._prefixes) and not self._matches(name, self._exclude)
 
     def __contains__(self, obj: Any) -> bool:
         """Whether an object, or a module itself, belongs to an owned module."""
@@ -158,6 +177,9 @@ class Hasher:
 
     __slots__ = tuple(__annotations__)
 
+    # Digest size in bytes. 16 is ample to name a job folder, and keeps the
+    # folder name and the `job_key` column readable.
+    _DIGEST_SIZE = 16
     _LENGHT = Struct("<Q")
     _MODLEN = 1 << (8 * _LENGHT.size)
     _CONTAINERS = {  # type: (special iterator, unordered?, tupled?)
@@ -198,7 +220,7 @@ class Hasher:
         elif not isinstance(owned, Modules):
             owned = Modules(owned)
         if state is None:
-            state = Blake2b()
+            state = Blake2b(digest_size=self._DIGEST_SIZE)
         self._state = state
         self._owned = owned
         self._seen = {}
@@ -311,6 +333,11 @@ class Hasher:
         # Objects implemented in C cannot be introspected; their name is all we have
         if isinstance(obj, self._OPAQUE):
             self.push(Location.of_callable(obj))
+            return
+        # A context variable names a slot for runtime state; the name is its
+        # static identity, and what it happens to hold is not static at all
+        if isinstance(obj, ContextVar):
+            self.push(obj.name)
             return
         # An instance of an owned class: fold the class body in, then the instance state
         if typ in self._owned:
@@ -432,6 +459,28 @@ class Hasher:
         return self._state.digest()
 
 
+def bind_params(callable: Any, params: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind parameters to a callable's signature and apply its defaults.
+
+    The job key and the recorded manifest are both derived from this, so that
+    what a result is traced back to is exactly what its identity was computed
+    from.
+
+    Args:
+        callable: The user-defined function a run executes.
+        params: The hyper parameter values, by name.
+
+    Returns:
+        The bound parameters, in signature order, defaults included.
+
+    Raises:
+        TypeError: If the parameters do not fit the signature.
+    """
+    bound = inspect.signature(callable).bind(**params)
+    bound.apply_defaults()
+    return dict(bound.arguments)
+
+
 def static_key(callable: Any, params: Mapping[str, Any], owned: Modules | Iterable[str] | None = None) -> Hash:
     """Derive a run's static identity from its callable and its parameters.
 
@@ -452,9 +501,7 @@ def static_key(callable: Any, params: Mapping[str, Any], owned: Modules | Iterab
     Returns:
         The key identifying this run, used to name its output folder.
     """
-    bound = inspect.signature(callable).bind(**params)
-    bound.apply_defaults()
     hasher = Hasher(owned)
     hasher.push(callable)
-    hasher.push(dict(bound.arguments))
+    hasher.push(bind_params(callable, params))
     return hasher.digest()

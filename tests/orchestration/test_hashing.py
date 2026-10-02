@@ -13,6 +13,8 @@ from krum.orchestration.hashing import Hash, Hasher, HashError, Location, Module
 
 OWNED = "krum_hashing_fixture"
 OTHER = "third_party_fixture"
+# Digest length in bytes, ample to name a job folder
+DIGEST_SIZE = 16
 
 
 def build(source: str, *, name: str = "target", module: str = OWNED, filename: str = "<fixture>") -> Any:
@@ -383,7 +385,7 @@ class DependencyChangeTest(unittest.TestCase):
             def target(n):
                 return Holder(n)
             """)
-        self.assertEqual(len(key(target)), 64)
+        self.assertEqual(len(key(target)), DIGEST_SIZE)
 
 
 class OwnershipBoundaryTest(unittest.TestCase):
@@ -445,7 +447,7 @@ class CycleTest(unittest.TestCase):
             def other(n):
                 return target(n - 1)
             """)
-        self.assertEqual(len(key(target)), 64)
+        self.assertEqual(len(key(target)), DIGEST_SIZE)
 
     def test_self_recursion_terminates(self) -> None:
         """A self-recursive function hashes without recursing forever."""
@@ -453,7 +455,7 @@ class CycleTest(unittest.TestCase):
             def target(n):
                 return 0 if n <= 0 else target(n - 1)
             """)
-        self.assertEqual(len(key(target)), 64)
+        self.assertEqual(len(key(target)), DIGEST_SIZE)
 
 
 class ContainerTest(unittest.TestCase):
