@@ -382,6 +382,7 @@ class Orchestrator:
 
     _store: JobStore
     _queue: Deque[PendingRun]
+    _enqueued: list[str]
     _owned: Modules | Iterable[str] | None
     _lock: PathLike | None
     _source: PathLike | None
@@ -407,6 +408,7 @@ class Orchestrator:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
         self._queue = Deque()
+        self._enqueued = []
         self._owned = owned
         self._lock = lock
         self._source = source
@@ -480,6 +482,9 @@ class Orchestrator:
             )
         key = static_key(callable, params, self._owned_for(callable))
         self._queue.append(PendingRun(callable, params, key))
+        name = self._store.name_for(key)
+        if name not in self._enqueued:
+            self._enqueued.append(name)
         return key
 
     def runner(self, owned: Iterable[str] = ()) -> Runner:
@@ -632,10 +637,22 @@ class Orchestrator:
                 stacklevel=3,
             )
 
+    @property
+    def enqueued(self) -> tuple[str, ...]:
+        """The jobs of this sweep, in the order they were enqueued."""
+        return tuple(self._enqueued)
+
     def get(self, metric: str) -> pandas.DataFrame:
-        """Read one metric back across every completed job.
+        """Read one metric back across this sweep's jobs.
 
         Drains the queue first, so that a sweep need not be run explicitly.
+
+        Only the jobs enqueued here are read, in that order. A store
+        accumulates a folder per version of an experiment, so reading all of
+        them would mix code versions, two of which can carry the same label
+        and be drawn over each other. Pass
+        :func:`krum.orchestration.metrics.collect` the store directly to read
+        everything it holds.
 
         Args:
             metric: The metric name.
@@ -644,11 +661,11 @@ class Orchestrator:
             A tidy frame of `[step, value, *params, job_key]`.
 
         Raises:
-            KeyError: If no completed job recorded that metric.
+            KeyError: If none of this sweep's jobs recorded that metric.
             RunFailed: If draining the queue hit a failing run.
         """
         self.drain()
-        return collect(self._store, metric)
+        return collect(self._store, metric, self._enqueued or None)
 
     def metrics(self) -> list[str]:
         """Every metric name recorded by a completed job, sorted."""

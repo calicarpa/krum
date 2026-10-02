@@ -198,22 +198,32 @@ def read_metric(folder: JobFolder, name: str) -> pandas.DataFrame | None:
     return frame
 
 
-def collect(store: JobStore, name: str) -> pandas.DataFrame:
-    """Gather one metric across every completed job in a store.
+def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> pandas.DataFrame:
+    """Gather one metric across completed jobs in a store.
 
     Args:
         store: The job store to scan.
         name: The metric name.
+        keys: The jobs to read, in the order they should appear. Every
+            completed job in the store is read when this is None, which mixes
+            code versions: a store accumulates one folder per version of an
+            experiment, so two of them can carry the same label and be drawn
+            over each other. Passing the keys of one sweep keeps a reading to
+            that sweep.
 
     Returns:
         One tidy frame of `[step, value, *params, job_key]`, the parameters
         being the sweep dimensions, ready for `groupby` or boolean filtering.
 
     Raises:
-        KeyError: If no completed job recorded that metric.
+        KeyError: If none of the jobs read recorded that metric.
     """
+    if keys is None:
+        folders: Iterable[JobFolder] = store.done()
+    else:
+        folders = (folder for folder in map(store.folder_for, keys) if folder.done)
     frames: list[pandas.DataFrame] = [
-        frame for frame in (read_metric(folder, name) for folder in store.done()) if frame is not None
+        frame for frame in (read_metric(folder, name) for folder in folders) if frame is not None
     ]
     if not frames:
         available = store.metric_names()

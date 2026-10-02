@@ -7,6 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from krum.orchestration import Metric, Modules, NoActiveJob, Orchestrator, RunFailed
+from krum.orchestration.metrics import collect
 
 ROUNDS = 3
 # Set by a test to make the same experiment fail on demand. This lives in the
@@ -238,6 +239,64 @@ class ReadBackTest(OrchestratorTestCase):
         orch = self.orchestrator()
         orch.run(recording_experiment, recorded=3.7)
         self.assertEqual(orch.get("value")["value"].tolist(), [3])
+
+
+class SweepScopeTest(OrchestratorTestCase):
+    """A reading covers the sweep that asked for it, not the whole store."""
+
+    def test_only_this_sweep_is_read(self) -> None:
+        """A job recorded by an earlier sweep is not read by a later one.
+
+        A store accumulates a folder per version of an experiment, so reading
+        everything in it mixes code versions. Two of them can carry the same
+        label and be drawn over each other, which is silent and wrong.
+        """
+        first = self.orchestrator()
+        first.run(recording_experiment, recorded=1)
+        first.drain()
+        second = self.orchestrator()
+        second.run(recording_experiment, recorded=2)
+        self.assertEqual(second.get("value")["value"].tolist(), [2])
+        self.assertEqual(len(list(second.store)), 2)
+
+    def test_the_whole_store_is_still_readable(self) -> None:
+        """Reading everything a store holds stays available, explicitly."""
+        orch = self.orchestrator()
+        for recorded in (1, 2):
+            orch.run(recording_experiment, recorded=recorded)
+        orch.drain()
+        later = self.orchestrator()
+        later.run(recording_experiment, recorded=3)
+        later.drain()
+        self.assertEqual(later.get("value")["value"].tolist(), [3])
+        self.assertEqual(sorted(collect(later.store, "value")["value"].tolist()), [1, 2, 3])
+
+    def test_reading_follows_the_enqueued_order(self) -> None:
+        """Rows come back in the order the sweep was defined.
+
+        Plots group with `sort=False` and assign colours in order, so the
+        order a sweep was written in is the order it should read back in.
+        """
+        orch = self.orchestrator()
+        for recorded in (30, 10, 20):
+            orch.run(recording_experiment, recorded=recorded)
+        self.assertEqual(orch.get("value")["value"].tolist(), [30, 10, 20])
+
+    def test_enqueued_keys_are_reported_without_repeats(self) -> None:
+        """The same run enqueued twice is one job of the sweep."""
+        orch = self.orchestrator()
+        first = orch.run(recording_experiment, recorded=1)
+        second = orch.run(recording_experiment, recorded=1)
+        self.assertEqual(first, second)
+        self.assertEqual(orch.enqueued, (orch.store.name_for(first),))
+
+    def test_an_empty_sweep_reads_the_store(self) -> None:
+        """With nothing enqueued, a reading falls back on the whole store."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        inspector = self.orchestrator()
+        self.assertEqual(inspector.get("value")["value"].tolist(), [1])
 
 
 class MetricTest(OrchestratorTestCase):
