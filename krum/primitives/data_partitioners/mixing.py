@@ -71,7 +71,7 @@ class MixingPartitioner(DataPartitioner):
 
         Raises:
             ValueError: If ``n < 1`` or ``gamma`` is not in ``[0, 1]``.
-            TypeError: If ``p1`` or ``p2`` is not a :class:`DataPartitioner` subclass.
+            TypeError: If ``p1`` or ``p2`` is not a :class:`~krum.primitives.data_partitioners.DataPartitioner` subclass.
         """
         if n < 1:
             raise ValueError(f"Invalid number of workers, got {n=!r}, expected n >= 1")

@@ -365,7 +365,7 @@ class Orchestrator:
     Args:
         root: The directory holding one folder per job.
         owned: What a job's identity is computed over, as module prefixes or
-            as a :class:`Modules` carrying its own exclusions; guessed per run
+            as a :class:`~krum.orchestration.hashing.Modules` carrying its own exclusions; guessed per run
             from the callable's own package by default.
         lock: The lock file fingerprinting the environment; discovered from the
             current directory by default.

@@ -14,7 +14,7 @@ Full Gradient Negation
 .. note::
 
    The full-dataset gradient is passed as a keyword argument to
-   :meth:`~attacks.full_gradient_negation.FullGradientNegationAttack.generate`:
+   :meth:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack.generate`:
 
    .. code-block:: python
 

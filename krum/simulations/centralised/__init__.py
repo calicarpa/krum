@@ -9,7 +9,7 @@ Each synchronous round follows the same pattern:
 
 The :class:`CentralisedSimulation` implements the full lifecycle (model
 initialisation, per-worker data loading, training loop). Evaluation is
-defined by subclasses overriding :meth:`evaluate` — each protocol reports
+defined by subclasses overriding ``evaluate`` — each protocol reports
 its own set of metrics.
 """
 
@@ -34,11 +34,11 @@ class CentralisedSimulation:
     which :math:`f` are Byzantine (up to the tolerance of the chosen
     aggregator) — brings its own training dataset, IID or not.
 
-    Evaluation is defined by subclasses overriding :meth:`evaluate`. Each
+    Evaluation is defined by subclasses overriding ``evaluate``. Each
     protocol reports its own set of metrics — e.g.
-    :class:`~krum.simulations.centralised.KrumSimulation` returns
+    :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation` returns
     ``(test_loss, test_error)`` and
-    :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`
+    :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation`
     returns ``(test_loss, test_error, test_accuracy)``.
 
     Args:
@@ -214,7 +214,7 @@ class CentralisedSimulation:
 
     @property
     def model(self) -> Model:
-        """The encapsulated :class:`~krum.primitives.models.Model`, available after :meth:`setup` or :meth:`run`.
+        """The encapsulated :class:`~krum.primitives.models.Model`, available after :meth:`setup` or ``run``.
 
         Returns:
             The wrapped ``nn.Module`` with zero-copy flat parameter/gradient views.
@@ -283,7 +283,7 @@ class CentralisedSimulation:
            (only for the Robbins-Monro schedule; the exponential schedule
            updates the rate after the optimizer step instead).
         #. Each of the :math:`n - f` honest workers computes a gradient on its
-           local data shard via :meth:`_train_one_worker`.
+           local data shard via ``_train_one_worker``.
         #. If :math:`f > 0` and the attack has not been stopped, Byzantine
            workers generate attack gradients. For
            :class:`~krum.primitives.attacks.full_gradient_negation.FullGradientNegationAttack`,
