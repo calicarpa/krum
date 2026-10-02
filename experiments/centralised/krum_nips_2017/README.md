@@ -21,6 +21,14 @@ Runs in ~60 seconds on CPU.
 uv run python -m experiments.centralised.krum_nips_2017.experiment
 ```
 
+Each run is recorded under `results/krum_2017_nips_spambase/`.
+The folder is named by a key derived from the configuration *and* from the
+code the run executes. Running the command again replays nothing: a run
+already recorded there is skipped, so only the runs whose parameters or code
+have changed are executed. Editing an aggregator therefore re-runs the
+configurations that use it and leaves the others alone. Pass `force=True` to
+the `Orchestrator` to re-run regardless.
+
 ## Code Structure
 
 ```
