@@ -117,8 +117,25 @@ def find_lock(start: PathLike | None = None) -> Path | None:
     return None
 
 
-def hash_file(path: Path) -> str:
-    """Hash a file's contents, as a hex digest."""
+_HASHES: dict[tuple[str, int, int], str] = {}
+
+
+def hash_file(path: Path, cache: bool = True) -> str:
+    """Hash a file's contents, as a hex digest.
+
+    Args:
+        path: The file to hash.
+        cache: Reuse a digest computed earlier for the same path, size and
+            modification time. A sweep fingerprints the same lock file once per
+            job, which is worth not re-reading every time.
+
+    Returns:
+        The hex digest of the file's contents.
+    """
+    status = path.stat()
+    token = (str(path), status.st_mtime_ns, status.st_size)
+    if cache and token in _HASHES:
+        return _HASHES[token]
     state = Blake2b()
     with path.open("rb") as handle:
         buffer = memoryview(bytearray(65536))
@@ -127,7 +144,10 @@ def hash_file(path: Path) -> str:
             if read == 0:
                 break
             state.update(buffer[:read])
-    return state.hexdigest()
+    digest = state.hexdigest()
+    if cache:
+        _HASHES[token] = digest
+    return digest
 
 
 def environment_fingerprint(lock: PathLike | None = None, start: PathLike | None = None) -> dict[str, Any]:
@@ -157,6 +177,70 @@ def environment_fingerprint(lock: PathLike | None = None, start: PathLike | None
         "platform": platform.platform(),
         "uv_lock": {"path": str(path), "hash": hash_file(path)} if path is not None else None,
     }
+
+
+def witnesses_of(environment: Mapping[str, Any]) -> dict[str, Any]:
+    """Reduce a recorded environment to the facts a stored result depends on.
+
+    These are compared on a later pass to decide whether a completed job is
+    still valid. Deriving them from the recorded environment, rather than
+    computing them separately, is what keeps `deps.json` from disagreeing with
+    the manifest beside it.
+
+    The lock file hash is the one witness that is not already covered by the
+    job key: third-party code is folded into a key as a location only, never by
+    content, so a dependency bump is invisible to the key by design. The
+    interpreter and the optimization flag are recorded too, being cheap and
+    robust should key derivation ever stop depending on bytecode.
+
+    The interpreter is compared on major and minor only. Bytecode is stable
+    across patch releases, so a patch bump is not a reason to discard results.
+
+    Args:
+        environment: An environment as recorded by
+            :func:`environment_fingerprint`.
+
+    Returns:
+        The witnesses, as comparable JSON values.
+    """
+    lock = environment.get("uv_lock")
+    version = str(environment.get("python", ""))
+    return {
+        "python": ".".join(version.split(".")[:2]),
+        "implementation": environment.get("implementation"),
+        "debug": environment.get("debug"),
+        "uv_lock": None if lock is None else lock.get("hash"),
+    }
+
+
+def abbreviate(value: Any, length: int = 12) -> str:
+    """Shorten a value for a human-readable reason, hashes especially."""
+    rendered = "absent" if value is None else str(value)
+    return f"{rendered[:length]}\u2026" if len(rendered) > length else rendered
+
+
+def drift(recorded: Mapping[str, Any], current: Mapping[str, Any]) -> list[str]:
+    """Explain why a stored result no longer matches the current environment.
+
+    Args:
+        recorded: The witnesses stored with a completed job.
+        current: The witnesses of the environment now.
+
+    Returns:
+        One reason per witness that changed, empty when the result still holds.
+        A job with no recorded witnesses cannot be checked, which counts as a
+        reason: an unverifiable result is treated as stale, erring towards a
+        needless re-run rather than a stale answer.
+    """
+    if not recorded:
+        return ["fingerprint missing, cannot verify"]
+    reasons = []
+    for name in sorted({*recorded, *current}):
+        was = recorded.get(name)
+        now = current.get(name)
+        if was != now:
+            reasons.append(f"{name} changed ({abbreviate(was)} -> {abbreviate(now)})")
+    return reasons
 
 
 def git_provenance(start: PathLike | None = None) -> dict[str, Any] | None:
@@ -254,6 +338,13 @@ class JobFolder:
         """Read the job's fingerprint."""
         return json.loads((self._path / DEPS).read_text())
 
+    def witnesses(self) -> dict[str, Any]:
+        """The witnesses recorded with this job, empty if it has none."""
+        path = self._path / DEPS
+        if not path.is_file():
+            return {}
+        return json.loads(path.read_text()).get("witnesses", {})
+
     def traceback(self) -> str | None:
         """The recorded traceback of a failed job, if any."""
         marker = self._path / FAILED
@@ -347,7 +438,9 @@ class JobWriter:
             "seconds": round(perf_counter() - self._started, 6),
         }
         (self._path / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=False) + "\n")
-        (self._path / DEPS).write_text(json.dumps(manifest.get("environment", {}), indent=2) + "\n")
+        environment = manifest.get("environment", {})
+        fingerprint = {"witnesses": witnesses_of(environment), "environment": environment}
+        (self._path / DEPS).write_text(json.dumps(fingerprint, indent=2) + "\n")
         marker = DONE if status == "done" else FAILED
         (self._path / marker).write_text(error or "")
         return self._store.promote(self)

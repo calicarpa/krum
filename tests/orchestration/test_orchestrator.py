@@ -335,6 +335,130 @@ class DependencyTest(OrchestratorTestCase):
         self.assertEqual(again.drain().count("skipped"), 1)
 
 
+class StalenessTest(OrchestratorTestCase):
+    """Test what decides that a recorded result no longer stands."""
+
+    def plan_one(self, orch: Orchestrator):
+        """The single decision a one-run sweep would make."""
+        decisions = orch.plan()
+        self.assertEqual(len(decisions), 1)
+        return decisions[0]
+
+    def test_a_new_job_runs(self) -> None:
+        """With nothing recorded, the job runs."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        decision = self.plan_one(orch)
+        self.assertTrue(decision.runs)
+        self.assertEqual(decision.reasons, ("no recorded result",))
+
+    def test_planning_runs_nothing(self) -> None:
+        """Inspecting a sweep does not execute it."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        orch.plan()
+        self.assertEqual(list(orch.store), [])
+        self.assertEqual(orch.queued, 1)
+
+    def test_a_recorded_job_is_skipped(self) -> None:
+        """An unchanged environment leaves a recorded result standing."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        again = self.orchestrator()
+        again.run(recording_experiment, recorded=1)
+        decision = self.plan_one(again)
+        self.assertFalse(decision.runs)
+        self.assertEqual(decision.reasons, ())
+
+    def test_a_failed_job_runs_again(self) -> None:
+        """A failed attempt is no reason to keep its folder."""
+        os.environ[EXPLODE] = "20"
+        orch = self.orchestrator()
+        orch.run(experiment, n=20, f=2, aggregator=Krum)
+        with self.assertRaises(RunFailed):
+            orch.drain()
+        again = self.orchestrator()
+        again.run(experiment, n=20, f=2, aggregator=Krum)
+        self.assertEqual(self.plan_one(again).reasons, ("previous attempt failed",))
+
+    def test_a_changed_environment_runs_again(self) -> None:
+        """A dependency bump invalidates a recorded result.
+
+        This is the witness the job key cannot cover: third-party code is
+        folded into a key as a location only, so a version change is invisible
+        to it by design.
+        """
+        lock = self.home / "uv.lock"
+        lock.write_text("version = 1\n")
+        orch = Orchestrator(self.root, source=self.home, lock=lock)
+        orch.run(recording_experiment, recorded=1)
+        orch.drain()
+
+        lock.write_text("version = 2\n")
+        again = Orchestrator(self.root, source=self.home, lock=lock)
+        again.run(recording_experiment, recorded=1)
+        decision = self.plan_one(again)
+        self.assertTrue(decision.runs)
+        self.assertIn("uv_lock changed", decision.reasons[0])
+        self.assertEqual(again.drain().count("done"), 1)
+
+    def test_an_unverifiable_job_runs_again(self) -> None:
+        """A recorded result with no fingerprint is treated as stale."""
+        orch = self.orchestrator()
+        key = orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        (orch.store.folder_for(key).path / "deps.json").unlink()
+        again = self.orchestrator()
+        again.run(recording_experiment, recorded=1)
+        self.assertIn("fingerprint missing", self.plan_one(again).reasons[0])
+
+    def test_force_runs_everything(self) -> None:
+        """Forcing overrides a result that would otherwise stand."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        again = Orchestrator(self.root, source=self.home, force=True)
+        again.run(recording_experiment, recorded=1)
+        self.assertEqual(self.plan_one(again).reasons, ("forced",))
+        self.assertEqual(again.drain().count("done"), 1)
+
+    def test_force_can_be_overridden_per_drain(self) -> None:
+        """A drain may force, or decline to, whatever the orchestrator says."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        again = self.orchestrator()
+        again.run(recording_experiment, recorded=1)
+        self.assertTrue(again.plan(force=True)[0].runs)
+        self.assertEqual(again.drain(force=True).count("done"), 1)
+
+    def test_re_running_replaces_the_earlier_output(self) -> None:
+        """A stale job's folder is replaced, not merged into."""
+        orch = self.orchestrator()
+        key = orch.run(recording_experiment, recorded=1)
+        orch.drain()
+        stale = orch.store.folder_for(key)
+        (stale.path / "metrics" / "left-over.csv").write_text("step,value\n0,1\n")
+        self.assertIn("left-over", stale.metric_names())
+
+        again = Orchestrator(self.root, source=self.home, force=True)
+        again.run(recording_experiment, recorded=1)
+        again.drain()
+        self.assertEqual(again.store.folder_for(key).metric_names(), ["value"])
+
+    def test_reasons_reach_the_summary(self) -> None:
+        """A drain says why each job ran, not only that it did."""
+        orch = self.orchestrator()
+        orch.run(recording_experiment, recorded=1)
+        self.assertIn("no recorded result", orch.drain().report())
+
+    def test_witnesses_are_computed_once(self) -> None:
+        """A sweep is one environment, read once rather than per job."""
+        orch = self.orchestrator()
+        self.assertIs(orch.witnesses(), orch.witnesses())
+
+
 class FailureTest(OrchestratorTestCase):
     """Test fail-fast, and what is left on disk afterwards."""
 

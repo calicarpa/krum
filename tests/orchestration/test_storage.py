@@ -11,10 +11,12 @@ from krum.orchestration.storage import (
     STAGING,
     JobFolder,
     JobStore,
+    abbreviate,
     bind_job,
     build_manifest,
     current_job,
     display_value,
+    drift,
     encode_params,
     encode_value,
     environment_fingerprint,
@@ -24,6 +26,7 @@ from krum.orchestration.storage import (
     metric_filename,
     metric_name,
     read_manifest_params,
+    witnesses_of,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -123,6 +126,17 @@ class EnvironmentTest(unittest.TestCase):
             second.write_text("different")
             self.assertNotEqual(hash_file(first), hash_file(second))
 
+    def test_hash_file_cache_follows_the_contents(self) -> None:
+        """A cached digest is not reused once the file has changed."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "lock"
+            path.write_text("one")
+            first = hash_file(path)
+            self.assertEqual(hash_file(path), first)
+            path.write_text("two")
+            self.assertNotEqual(hash_file(path), first)
+            self.assertEqual(hash_file(path, cache=False), hash_file(path))
+
     def test_fingerprint_records_interpreter_and_lock(self) -> None:
         """The fingerprint carries the interpreter and the resolved lock hash."""
         fingerprint = environment_fingerprint(REPO / "uv.lock")
@@ -145,6 +159,79 @@ class EnvironmentTest(unittest.TestCase):
         """Outside a repository, provenance is absent rather than an error."""
         with TemporaryDirectory() as directory:
             self.assertIsNone(git_provenance(directory))
+
+
+class WitnessTest(unittest.TestCase):
+    """Test the facts a stored result's validity is checked against."""
+
+    ENVIRONMENT = {
+        "python": "3.12.4",
+        "implementation": "CPython",
+        "debug": True,
+        "platform": "some-platform",
+        "uv_lock": {"path": "/somewhere/uv.lock", "hash": "abc123"},
+    }
+
+    def test_witnesses_reduce_the_environment(self) -> None:
+        """The witnesses are the comparable facts, not the whole environment."""
+        self.assertEqual(
+            witnesses_of(self.ENVIRONMENT),
+            {"python": "3.12", "implementation": "CPython", "debug": True, "uv_lock": "abc123"},
+        )
+
+    def test_patch_release_is_not_a_difference(self) -> None:
+        """Bytecode is stable across patch releases, so a patch bump is ignored."""
+        patched = {**self.ENVIRONMENT, "python": "3.12.9"}
+        self.assertEqual(drift(witnesses_of(self.ENVIRONMENT), witnesses_of(patched)), [])
+
+    def test_minor_release_is_a_difference(self) -> None:
+        """A minor release changes bytecode, so it is a difference."""
+        upgraded = {**self.ENVIRONMENT, "python": "3.13.0"}
+        reasons = drift(witnesses_of(self.ENVIRONMENT), witnesses_of(upgraded))
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("python changed", reasons[0])
+
+    def test_dependency_bump_is_a_difference(self) -> None:
+        """A changed lock file is the witness the job key cannot cover."""
+        bumped = {**self.ENVIRONMENT, "uv_lock": {"path": "/somewhere/uv.lock", "hash": "def456"}}
+        reasons = drift(witnesses_of(self.ENVIRONMENT), witnesses_of(bumped))
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("uv_lock changed", reasons[0])
+
+    def test_optimization_flag_is_a_difference(self) -> None:
+        """Running under -O strips assertions, so it is a difference."""
+        optimized = {**self.ENVIRONMENT, "debug": False}
+        reasons = drift(witnesses_of(self.ENVIRONMENT), witnesses_of(optimized))
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("debug changed", reasons[0])
+
+    def test_platform_is_recorded_but_not_compared(self) -> None:
+        """A different machine is not a reason to discard a result."""
+        elsewhere = {**self.ENVIRONMENT, "platform": "another-platform"}
+        self.assertEqual(drift(witnesses_of(self.ENVIRONMENT), witnesses_of(elsewhere)), [])
+
+    def test_several_differences_are_all_reported(self) -> None:
+        """Every changed witness is named, so a re-run can be explained."""
+        changed = {**self.ENVIRONMENT, "python": "3.13.0", "debug": False}
+        self.assertEqual(len(drift(witnesses_of(self.ENVIRONMENT), witnesses_of(changed))), 2)
+
+    def test_absent_fingerprint_cannot_be_verified(self) -> None:
+        """A job recorded without witnesses is treated as stale."""
+        reasons = drift({}, witnesses_of(self.ENVIRONMENT))
+        self.assertEqual(reasons, ["fingerprint missing, cannot verify"])
+
+    def test_missing_lock_is_comparable(self) -> None:
+        """An environment with no lock file still compares cleanly."""
+        without = {**self.ENVIRONMENT, "uv_lock": None}
+        self.assertIsNone(witnesses_of(without)["uv_lock"])
+        self.assertIn("uv_lock changed", drift(witnesses_of(without), witnesses_of(self.ENVIRONMENT))[0])
+
+    def test_abbreviate_shortens_hashes_and_names_absence(self) -> None:
+        """Reasons stay readable, with a hash shortened and None spelled out."""
+        self.assertEqual(abbreviate(None), "absent")
+        self.assertEqual(abbreviate("short"), "short")
+        self.assertTrue(abbreviate("a" * 40).startswith("aaaa"))
+        self.assertLess(len(abbreviate("a" * 40)), 20)
 
 
 class JobFolderTest(unittest.TestCase):
@@ -229,10 +316,23 @@ class JobStoreTest(unittest.TestCase):
         self.assertIn("seconds", manifest["timings"])
         self.assertIn("finished", manifest["timings"])
 
-    def test_deps_holds_the_environment_fingerprint(self) -> None:
-        """The fingerprint is written beside the manifest."""
-        deps = self.writer().finish("done").deps()
-        self.assertIn("python", deps)
+    def test_deps_holds_the_fingerprint_and_the_environment(self) -> None:
+        """The fingerprint is written beside the manifest, with its environment."""
+        folder = self.writer().finish("done")
+        deps = folder.deps()
+        self.assertIn("python", deps["environment"])
+        self.assertIn("uv_lock", deps["witnesses"])
+
+    def test_recorded_witnesses_match_the_manifest(self) -> None:
+        """The fingerprint cannot disagree with the environment beside it."""
+        folder = self.writer().finish("done")
+        self.assertEqual(folder.witnesses(), witnesses_of(folder.manifest()["environment"]))
+
+    def test_witnesses_are_empty_without_a_fingerprint(self) -> None:
+        """A job with no fingerprint reports no witnesses, rather than failing."""
+        folder = self.writer().finish("done")
+        (folder.path / "deps.json").unlink()
+        self.assertEqual(folder.witnesses(), {})
 
     def test_failing_promotes_with_the_traceback(self) -> None:
         """A failed job is promoted too, so that it can be inspected."""

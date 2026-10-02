@@ -5,8 +5,11 @@ loops, and reads the results back per metric as a tidy `pandas.DataFrame`.
 
 Each run is a *job*, identified by its parameters and by the code it executes
 (see :mod:`krum.orchestration.hashing`), and owning a folder under the
-orchestrator's root (see :mod:`krum.orchestration.storage`). A job whose folder
-is already marked done is skipped rather than re-executed.
+orchestrator's root (see :mod:`krum.orchestration.storage`). A job is
+re-executed only when it has no recorded result, when its last attempt failed,
+or when the environment it was recorded in no longer matches; otherwise its
+stored output stands. `Orchestrator.plan` reports what a sweep would do, and
+why, without running any of it.
 
 Execution is synchronous and fail-fast: the first failing job stops the sweep,
 and the remaining jobs stay queued. One process per job, and re-running a job
@@ -62,12 +65,23 @@ import pandas
 
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, Metric, NoActiveJob, collect, reserved
-from .storage import JobFolder, JobStore, PathLike, bind_job, build_manifest, current_job
+from .storage import (
+    JobFolder,
+    JobStore,
+    PathLike,
+    bind_job,
+    build_manifest,
+    current_job,
+    drift,
+    environment_fingerprint,
+    witnesses_of,
+)
 
 __all__ = [
     "Hash",
     "HashError",
     "Hasher",
+    "JobDecision",
     "JobFolder",
     "JobOutcome",
     "JobStore",
@@ -337,6 +351,54 @@ class PendingRun:
             self._key = static_key(self._callable, self._params, owned_for(self._callable))
         return self._key
 
+class JobDecision:
+    """Whether one enqueued run needs executing, and why.
+
+    Separating the decision from the execution is what lets a sweep be
+    inspected before it is started, through :meth:`Orchestrator.plan`.
+    """
+
+    _key: str
+    _action: str
+    _reasons: tuple[str, ...]
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, key: str, action: str, reasons: Iterable[str] = ()) -> None:
+        """Record a decision about one run."""
+        self._key = key
+        self._action = action
+        self._reasons = tuple(reasons)
+
+    def __repr__(self) -> str:
+        """Render the decision as a constructor call."""
+        return f"{type(self).__qualname__}({self._key[:12]!r}, {self._action!r}, {self._reasons!r})"
+
+    def __str__(self) -> str:
+        """Render the decision, with its reasons, on one line."""
+        because = f" ({'; '.join(self._reasons)})" if self._reasons else ""
+        return f"{self._action} {self._key[:16]}{because}"
+
+    @property
+    def key(self) -> str:
+        """The job key."""
+        return self._key
+
+    @property
+    def action(self) -> str:
+        """Either `run` or `skip`."""
+        return self._action
+
+    @property
+    def reasons(self) -> tuple[str, ...]:
+        """Why the job has to run; empty when it is skipped."""
+        return self._reasons
+
+    @property
+    def runs(self) -> bool:
+        """Whether this job would be executed."""
+        return self._action == "run"
+
 class JobOutcome:
     """What became of one enqueued run during a drain."""
 
@@ -345,6 +407,7 @@ class JobOutcome:
     _seconds: float | None
     _path: Path | None
     _error: str | None
+    _reasons: tuple[str, ...]
 
     __slots__ = tuple(__annotations__)
 
@@ -355,6 +418,7 @@ class JobOutcome:
         seconds: float | None = None,
         path: Path | None = None,
         error: str | None = None,
+        reasons: Iterable[str] = (),
     ) -> None:
         """Record one run's outcome."""
         self._key = key
@@ -362,6 +426,7 @@ class JobOutcome:
         self._seconds = seconds
         self._path = path
         self._error = error
+        self._reasons = tuple(reasons)
 
     def __repr__(self) -> str:
         """Render the outcome as a constructor call."""
@@ -391,6 +456,11 @@ class JobOutcome:
     def error(self) -> str | None:
         """The traceback of a failed job."""
         return self._error
+
+    @property
+    def reasons(self) -> tuple[str, ...]:
+        """Why this job was executed rather than skipped."""
+        return self._reasons
 
 class RunSummary:
     """A report on one drain of the queue."""
@@ -444,7 +514,8 @@ class RunSummary:
         lines = [str(self)]
         for outcome in self._outcomes:
             timing = "" if outcome.seconds is None else f"  {outcome.seconds:8.3f}s"
-            lines.append(f"  {outcome.status:<8} {outcome.key[:16]}{timing}")
+            because = f"  ({'; '.join(outcome.reasons)})" if outcome.reasons else ""
+            lines.append(f"  {outcome.status:<8} {outcome.key[:16]}{timing}{because}")
         return "\n".join(lines)
 
 class RunFailed(RuntimeError):
@@ -480,6 +551,7 @@ class Orchestrator:
         source: A directory inside the repository holding the code being run,
             whose commit is recorded with every job; the current directory by
             default.
+        force: Re-run every job, whatever is already recorded.
     """
 
     _store: JobStore
@@ -487,6 +559,8 @@ class Orchestrator:
     _owned: Modules | Iterable[str] | None
     _lock: PathLike | None
     _source: PathLike | None
+    _force: bool
+    _witnesses: dict[str, Any] | None
     _warned: bool
 
     __slots__ = tuple(__annotations__)
@@ -498,6 +572,7 @@ class Orchestrator:
         owned: Iterable[str] | None = None,
         lock: PathLike | None = None,
         source: PathLike | None = None,
+        force: bool = False,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
@@ -505,6 +580,8 @@ class Orchestrator:
         self._owned = owned
         self._lock = lock
         self._source = source
+        self._force = force
+        self._witnesses = None
         self._warned = False
 
     def __repr__(self) -> str:
@@ -563,7 +640,54 @@ class Orchestrator:
         self._queue.append(PendingRun(callable, params, key))
         return key
 
-    def drain(self) -> RunSummary:
+    def witnesses(self) -> dict[str, Any]:
+        """The facts the current environment would stamp on a result.
+
+        Computed once per orchestrator: a sweep is one environment, and the
+        lock file should not be re-read for every job.
+        """
+        if self._witnesses is None:
+            self._witnesses = witnesses_of(environment_fingerprint(self._lock, self._source))
+        return self._witnesses
+
+    def decide(self, pending: PendingRun, force: bool | None = None) -> JobDecision:
+        """Decide whether one enqueued run needs executing, and say why.
+
+        A job runs when it has no recorded result, when its last attempt
+        failed, when the environment it was recorded in no longer matches, or
+        when it is forced. Otherwise its stored output stands.
+
+        Args:
+            pending: The enqueued run to decide on.
+            force: Override the orchestrator's own `force` setting.
+
+        Returns:
+            The decision, carrying the reasons a job has to run.
+        """
+        key = self._store.name_for(pending.key)
+        folder = self._store.folder_for(key)
+        status = folder.status
+        if status == "absent":
+            return JobDecision(key, "run", ("no recorded result",))
+        if status == "failed":
+            return JobDecision(key, "run", ("previous attempt failed",))
+        if self._force if force is None else force:
+            return JobDecision(key, "run", ("forced",))
+        reasons = drift(folder.witnesses(), self.witnesses())
+        return JobDecision(key, "run" if reasons else "skip", reasons)
+
+    def plan(self, force: bool | None = None) -> list[JobDecision]:
+        """What a drain would do, without executing anything.
+
+        Args:
+            force: Override the orchestrator's own `force` setting.
+
+        Returns:
+            One decision per enqueued run, in queue order.
+        """
+        return [self.decide(pending, force) for pending in self._queue]
+
+    def drain(self, force: bool | None = None) -> RunSummary:
         """Execute every enqueued run that is not already done.
 
         A run whose folder is marked done is skipped. A run that fails stops
@@ -571,6 +695,9 @@ class Orchestrator:
         stay readable, which they would not be if a later `get` re-ran the
         failing job. Re-enqueueing retries it, its folder being marked failed
         rather than done.
+
+        Args:
+            force: Override the orchestrator's own `force` setting.
 
         Returns:
             The summary of this drain.
@@ -581,11 +708,11 @@ class Orchestrator:
         outcomes: list[JobOutcome] = []
         while self._queue:
             pending = self._queue[0]
-            key = self._store.name_for(pending.key)
-            folder = self._store.folder_for(key)
-            if folder.done:
+            decision = self.decide(pending, force)
+            key = decision.key
+            if not decision.runs:
                 self._queue.popleft()
-                outcomes.append(JobOutcome(key, "skipped", path=folder.path))
+                outcomes.append(JobOutcome(key, "skipped", path=self._store.folder_for(key).path))
                 continue
             manifest = build_manifest(
                 key,
@@ -605,7 +732,7 @@ class Orchestrator:
                 report = format_exc()
                 failed = writer.finish("failed", report)
                 outcomes.append(
-                    JobOutcome(key, "failed", perf_counter() - started, failed.path, report)
+                    JobOutcome(key, "failed", perf_counter() - started, failed.path, report, decision.reasons)
                 )
                 summary = RunSummary(outcomes, pending=len(self._queue) - 1)
                 self._queue.clear()
@@ -617,7 +744,7 @@ class Orchestrator:
                 raise
             done = writer.finish("done")
             self._queue.popleft()
-            outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path))
+            outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path, reasons=decision.reasons))
         return RunSummary(outcomes)
 
     def _warn_if_dirty(self, manifest: Mapping[str, Any]) -> None:
