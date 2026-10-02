@@ -42,6 +42,7 @@ experiments = [
     "seaborn>=0.13.0",
 ]
 dev = [
+    "pandas-stubs~=3.0.2",  # type stubs for `ty`; not needed at runtime
     "pre-commit>=4.0.0",
     "ruff>=0.15.22",
     "ty>=0.0.61",
