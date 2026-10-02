@@ -259,9 +259,7 @@ def git_provenance(start: PathLike | None = None) -> dict[str, Any] | None:
 
     def git(*arguments: str) -> str | None:
         try:
-            done = subprocess.run(
-                ("git", *arguments), cwd=cwd, capture_output=True, text=True, timeout=10, check=False
-            )
+            done = subprocess.run(("git", *arguments), cwd=cwd, capture_output=True, text=True, timeout=10, check=False)
         except (OSError, subprocess.SubprocessError):
             return None
         return done.stdout if done.returncode == 0 else None

@@ -140,8 +140,7 @@ class Metric:
         job = current_job()
         if job is None:
             raise NoActiveJob(
-                f"metric {name!r} was created outside a job; "
-                "create it inside the function passed to Orchestrator.run"
+                f"metric {name!r} was created outside a job; create it inside the function passed to Orchestrator.run"
             )
         sink = job.sinks.get(name)
         if sink is None:

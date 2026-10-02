@@ -342,6 +342,7 @@ class ReservedNameTest(OrchestratorTestCase):
         Regression guard: such a parameter used to be written over the metric's
         own column on the way out, silently replacing every recorded value.
         """
+
         def takes_step(step) -> None:
             """A fixture whose parameter shadows the step column."""
 

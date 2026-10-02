@@ -102,6 +102,7 @@ __all__ = [
 
 type RunCallable = Callable[..., None]
 
+
 def owned_for(callable: Any) -> set[str]:
     """Guess the module prefixes a run's identity should be computed over.
 
@@ -117,6 +118,7 @@ def owned_for(callable: Any) -> set[str]:
     """
     module = getattr(callable, "__module__", None) or "__main__"
     return {"__main__", "krum", module.partition(".")[0]}
+
 
 class PendingRun:
     """Information about an enqueued run."""
@@ -163,6 +165,7 @@ class PendingRun:
         if self._key is None:
             self._key = static_key(self._callable, self._params, owned_for(self._callable))
         return self._key
+
 
 class JobDecision:
     """Whether one enqueued run needs executing, and why.
@@ -211,6 +214,7 @@ class JobDecision:
     def runs(self) -> bool:
         """Whether this job would be executed."""
         return self._action == "run"
+
 
 class JobOutcome:
     """What became of one enqueued run during a drain."""
@@ -275,6 +279,7 @@ class JobOutcome:
         """Why this job was executed rather than skipped."""
         return self._reasons
 
+
 class RunSummary:
     """A report on one drain of the queue."""
 
@@ -331,6 +336,7 @@ class RunSummary:
             lines.append(f"  {outcome.status:<8} {outcome.key[:16]}{timing}{because}")
         return "\n".join(lines)
 
+
 class RunFailed(RuntimeError):
     """Raised when a run fails, stopping the sweep.
 
@@ -351,6 +357,7 @@ class RunFailed(RuntimeError):
     def summary(self) -> RunSummary:
         """The summary of the drain this failure stopped."""
         return self._summary
+
 
 class Orchestrator:
     """Top-most orchestrator instance managing runs and persisting metrics.
@@ -616,9 +623,7 @@ class Orchestrator:
                 )
                 summary = RunSummary(outcomes, pending=len(self._queue) - 1)
                 self._queue.clear()
-                raise RunFailed(
-                    summary, f"job {key[:16]} failed\n{report}\n{summary.report()}"
-                ) from executed.exception
+                raise RunFailed(summary, f"job {key[:16]} failed\n{report}\n{summary.report()}") from executed.exception
             done = writer.finish("done")
             self._queue.popleft()
             outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path, reasons=decision.reasons))

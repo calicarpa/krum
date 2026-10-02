@@ -370,12 +370,15 @@ class CodeChangeTest(unittest.TestCase):
 
     def test_closure_value_change_changes_key(self) -> None:
         """Changing a captured value changes the key."""
-        make = build("""
+        make = build(
+            """
             def make(scale):
                 def target(n):
                     return n * scale
                 return target
-            """, name="make")
+            """,
+            name="make",
+        )
         self.assertNotEqual(key(make(2)), key(make(3)))
 
 

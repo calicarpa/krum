@@ -66,7 +66,7 @@ class Location:
             if pos < 0:
                 pos = len(qualname)
             yield qualname[:pos]
-            qualname = qualname[pos + len(MARK):]
+            qualname = qualname[pos + len(MARK) :]
 
     @classmethod
     def of_type(cls, obj: type) -> Self:
@@ -207,7 +207,8 @@ class Hasher:
         list: (None, False, False),
         dict: (dict.items, True, True),
         set: (None, True, False),
-        frozenset: (None, True, False) }
+        frozenset: (None, True, False),
+    }
     # Members that carry no behaviour of their own; see `_push_class`. The slot
     # and weakref descriptors are machinery, `_abc_impl` is an identity-based
     # ABCMeta cache already covered by the method bodies, and `__firstlineno__`
