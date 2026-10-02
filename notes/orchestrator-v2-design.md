@@ -119,11 +119,12 @@ Two hooks feed the content side of the fingerprint:
 
 - `InterceptFinder` on `sys.meta_path`, for just-in-time imports that the
   static pass cannot see (an `import` inside a function body).
-- `sys.settrace` with the local trace function returning `None`, i.e. **call
-  events only**. Line tracing a 100-round simulation would be punishing;
-  call-only is tolerable. `sys.monitoring` is cheaper but is 3.12+, and
-  `requires-python` is `>=3.10`, so `settrace` is the portable path. Tracing
-  stays behind a flag; the static pass carries most of the weight.
+- `sys.monitoring` (PEP 669) subscribed to call events only. Line tracing a
+  100-round simulation would be punishing; call-only is tolerable, and
+  monitoring is markedly cheaper than `sys.settrace`. It needs Python 3.12,
+  which is the project minimum, so there is no need to fall back on
+  `settrace`. Tracing stays behind a flag; the static pass carries most of the
+  weight.
 
 Residual false negative: a dependency reached only through a branch not taken,
 changed, while the function body is unchanged. Accepted, per the
