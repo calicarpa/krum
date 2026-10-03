@@ -1,9 +1,11 @@
 """Tests for the on-disk job folder protocol."""
 
 import json
+import os
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from krum.orchestration.storage import (
     DONE,
@@ -159,6 +161,16 @@ class EnvironmentTest(unittest.TestCase):
         """Outside a repository, provenance is absent rather than an error."""
         with TemporaryDirectory() as directory:
             self.assertIsNone(git_provenance(directory))
+
+    def test_provenance_is_none_without_git_installed(self) -> None:
+        """With no git to run, provenance is absent rather than an error.
+
+        Not having git is a different branch from not being in a repository:
+        the subprocess cannot be started at all. Using the orchestrator does
+        not require git, only loses the commit it would otherwise record.
+        """
+        with patch.dict(os.environ, {"PATH": ""}):
+            self.assertIsNone(git_provenance(REPO))
 
 
 class WitnessTest(unittest.TestCase):
