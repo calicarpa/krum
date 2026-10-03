@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # ── Package metadata
 [project]
 name = "krum"
-version = "0.1.0"
+version = "0.0.0.dev1"
 description = "Byzantine-resilient aggregation rules for distributed machine learning."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
@@ -71,10 +71,6 @@ include = ["krum", "tests"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["krum*"]
-
-# Include C++ / CUDA headers and build artefacts in the native extension
-[tool.setuptools.package-data]
-"krum.native" = ["**/*.hpp", "**/*.cpp", "**/*.cu", "**/*.h", "**/*.deps", "**/.placeholder"]
 
 # ── Linter & formatter (ruff)
 [tool.ruff]
