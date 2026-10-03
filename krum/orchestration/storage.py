@@ -14,7 +14,7 @@ marker is written. A job killed mid-flight therefore leaves no marker at the
 final path and is simply "not done" on the next pass: there is no folder that
 is incomplete yet marked complete, and no lock to reason about.
 
-See `notes/2026-10-02-orchestrator-v2-a-design.md`.
+See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 """
 
 from __future__ import annotations

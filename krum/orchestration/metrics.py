@@ -11,7 +11,7 @@ handle through its own call stack::
 
 Rows are flushed as they are pushed, so a crashed job's partial output stays
 readable in its staging directory.
-See `notes/2026-10-02-orchestrator-v2-a-design.md`.
+See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 """
 
 from __future__ import annotations

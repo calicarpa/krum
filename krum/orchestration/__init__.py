@@ -15,7 +15,7 @@ any of it.
 Execution is synchronous and fail-fast: the first failing job stops the sweep,
 and the remaining jobs stay queued. One process per job, and re-running a job
 whose dependencies changed, are the next two steps in
-`notes/2026-10-02-orchestrator-v2-a-design.md`.
+`notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 
 Example::
 

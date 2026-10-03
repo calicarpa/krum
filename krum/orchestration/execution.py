@@ -15,7 +15,7 @@ It costs two requirements, which is why it is opted into rather than assumed:
   A spawned child re-imports the module it came from, and an unguarded sweep
   would start itself again there.
 
-See `notes/2026-10-02-orchestrator-v2-a-design.md`.
+See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 """
 
 from __future__ import annotations

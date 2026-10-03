@@ -3,8 +3,8 @@
 What the objects in `krum.orchestration` call, in the order they call it, from
 constructing an `Orchestrator` to reading a metric back. This is the
 maintainer's view: for the mental model see
-[2026-10-02-orchestrator-v2-b-overview.md], and for why it is shaped this way
-see [2026-10-02-orchestrator-v2-a-design.md].
+[adr-2026-10-02-orchestrator-v2-b-overview.md], and for why it is shaped this
+way see [adr-2026-10-02-orchestrator-v2-a-design.md].
 
 ## The cast
 
@@ -60,7 +60,7 @@ orch.run(my_experiment, n=10, f=2, aggregator=Krum)
 4. `hashing.static_key(callable, params, owned)` builds a `Hasher`, pushes the
    callable, then pushes `bind_params(...)` again, and digests. This is where
    the key's whole dependency walk happens — see
-   [2026-10-02-orchestrator-v2-a-design.md]. `HashError` surfaces here.
+   [adr-2026-10-02-orchestrator-v2-a-design.md]. `HashError` surfaces here.
 5. A `PendingRun(callable, params, key)` goes on `_queue`, and the key's hex
    name is appended to `_enqueued` if not already there.
 
