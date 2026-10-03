@@ -9,7 +9,7 @@ name = "krum"
 version = "0.1.0"
 description = "Byzantine-resilient aggregation rules for distributed machine learning."
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.12,<3.15"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -22,8 +22,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -44,6 +42,7 @@ experiments = [
     "seaborn>=0.13.0",
 ]
 dev = [
+    "pandas-stubs~=3.0.2",  # type stubs for `ty`; not needed at runtime
     "pre-commit>=4.0.0",
     "ruff>=0.15.22",
     "ty>=0.0.61",
@@ -78,7 +77,7 @@ include = ["krum*"]
 
 # ── Linter & formatter (ruff)
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 120
 include = ["krum/**", "tests/**"]
 exclude = [

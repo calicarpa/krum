@@ -113,7 +113,7 @@ class SmallPerturbationAttack(Attack):
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
             threshold: Relative difference threshold for the aggregator selection
-                test (default 0.5 = 50%). See :meth:`_is_selected`.
+                test (default 0.5 = 50%). See ``_is_selected``.
             **specialized: Additional keyword arguments.
 
         Returns:
@@ -343,7 +343,7 @@ class SmallPerturbationAttack(Attack):
             gamma_init: Initial step used during the exponential search.
             tol: Tolerance of the binary refinement.
             threshold: Relative difference threshold for the aggregator selection
-                test (default 0.5 = 50%). See :meth:`_is_selected`.
+                test (default 0.5 = 50%). See ``_is_selected``.
 
         Returns:
             The largest ``\gamma`` for which the aggregator selects

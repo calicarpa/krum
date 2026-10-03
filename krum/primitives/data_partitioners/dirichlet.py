@@ -111,7 +111,7 @@ class DirichletPartitioner(DataPartitioner):
         sampled from, then restored, leaving it untouched on return. This keeps the
         draw reproducible without perturbing global RNG state, matching the local
         :class:`torch.Generator` convention used for the within-class shuffle below and
-        throughout :mod:`~krum.primitives.data_partitioners`.
+        throughout ``krum.primitives.data_partitioners``.
 
         Args:
             alpha: Concentration parameter of the symmetric Dirichlet distribution.

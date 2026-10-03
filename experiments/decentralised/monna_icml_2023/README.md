@@ -14,6 +14,14 @@ keeps training under attack, while Mean collapses to chance-level accuracy.
 uv run python -m experiments.decentralised.monna_icml_2023.experiment
 ```
 
+Each run is recorded under `results/monna_icml_2023_experiment/`.
+The folder is named by a key derived from the configuration *and* from the
+code the run executes. Running the command again replays nothing: a run
+already recorded there is skipped, so only the runs whose parameters or code
+have changed are executed. Editing an aggregator therefore re-runs the
+configurations that use it and leaves the others alone. Pass `force=True` to
+the `Orchestrator` to re-run regardless.
+
 Configuration lives as constants at the top of the experiment file — edit
 them in place (dataset, worker/Byzantine counts, rounds, learning rate,
 aggregators, partitioning).

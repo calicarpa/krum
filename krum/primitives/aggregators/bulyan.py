@@ -27,7 +27,7 @@ class Bulyan(Aggregator):
     gradients with smallest Krum scores) is added to :math:`S`, and
     the gradient closest to that output is removed from the candidate
     pool. It then aggregates :math:`S` coordinate-wise via
-    :class:`TrimmedMean` with the same :math:`f`, keeping
+    :class:`~krum.primitives.aggregators.trimmed_mean.TrimmedMean` with the same :math:`f`, keeping
     :math:`\beta = \theta - 2f = n - 4f - 2` values per coordinate.
 
     This implementation uses ``Bulyan(MultiKrum)`` — i.e. the base

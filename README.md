@@ -37,7 +37,7 @@ print(f"Average result norm: {naive.norm().item():.4f}")
 
 ### Supported Python versions
 
-This project supports Python **3.10 through 3.14**.
+This project supports Python **3.12 through 3.14**.
 
 ### From PyPI
 
@@ -127,7 +127,7 @@ uv run pytest tests/primitives/aggregators/ -v
 ```
 
 Tests run automatically on every push and pull request via GitHub Actions
-(Python 3.10–3.14).
+(Python 3.12–3.14).
 
 ### Documentation
 

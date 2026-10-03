@@ -46,7 +46,7 @@ class MultiKrum(Aggregator):
                 ``0 <= f <= (n - 3) // 2``.
             m: Number of selected gradients to average, with :math:`1 \le m \le n`.
                 Values above :math:`n - 2f - 3` leave the Multi-Krum resilience
-                bound; :math:`m = n` recovers :class:`Average`. If ``None``,
+                bound; :math:`m = n` recovers :class:`~krum.primitives.aggregators.average.Average`. If ``None``,
                 defaults to :math:`n - 2f - 3`.
             **specialized: Additional keyword arguments.
 
