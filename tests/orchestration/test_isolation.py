@@ -67,7 +67,7 @@ class SubprocessExecutionTest(IsolationTestCase):
         orch = self.orchestrator()
         orch.run(record_pid, n=1)
         orch.drain()
-        self.assertNotEqual(orch.get("pid")["value"].tolist(), [os.getpid()])
+        self.assertNotEqual(orch.get("pid")["value"], [os.getpid()])
 
     def test_metrics_recorded_in_the_child_are_promoted(self) -> None:
         """What a child writes ends up in the job's folder and its manifest."""
@@ -89,7 +89,7 @@ class SubprocessExecutionTest(IsolationTestCase):
         for n in (10, 20, 30):
             orch.run(leak, n=n)
         orch.drain()
-        self.assertEqual(sorted(orch.get("seen")["value"].tolist()), [1, 1, 1])
+        self.assertEqual(sorted(orch.get("seen")["value"]), [1, 1, 1])
 
     def test_inline_shares_one_interpreter(self) -> None:
         """The contrast: run in process, the same jobs do see each other."""
@@ -97,7 +97,7 @@ class SubprocessExecutionTest(IsolationTestCase):
         for n in (10, 20, 30):
             orch.run(leak, n=n)
         orch.drain()
-        self.assertEqual(sorted(orch.get("seen")["value"].tolist()), [1, 2, 3])
+        self.assertEqual(sorted(orch.get("seen")["value"]), [1, 2, 3])
 
     def test_recorded_result_is_still_skipped(self) -> None:
         """Isolation does not change what counts as already done."""

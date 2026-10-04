@@ -17,13 +17,14 @@ See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 from __future__ import annotations
 
 import csv
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import pandas
+from .storage import JobFolder, JobStore, PathLike, current_job, read_manifest_params
 
-from .storage import JobFolder, JobStore, current_job, read_manifest_params
+if TYPE_CHECKING:  # read by type checkers; never imported at runtime
+    import pandas
 
 # The columns a metric frame owns. A parameter sharing one of these names
 # would be ambiguous in the frame read back, so it is rejected when enqueued.
@@ -173,7 +174,165 @@ class Metric:
         return self._sink.push(step, value, skip_if_exists=skip_if_exists)
 
 
-def read_metric(folder: JobFolder, name: str) -> pandas.DataFrame | None:
+class MetricTable:
+    """One metric's rows, column by column.
+
+    Deliberately not a dataframe. It holds plain Python lists and leaves the
+    analysis to whichever library the reader prefers, so that recording a
+    metric costs no dependency at all::
+
+        table = orchestrator.get("loss")
+        table.columns          # ('step', 'value', 'n', 'f', 'job_key')
+        table["value"]         # [1.2, 0.7, ...]
+        len(table)             # the number of rows
+        for row in table:      # one dict per row
+            ...
+
+    :meth:`to_pandas` and :meth:`to_csv` are provided, and are written against
+    :meth:`to_dict` alone, so a converter you write yourself has exactly the
+    access the built-in ones do::
+
+        import polars
+        polars.DataFrame(table.to_dict())
+
+        import pyarrow
+        pyarrow.table(table.to_dict())
+
+        import numpy
+        {name: numpy.asarray(values) for name, values in table.to_dict().items()}
+
+    Args:
+        columns: One list of values per column, all of the same length.
+
+    Raises:
+        ValueError: If the columns are not all the same length.
+    """
+
+    _columns: dict[str, list[Any]]
+
+    __slots__ = tuple(__annotations__)
+
+    def __init__(self, columns: Mapping[str, list[Any]]) -> None:
+        """Hold one list per column, checking that they line up."""
+        lengths = {name: len(values) for name, values in columns.items()}
+        if len(set(lengths.values())) > 1:
+            raise ValueError(f"columns have differing lengths: {lengths}")
+        self._columns = {name: list(values) for name, values in columns.items()}
+
+    def __repr__(self) -> str:
+        """Render the table's shape."""
+        return f"{type(self).__qualname__}({len(self)} rows, columns={self.columns})"
+
+    def __len__(self) -> int:
+        """The number of rows."""
+        return len(next(iter(self._columns.values()))) if self._columns else 0
+
+    def __getitem__(self, column: str) -> list[Any]:
+        """One column's values."""
+        return list(self._columns[column])
+
+    def __contains__(self, column: str) -> bool:
+        """Whether a column is present."""
+        return column in self._columns
+
+    def __iter__(self) -> Iterator[dict[str, Any]]:
+        """Iterate over the rows, one dict each, as :meth:`rows` does."""
+        return self.rows()
+
+    @property
+    def columns(self) -> tuple[str, ...]:
+        """The column names, in order."""
+        return tuple(self._columns)
+
+    def to_dict(self) -> dict[str, list[Any]]:
+        """The columns as plain lists.
+
+        This is the accessor every converter is built on, the shipped ones
+        included.
+        """
+        return {name: list(values) for name, values in self._columns.items()}
+
+    def rows(self) -> Iterator[dict[str, Any]]:
+        """Iterate over the rows, one dict each."""
+        names = tuple(self._columns)
+        for values in zip(*self._columns.values(), strict=True):
+            yield dict(zip(names, values, strict=True))
+
+    def to_pandas(self) -> pandas.DataFrame:
+        """Convert to a `pandas.DataFrame`.
+
+        Returns:
+            A frame of the same columns, in the same order.
+
+        Raises:
+            ImportError: If pandas is not installed. It is not a requirement of
+                this library; the error says what to do instead.
+        """
+        try:
+            import pandas
+        except ImportError as error:
+            raise ImportError(
+                "to_pandas needs pandas, which krum does not require: install it, "
+                "or hand to_dict() to the dataframe library you prefer"
+            ) from error
+        return pandas.DataFrame(self.to_dict())
+
+    def to_csv(self, path: PathLike) -> Path:
+        """Write the table as one CSV file.
+
+        Args:
+            path: Where to write it.
+
+        Returns:
+            The path written.
+        """
+        destination = Path(path)
+        with destination.open("w", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(self.columns)
+            writer.writerows(tuple(row.values()) for row in self.rows())
+        return destination
+
+
+def parse_value(recorded: str) -> Callable[[str], Any]:
+    """Resolve a recorded dtype name to a function parsing one CSV field.
+
+    The dtype a metric was declared with is kept in the manifest, so a value
+    is parsed back as what it was written as rather than guessed at. A torch
+    dtype is recorded by name, and reads back as the Python type it stands
+    for.
+
+    Args:
+        recorded: The dtype name from the manifest, such as `float` or
+            `torch.float32`.
+
+    Returns:
+        A callable parsing one field.
+    """
+    if recorded in {"float", "float64", "float32", "float16"}:
+        return float
+    if recorded in {"int", "int64", "int32", "int16", "int8"}:
+        return int
+    if recorded == "bool":
+        return lambda field: field == "True"
+    if recorded == "str":
+        return str
+    if recorded.startswith("torch."):
+        return int if "int" in recorded or "bool" in recorded else float
+    return infer_value
+
+
+def infer_value(field: str) -> Any:
+    """Parse one field whose type was not recorded, trying int then float."""
+    for parse in (int, float):
+        try:
+            return parse(field)
+        except ValueError:
+            continue
+    return field
+
+
+def read_metric(folder: JobFolder, name: str) -> MetricTable | None:
     """Read one metric from one completed job, with its parameters attached.
 
     Args:
@@ -181,24 +340,72 @@ def read_metric(folder: JobFolder, name: str) -> pandas.DataFrame | None:
         name: The metric name.
 
     Returns:
-        A frame of `[step, value, *params]`, or None if this job did not record
-        that metric.
+        A table of `[step, value, *params, job_key]`, or None if this job did
+        not record that metric.
+
+    Raises:
+        ValueError: If the job's parameters would shadow the table's own
+            columns.
     """
     path = folder.metric_path(name)
     if not path.is_file():
         return None
-    frame = pandas.read_csv(path)
-    params = read_manifest_params(folder.manifest())
+    manifest = folder.manifest()
+    params = read_manifest_params(manifest)
     clashing = reserved(params)
     if clashing:
         raise ValueError(f"job {folder.key} has parameters shadowing metric columns: {clashing}")
+    parse = parse_value(manifest.get("metrics", {}).get(name, {}).get("dtype", ""))
+    steps: list[Any] = []
+    values: list[Any] = []
+    with path.open(newline="") as handle:
+        reader = csv.reader(handle)
+        next(reader, None)  # the header, written by `Sink`
+        for row in reader:
+            if not row:
+                continue
+            steps.append(infer_value(row[0]))
+            values.append(parse(row[1]))
+    columns: dict[str, list[Any]] = {"step": steps, "value": values}
     for parameter, value in params.items():
-        frame[parameter] = value
-    frame["job_key"] = folder.key
-    return frame
+        columns[parameter] = [value] * len(steps)
+    columns["job_key"] = [folder.key] * len(steps)
+    return MetricTable(columns)
 
 
-def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> pandas.DataFrame:
+def concat(tables: Iterable[MetricTable]) -> MetricTable:
+    """Stack tables, taking the union of their columns.
+
+    Jobs in one sweep need not share a parameter set, so a column absent from
+    a table is filled with None for its rows rather than dropped. Nothing is
+    coerced: an integer parameter stays an integer where it was recorded, which
+    a dataframe would not promise once a column holds a gap.
+
+    Args:
+        tables: The tables to stack, in order.
+
+    Returns:
+        One table holding every row.
+    """
+    collected = list(tables)
+    seen: dict[str, None] = {}
+    for table in collected:
+        seen.update(dict.fromkeys(table.columns))
+    # Keep the documented shape even when the tables disagree on parameters:
+    # the metric's own columns first, then the parameters, then the job key.
+    leading = [name for name in ("step", "value") if name in seen]
+    trailing = [name for name in ("job_key",) if name in seen]
+    middle = [name for name in seen if name not in {*leading, *trailing}]
+    names = [*leading, *middle, *trailing]
+    columns: dict[str, list[Any]] = {name: [] for name in names}
+    for table in collected:
+        height = len(table)
+        for name in names:
+            columns[name].extend(table[name] if name in table else [None] * height)
+    return MetricTable(columns)
+
+
+def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> MetricTable:
     """Gather one metric across completed jobs in a store.
 
     Args:
@@ -212,8 +419,10 @@ def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> pa
             that sweep.
 
     Returns:
-        One tidy frame of `[step, value, *params, job_key]`, the parameters
-        being the sweep dimensions, ready for `groupby` or boolean filtering.
+        One tidy table of `[step, value, *params, job_key]`, the parameters
+        being the sweep dimensions. Hand it to a dataframe library through
+        :meth:`MetricTable.to_pandas` or :meth:`MetricTable.to_dict` to group
+        or filter it.
 
     Raises:
         KeyError: If none of the jobs read recorded that metric.
@@ -222,13 +431,11 @@ def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> pa
         folders: Iterable[JobFolder] = store.done()
     else:
         folders = (folder for folder in map(store.folder_for, keys) if folder.done)
-    frames: list[pandas.DataFrame] = [
-        frame for frame in (read_metric(folder, name) for folder in folders) if frame is not None
-    ]
-    if not frames:
+    tables = [table for table in (read_metric(folder, name) for folder in folders) if table is not None]
+    if not tables:
         available = store.metric_names()
         raise KeyError(f"no completed job recorded metric {name!r}; available: {available}")
-    return pandas.concat(frames, ignore_index=True)
+    return concat(tables)
 
 
 def iter_metrics(store: JobStore) -> Iterator[str]:

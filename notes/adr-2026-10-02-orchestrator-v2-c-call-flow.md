@@ -20,6 +20,7 @@ way see [adr-2026-10-02-orchestrator-v2-a-design.md].
 | `JobWriter` | `storage` | one job under construction, and its manifest |
 | `MetricRecorder` | `storage` | the half of a job a child process can own |
 | `Metric`, `Sink` | `metrics` | one metric's open file |
+| `MetricTable` | `metrics` | the rows read back, column by column |
 | `DependencyTracker` | `tracing` | what the job called |
 | `InlineRunner`, `SubprocessRunner` | `execution` | where the body runs |
 
@@ -204,12 +205,16 @@ frame = orch.get("loss")
 3. `collect` maps the keys through `JobStore.folder_for` and keeps the folders
    where `JobFolder.done`; with no keys it falls back to `JobStore.done()`.
 4. Per folder, `metrics.read_metric`: `JobFolder.metric_path(name)`, and
-   `None` if absent; `pandas.read_csv`; `storage.read_manifest_params`, which
+   `None` if absent; the CSV is parsed with `csv` and `parse_value`, which
+   reads each field back as the dtype the manifest recorded rather than
+   guessing; `storage.read_manifest_params`, which
    renders each encoded parameter through `display_value`; a second `reserved`
    check guards against a folder whose parameters would shadow the frame's own
    columns; then the parameter columns and `job_key` are attached.
-5. `pandas.concat(..., ignore_index=True)`. No frames at all raises `KeyError`
-   listing `JobStore.metric_names()`.
+5. `metrics.concat` stacks the tables, taking the union of their columns so
+   that a parameter only some jobs carry reads as None for the rest, and
+   keeping the `[step, value, *params, job_key]` order. No tables at all
+   raises `KeyError` listing `JobStore.metric_names()`.
 
 ## One job, end to end
 
@@ -244,7 +249,7 @@ Orchestrator.get ──► drain ──► runner(prefixes) ──┐
                                           JobStore.promote ─► os.replace
                                                              │
                         collect ─► read_metric ─► read_csv,
-                                   read_manifest_params ─► pandas.concat
+                                   read_manifest_params ─► concat
 ```
 
 ## The same thing, observed

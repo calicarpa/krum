@@ -254,7 +254,7 @@ declared dtype, which may be a Python type or a torch dtype.
 `Orchestrator.get(name)` reads the jobs enqueued on that orchestrator, in that
 order (falling back on the whole store when nothing was enqueued), joining each
 row with the parameters that job's key was computed from. The result is one
-tidy frame with columns `[step, value, *params, job_key]` — the shape
+tidy `MetricTable` with columns `[step, value, *params, job_key]` — the shape
 [orchestration_example.py] already assumes. Parameters therefore need a stable
 *readable* encoding (a class renders as its short name, its full location kept
 alongside for tracing) next to the hash encoding.

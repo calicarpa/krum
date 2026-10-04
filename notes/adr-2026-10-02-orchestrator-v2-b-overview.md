@@ -70,16 +70,27 @@ Two conventions matter:
 
 ## Reading results back
 
-`get` returns a tidy `pandas.DataFrame`, one row per recorded point, with the
-sweep's parameters alongside:
+`get` returns a tidy `MetricTable`, one row per recorded point, with the
+sweep's parameters alongside. It is deliberately not a dataframe: it holds
+plain Python lists, so recording and reading metrics costs no dataframe
+dependency, and the analysis goes to whichever library you prefer.
 
 ```python
 loss = orch.get("loss")
-# columns: step, value, n, f, aggregator, rounds, seed, job_key
+loss.columns             # ('step', 'value', 'n', 'f', 'aggregator', ...)
+loss["value"]            # one column, as a list
+len(loss)                # rows
+for row in loss: ...     # one dict per row
 
-loss.groupby(["aggregator", "f"])["value"].mean()
-loss[loss["aggregator"] == "Krum"]
+frame = loss.to_pandas()                  # if you have pandas
+frame.groupby(["aggregator", "f"])["value"].mean()
+
+import polars                             # or anything that takes columns
+polars.DataFrame(loss.to_dict())
 ```
+
+`to_pandas` is written against `to_dict` alone, so a converter you write
+yourself has exactly the access the shipped one does.
 
 It reads the jobs enqueued on *that* orchestrator, in that order — not every
 folder in the store. This matters because a store accumulates one folder per

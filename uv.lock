@@ -528,13 +528,13 @@ name = "krum"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "pandas" },
     { name = "torch" },
     { name = "torchvision" },
 ]
 
 [package.optional-dependencies]
 dev = [
+    { name = "pandas" },
     { name = "pandas-stubs" },
     { name = "pre-commit" },
     { name = "ruff" },
@@ -549,6 +549,7 @@ dev = [
 experiments = [
     { name = "matplotlib" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "seaborn" },
 ]
 
@@ -562,7 +563,8 @@ dev = [
 requires-dist = [
     { name = "matplotlib", marker = "extra == 'experiments'", specifier = ">=3.10.0" },
     { name = "numpy", marker = "extra == 'experiments'", specifier = ">=2.0.0" },
-    { name = "pandas", specifier = ">=2.2.0" },
+    { name = "pandas", marker = "extra == 'dev'", specifier = ">=2.2.0" },
+    { name = "pandas", marker = "extra == 'experiments'", specifier = ">=2.2.0" },
     { name = "pandas-stubs", marker = "extra == 'dev'", specifier = "~=3.0.2" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.22" },

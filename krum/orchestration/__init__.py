@@ -1,7 +1,9 @@
 """Run experiments over parameter ranges, persisting their metrics.
 
 The user writes an experiment as a single run, sweeps it with ordinary Python
-loops, and reads the results back per metric as a tidy `pandas.DataFrame`.
+loops, and reads the results back per metric as a tidy
+:class:`~krum.orchestration.metrics.MetricTable`, which holds plain Python
+lists and converts to whichever dataframe library the reader prefers.
 
 Each run is a *job*, identified by its parameters and by the code it executes
 (see :mod:`krum.orchestration.hashing`), and owning a folder under the
@@ -41,8 +43,9 @@ Example::
                     orch.run(my_experiment, n=n, f=f, aggregator=aggregator, attack=attack, seed=42)
 
     loss = orch.get("loss")  # columns: step, value, n, f, aggregator, attack, seed, job_key
-    krum_alie = loss[(loss["aggregator"] == "Krum") & (loss["attack"] == "ALIEAttack")]
-    mean_loss = loss.groupby(["aggregator", "attack", "step"])["value"].mean()
+    loss["value"]            # one column, as a list
+    frame = loss.to_pandas() # or: polars.DataFrame(loss.to_dict())
+    frame.groupby(["aggregator", "attack", "step"])["value"].mean()
 """
 
 from __future__ import annotations
@@ -55,11 +58,9 @@ from types import TracebackType
 from typing import Any, Self
 from warnings import warn
 
-import pandas
-
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
-from .metrics import RESERVED_COLUMNS, Metric, NoActiveJob, collect, reserved
+from .metrics import RESERVED_COLUMNS, Metric, MetricTable, NoActiveJob, collect, reserved
 from .storage import (
     JobFolder,
     JobStore,
@@ -86,6 +87,7 @@ __all__ = [
     "JobStore",
     "Location",
     "Metric",
+    "MetricTable",
     "Modules",
     "NoActiveJob",
     "Orchestrator",
@@ -647,7 +649,7 @@ class Orchestrator:
         """The jobs of this sweep, in the order they were enqueued."""
         return tuple(self._enqueued)
 
-    def get(self, metric: str) -> pandas.DataFrame:
+    def get(self, metric: str) -> MetricTable:
         """Read one metric back across this sweep's jobs.
 
         Drains the queue first, so that a sweep need not be run explicitly.
@@ -663,7 +665,11 @@ class Orchestrator:
             metric: The metric name.
 
         Returns:
-            A tidy frame of `[step, value, *params, job_key]`.
+            A tidy :class:`~krum.orchestration.metrics.MetricTable` of
+            `[step, value, *params, job_key]`. Call
+            :meth:`~krum.orchestration.metrics.MetricTable.to_pandas`, or hand
+            :meth:`~krum.orchestration.metrics.MetricTable.to_dict` to the
+            dataframe library you prefer, to group or filter it.
 
         Raises:
             KeyError: If none of this sweep's jobs recorded that metric.

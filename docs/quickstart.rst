@@ -49,7 +49,10 @@ With ``uv`` (recommended):
 Dependencies
 ~~~~~~~~~~~~
 
-Krum's runtime dependencies are **PyTorch**, **torchvision**, and **pandas**.
+Krum's runtime dependencies are **PyTorch** and **torchvision**. Reading
+metrics back needs no dataframe library; ``MetricTable.to_pandas()`` uses
+pandas if you have it, and ``MetricTable.to_dict()`` hands the columns to
+whichever library you prefer.
 If you plan to use CUDA, ensure your PyTorch build matches your CUDA version.
 For experiments and visualisations, install the optional extras:
 

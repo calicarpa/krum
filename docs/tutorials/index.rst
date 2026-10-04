@@ -74,8 +74,8 @@ Detailed Tutorials
        See :doc:`/reference/simulations/decentralised/index`.
    * - :doc:`structured_experiments`
      - Collect metrics with ``Metric`` and ``Orchestrator``, analyse
-       with pandas and plotting, run N×M benchmarks that skip the runs
-       already recorded.
+       with the dataframe library of your choice, run N×M benchmarks that
+       skip the runs already recorded.
 
        See :doc:`/reference/orchestration/index`.
 

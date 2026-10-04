@@ -29,7 +29,6 @@ classifiers = [
 ]
 # Runtime dependencies (pulled by pip install krum)
 dependencies = [
-    "pandas>=2.2.0",
     "torch>=2.13.0",
     "torchvision>=0.28.0",
 ]
@@ -39,9 +38,13 @@ dependencies = [
 experiments = [
     "matplotlib>=3.10.0",
     "numpy>=2.0.0",
+    # Only `MetricTable.to_pandas` and the experiments' own analysis need it;
+    # recording and reading metrics does not.
+    "pandas>=2.2.0",
     "seaborn>=0.13.0",
 ]
 dev = [
+    "pandas>=2.2.0",  # to exercise `MetricTable.to_pandas` in the tests
     "pandas-stubs~=3.0.2",  # type stubs for `ty`; not needed at runtime
     "pre-commit>=4.0.0",
     "ruff>=0.15.22",

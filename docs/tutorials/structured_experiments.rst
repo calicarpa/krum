@@ -8,13 +8,17 @@ And once a sweep takes an hour, you do not want a one-line change to
 repeat the runs that were already fine. How do you go from a one-off run
 to a reproducible, structured experiment?
 
-Krum provides two tools for this:
+Krum provides three tools for this:
 
 * :class:`~krum.orchestration.metrics.Metric`: a named channel you push
   ``(step, value)`` samples into during a run.
 * :class:`~krum.orchestration.Orchestrator`: drives multiple runs, keeps
-  each one's output in a folder of its own, skips the runs it has already
-  recorded, and reads metrics back as a ``pandas.DataFrame``.
+  each one's output in a folder of its own, and skips the runs it has
+  already recorded.
+* :class:`~krum.orchestration.metrics.MetricTable`: what a metric reads back
+  as. Deliberately not a dataframe — it holds plain Python lists, so krum
+  needs no dataframe library of its own, and hands the analysis to whichever
+  one you prefer.
 
 The Metric object
 -----------------
@@ -79,8 +83,38 @@ Two things differ from a plain loop:
   computes what actually changed.
 
 :meth:`~krum.orchestration.Orchestrator.get` returns a
-``pandas.DataFrame`` with one row per recorded step, columns for every run
-parameter, and the ``step``, ``value`` and ``job_key`` of the sample.
+:class:`~krum.orchestration.metrics.MetricTable` with one row per recorded
+step, columns for every run parameter, and the ``step``, ``value`` and
+``job_key`` of the sample:
+
+.. code-block:: python
+
+   table = orchestrator.get("test_accuracy")
+
+   table.columns            # ('step', 'value', 'label', 'f', 'seed', 'job_key')
+   table["value"]           # one column, as a list
+   len(table)               # the number of rows
+   for row in table:        # one dict per row
+       ...
+
+   frame = table.to_pandas()        # needs pandas installed
+   table.to_csv("accuracy.csv")     # needs nothing
+
+For anything else, hand :meth:`~krum.orchestration.metrics.MetricTable.to_dict`
+to the library you use. The shipped ``to_pandas`` is written against
+``to_dict`` alone, so a converter you write yourself is in no way
+second-class:
+
+.. code-block:: python
+
+   import polars
+   polars.DataFrame(table.to_dict())
+
+   import pyarrow
+   pyarrow.table(table.to_dict())
+
+   import numpy
+   {name: numpy.asarray(values) for name, values in table.to_dict().items()}
 
 How it fits together
 --------------------
@@ -106,7 +140,7 @@ How it fits together
    Orchestrator.get("test_accuracy")    reads this sweep's folders
             │
             ▼
-   pandas.DataFrame
+   MetricTable  ──►  .to_pandas() / .to_dict() / .to_csv()
    ┌──────┬───────┬────────────┬───┬──────┬──────────────┐
    │ step │ value │ aggregator │ f │ seed │ job_key      │
    ├──────┼───────┼────────────┼───┼──────┼──────────────┤
@@ -274,22 +308,24 @@ Inspect the results
    accuracy = orchestrator.get("test_accuracy")
 
    print("\nAll results (last 5 rows):")
-   print(accuracy.tail(5))
+   for row in list(accuracy)[-5:]:
+       print(row)
 
    print("\nMultiKrum only:")
-   print(accuracy[accuracy["label"] == "MultiKrum (robust)"])
+   print([row for row in accuracy if row["label"] == "MultiKrum (robust)"])
 
 Analysing results
 -----------------
 
-The frame is ordinary ``pandas``, so use your usual toolkit:
+Convert once, then use your usual toolkit. The examples below use pandas,
+which the ``experiments`` extra installs:
 
 .. code-block:: python
 
    import matplotlib.pyplot as plt
    import seaborn as sns
 
-   df = orchestrator.get("test_accuracy")
+   df = orchestrator.get("test_accuracy").to_pandas()
 
    # Filter to one configuration, get the final value
    final = df[df["step"] == 49]
@@ -385,7 +421,7 @@ the column directly:
 
 .. code-block:: python
 
-   df = orch.get("test_accuracy")
+   df = orch.get("test_accuracy").to_pandas()
    final = df[df["step"] == ROUNDS - 1]
 
    stats = (

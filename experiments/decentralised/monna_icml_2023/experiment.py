@@ -109,7 +109,7 @@ def main() -> None:
             }
     fig, axes = plt.subplots(1, len(metrics), figsize=(14, 4))
     for ax, (name, pretty) in zip(axes, metrics, strict=True):
-        frame = orchestrator.get(name)
+        frame = orchestrator.get(name).to_pandas()
         for run_label, group in frame.groupby("label", sort=False):
             group = group.sort_values("step")
             ax.plot(group["step"], group["value"], label=run_label, **styles.get(run_label, {}), linewidth=1.5)

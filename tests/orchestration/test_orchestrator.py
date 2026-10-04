@@ -159,12 +159,12 @@ class DrainTest(OrchestratorTestCase):
         orch = self.orchestrator()
         orch.run(recording_experiment, recorded=1)
         orch.drain()
-        self.assertEqual(orch.get("value")["value"].tolist(), [1])
+        self.assertEqual(orch.get("value")["value"], [1])
         # Same parameters, so the same job: the recorded value stands
         again = self.orchestrator()
         again.run(recording_experiment, recorded=1)
         self.assertEqual(again.drain().count("skipped"), 1)
-        self.assertEqual(again.get("value")["value"].tolist(), [1])
+        self.assertEqual(again.get("value")["value"], [1])
 
     def test_queue_is_emptied(self) -> None:
         """Draining consumes the queue."""
@@ -197,11 +197,11 @@ class ReadBackTest(OrchestratorTestCase):
         orch = self.orchestrator()
         for f in (2, 3):
             orch.run(experiment, n=10, f=f, aggregator=Krum)
-        frame = orch.get("loss")
-        self.assertEqual(list(frame.columns), ["step", "value", "n", "f", "aggregator", "seed", "job_key"])
-        self.assertEqual(len(frame), 2 * ROUNDS)
-        self.assertEqual(sorted(frame["f"].unique()), [2, 3])
-        self.assertEqual(frame["aggregator"].unique().tolist(), ["Krum"])
+        table = orch.get("loss")
+        self.assertEqual(table.columns, ("step", "value", "n", "f", "aggregator", "seed", "job_key"))
+        self.assertEqual(len(table), 2 * ROUNDS)
+        self.assertEqual(sorted(set(table["f"])), [2, 3])
+        self.assertEqual(set(table["aggregator"]), {"Krum"})
 
     def test_get_drains_first(self) -> None:
         """Reading a metric runs whatever is still queued."""
@@ -214,7 +214,7 @@ class ReadBackTest(OrchestratorTestCase):
         orch = self.orchestrator()
         for aggregator in (Krum, Average):
             orch.run(experiment, n=10, f=2, aggregator=aggregator)
-        means = orch.get("loss").groupby("aggregator")["value"].mean()
+        means = orch.get("loss").to_pandas().groupby("aggregator")["value"].mean()
         self.assertEqual(sorted(means.index), ["Average", "Krum"])
 
     def test_metric_name_with_a_space_round_trips(self) -> None:
@@ -238,7 +238,7 @@ class ReadBackTest(OrchestratorTestCase):
         """Recorded values are coerced to the declared dtype."""
         orch = self.orchestrator()
         orch.run(recording_experiment, recorded=3.7)
-        self.assertEqual(orch.get("value")["value"].tolist(), [3])
+        self.assertEqual(orch.get("value")["value"], [3])
 
 
 class SweepScopeTest(OrchestratorTestCase):
@@ -256,7 +256,7 @@ class SweepScopeTest(OrchestratorTestCase):
         first.drain()
         second = self.orchestrator()
         second.run(recording_experiment, recorded=2)
-        self.assertEqual(second.get("value")["value"].tolist(), [2])
+        self.assertEqual(second.get("value")["value"], [2])
         self.assertEqual(len(list(second.store)), 2)
 
     def test_the_whole_store_is_still_readable(self) -> None:
@@ -268,8 +268,8 @@ class SweepScopeTest(OrchestratorTestCase):
         later = self.orchestrator()
         later.run(recording_experiment, recorded=3)
         later.drain()
-        self.assertEqual(later.get("value")["value"].tolist(), [3])
-        self.assertEqual(sorted(collect(later.store, "value")["value"].tolist()), [1, 2, 3])
+        self.assertEqual(later.get("value")["value"], [3])
+        self.assertEqual(sorted(collect(later.store, "value")["value"]), [1, 2, 3])
 
     def test_reading_follows_the_enqueued_order(self) -> None:
         """Rows come back in the order the sweep was defined.
@@ -280,7 +280,7 @@ class SweepScopeTest(OrchestratorTestCase):
         orch = self.orchestrator()
         for recorded in (30, 10, 20):
             orch.run(recording_experiment, recorded=recorded)
-        self.assertEqual(orch.get("value")["value"].tolist(), [30, 10, 20])
+        self.assertEqual(orch.get("value")["value"], [30, 10, 20])
 
     def test_enqueued_keys_are_reported_without_repeats(self) -> None:
         """The same run enqueued twice is one job of the sweep."""
@@ -296,7 +296,7 @@ class SweepScopeTest(OrchestratorTestCase):
         orch.run(recording_experiment, recorded=1)
         orch.drain()
         inspector = self.orchestrator()
-        self.assertEqual(inspector.get("value")["value"].tolist(), [1])
+        self.assertEqual(inspector.get("value")["value"], [1])
 
 
 class MetricTest(OrchestratorTestCase):
@@ -316,7 +316,7 @@ class MetricTest(OrchestratorTestCase):
 
         orch = self.orchestrator()
         orch.run(twice, recorded=5)
-        self.assertEqual(orch.get("value")["value"].tolist(), [5, 6])
+        self.assertEqual(orch.get("value")["value"], [5, 6])
 
     def test_skip_if_exists_keeps_the_first_value(self) -> None:
         """A step already recorded is left untouched."""
@@ -329,7 +329,7 @@ class MetricTest(OrchestratorTestCase):
 
         orch = self.orchestrator()
         orch.run(repeated, recorded=7)
-        self.assertEqual(orch.get("value")["value"].tolist(), [7])
+        self.assertEqual(orch.get("value")["value"], [7])
         self.assertEqual(pushed, [True, False])
 
 
@@ -394,7 +394,7 @@ class DependencyTest(OrchestratorTestCase):
             self.assertEqual(again.drain().count("done"), 1)
         finally:
             SCALE = 1
-        values = sorted(self.orchestrator().get("value")["value"].tolist())
+        values = sorted(self.orchestrator().get("value")["value"])
         self.assertEqual(values, [2, 20])
 
     def test_unchanged_dependency_is_the_same_job(self) -> None:
@@ -587,7 +587,7 @@ class FailureTest(OrchestratorTestCase):
         with self.assertRaises(RunFailed):
             orch.drain()
         self.assertEqual(orch.queued, 0)
-        self.assertEqual(orch.get("value")["value"].tolist(), [1])
+        self.assertEqual(orch.get("value")["value"], [1])
 
     def test_failed_job_is_retried_when_enqueued_again(self) -> None:
         """Once its cause is fixed, re-enqueueing runs the failed job."""

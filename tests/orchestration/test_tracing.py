@@ -198,7 +198,7 @@ class RuntimeDependencyTest(unittest.TestCase):
         orch.run(experiment_importing_at_runtime, amount=21)
         decision = orch.plan()[0]
         orch.drain()
-        return decision, orch.get("value")["value"].tolist()
+        return decision, orch.get("value")["value"]
 
     def test_untraced_a_runtime_dependency_change_is_missed(self) -> None:
         """Without tracing, editing the helper leaves a stale result standing.
