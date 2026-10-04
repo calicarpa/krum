@@ -14,6 +14,8 @@ and hyperparameters.
 Edit the constants below to reconfigure.
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 
 from krum.orchestration import Orchestrator
@@ -41,6 +43,9 @@ BETA = 0.99
 PARTITIONER = DirichletPartitioner
 PARTITIONER_KWARGS = {"alpha": 1.0}
 SEED = 0
+# One folder per run, under the gitignored results directory. A run already
+# recorded there is skipped rather than repeated.
+RESULTS = Path("results") / "monna_icml_2023_experiment"
 
 # Aggregators to compare: NNA is MoNNA's default (num_closest = n - 2f,
 # injected by MonnaSimulation), Average is the non-robust baseline.
@@ -53,7 +58,7 @@ AGGREGATORS = [
 
 def main() -> None:
     """Run the small MoNNA vs Mean proof of concept."""
-    orchestrator = Orchestrator("monna_icml_2023_experiment")
+    orchestrator = Orchestrator(RESULTS)
 
     for f in F_VALUES:
         attack = None if f == 0 else SignFlipAttack
@@ -85,6 +90,8 @@ def main() -> None:
                 partitioner_kwargs=PARTITIONER_KWARGS,
                 seed=SEED,
             )
+
+    print(f"\n{orchestrator.drain().report()}")
 
     metrics = [("train_loss", "train loss"), ("test_loss", "test loss"), ("test_accuracy", "test accuracy")]
     palette = ["tab:orange", "tab:green", "tab:blue", "tab:red", "tab:purple", "tab:brown"]

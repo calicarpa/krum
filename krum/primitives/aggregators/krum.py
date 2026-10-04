@@ -24,7 +24,7 @@ class Krum(MultiKrum):
     is always the worker itself. Columns :math:`1` through
     :math:`n - f - 2` give :math:`n - f - 2` closest *other* workers.
 
-    This is :class:`MultiKrum` with :math:`m = 1`.
+    This is :class:`~krum.primitives.aggregators.multikrum.MultiKrum` with :math:`m = 1`.
     """
 
     @classmethod

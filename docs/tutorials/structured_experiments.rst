@@ -4,24 +4,27 @@ Structured experiments
 **Problem:** Running a single simulation is fine for quick tests, but
 research requires comparing configurations, collecting metrics at every
 step, analysing results across seeds, and producing tables for papers.
-How do you go from a one-off run to a reproducible, structured
-experiment?
+And once a sweep takes an hour, you do not want a one-line change to
+repeat the runs that were already fine. How do you go from a one-off run
+to a reproducible, structured experiment?
 
 Krum provides three tools for this:
 
-* :class:`~krum.orchestration.metric.Metric`: a named channel you push
+* :class:`~krum.orchestration.metrics.Metric`: a named channel you push
   ``(step, value)`` samples into during a run.
-* :class:`~krum.orchestration.orchestrator.Orchestrator`: drives multiple
-  runs, owns all collected metrics, and returns them as a
-  :class:`~krum.orchestration.dataframe.MetricDataFrame`.
-* :class:`~krum.orchestration.dataframe.MetricDataFrame`: a filtered,
-  queryable view of one metric channel, convertible to ``pandas``.
+* :class:`~krum.orchestration.Orchestrator`: drives multiple runs, keeps
+  each one's output in a folder of its own, and skips the runs it has
+  already recorded.
+* :class:`~krum.orchestration.metrics.MetricTable`: what a metric reads back
+  as. Deliberately not a dataframe — it holds plain Python lists, so krum
+  needs no dataframe library of its own, and hands the analysis to whichever
+  one you prefer.
 
 The Metric object
 -----------------
 
-A :class:`~krum.orchestration.metric.Metric` is created inside an experiment
-function with a name and a value type:
+A :class:`~krum.orchestration.metrics.Metric` is created inside an
+experiment function with a name and a value type:
 
 .. code-block:: python
 
@@ -32,99 +35,157 @@ function with a name and a value type:
 
 .. warning::
 
-   :class:`~krum.orchestration.metric.Metric` can only be created **inside** an
-   :meth:`~krum.orchestration.orchestrator.Orchestrator.run` call. Creating one outside an
-   active run raises ``RuntimeError``. The metric is a write handle that
-   routes every push to the orchestrator driving the current experiment.
+   :class:`~krum.orchestration.metrics.Metric` can only be created
+   **inside** a run driven by
+   :meth:`~krum.orchestration.Orchestrator.run`. Creating one outside an
+   active job raises :exc:`~krum.orchestration.metrics.NoActiveJob`. The
+   metric finds the running job through a context variable, so you never
+   pass the orchestrator to it.
 
-Each call to :meth:`~krum.orchestration.metric.Metric.push` records one sample,
-tagged with the current run's parameters:
+Each call to :meth:`~krum.orchestration.metrics.Metric.push` appends one
+sample to that job's own file:
 
 .. code-block:: python
 
    loss.push(step=10, value=0.1523)
    accuracy.push(step=10, value=0.9531)
 
-The metric is just a **write handle**; it does not store the data itself.
-Every push is routed to the orchestrator that is running the current
-experiment.
+Rows are flushed as they are pushed, so a run you interrupt leaves its
+partial output readable on disk.
 
 The Orchestrator
 -----------------
 
-An :class:`~krum.orchestration.orchestrator.Orchestrator` runs a function multiple times
-with different parameters and collects all the metrics pushed during each run:
+An :class:`~krum.orchestration.Orchestrator` runs a function many times
+with different parameters:
 
 .. code-block:: python
 
    from krum.orchestration import Orchestrator
 
-   orchestrator = Orchestrator("my_campaign")
+   orchestrator = Orchestrator("results/my_campaign")
 
    for lr in [0.01, 0.001]:
        orchestrator.run(my_experiment, lr=lr, label=f"lr_{lr}")
 
-Once all runs are finished, retrieve every sample of a metric:
+   frame = orchestrator.get("test_loss")
+   print(frame)
+
+Two things differ from a plain loop:
+
+* :meth:`~krum.orchestration.Orchestrator.run` only **enqueues**. The
+  queue is drained by :meth:`~krum.orchestration.Orchestrator.drain`, by
+  the first :meth:`~krum.orchestration.Orchestrator.get`, or on leaving a
+  ``with Orchestrator(...)`` block. Nothing runs before that.
+* Each run gets a folder under the campaign directory, named by a key
+  derived from its parameters *and* from the code it executes. **A run
+  already recorded there is skipped**, so re-running the sweep only
+  computes what actually changed.
+
+:meth:`~krum.orchestration.Orchestrator.get` returns a
+:class:`~krum.orchestration.metrics.MetricTable` with one row per recorded
+step, columns for every run parameter, and the ``step``, ``value`` and
+``job_key`` of the sample:
 
 .. code-block:: python
 
-   frame = orchestrator.get("test_loss").to_pandas()
-   print(frame)
+   table = orchestrator.get("test_accuracy")
 
-The resulting ``pandas.DataFrame`` has one row per recorded step, with
-columns for the run parameters (``label``, ``lr``, etc.), ``step``, and
-``value``.
+   table.columns            # ('step', 'value', 'label', 'f', 'seed', 'job_key')
+   table["value"]           # one column, as a list
+   len(table)               # the number of rows
+   for row in table:        # one dict per row
+       ...
 
-How Metric, Orchestrator, and MetricDataFrame work together
-------------------------------------------------------------
+   frame = table.to_pandas()        # needs pandas installed
+   table.to_csv("accuracy.csv")     # needs nothing
 
-These three objects form a pipeline: you push data through a ``Metric``,
-it lands in the ``Orchestrator``'s internal store tagged with run
-parameters, and you retrieve a filtered view via ``Orchestrator.get()``
-which returns a ``MetricDataFrame``.
+For anything else, hand :meth:`~krum.orchestration.metrics.MetricTable.to_dict`
+to the library you use. The shipped ``to_pandas`` is written against
+``to_dict`` alone, so a converter you write yourself is in no way
+second-class:
 
-The flow:
+.. code-block:: python
+
+   import polars
+   polars.DataFrame(table.to_dict())
+
+   import pyarrow
+   pyarrow.table(table.to_dict())
+
+   import numpy
+   {name: numpy.asarray(values) for name, values in table.to_dict().items()}
+
+How it fits together
+--------------------
 
 .. code-block:: text
 
-   Orchestrator.run(fn, label="A", seed=42, …)
+   Orchestrator.run(fn, aggregator=MultiKrum, f=2, seed=42)   → enqueued
+            │
+            ▼   drained on the first get(), or on leaving the with block
+   ┌──────────────────────────────────────────────────────┐
+   │ key = hash(fn's code + its bound parameters)         │
+   │                                                      │
+   │ results/campaign/<key>/ already marked DONE?         │
+   │     yes ──► skip, the recorded answer stands         │
+   │     no  ──► fn(**params)                             │
+   │               Metric("test_accuracy").push(0, 0.92)  │
+   │                     │  context variable              │
+   │                     ▼                                │
+   │               <key>/metrics/test_accuracy.csv        │
+   └──────────────────────────────────────────────────────┘
             │
             ▼
-   ┌──────────────────────────────────────┐
-   │ fn(**params)                         │
-   │   Metric("acc").push(step, 0.95)     │
-   │         │                            │
-   │         │  thread-local context      │
-   │         ▼                            │
-   │   Orchestrator._record()             │
-   │         │                            │
-   │         ▼                            │
-   │   Internal store                     │
-   │   ┌─────┬──────┬──────┬───────┬────┐ │
-   │   │name │ step │  val │ label │seed│ │
-   │   ├─────┼──────┼──────┼───────┼────┤ │
-   │   │ acc │   0  │ 0.92 │   A   │ 42 │ │
-   │   │ acc │  10  │ 0.95 │   A   │ 42 │ │
-   │   │ acc │  20  │ 0.96 │   A   │ 42 │ │
-   │   │ acc │  10  │ 0.88 │   B   │ 43 │ │
-   │   └─────┴──────┴──────┴───────┴────┘ │
-   └──────────────────────────────────────┘
+   Orchestrator.get("test_accuracy")    reads this sweep's folders
             │
             ▼
-   Orchestrator.get("acc")
-            │
-            ▼
-   MetricDataFrame ──► .filter(label="A")
-                         .to_pandas()
-                         ──► pandas.DataFrame
+   MetricTable  ──►  .to_pandas() / .to_dict() / .to_csv()
+   ┌──────┬───────┬────────────┬───┬──────┬──────────────┐
+   │ step │ value │ aggregator │ f │ seed │ job_key      │
+   ├──────┼───────┼────────────┼───┼──────┼──────────────┤
+   │   0  │ 0.92  │ MultiKrum  │ 2 │  42  │ 3ca7515b…    │
+   │  10  │ 0.95  │ MultiKrum  │ 2 │  42  │ 3ca7515b…    │
+   └──────┴───────┴────────────┴───┴──────┴──────────────┘
 
 Key design decisions:
 
-- **Orchestrator owns the data.** Metric is a light proxy that discovers
-  the active orchestrator through thread-local state; you never pass the
-  orchestrator to the metric explicitly.
-- **MetricDataFrame is a lazy view.** ``filter()`` chains without copying
-  data; ``to_pandas()`` materialises only at the end.
+- **A job's folder is named by its identity.** The identity covers the
+  parameters and the code the run reaches, so asking the same question
+  twice finds the answer already there.
+- **Metric finds the job, not the other way round.** It resolves a context
+  variable, so an experiment never threads a handle through its own call
+  stack.
+- **Reading is scoped to the sweep.** A campaign directory accumulates one
+  folder per version of the code; :meth:`~krum.orchestration.Orchestrator.get`
+  reads the runs *this* orchestrator enqueued, so two code versions are not
+  mixed into one plot.
+
+Parameters identify the run
+---------------------------
+
+Because the parameters are hashed into the job's identity, they should
+*describe* the run rather than *be* its materials.
+
+.. code-block:: python
+
+   # Don't: the dataset is hashed into the key on every enqueue, and the
+   # key then depends on the data's contents rather than on its name.
+   train_datasets = IidPartitioner.partition(load_mnist(), n=10, seed=42)
+
+   def run_experiment(aggregator, f):
+       sim = KrumSimulation(train_datasets=train_datasets, ...)
+
+   # Do: pass what names the data, and build it inside the function.
+   def run_experiment(dataset, n, aggregator, f, seed):
+       train_set, test_set = make_datasets(dataset)
+       train_datasets = IidPartitioner.partition(train_set, n=n, seed=seed)
+       sim = KrumSimulation(train_datasets=train_datasets, ...)
+
+.. note::
+
+   ``step``, ``value`` and ``job_key`` are the frame's own columns, so a
+   parameter of one of those names is refused when the run is enqueued.
 
 A complete example
 ------------------
@@ -133,10 +194,11 @@ The following experiment runs a Krum simulation twice: once with a robust
 aggregator and once with the Average baseline, collecting the results as
 structured metrics.
 
-Setup
-^^^^^^
+Experiment function
+^^^^^^^^^^^^^^^^^^^
 
-Imports, MNIST, and an MLP:
+It builds its own data and simulation from plain parameters, loops over
+rounds, and pushes metrics:
 
 .. code-block:: python
 
@@ -150,28 +212,15 @@ Imports, MNIST, and an MLP:
 
    from torchvision import datasets, transforms
 
-   transform = transforms.Compose([
-       transforms.ToTensor(),
-       transforms.Normalize((0.1307,), (0.3081,)),
-   ])
-   train_set = datasets.MNIST(
-       root="./data", train=True, download=True, transform=transform
-   )
-   test_set = datasets.MNIST(
-       root="./data", train=False, download=True, transform=transform
-   )
-
-   # Partition the training set into one dataset per worker
-   train_datasets = IidPartitioner.partition(train_set, n=10, seed=42)
-
-Experiment function
-^^^^^^^^^^^^^^^^^^^
-
-Creates the simulation, loops over rounds, and
-pushes metrics. The function accepts every configurable parameter so it
-can be driven by the ``Orchestrator``:
-
-.. code-block:: python
+   def make_datasets(root="./data"):
+       transform = transforms.Compose([
+           transforms.ToTensor(),
+           transforms.Normalize((0.1307,), (0.3081,)),
+       ])
+       return (
+           datasets.MNIST(root=root, train=True, download=True, transform=transform),
+           datasets.MNIST(root=root, train=False, download=True, transform=transform),
+       )
 
    def run_experiment(
        *,
@@ -187,6 +236,9 @@ can be driven by the ``Orchestrator``:
        batch_size: int = 64,
        eval_every: int = 10,
    ) -> None:
+       train_set, test_set = make_datasets()
+       train_datasets = IidPartitioner.partition(train_set, n=n, seed=seed)
+
        sim = KrumSimulation(
            model_cls=Krum2017MLPMnist,
            train_datasets=train_datasets, test_set=test_set,
@@ -214,12 +266,11 @@ can be driven by the ``Orchestrator``:
 Run the two configurations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each ``orchestrator.run()`` call records
-every parameter so the data is self-describing:
+Every parameter is recorded, so the data is self-describing:
 
 .. code-block:: python
 
-   orchestrator = Orchestrator("mnist_comparison")
+   orchestrator = Orchestrator("results/mnist_comparison")
 
    orchestrator.run(
        run_experiment,
@@ -238,25 +289,36 @@ every parameter so the data is self-describing:
        f=2,
    )
 
+   print(orchestrator.drain().report())
+
+:meth:`~krum.orchestration.Orchestrator.drain` returns a summary saying
+which runs executed, which were skipped, and why each one ran:
+
+.. code-block:: text
+
+   2 done
+     done     3ca7515b22969224     7.102s  (no recorded result)
+     done     ad74a48355e052fc     4.416s  (no recorded result)
+
 Inspect the results
 ^^^^^^^^^^^^^^^^^^^
 
-``Orchestrator.get()`` returns a
-``MetricDataFrame`` that supports filtering:
-
 .. code-block:: python
 
+   accuracy = orchestrator.get("test_accuracy")
+
    print("\nAll results (last 5 rows):")
-   print(orchestrator.get("test_accuracy").to_pandas().tail(5))
+   for row in list(accuracy)[-5:]:
+       print(row)
 
    print("\nMultiKrum only:")
-   print(orchestrator.get("test_accuracy").filter(label="MultiKrum (robust)").to_pandas())
+   print([row for row in accuracy if row["label"] == "MultiKrum (robust)"])
 
 Analysing results
 -----------------
 
-Once you have a :class:`~krum.orchestration.dataframe.MetricDataFrame`,
-convert it to ``pandas`` and use your usual toolkit:
+Convert once, then use your usual toolkit. The examples below use pandas,
+which the ``experiments`` extra installs:
 
 .. code-block:: python
 
@@ -279,24 +341,49 @@ convert it to ``pandas`` and use your usual toolkit:
    pivoted = df.pivot_table(index="step", columns="label", values="value")
    pivoted.to_csv("accuracy.csv")
 
-See :doc:`/reference/orchestration/metricdataframe` for filtering options
-and the :doc:`/reference/orchestration/index` for the full API.
+See the :doc:`/reference/orchestration/index` for the full API.
+
+Running it again
+----------------
+
+Run the same script a second time and nothing is recomputed:
+
+.. code-block:: text
+
+   2 skipped
+
+A run is repeated when there is no recorded result for it, when its last
+attempt failed, when the environment it was recorded in has changed, or
+when a function it called has since been edited.
+:meth:`~krum.orchestration.Orchestrator.plan` reports what a sweep would
+do without running any of it:
+
+.. code-block:: python
+
+   for decision in orchestrator.plan():
+       print(decision)
+
+.. code-block:: text
+
+   skip 3ca7515b22969224
+   run ad74a48355e052fc (uv_lock changed (651669ac047d… -> 81583a2f1641…))
+
+Editing an aggregator changes the identity of the runs that use it, and
+leaves the others alone — so a change to ``MultiKrum`` recomputes the
+MultiKrum configurations and skips the Average ones. Pass ``force=True``
+to the orchestrator to recompute regardless.
 
 Systematic benchmark
 --------------------
 
 Byzantine-robust research typically compares multiple aggregation rules
 against multiple attacks on a shared dataset. This section shows how to
-run such a benchmark with ``Orchestrator`` and produce a comparison table.
+run such a benchmark and produce a comparison table.
 
-We build on the same MNIST + MLP setup from the previous example, but run
-every combination of aggregators and attacks across multiple seeds.
+Running the grid
+^^^^^^^^^^^^^^^^
 
-Setup
-^^^^^
-
-Import the aggregators and attacks we want to compare, and define the
-grid constants:
+Loop over every aggregator-attack-seed combination:
 
 .. code-block:: python
 
@@ -308,52 +395,56 @@ grid constants:
    from krum.primitives.attacks.alie import ALIEAttack
    from krum.primitives.attacks.gaussian import GaussianAttack
 
-   orch = Orchestrator("mnist_benchmark")
    N, F, ROUNDS = 15, 3, 50
    SEEDS = [42, 43, 44]
 
-Running the grid
-^^^^^^^^^^^^^^^^
+   with Orchestrator("results/mnist_benchmark") as orch:
+       for agg in [Average, Median, TrimmedMean, MultiKrum]:
+           for atk in [None, SignFlipAttack, ALIEAttack, GaussianAttack]:
+               atk_label = atk.__name__ if atk else "NoAttack"
+               for seed in SEEDS:
+                   orch.run(
+                       run_experiment,
+                       label=f"{agg.__name__} + {atk_label}",
+                       aggregator=agg, attack=atk,
+                       f=F, n=N, lr=0.1, seed=seed, rounds=ROUNDS,
+                   )
 
-Loop over every aggregator-attack-seed combination. Each call to
-``orchestrator.run()`` records the experiment and tags it with its
-parameters:
-
-.. code-block:: python
-
-   for agg in [Average, Median, TrimmedMean, MultiKrum]:
-       for atk in [None, SignFlipAttack, ALIEAttack, GaussianAttack]:
-           atk_label = atk.__name__ if atk else "NoAttack"
-           label = f"{agg.__name__} + {atk_label}"
-           for seed in SEEDS:
-               orch.run(
-                   run_experiment,
-                   label=label, aggregator=agg, attack=atk,
-                   f=F, n=N, lr=0.1, seed=seed,
-               )
+Adding a fifth aggregator later re-runs only its twelve new combinations;
+the forty-eight already recorded are skipped.
 
 Building the comparison table
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Collect the final accuracy, average across seeds, and pivot into a
-matrix:
+A class passed as a parameter reads back as its short name, so group on
+the column directly:
 
 .. code-block:: python
 
    df = orch.get("test_accuracy").to_pandas()
    final = df[df["step"] == ROUNDS - 1]
 
-   stats = final.groupby(["aggregator", "attack"])["value"].agg(["mean", "std"]).reset_index()
+   stats = (
+       final.groupby(["aggregator", "attack"], dropna=False)["value"]
+       .agg(["mean", "std"])
+       .reset_index()
+   )
 
    table = stats.pivot_table(
-       index="attack", columns="aggregator", values="mean",
+       index="attack", columns="aggregator", values="mean", dropna=False,
    )
-   table.index = [a.__name__ if a else "None" for a in table.index]
-
    print(table.round(2))
 
+.. warning::
+
+   ``attack=None`` reads back as a missing value, and ``groupby`` drops
+   rows with missing keys unless you pass ``dropna=False``. Without it the
+   no-attack baseline disappears from the table without a word. Passing a
+   sentinel aggregator-free label instead of ``None`` avoids the question
+   entirely.
+
 The output is a matrix where each cell is the mean accuracy for one
-aggregator-attack pair, averaged across seeds. Use ``.std`` for error
+aggregator-attack pair, averaged across seeds. Use ``std`` for error
 bars in follow-up plots.
 
 As a rule of thumb, robust aggregators (MultiKrum, TrimmedMean) maintain
@@ -371,6 +462,4 @@ Next steps
   benchmark it with the patterns from this tutorial.
 * :doc:`implement_attack`: write your own Byzantine attack and
   benchmark it.
-* :doc:`/reference/orchestration/index`: full Orchestrator and Metric API.
-* :doc:`/reference/orchestration/metricdataframe`: available filtering
-  options.
+* :doc:`/reference/orchestration/index`: the full orchestration API.

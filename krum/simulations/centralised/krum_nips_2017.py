@@ -20,7 +20,7 @@ class KrumSimulation(CentralisedSimulation):
     """Distributed SGD simulation.
 
     Compared to the ICML 2018
-    :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`,
+    :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation`,
     this variant:
 
     - Uses a **fixed learning rate** (no scheduler; ``lr_decay=None``, the

@@ -4,11 +4,12 @@ MultiKrum resists Byzantine workers while the coordinate-wise mean diverges,
 reproducing the centralised setting of Blanchard et al. (Section 2).
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from krum.orchestration import Orchestrator
-from krum.orchestration.dataframe import MetricDataFrame
 from krum.primitives.aggregators.average import Average
 from krum.primitives.aggregators.multikrum import MultiKrum
 from krum.primitives.attacks.sign_flip import SignFlipAttack
@@ -30,6 +31,9 @@ XAVIER_INIT = True
 WEIGHT_DECAY = 1e-4
 PARTITIONER = IidPartitioner
 PARTITIONER_KWARGS = None
+# One folder per run, under the gitignored results directory. A run already
+# recorded there is skipped rather than repeated.
+RESULTS = Path("results") / "krum_2017_nips_spambase"
 
 
 def _plot_panel(
@@ -58,16 +62,16 @@ def _plot_panel(
 
 
 def plot_comparison(
-    test_loss: MetricDataFrame,
-    test_accuracy: MetricDataFrame,
-    train_loss: MetricDataFrame,
+    test_loss: pd.DataFrame,
+    test_accuracy: pd.DataFrame,
+    train_loss: pd.DataFrame,
     *,
     f_byz: int,
 ) -> None:
     """Plot the comparison of MultiKrum and Mean under sign-flip attack."""
-    frame_tl = test_loss.to_pandas()
-    frame_ta = test_accuracy.to_pandas()
-    frame_trl = train_loss.to_pandas()
+    frame_tl = test_loss
+    frame_ta = test_accuracy
+    frame_trl = train_loss
 
     styles = {
         "Mean_f0": {"color": "tab:green", "linestyle": "--"},
@@ -102,7 +106,7 @@ def plot_comparison(
 
 def main() -> None:
     """Run the experiment and plot the results."""
-    orchestrator = Orchestrator("krum_2017_nips_spambase")
+    orchestrator = Orchestrator(RESULTS)
 
     configs = [
         (Average, "Mean_f0", 0, None),
@@ -134,11 +138,11 @@ def main() -> None:
             weight_decay=WEIGHT_DECAY,
         )
 
-    print("\nDone.")
+    print(f"\n{orchestrator.drain().report()}")
     plot_comparison(
-        orchestrator.get("test_loss"),
-        orchestrator.get("test_accuracy"),
-        orchestrator.get("train_loss"),
+        orchestrator.get("test_loss").to_pandas(),
+        orchestrator.get("test_accuracy").to_pandas(),
+        orchestrator.get("train_loss").to_pandas(),
         f_byz=F,
     )
 

@@ -2,13 +2,17 @@ Orchestration
 =============
 
 .. automodule:: krum.orchestration
+   :no-members:
 
-Available Classes
------------------
+Modules
+-------
 
 .. toctree::
    :maxdepth: 1
 
    orchestrator
-   metric
-   metricdataframe
+   metrics
+   hashing
+   storage
+   tracing
+   execution

@@ -11,8 +11,8 @@ the worker loop, gradient computation, and evaluation for you.
 .. seealso::
 
    :doc:`/reference/simulations/centralised/index`
-      Reference for :class:`~krum.simulations.centralised.KrumSimulation`
-      and :class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`.
+      Reference for :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation`
+      and :class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation`.
 
 Data preparation
 ----------------
@@ -20,7 +20,7 @@ Data preparation
 Each of the ``n`` workers (honest and Byzantine) brings its own training
 dataset. The caller is responsible for splitting a full dataset into
 per-worker datasets — this can be IID or non-IID. The built-in
-:mod:`~krum.primitives.data_partitioners` strategies handle this:
+``krum.primitives.data_partitioners`` strategies handle this:
 
 .. code-block:: python
 
@@ -137,9 +137,9 @@ Evaluate
 ^^^^^^^^
 
 ``evaluate()`` returns the metrics specific to the protocol
-(``(test_loss, test_accuracy)`` for :class:`~krum.simulations.centralised.KrumSimulation`,
+(``(test_loss, test_accuracy)`` for :class:`~krum.simulations.centralised.krum_nips_2017.KrumSimulation`,
 ``(test_loss, test_error, test_accuracy)`` for
-:class:`~krum.simulations.centralised.HiddenVulnerabilitySimulation`).
+:class:`~krum.simulations.centralised.hidden_vulnerability_icml_2018.HiddenVulnerabilitySimulation`).
 You can also read the training loss with ``evaluate_train()``.
 
 Using the ICML 2018 simulation

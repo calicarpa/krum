@@ -115,7 +115,51 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "torch": ("https://pytorch.org/docs/stable", None),
     "numpy": ("https://numpy.org/doc/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
 }
+
+# Annotations are strings everywhere (`from __future__ import annotations`), so
+# autodoc renders the name as written. These map the names that cannot be
+# resolved from the module they appear in: the project's own type aliases, which
+# are referenced from several modules, and standard library classes whose
+# runtime module is a private implementation detail (`pathlib._local.Path`,
+# `_blake2.blake2b`) or differs from where they are documented.
+autodoc_type_aliases = {
+    "Blake2b": "hashlib.blake2b",
+    "Path": "pathlib.Path",
+    "ProcessPoolExecutor": "concurrent.futures.ProcessPoolExecutor",
+}
+
+# Targets a nitpicky build (`sphinx-build -n`) cannot resolve because nothing
+# documents them. Each group has a reason; none is a broken cross-reference
+# that qualifying the name would fix.
+nitpick_ignore = [
+    # The project's own type aliases. A PEP 695 `type X = Y` has no `py:class`
+    # target in the Python domain, and `autodoc_type_aliases` substitutes a
+    # name only when the annotation is exactly that name, so it cannot reach
+    # the ones inside composites such as `Hash | str` or `PathLike | None`.
+    ("py:class", "Hash"),
+    ("py:class", "PathLike"),
+    ("py:class", "RunCallable"),
+    ("py:class", "Runner"),
+    ("py:class", "krum.simulations.decentralised.StepResultT"),
+    ("py:obj", "krum.simulations.decentralised.StepResultT"),
+    # Standard library classes reached the same way: autodoc renders the name
+    # as written, and these appear only inside composite annotations.
+    ("py:class", "Blake2b"),
+    ("py:class", "Path"),
+    # Members that exist but carry no documentation of their own: instance
+    # attributes declared without a docstring, and a method only some
+    # subclasses provide. Documenting them is what would retire these.
+    ("py:attr", "byzantine_reach"),
+    ("py:attr", "f"),
+    ("py:attr", "krum.simulations.decentralised.monna_icml_2023.MonnaSimulation.byzantine_reach"),
+    ("py:attr", "model"),
+    ("py:attr", "parameters"),
+    ("py:attr", "step_index"),
+    ("py:attr", "test_loader"),
+    ("py:meth", "copy_parameters_to_model"),
+]
 
 
 # Use MathJax v3 to render math in HTML
