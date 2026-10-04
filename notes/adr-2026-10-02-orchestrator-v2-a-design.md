@@ -316,13 +316,35 @@ and running a sweep in parallel.
 
 ## Python floor
 
-`requires-python = ">=3.12"`. Two independent constraints land near it: pandas
-3.x already requires 3.11, and `sys.monitoring` requires 3.12. Going lower
-means pinning pandas back to 2.x *and* either giving tracing up below 3.12 or
-writing a `sys.settrace` fallback, which has no per-code `DISABLE` and so fires
-on every call — a cliff that stays silent until a long sweep. `typing.Self`,
-`co_qualname` and `max_tasks_per_child` are the other sub-3.12 gaps, all
-mechanical.
+`requires-python = ">=3.12"`, chosen rather than inherited.
+
+One thing in the library genuinely needs it: `sys.monitoring`, and so the
+dependency tracing built on it. Everything else below 3.12 is mechanical — the
+`type` alias statements, the runtime `collections.abc.Buffer` isinstance,
+`typing.Self`, `co_qualname`, and `max_tasks_per_child` on the process pool.
+Going lower therefore means either giving tracing up below 3.12 or writing a
+`sys.settrace` fallback, which has no per-code `DISABLE` and so fires on every
+call rather than once per function — a cliff that stays silent until a long
+sweep.
+
+The `experiments` extra is separately held at 3.11 by numpy and pandas, which
+both require it. Since metrics read back as a `MetricTable`, pandas is no
+longer a dependency of the library at all, so that bound applies to the
+analysis rather than to recording or reading.
+
+What the floor costs in audience, from torch's own download share in October
+2026: 3.12 and above is about 64%, 3.11 about 21%, 3.10 about 14%. So the
+floor forgoes roughly a third of installs. Accepted, because 3.10 reaches
+end of life on 31 October 2026 and its share had already fallen from 27% to
+18% of the 3.10–3.12 band over the preceding six months; because download
+counts are inflated by CI and container rebuilds rather than counting people;
+and because anyone installing torch is managing an environment already, where
+`uv python install 3.12` costs a line.
+
+If this is ever reopened, 3.11 is the interesting one rather than 3.10: it is
+the larger share, and only the `type` statements and `Buffer` stand in its
+way. Its price is making tracing conditional on 3.12, which is a correctness
+feature to give up for reach.
 
 ## Status
 
