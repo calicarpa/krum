@@ -92,6 +92,11 @@ polars.DataFrame(loss.to_dict())
 `to_pandas` is written against `to_dict` alone, so a converter you write
 yourself has exactly the access the shipped one does.
 
+`MetricTable` is the interface; `ColumnTable`, which holds its rows in memory,
+is the implementation you get today. `rows` streams, while `to_dict` and
+`to_pandas` materialise, which is the distinction to keep in mind if a sweep
+ever outgrows memory.
+
 It reads the jobs enqueued on *that* orchestrator, in that order — not every
 folder in the store. This matters because a store accumulates one folder per
 code version: reading all of them would mix versions, two of which can carry
@@ -172,7 +177,8 @@ results/byzantine_study/
                     tree was dirty, the environment, timings
     deps.json       the fingerprint: environment witnesses, and the functions
                     the job called with a hash of each
-    metrics/*.csv   append-only (step, value), one file per metric
+    metrics/*.csv   append-only (step, value), one file per metric; the
+                    manifest records each one's dtype and row count
     DONE | FAILED   FAILED carries the traceback
 ```
 

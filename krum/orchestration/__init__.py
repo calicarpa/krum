@@ -60,7 +60,7 @@ from warnings import warn
 
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
-from .metrics import RESERVED_COLUMNS, Metric, MetricTable, NoActiveJob, collect, reserved
+from .metrics import RESERVED_COLUMNS, ColumnTable, Metric, MetricTable, NoActiveJob, collect, reserved
 from .storage import (
     JobFolder,
     JobStore,
@@ -75,6 +75,7 @@ from .storage import (
 from .tracing import DependencyTracker, TracingUnavailable, verify_called
 
 __all__ = [
+    "ColumnTable",
     "DependencyTracker",
     "Executed",
     "Hash",

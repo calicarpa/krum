@@ -364,6 +364,14 @@ class JobFolder:
         """The file holding one metric's rows, whether or not it exists."""
         return self._path / METRICS / metric_filename(name)
 
+    def metric_rows(self, name: str) -> int | None:
+        """How many rows this job recorded for a metric, if it says.
+
+        Read from the manifest rather than from the file, so asking costs
+        nothing. None for a job written before the count was recorded.
+        """
+        return self.manifest().get("metrics", {}).get(name, {}).get("rows")
+
     def metric_names(self) -> list[str]:
         """The metrics this job recorded, sorted."""
         directory = self._path / METRICS
@@ -434,11 +442,17 @@ class MetricRecorder:
     def close(self) -> dict[str, dict[str, Any]]:
         """Close every open sink and return what was registered.
 
+        A sink that counted its rows contributes that count, so the size of a
+        metric is recorded rather than needing the file read back to learn it.
+
         A child process returns this to its parent, which is how a job run out
         of process still ends up with its metrics named in the manifest.
         """
-        for sink in self._sinks.values():
+        for name, sink in self._sinks.items():
             sink.close()
+            rows = getattr(sink, "rows", None)
+            if rows is not None and name in self._metrics:
+                self._metrics[name]["rows"] = rows
         self._sinks.clear()
         return dict(self._metrics)
 

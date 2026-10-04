@@ -20,7 +20,8 @@ way see [adr-2026-10-02-orchestrator-v2-a-design.md].
 | `JobWriter` | `storage` | one job under construction, and its manifest |
 | `MetricRecorder` | `storage` | the half of a job a child process can own |
 | `Metric`, `Sink` | `metrics` | one metric's open file |
-| `MetricTable` | `metrics` | the rows read back, column by column |
+| `MetricTable` | `metrics` | the interface a metric reads back as |
+| `ColumnTable` | `metrics` | the rows read back, held in memory |
 | `DependencyTracker` | `tracing` | what the job called |
 | `InlineRunner`, `SubprocessRunner` | `execution` | where the body runs |
 
@@ -162,7 +163,8 @@ The recorder, not the metric, holds the sinks, so constructing the same
 1. `JobWriter.record_called(executed.called)` stores the callees, or `None`
    when untraced.
 2. `JobWriter.finish(status, error)`:
-   - `MetricRecorder.close()` closes every sink and returns the registry;
+   - `MetricRecorder.close()` closes every sink, takes each one's row count
+     into the registry, and returns it;
    - the manifest gains `status`, `metrics` and the `finished`/`seconds`
      timings, and is written to `manifest.json`;
    - `deps.json` is written as `witnesses_of(manifest["environment"])` plus

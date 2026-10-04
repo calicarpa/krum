@@ -17,6 +17,7 @@ See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 from __future__ import annotations
 
 import csv
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -79,6 +80,7 @@ class Sink:
     _handle: Any
     _writer: Any
     _seen: set[Any]
+    _rows: int
 
     __slots__ = tuple(__annotations__)
 
@@ -91,11 +93,21 @@ class Sink:
         self._writer.writerow(("step", "value"))
         self._handle.flush()
         self._seen = set()
+        self._rows = 0
 
     @property
     def path(self) -> Path:
         """The file this sink writes to."""
         return self._path
+
+    @property
+    def rows(self) -> int:
+        """How many rows have been written.
+
+        Recorded in the manifest when the job finishes, so that the number of
+        rows a metric holds is known without reading the file back.
+        """
+        return self._rows
 
     def push(self, step: Any, value: Any, skip_if_exists: bool = False) -> bool:
         """Append one row, coercing the value to the declared dtype.
@@ -113,6 +125,7 @@ class Sink:
         self._seen.add(step)
         self._writer.writerow((step, self._coerce(value)))
         self._handle.flush()
+        self._rows += 1
         return True
 
     def close(self) -> None:
@@ -174,12 +187,12 @@ class Metric:
         return self._sink.push(step, value, skip_if_exists=skip_if_exists)
 
 
-class MetricTable:
-    """One metric's rows, column by column.
+class MetricTable(ABC):
+    """What a metric reads back as: its rows, with their parameters alongside.
 
-    Deliberately not a dataframe. It holds plain Python lists and leaves the
-    analysis to whichever library the reader prefers, so that recording a
-    metric costs no dependency at all::
+    Deliberately not a dataframe. A table holds no library of its own, so
+    recording and reading metrics costs no dependency, and the analysis goes to
+    whichever dataframe library the reader prefers::
 
         table = orchestrator.get("loss")
         table.columns          # ('step', 'value', 'n', 'f', 'job_key')
@@ -188,18 +201,111 @@ class MetricTable:
         for row in table:      # one dict per row
             ...
 
-    :meth:`to_pandas` and :meth:`to_csv` are provided, and are written against
-    :meth:`to_dict` alone, so a converter you write yourself has exactly the
-    access the built-in ones do::
+    Only three members carry an implementation — :attr:`columns`, `__len__`
+    and :meth:`rows` — and the rest are derived from them. Holding the rows a
+    different way, streaming them off disk rather than keeping them in memory,
+    is therefore a matter of those three; :class:`ColumnTable` is the in-memory
+    one.
+
+    :meth:`to_pandas` and :meth:`to_csv` are derived too, so a converter the
+    reader writes has exactly the access the shipped ones do::
 
         import polars
         polars.DataFrame(table.to_dict())
 
-        import pyarrow
-        pyarrow.table(table.to_dict())
+    :meth:`rows` streams. :meth:`to_dict` and :meth:`to_pandas` materialise
+    every row, so prefer :meth:`rows` for a table that may not fit in memory.
+    """
 
-        import numpy
-        {name: numpy.asarray(values) for name, values in table.to_dict().items()}
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def columns(self) -> tuple[str, ...]:
+        """The column names, in order."""
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """The number of rows."""
+
+    @abstractmethod
+    def rows(self) -> Iterator[dict[str, Any]]:
+        """Iterate over the rows, one dict each, in column order."""
+
+    def __repr__(self) -> str:
+        """Render the table's shape."""
+        return f"{type(self).__qualname__}({len(self)} rows, columns={self.columns})"
+
+    def __contains__(self, column: str) -> bool:
+        """Whether a column is present."""
+        return column in self.columns
+
+    def __iter__(self) -> Iterator[dict[str, Any]]:
+        """Iterate over the rows, as :meth:`rows` does."""
+        return self.rows()
+
+    def __getitem__(self, column: str) -> list[Any]:
+        """One column's values.
+
+        Derived from :meth:`rows`, so it reads every row; an implementation
+        that holds its columns already overrides this.
+        """
+        if column not in self.columns:
+            raise KeyError(column)
+        return [row[column] for row in self.rows()]
+
+    def to_dict(self) -> dict[str, list[Any]]:
+        """The columns as plain lists.
+
+        This is what every converter is built on, the shipped ones included.
+        It materialises every row.
+        """
+        collected: dict[str, list[Any]] = {name: [] for name in self.columns}
+        for row in self.rows():
+            for name, value in row.items():
+                collected[name].append(value)
+        return collected
+
+    def to_pandas(self) -> pandas.DataFrame:
+        """Convert to a `pandas.DataFrame`, materialising every row.
+
+        Returns:
+            A frame of the same columns, in the same order.
+
+        Raises:
+            ImportError: If pandas is not installed. It is not a requirement of
+                this library; the error says what to do instead.
+        """
+        try:
+            import pandas
+        except ImportError as error:
+            raise ImportError(
+                "to_pandas needs pandas, which krum does not require: install it, "
+                "or hand to_dict() to the dataframe library you prefer"
+            ) from error
+        return pandas.DataFrame(self.to_dict())
+
+    def to_csv(self, path: PathLike) -> Path:
+        """Write the table as one CSV file, a row at a time.
+
+        Args:
+            path: Where to write it.
+
+        Returns:
+            The path written.
+        """
+        destination = Path(path)
+        with destination.open("w", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(self.columns)
+            writer.writerows(tuple(row.values()) for row in self.rows())
+        return destination
+
+
+class ColumnTable(MetricTable):
+    """A metric table holding every row in memory, column by column.
+
+    This is what :func:`collect` builds.
 
     Args:
         columns: One list of values per column, all of the same length.
@@ -219,38 +325,14 @@ class MetricTable:
             raise ValueError(f"columns have differing lengths: {lengths}")
         self._columns = {name: list(values) for name, values in columns.items()}
 
-    def __repr__(self) -> str:
-        """Render the table's shape."""
-        return f"{type(self).__qualname__}({len(self)} rows, columns={self.columns})"
-
-    def __len__(self) -> int:
-        """The number of rows."""
-        return len(next(iter(self._columns.values()))) if self._columns else 0
-
-    def __getitem__(self, column: str) -> list[Any]:
-        """One column's values."""
-        return list(self._columns[column])
-
-    def __contains__(self, column: str) -> bool:
-        """Whether a column is present."""
-        return column in self._columns
-
-    def __iter__(self) -> Iterator[dict[str, Any]]:
-        """Iterate over the rows, one dict each, as :meth:`rows` does."""
-        return self.rows()
-
     @property
     def columns(self) -> tuple[str, ...]:
         """The column names, in order."""
         return tuple(self._columns)
 
-    def to_dict(self) -> dict[str, list[Any]]:
-        """The columns as plain lists.
-
-        This is the accessor every converter is built on, the shipped ones
-        included.
-        """
-        return {name: list(values) for name, values in self._columns.items()}
+    def __len__(self) -> int:
+        """The number of rows."""
+        return len(next(iter(self._columns.values()))) if self._columns else 0
 
     def rows(self) -> Iterator[dict[str, Any]]:
         """Iterate over the rows, one dict each."""
@@ -258,40 +340,13 @@ class MetricTable:
         for values in zip(*self._columns.values(), strict=True):
             yield dict(zip(names, values, strict=True))
 
-    def to_pandas(self) -> pandas.DataFrame:
-        """Convert to a `pandas.DataFrame`.
+    def __getitem__(self, column: str) -> list[Any]:
+        """One column's values, copied rather than read row by row."""
+        return list(self._columns[column])
 
-        Returns:
-            A frame of the same columns, in the same order.
-
-        Raises:
-            ImportError: If pandas is not installed. It is not a requirement of
-                this library; the error says what to do instead.
-        """
-        try:
-            import pandas
-        except ImportError as error:
-            raise ImportError(
-                "to_pandas needs pandas, which krum does not require: install it, "
-                "or hand to_dict() to the dataframe library you prefer"
-            ) from error
-        return pandas.DataFrame(self.to_dict())
-
-    def to_csv(self, path: PathLike) -> Path:
-        """Write the table as one CSV file.
-
-        Args:
-            path: Where to write it.
-
-        Returns:
-            The path written.
-        """
-        destination = Path(path)
-        with destination.open("w", newline="") as handle:
-            writer = csv.writer(handle)
-            writer.writerow(self.columns)
-            writer.writerows(tuple(row.values()) for row in self.rows())
-        return destination
+    def to_dict(self) -> dict[str, list[Any]]:
+        """The columns as plain lists, copied rather than read row by row."""
+        return {name: list(values) for name, values in self._columns.items()}
 
 
 def parse_value(recorded: str) -> Callable[[str], Any]:
@@ -370,7 +425,7 @@ def read_metric(folder: JobFolder, name: str) -> MetricTable | None:
     for parameter, value in params.items():
         columns[parameter] = [value] * len(steps)
     columns["job_key"] = [folder.key] * len(steps)
-    return MetricTable(columns)
+    return ColumnTable(columns)
 
 
 def concat(tables: Iterable[MetricTable]) -> MetricTable:
@@ -402,7 +457,7 @@ def concat(tables: Iterable[MetricTable]) -> MetricTable:
         height = len(table)
         for name in names:
             columns[name].extend(table[name] if name in table else [None] * height)
-    return MetricTable(columns)
+    return ColumnTable(columns)
 
 
 def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> MetricTable:

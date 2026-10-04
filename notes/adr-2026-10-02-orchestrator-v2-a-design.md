@@ -223,7 +223,8 @@ trade-off in [adr-2026-07-31.md]:
   <job_key>/
     manifest.json   job_key, callable location, params (readable), owned
                     prefixes, git commit + dirty + branch, environment,
-                    timings, status, metrics
+                    timings, status, metrics (each with its dtype, file
+                    and row count)
     deps.json       witnesses, environment, called
     metrics/*.csv   append-only (step, value), one per metric, its name
                     percent-encoded so that any name round-trips
@@ -266,9 +267,19 @@ other without saying so. `metrics.collect` takes a store directly for the rare
 case where everything is wanted. The enqueued order matters too, plots grouping
 with `sort=False` and assigning colours in sequence.
 
-`step`, `value` and `job_key` are the frame's own columns, so a parameter of
+`step`, `value` and `job_key` are the table's own columns, so a parameter of
 one of those names is refused when the run is enqueued: it could not be told
 apart from the metric it was recorded against.
+
+`MetricTable` is an interface, not a class to hold rows: `columns`, `__len__`
+and `rows` are abstract, and everything else — the column accessor, the row
+iteration, `to_dict`, `to_pandas`, `to_csv` — is derived from those three.
+`ColumnTable` is the in-memory implementation, and the one `collect` builds.
+The split costs nothing today and is what keeps a later out-of-core
+implementation from being a rewrite: holding the rows differently is a matter
+of three members, and reading a metric back is already reading per-job CSVs
+off disk. The row count each metric wrote is recorded in the manifest for the
+same reason, so `len` need never read a file to answer.
 
 ## Execution
 
