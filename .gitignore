@@ -1,5 +1,7 @@
 # Ignore build dirs
 docs/_build
+build/
+dist/
 
 # Python stuff
 .venv

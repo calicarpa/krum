@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # ── Package metadata
 [project]
 name = "krum"
-version = "0.0.0.dev1"
+version = "0.9.0"
 description = "Byzantine-resilient aggregation rules for distributed machine learning."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -17,9 +17,15 @@ authors = [
     {name = "Arthur Danjou", email = "arthur.danjou@dauphine.eu"},
     {name = "Mohamad Ammar Said", email = "mohamad-ammar.said@polytechnique.edu"}
 ]
+keywords = [
+    "byzantine-fault-tolerance",
+    "distributed-machine-learning",
+    "federated-learning",
+    "robust-aggregation",
+]
 # See https://pypi.org/classifiers/
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
@@ -59,6 +65,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/calicarpa/krum"
+Documentation = "https://calicarpa.github.io/krum/"
 Repository = "https://github.com/calicarpa/krum"
 Issues = "https://github.com/calicarpa/krum/issues"
 
