@@ -21,7 +21,7 @@ way see [adr-2026-10-02-orchestrator-v2-a-design.md].
 | `MetricRecorder` | `storage` | the half of a job a child process can own |
 | `Metric`, `Sink` | `metrics` | one metric's open file |
 | `MetricTable` | `metrics` | the interface a metric reads back as |
-| `ColumnTable` | `metrics` | the rows read back, held in memory |
+| `InMemoryTable` | `metrics` | the rows read back, held in memory |
 | `DependencyTracker` | `tracing` | what the job called |
 | `InlineRunner`, `SubprocessRunner` | `execution` | where the body runs |
 

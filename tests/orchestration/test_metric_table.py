@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from krum.orchestration.metrics import ColumnTable, MetricTable, concat, infer_value, parse_value
+from krum.orchestration.metrics import InMemoryTable, MetricTable, concat, infer_value, parse_value
 
 
 class ImportTest(unittest.TestCase):
@@ -35,7 +35,7 @@ class ImportTest(unittest.TestCase):
 
     def test_the_converter_is_written_against_the_public_accessor(self) -> None:
         """`to_pandas` uses only `to_dict`, so a reader's own converter is equal to it."""
-        table = ColumnTable({"step": [0, 1], "value": [1.5, 0.5]})
+        table = InMemoryTable({"step": [0, 1], "value": [1.5, 0.5]})
         frame = table.to_pandas()
         self.assertEqual(list(frame.columns), list(table.to_dict()))
         self.assertEqual(frame["value"].tolist(), table["value"])
@@ -111,17 +111,17 @@ class InterfaceTest(unittest.TestCase):
         self.assertEqual(len(rows), 4)
 
     def test_the_eager_table_is_one_implementation_of_it(self) -> None:
-        """`ColumnTable` is the in-memory implementation, not the interface."""
-        self.assertTrue(issubclass(ColumnTable, MetricTable))
-        self.assertIsInstance(ColumnTable({"step": [0]}), MetricTable)
+        """`InMemoryTable` is the in-memory implementation, not the interface."""
+        self.assertTrue(issubclass(InMemoryTable, MetricTable))
+        self.assertIsInstance(InMemoryTable({"step": [0]}), MetricTable)
 
 
 class MetricTableTest(unittest.TestCase):
     """Test the structure itself."""
 
-    def table(self) -> ColumnTable:
+    def table(self) -> InMemoryTable:
         """A small table with a parameter column."""
-        return ColumnTable({"step": [0, 10], "value": [1.5, 0.5], "n": [10, 10]})
+        return InMemoryTable({"step": [0, 10], "value": [1.5, 0.5], "n": [10, 10]})
 
     def test_columns_keep_their_order(self) -> None:
         """Columns are reported in the order they were given."""
@@ -133,8 +133,8 @@ class MetricTableTest(unittest.TestCase):
 
     def test_empty_table_has_no_rows(self) -> None:
         """A table with no columns has no rows either."""
-        self.assertEqual(len(ColumnTable({})), 0)
-        self.assertEqual(ColumnTable({}).columns, ())
+        self.assertEqual(len(InMemoryTable({})), 0)
+        self.assertEqual(InMemoryTable({}).columns, ())
 
     def test_a_column_reads_back_as_a_list(self) -> None:
         """Indexing by name gives a plain list."""
@@ -179,7 +179,7 @@ class MetricTableTest(unittest.TestCase):
     def test_ragged_columns_are_refused(self) -> None:
         """Columns of differing lengths are not a table."""
         with self.assertRaises(ValueError):
-            ColumnTable({"step": [0, 1], "value": [1.5]})
+            InMemoryTable({"step": [0, 1], "value": [1.5]})
 
     def test_repr_reports_the_shape(self) -> None:
         """The repr says how many rows and which columns."""
@@ -200,7 +200,7 @@ class ConcatTest(unittest.TestCase):
 
     def test_stacking_keeps_every_row(self) -> None:
         """Rows from both tables survive, in order."""
-        table = concat([ColumnTable({"step": [0], "value": [1.0]}), ColumnTable({"step": [1], "value": [2.0]})])
+        table = concat([InMemoryTable({"step": [0], "value": [1.0]}), InMemoryTable({"step": [1], "value": [2.0]})])
         self.assertEqual(table["step"], [0, 1])
         self.assertEqual(table["value"], [1.0, 2.0])
 
@@ -212,8 +212,8 @@ class ConcatTest(unittest.TestCase):
         gap in it.
         """
         table = concat([
-            ColumnTable({"step": [0], "value": [1.0], "n": [10]}),
-            ColumnTable({"step": [0], "value": [2.0], "n": [10], "extra": [7]}),
+            InMemoryTable({"step": [0], "value": [1.0], "n": [10]}),
+            InMemoryTable({"step": [0], "value": [2.0], "n": [10], "extra": [7]}),
         ])
         self.assertEqual(table["extra"], [None, 7])
         self.assertIsInstance(table["extra"][1], int)
@@ -221,8 +221,8 @@ class ConcatTest(unittest.TestCase):
     def test_the_documented_column_order_survives(self) -> None:
         """Metric columns lead, parameters follow, the job key is last."""
         table = concat([
-            ColumnTable({"step": [0], "value": [1.0], "n": [10], "job_key": ["aaa"]}),
-            ColumnTable({"step": [0], "value": [2.0], "n": [10], "extra": [7], "job_key": ["bbb"]}),
+            InMemoryTable({"step": [0], "value": [1.0], "n": [10], "job_key": ["aaa"]}),
+            InMemoryTable({"step": [0], "value": [2.0], "n": [10], "extra": [7], "job_key": ["bbb"]}),
         ])
         self.assertEqual(table.columns, ("step", "value", "n", "extra", "job_key"))
 

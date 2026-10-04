@@ -92,7 +92,7 @@ polars.DataFrame(loss.to_dict())
 `to_pandas` is written against `to_dict` alone, so a converter you write
 yourself has exactly the access the shipped one does.
 
-`MetricTable` is the interface; `ColumnTable`, which holds its rows in memory,
+`MetricTable` is the interface; `InMemoryTable`, which holds its rows in memory,
 is the implementation you get today. `rows` streams, while `to_dict` and
 `to_pandas` materialise, which is the distinction to keep in mind if a sweep
 ever outgrows memory.

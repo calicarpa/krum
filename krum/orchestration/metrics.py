@@ -204,7 +204,7 @@ class MetricTable(ABC):
     Only three members carry an implementation — :attr:`columns`, `__len__`
     and :meth:`rows` — and the rest are derived from them. Holding the rows a
     different way, streaming them off disk rather than keeping them in memory,
-    is therefore a matter of those three; :class:`ColumnTable` is the in-memory
+    is therefore a matter of those three; :class:`InMemoryTable` is the in-memory
     one.
 
     :meth:`to_pandas` and :meth:`to_csv` are derived too, so a converter the
@@ -302,7 +302,7 @@ class MetricTable(ABC):
         return destination
 
 
-class ColumnTable(MetricTable):
+class InMemoryTable(MetricTable):
     """A metric table holding every row in memory, column by column.
 
     This is what :func:`collect` builds.
@@ -425,7 +425,7 @@ def read_metric(folder: JobFolder, name: str) -> MetricTable | None:
     for parameter, value in params.items():
         columns[parameter] = [value] * len(steps)
     columns["job_key"] = [folder.key] * len(steps)
-    return ColumnTable(columns)
+    return InMemoryTable(columns)
 
 
 def concat(tables: Iterable[MetricTable]) -> MetricTable:
@@ -457,7 +457,7 @@ def concat(tables: Iterable[MetricTable]) -> MetricTable:
         height = len(table)
         for name in names:
             columns[name].extend(table[name] if name in table else [None] * height)
-    return ColumnTable(columns)
+    return InMemoryTable(columns)
 
 
 def collect(store: JobStore, name: str, keys: Iterable[str] | None = None) -> MetricTable:

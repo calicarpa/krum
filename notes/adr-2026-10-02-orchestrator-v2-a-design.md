@@ -274,7 +274,7 @@ apart from the metric it was recorded against.
 `MetricTable` is an interface, not a class to hold rows: `columns`, `__len__`
 and `rows` are abstract, and everything else — the column accessor, the row
 iteration, `to_dict`, `to_pandas`, `to_csv` — is derived from those three.
-`ColumnTable` is the in-memory implementation, and the one `collect` builds.
+`InMemoryTable` is the in-memory implementation, and the one `collect` builds.
 The split costs nothing today and is what keeps a later out-of-core
 implementation from being a rewrite: holding the rows differently is a matter
 of three members, and reading a metric back is already reading per-job CSVs
