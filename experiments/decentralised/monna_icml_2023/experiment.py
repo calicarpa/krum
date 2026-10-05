@@ -58,79 +58,78 @@ AGGREGATORS = [
 
 def main() -> None:
     """Run the small MoNNA vs Mean proof of concept."""
-    orchestrator = Orchestrator(RESULTS)
+    with Orchestrator(RESULTS) as orchestrator:
+        for f in F_VALUES:
+            attack = None if f == 0 else SignFlipAttack
+            for agg, agg_label in AGGREGATORS:
+                label = f"{agg_label}_f{f}"
+                # NNA is MonnaSimulation's own default (num_closest injected
+                # automatically); pass it explicitly only when overriding to Mean.
+                aggregator = None if agg is NearestNeighborAverage else agg
 
-    for f in F_VALUES:
-        attack = None if f == 0 else SignFlipAttack
-        for agg, agg_label in AGGREGATORS:
-            label = f"{agg_label}_f{f}"
-            # NNA is MonnaSimulation's own default (num_closest injected
-            # automatically); pass it explicitly only when overriding to Mean.
-            aggregator = None if agg is NearestNeighborAverage else agg
+                orchestrator.run(
+                    monna_experiment,
+                    label=label,
+                    dataset=DATASET,
+                    data_dir=DATA_DIR,
+                    model_cls=Monna2023SmallMnist,
+                    n=N,
+                    f=f,
+                    learning_rate=LEARNING_RATE,
+                    beta=BETA,
+                    attack=attack,
+                    aggregator=aggregator,
+                    rounds=ROUNDS,
+                    eval_every=EVAL_EVERY,
+                    train_batch_size=TRAIN_BATCH_SIZE,
+                    test_batch_size=TEST_BATCH_SIZE,
+                    train_size=TRAIN_SIZE,
+                    test_size=TEST_SIZE,
+                    partitioner=PARTITIONER,
+                    partitioner_kwargs=PARTITIONER_KWARGS,
+                    seed=SEED,
+                )
 
-            orchestrator.run(
-                monna_experiment,
-                label=label,
-                dataset=DATASET,
-                data_dir=DATA_DIR,
-                model_cls=Monna2023SmallMnist,
-                n=N,
-                f=f,
-                learning_rate=LEARNING_RATE,
-                beta=BETA,
-                attack=attack,
-                aggregator=aggregator,
-                rounds=ROUNDS,
-                eval_every=EVAL_EVERY,
-                train_batch_size=TRAIN_BATCH_SIZE,
-                test_batch_size=TEST_BATCH_SIZE,
-                train_size=TRAIN_SIZE,
-                test_size=TEST_SIZE,
-                partitioner=PARTITIONER,
-                partitioner_kwargs=PARTITIONER_KWARGS,
-                seed=SEED,
-            )
+        print(f"\n{orchestrator.drain().report()}")
 
-    print(f"\n{orchestrator.drain().report()}")
+        metrics = [("train_loss", "train loss"), ("test_loss", "test loss"), ("test_accuracy", "test accuracy")]
+        palette = ["tab:orange", "tab:green", "tab:blue", "tab:red", "tab:purple", "tab:brown"]
+        styles: dict[str, dict] = {}
+        for i, f in enumerate(F_VALUES):
+            for j, (_, agg_label) in enumerate(AGGREGATORS):
+                label = f"{agg_label}_f{f}"
+                if f == 0:
+                    linestyle = "-" if agg_label == "NNA" else ":"
+                else:
+                    linestyle = "--"
+                styles[label] = {
+                    "color": palette[(i * len(AGGREGATORS) + j) % len(palette)],
+                    "linestyle": linestyle,
+                }
+        fig, axes = plt.subplots(1, len(metrics), figsize=(14, 4))
+        for ax, (name, pretty) in zip(axes, metrics, strict=True):
+            frame = orchestrator.get(name).to_pandas()
+            for run_label, group in frame.groupby("label", sort=False):
+                group = group.sort_values("step")
+                ax.plot(group["step"], group["value"], label=run_label, **styles.get(run_label, {}), linewidth=1.5)
+            ax.set_xlabel("round")
+            ax.set_ylabel(pretty)
+            ax.set_title(pretty)
+            ax.legend(fontsize=8, loc="best")
+            ax.grid(True, linestyle=":", alpha=0.5)
+            if name == "test_accuracy":
+                ax.set_ylim(0.0, 1.0)
+        alpha = (PARTITIONER_KWARGS or {}).get("alpha")
+        partitioner_label = PARTITIONER.__name__ if alpha is None else f"{PARTITIONER.__name__}(α={alpha})"
+        fig.suptitle(
+            f"MoNNA (NNA) vs Mean — sign-flip attack — {partitioner_label} — {DATASET} "
+            f"(n={N}, f in {F_VALUES}, rounds={ROUNDS})",
+            fontsize=12,
+        )
+        fig.tight_layout(rect=[0, 0, 1, 0.92])
+        plt.show()
 
-    metrics = [("train_loss", "train loss"), ("test_loss", "test loss"), ("test_accuracy", "test accuracy")]
-    palette = ["tab:orange", "tab:green", "tab:blue", "tab:red", "tab:purple", "tab:brown"]
-    styles: dict[str, dict] = {}
-    for i, f in enumerate(F_VALUES):
-        for j, (_, agg_label) in enumerate(AGGREGATORS):
-            label = f"{agg_label}_f{f}"
-            if f == 0:
-                linestyle = "-" if agg_label == "NNA" else ":"
-            else:
-                linestyle = "--"
-            styles[label] = {
-                "color": palette[(i * len(AGGREGATORS) + j) % len(palette)],
-                "linestyle": linestyle,
-            }
-    fig, axes = plt.subplots(1, len(metrics), figsize=(14, 4))
-    for ax, (name, pretty) in zip(axes, metrics, strict=True):
-        frame = orchestrator.get(name).to_pandas()
-        for run_label, group in frame.groupby("label", sort=False):
-            group = group.sort_values("step")
-            ax.plot(group["step"], group["value"], label=run_label, **styles.get(run_label, {}), linewidth=1.5)
-        ax.set_xlabel("round")
-        ax.set_ylabel(pretty)
-        ax.set_title(pretty)
-        ax.legend(fontsize=8, loc="best")
-        ax.grid(True, linestyle=":", alpha=0.5)
-        if name == "test_accuracy":
-            ax.set_ylim(0.0, 1.0)
-    alpha = (PARTITIONER_KWARGS or {}).get("alpha")
-    partitioner_label = PARTITIONER.__name__ if alpha is None else f"{PARTITIONER.__name__}(α={alpha})"
-    fig.suptitle(
-        f"MoNNA (NNA) vs Mean — sign-flip attack — {partitioner_label} — {DATASET} "
-        f"(n={N}, f in {F_VALUES}, rounds={ROUNDS})",
-        fontsize=12,
-    )
-    fig.tight_layout(rect=[0, 0, 1, 0.92])
-    plt.show()
-
-    print("\nSmall experiment done.")
+        print("\nSmall experiment done.")
 
 
 if __name__ == "__main__":

@@ -106,45 +106,44 @@ def plot_comparison(
 
 def main() -> None:
     """Run the experiment and plot the results."""
-    orchestrator = Orchestrator(RESULTS)
+    with Orchestrator(RESULTS) as orchestrator:
+        configs = [
+            (Average, "Mean_f0", 0, None),
+            (Average, f"Mean_f{F}", F, None),
+            (MultiKrum, "MultiKrum_f0", 0, {"m": N - 0}),
+            (MultiKrum, f"MultiKrum_f{F}", F, {"m": N - F}),
+        ]
 
-    configs = [
-        (Average, "Mean_f0", 0, None),
-        (Average, f"Mean_f{F}", F, None),
-        (MultiKrum, "MultiKrum_f0", 0, {"m": N - 0}),
-        (MultiKrum, f"MultiKrum_f{F}", F, {"m": N - F}),
-    ]
+        for agg, label, f_val, agg_kw in configs:
+            orchestrator.run(
+                krum_experiment,
+                label=label,
+                dataset=DATASET,
+                model_cls=MODEL,
+                aggregator=agg,
+                aggregator_kwargs=agg_kw,
+                attack=SignFlipAttack,
+                attack_kwargs={"scale": 10.0},
+                n=N,
+                f=f_val,
+                rounds=ROUNDS,
+                batch_size=BATCH_SIZE,
+                lr=LR,
+                seed=SEED,
+                partitioner=PARTITIONER,
+                partitioner_kwargs=PARTITIONER_KWARGS,
+                eval_every=EVAL_EVERY,
+                xavier_init=XAVIER_INIT,
+                weight_decay=WEIGHT_DECAY,
+            )
 
-    for agg, label, f_val, agg_kw in configs:
-        orchestrator.run(
-            krum_experiment,
-            label=label,
-            dataset=DATASET,
-            model_cls=MODEL,
-            aggregator=agg,
-            aggregator_kwargs=agg_kw,
-            attack=SignFlipAttack,
-            attack_kwargs={"scale": 10.0},
-            n=N,
-            f=f_val,
-            rounds=ROUNDS,
-            batch_size=BATCH_SIZE,
-            lr=LR,
-            seed=SEED,
-            partitioner=PARTITIONER,
-            partitioner_kwargs=PARTITIONER_KWARGS,
-            eval_every=EVAL_EVERY,
-            xavier_init=XAVIER_INIT,
-            weight_decay=WEIGHT_DECAY,
+        print(f"\n{orchestrator.drain().report()}")
+        plot_comparison(
+            orchestrator.get("test_loss").to_pandas(),
+            orchestrator.get("test_accuracy").to_pandas(),
+            orchestrator.get("train_loss").to_pandas(),
+            f_byz=F,
         )
-
-    print(f"\n{orchestrator.drain().report()}")
-    plot_comparison(
-        orchestrator.get("test_loss").to_pandas(),
-        orchestrator.get("test_accuracy").to_pandas(),
-        orchestrator.get("train_loss").to_pandas(),
-        f_byz=F,
-    )
 
 
 if __name__ == "__main__":
