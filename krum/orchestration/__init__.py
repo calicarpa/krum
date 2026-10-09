@@ -106,21 +106,24 @@ __all__ = [
 type RunCallable = Callable[..., None]
 
 
-def owned_for(callable: Any) -> set[str]:
-    """Guess the module prefixes a run's identity should be computed over.
+def owned_for(callable: Any) -> Modules:
+    """Guess what a run's identity should be computed over.
 
-    The user's own package and `krum` are what a change should invalidate on;
-    everything else is a dependency, and belongs to the environment
-    fingerprint rather than to the key.
+    The user's own code and `krum` are what a change should invalidate on:
+    the callable's package, and every module loaded from outside the installed
+    code, such as a `utils.py` next to the sweep script, whenever it comes to
+    be loaded (see :class:`~krum.orchestration.hashing.Modules`). Everything
+    else is a dependency, and belongs to the environment fingerprint rather
+    than to the key.
 
     Args:
         callable: The user-defined function a run executes.
 
     Returns:
-        The owned module prefixes.
+        The ownership test.
     """
     module = getattr(callable, "__module__", None) or "__main__"
-    return {"__main__", "krum", module.partition(".")[0]}
+    return Modules({"__main__", "krum", module.partition(".")[0]}, local=True)
 
 
 class PendingRun:
@@ -167,6 +170,23 @@ class PendingRun:
         """The run's static identity, computed on first access."""
         if self._key is None:
             self._key = static_key(self._callable, self._params, owned_for(self._callable))
+        return self._key
+
+    def refresh(self, owned: Modules | Iterable[str] | None = None) -> Hash:
+        """Recompute the key from the code and the module values as they are now.
+
+        What a run reads from its module can be set after it was enqueued: a
+        config dict filled in before the drain, a seed, a device. The key is
+        recomputed when the drain starts, so that it names what the run will
+        actually compute.
+
+        Args:
+            owned: What the identity is computed over.
+
+        Returns:
+            The key, which may differ from the one returned at enqueue time.
+        """
+        self._key = static_key(self._callable, self._params, owned)
         return self._key
 
 
@@ -451,26 +471,20 @@ class Orchestrator:
         """How many runs are enqueued."""
         return len(self._queue)
 
-    def _owned_for(self, callable: RunCallable) -> Modules | Iterable[str]:
-        """What a run's identity is computed over, as given."""
-        return owned_for(callable) if self._owned is None else self._owned
-
-    def _prefixes_for(self, callable: RunCallable) -> tuple[str, ...]:
-        """The owned module prefixes for one run, as plain names.
-
-        An ownership test carries exclusions that plain prefixes cannot, so it
-        is accepted as given and unwrapped here, where the manifest and the
-        tracer both want names.
-        """
-        owned = self._owned_for(callable)
-        return tuple(sorted(owned.prefixes if isinstance(owned, Modules) else owned))
+    def _owned_for(self, callable: RunCallable) -> Modules:
+        """What a run's identity is computed over, as an ownership test."""
+        if self._owned is None:
+            return owned_for(callable)
+        return self._owned if isinstance(self._owned, Modules) else Modules(self._owned)
 
     def run(self, callable: RunCallable, **params: Any) -> Hash:
         """Enqueue one run, computing its identity now.
 
         The key is computed eagerly so that an ill-fitting parameter, or a
         dependency that cannot be hashed, is reported at the call site rather
-        than after a long sweep has already started.
+        than after a long sweep has already started. It is computed again when
+        the queue is planned or drained, so that a module value set in between
+        counts; the key returned here is provisional until then.
 
         Args:
             callable: The user-defined function to execute.
@@ -492,32 +506,48 @@ class Orchestrator:
             )
         key = static_key(callable, params, self._owned_for(callable))
         self._queue.append(PendingRun(callable, params, key))
-        name = self._store.name_for(key)
-        if name not in self._enqueued:
-            self._enqueued.append(name)
+        self._enlist(key)
         return key
 
-    def runner(self, owned: Iterable[str] = ()) -> Runner:
+    def _enlist(self, key: Hash, previous: Hash | None = None) -> None:
+        """Count a key among this sweep's jobs, in place of a provisional one."""
+        name = self._store.name_for(key)
+        if name in self._enqueued:
+            return
+        old = None if previous is None else self._store.name_for(previous)
+        if old in self._enqueued:
+            self._enqueued[self._enqueued.index(old)] = name
+        else:
+            self._enqueued.append(name)
+
+    def _refresh(self) -> None:
+        """Recompute every enqueued key, now that the sweep is about to start."""
+        for pending in self._queue:
+            previous = pending.key
+            key = pending.refresh(self._owned_for(pending.callable))
+            if key != previous:
+                self._enlist(key, previous)
+
+    def runner(self, owned: Modules | Iterable[str] = ()) -> Runner:
         """How this orchestrator executes a job's body.
 
         Args:
-            owned: Module prefixes whose functions are worth recording, when
-                tracing. A sweep is normally one experiment, so this is taken
-                from the first enqueued run.
+            owned: Whose functions are worth recording, when tracing. A sweep
+                is normally one experiment, so this is taken from the first
+                enqueued run.
 
         Returns:
             The runner, configured for isolation and tracing.
         """
-        prefixes = tuple(owned)
         if self._isolate:
-            return SubprocessRunner(prefixes, self._trace)
-        return InlineRunner(prefixes, self._trace)
+            return SubprocessRunner(owned, self._trace)
+        return InlineRunner(owned, self._trace)
 
-    def _owned_prefixes(self) -> tuple[str, ...]:
-        """The owned prefixes a traced sweep records against."""
+    def _owned_modules(self) -> Modules | tuple[()]:
+        """What a traced sweep records against."""
         if not self._queue:
             return ()
-        return self._prefixes_for(self._queue[0].callable)
+        return self._owned_for(self._queue[0].callable)
 
     def witnesses(self) -> dict[str, Any]:
         """The facts the current environment would stamp on a result.
@@ -565,6 +595,7 @@ class Orchestrator:
         Returns:
             One decision per enqueued run, in queue order.
         """
+        self._refresh()
         return [self.decide(pending, force) for pending in self._queue]
 
     def drain(self, force: bool | None = None) -> RunSummary:
@@ -585,7 +616,8 @@ class Orchestrator:
         Raises:
             RunFailed: If a run raised, after recording its traceback.
         """
-        with self.runner(self._owned_prefixes()) as runner:
+        self._refresh()
+        with self.runner(self._owned_modules()) as runner:
             return self._drain(runner, force)
 
     def _drain(self, runner: Runner, force: bool | None) -> RunSummary:
@@ -603,7 +635,7 @@ class Orchestrator:
                 key,
                 pending.callable,
                 pending.bound_params,
-                owned=self._prefixes_for(pending.callable),
+                owned=self._owned_for(pending.callable),
                 lock=self._lock,
                 start=self._source,
             )

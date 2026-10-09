@@ -19,6 +19,7 @@ See `notes/adr-2026-10-02-orchestrator-v2-a-design.md`.
 
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import os
 import platform
@@ -34,7 +35,7 @@ from time import perf_counter
 from typing import Any
 from urllib.parse import quote, unquote
 
-from .hashing import Hash
+from .hashing import Hash, Modules, PathLike, hash_file
 
 # Marker and member names inside a job folder
 DONE = "DONE"
@@ -44,9 +45,6 @@ DEPS = "deps.json"
 METRICS = "metrics"
 # Staging area, a sibling of the job folders so that renames stay on one filesystem
 STAGING = ".staging"
-
-# A plain alias rather than a `type` statement, which needs Python 3.12
-PathLike = str | os.PathLike[str]
 
 
 def encode_value(value: Any) -> Any:
@@ -117,39 +115,6 @@ def find_lock(start: PathLike | None = None) -> Path | None:
     return None
 
 
-_HASHES: dict[tuple[str, int, int], str] = {}
-
-
-def hash_file(path: Path, cache: bool = True) -> str:
-    """Hash a file's contents, as a hex digest.
-
-    Args:
-        path: The file to hash.
-        cache: Reuse a digest computed earlier for the same path, size and
-            modification time. A sweep fingerprints the same lock file once per
-            job, which is worth not re-reading every time.
-
-    Returns:
-        The hex digest of the file's contents.
-    """
-    status = path.stat()
-    token = (str(path), status.st_mtime_ns, status.st_size)
-    if cache and token in _HASHES:
-        return _HASHES[token]
-    state = Blake2b()
-    with path.open("rb") as handle:
-        buffer = memoryview(bytearray(65536))
-        while True:
-            read = handle.readinto(buffer)
-            if read == 0:
-                break
-            state.update(buffer[:read])
-    digest = state.hexdigest()
-    if cache:
-        _HASHES[token] = digest
-    return digest
-
-
 def environment_fingerprint(lock: PathLike | None = None, start: PathLike | None = None) -> dict[str, Any]:
     """Describe the environment a job ran in.
 
@@ -157,6 +122,11 @@ def environment_fingerprint(lock: PathLike | None = None, start: PathLike | None
     exact and cheap next to sniffing each distribution. This lives in the
     fingerprint rather than in the job key, so that a dependency bump marks
     stored results stale without orphaning them under a new key.
+
+    The installed packages are recorded as well, by name and version. A lock
+    file says what the environment *should* hold; the installed packages are
+    what it holds, which is what the job ran against, and what a project
+    without a lock file still has.
 
     Args:
         lock: The lock file to hash; discovered from `start` when omitted.
@@ -176,7 +146,34 @@ def environment_fingerprint(lock: PathLike | None = None, start: PathLike | None
         "debug": __debug__,
         "platform": platform.platform(),
         "uv_lock": {"path": str(path), "hash": hash_file(path)} if path is not None else None,
+        "packages": installed_packages(),
     }
+
+
+def installed_packages() -> dict[str, str]:
+    """The distributions importable right now, by normalized name.
+
+    Returns:
+        Each distribution's version, by name, sorted. A name installed twice,
+        as a stale egg next to a wheel can be, carries both versions.
+    """
+    found: dict[str, set[str]] = {}
+    for distribution in importlib.metadata.distributions():
+        name = distribution.metadata["Name"]
+        if not name:
+            continue
+        found.setdefault(name.lower().replace("_", "-"), set()).add(distribution.version)
+    return {name: ", ".join(sorted(versions)) for name, versions in sorted(found.items())}
+
+
+def hash_packages(packages: Mapping[str, str] | None) -> str | None:
+    """Reduce an installed package listing to one comparable digest."""
+    if packages is None:
+        return None
+    state = Blake2b(digest_size=16)
+    for name, version in sorted(packages.items()):
+        state.update(f"{name}=={version}\n".encode())
+    return state.hexdigest()
 
 
 def witnesses_of(environment: Mapping[str, Any]) -> dict[str, Any]:
@@ -187,11 +184,12 @@ def witnesses_of(environment: Mapping[str, Any]) -> dict[str, Any]:
     computing them separately, is what keeps `deps.json` from disagreeing with
     the manifest beside it.
 
-    The lock file hash is the one witness that is not already covered by the
-    job key: third-party code is folded into a key as a location only, never by
-    content, so a dependency bump is invisible to the key by design. The
-    interpreter and the optimization flag are recorded too, being cheap and
-    robust should key derivation ever stop depending on bytecode.
+    The lock file hash and the installed packages are the witnesses that are
+    not already covered by the job key: third-party code is folded into a key
+    as a location only, never by content, so a dependency bump is invisible to
+    the key by design. The interpreter and the optimization flag are recorded
+    too, being cheap and robust should key derivation ever stop depending on
+    bytecode.
 
     The interpreter is compared on major and minor only. Bytecode is stable
     across patch releases, so a patch bump is not a reason to discard results.
@@ -210,6 +208,7 @@ def witnesses_of(environment: Mapping[str, Any]) -> dict[str, Any]:
         "implementation": environment.get("implementation"),
         "debug": environment.get("debug"),
         "uv_lock": None if lock is None else lock.get("hash"),
+        "packages": hash_packages(environment.get("packages")),
     }
 
 
@@ -633,7 +632,7 @@ def build_manifest(
     callable: Any,
     params: Mapping[str, Any],
     *,
-    owned: Iterable[str] = (),
+    owned: Modules | Iterable[str] = (),
     lock: PathLike | None = None,
     start: PathLike | None = None,
 ) -> dict[str, Any]:
@@ -643,7 +642,8 @@ def build_manifest(
         key: The job key.
         callable: The user-defined function the job executes.
         params: The bound parameters, in signature order.
-        owned: The module prefixes the key was computed over.
+        owned: What the key was computed over, as module prefixes or as a
+            :class:`~krum.orchestration.hashing.Modules`.
         lock: The lock file to fingerprint.
         start: A directory inside the repository to read provenance from, and
             to discover the lock file from.
@@ -658,7 +658,8 @@ def build_manifest(
             "qualname": getattr(callable, "__qualname__", None),
         },
         "params": encode_params(params),
-        "owned": sorted(owned),
+        "owned": sorted(owned.prefixes if isinstance(owned, Modules) else owned),
+        "owned_local": isinstance(owned, Modules) and owned.local,
         "git": git_provenance(start),
         "environment": environment_fingerprint(lock, start),
         "timings": {"started": datetime.now(timezone.utc).isoformat()},
