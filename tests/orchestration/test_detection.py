@@ -211,7 +211,9 @@ class NativeTest(DetectionTestCase):
 
     def compile(self, source: str, output: str, python: bool = False) -> None:
         """Compile a C file of the project into a shared object."""
-        command = [compiler(), "-shared", "-fPIC", "-o", output, source]
+        cc = compiler()
+        assert cc is not None, "the class is skipped without a compiler"
+        command = [cc, "-shared", "-fPIC", "-o", output, source]
         if python:
             command += ["-I", sysconfig.get_paths()["include"]]
             if sys.platform == "darwin":
