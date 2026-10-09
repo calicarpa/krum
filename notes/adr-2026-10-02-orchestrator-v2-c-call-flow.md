@@ -58,7 +58,9 @@ orch.run(my_experiment, n=10, f=2, aggregator=Krum)
    `RESERVED_COLUMNS`; a clash raises `ValueError` here, at the call site.
 3. `Orchestrator._owned_for(callable)` returns the ownership setting, falling
    back to `owned_for(callable)`, which is `{"__main__", "krum", <the
-   callable's top-level package>}`.
+   callable's top-level package>, *hashing.local_modules()}`, the last being
+   every loaded top-level module whose file is outside the standard library
+   and site-packages, such as a `utils.py` next to the sweep script.
 4. `hashing.static_key(callable, params, owned)` builds a `Hasher`, pushes the
    callable, then pushes `bind_params(...)` again, and digests. This is where
    the key's whole dependency walk happens — see

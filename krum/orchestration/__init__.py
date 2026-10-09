@@ -59,7 +59,7 @@ from typing import Any, Self
 from warnings import warn
 
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
-from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
+from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, local_modules, static_key
 from .metrics import RESERVED_COLUMNS, InMemoryTable, Metric, MetricTable, NoActiveJob, collect, reserved
 from .storage import (
     JobFolder,
@@ -109,9 +109,12 @@ type RunCallable = Callable[..., None]
 def owned_for(callable: Any) -> set[str]:
     """Guess the module prefixes a run's identity should be computed over.
 
-    The user's own package and `krum` are what a change should invalidate on;
-    everything else is a dependency, and belongs to the environment
-    fingerprint rather than to the key.
+    The user's own code and `krum` are what a change should invalidate on:
+    the callable's package, and every loaded module that is not installed
+    code, such as a `utils.py` next to the sweep script (see
+    :func:`~krum.orchestration.hashing.local_modules`). Everything else is a
+    dependency, and belongs to the environment fingerprint rather than to the
+    key.
 
     Args:
         callable: The user-defined function a run executes.
@@ -120,7 +123,7 @@ def owned_for(callable: Any) -> set[str]:
         The owned module prefixes.
     """
     module = getattr(callable, "__module__", None) or "__main__"
-    return {"__main__", "krum", module.partition(".")[0]}
+    return {"__main__", "krum", module.partition(".")[0], *local_modules()}
 
 
 class PendingRun:

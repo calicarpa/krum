@@ -112,7 +112,12 @@ attribute rather than by a name in the caller's globals.
 ### Where recursion stops
 
 `Modules` decides ownership by dotted prefix. Owned code is folded in by
-content; everything else stops at its `Location`. Dependency *versions* are not
+content; everything else stops at its `Location`. By default, the prefixes are
+`__main__`, `krum`, the experiment's own package, and every loaded module that
+is not installed code — one whose file is outside the standard library and
+every site-packages directory. That last part is what covers a researcher's
+`from utils import *`, `utils.py` sitting next to the sweep script: it is
+neither `__main__` nor `krum`, and an edit to it must not keep a stale result. Dependency *versions* are not
 hashed here at all — they belong to the fingerprint, keyed on `uv.lock` — which
 is what keeps a hash of a user experiment from walking into pytorch.
 

@@ -22,7 +22,11 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import os
 import pickle
+import site
+import sys
+import sysconfig
 from collections.abc import Buffer, Iterable, Iterator, Mapping
 from contextvars import ContextVar
 from hashlib import blake2b as Blake2b
@@ -183,6 +187,41 @@ class Modules:
         if isinstance(obj, ModuleType):
             return self.owns_module(obj.__name__)
         return self.owns_module(getattr(obj, "__module__", None))
+
+
+def _installed_roots() -> tuple[str, ...]:
+    """The directories third-party and standard library code is installed under."""
+    paths = sysconfig.get_paths()
+    roots = {paths[name] for name in ("stdlib", "platstdlib", "purelib", "platlib") if name in paths}
+    roots.update(site.getsitepackages())
+    if site.ENABLE_USER_SITE:
+        roots.add(site.getusersitepackages())
+    return tuple(sorted({os.path.join(os.path.realpath(root), "") for root in roots}))
+
+
+def local_modules() -> set[str]:
+    """The top-level names of the loaded modules that are not installed code.
+
+    A module loaded from a file outside the standard library and outside every
+    site-packages directory is the user's own: a `utils.py` next to the sweep
+    script, or a package of the project. Its content is what a change should
+    invalidate a result on, so it is owned by default, the same as `__main__`.
+    Missing one would silently keep a stale result, while owning one too many
+    only costs a re-run.
+
+    Returns:
+        The top-level module names, to be used as owned prefixes.
+    """
+    roots = _installed_roots()
+    found = set()
+    for name, module in list(sys.modules.items()):
+        origin = getattr(module, "__file__", None)
+        if not origin:
+            continue
+        origin = os.path.realpath(origin)
+        if not origin.startswith(roots):
+            found.add(name.partition(".")[0])
+    return found
 
 
 type Hash = bytes
