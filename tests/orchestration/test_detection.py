@@ -8,10 +8,8 @@ change a compiled extension, which a process cannot unload.
 Every case first checks that an untouched rerun is skipped, so that a re-run
 after the change is attributable to the change, not to an unstable key.
 
-Cases the orchestrator does not cover yet are marked as expected failures, and
-say why. Closing one turns it into an unexpected success, which is the cue to
-drop the marker. Impure experiments (network, `/dev/urandom`) are out of scope
-by design, and have no case here.
+Impure experiments (network, `/dev/urandom`) are out of scope by design, and
+have no case here.
 """
 
 from __future__ import annotations
@@ -196,13 +194,8 @@ class HelperTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: pack(30), 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_import_inside_the_body(self) -> None:
-        """`import utils` inside the experiment, so not loaded when the job is enqueued.
-
-        Not covered: `utils` is not loaded when the owned modules are listed,
-        so the key holds no trace of it and the tracer does not record it.
-        """
+        """`import utils` inside the experiment, so not loaded when the job is enqueued."""
         self.helper()
         self.project.write(
             "main.py",
@@ -225,13 +218,8 @@ class NativeTest(DetectionTestCase):
                 command += ["-undefined", "dynamic_lookup"]
         subprocess.run(command, cwd=self.project.root, check=True, capture_output=True)
 
-    @unittest.expectedFailure
     def test_extension_module(self) -> None:
-        """A CPython extension module next to the sweep script, rebuilt with different code.
-
-        Not covered: a compiled function is folded in by name only, so a
-        rebuilt extension keeps its key.
-        """
+        """A CPython extension module next to the sweep script, rebuilt with different code."""
         self.project.write(
             "fmod.c",
             "#include <Python.h>\n"
@@ -253,13 +241,8 @@ class NativeTest(DetectionTestCase):
 
         self.assertRerunsAfter(rebuild, 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_ctypes_library(self) -> None:
-        """A plain shared library loaded through `ctypes`, rebuilt with different code.
-
-        Not covered: the loaded library cannot be hashed, so the job is
-        refused at enqueue with a `HashError` before anything runs.
-        """
+        """A plain shared library loaded through `ctypes`, rebuilt with different code."""
         self.project.write("f.c", "double f(double x) { return x * 2; }\n")
         self.compile("f.c", "libf.so")
         self.project.write(
@@ -307,13 +290,8 @@ class GlobalTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: self.project.env.update(SCALE="30"), 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_constant_of_a_helper_imported_inside_the_body(self) -> None:
-        """A constant read by a helper that is only imported while the job runs.
-
-        Not covered: such a helper is invisible to the key, and even a traced
-        function is re-checked on its own code only, not on the globals it reads.
-        """
+        """A constant read by a helper that is only imported while the job runs."""
         self.project.write("utils.py", "SCALE = 2\ndef common_stuff(x):\n    return x * SCALE\n")
         self.project.write(
             "main.py",
@@ -322,13 +300,8 @@ class GlobalTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: self.project.edit("utils.py", "SCALE = 2", "SCALE = 30"), 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_constant_changed_after_enqueueing(self) -> None:
-        """A global set between `orch.run` and the drain.
-
-        Not covered: the key is computed when the job is enqueued, so it sees
-        the value before the change, which stays the same from one run to the next.
-        """
+        """A global set between `orch.run` and the drain."""
         self.project.write(
             "main.py",
             HEADER + "import os\nCONFIG = {'scale': 0}\n"
@@ -379,14 +352,8 @@ class EnvironmentTest(DetectionTestCase):
         self.project.write("uv.lock", 'version = 1\n[[package]]\nname = "torch"\nversion = "2.5.0"\n')
         self.assertRerunsAfter(lambda: self.project.edit("uv.lock", '"2.5.0"', '"2.6.0"'), 2.0, 2.0)
 
-    @unittest.expectedFailure
     def test_installed_library_without_a_lock_file(self) -> None:
-        """A library upgraded in place, in a project that has no `uv.lock`.
-
-        Not covered: dependency versions are known only through the lock file,
-        and without one there is nothing to compare. The library is faked as
-        installed metadata the experiment reads its behaviour from.
-        """
+        """A library upgraded in place, in a project that has no `uv.lock`."""
         site = self.project.root / "site"
         self.project.env["PYTHONPATH"] = str(site)
 

@@ -15,7 +15,9 @@ from krum.orchestration.hashing import (
     HashError,
     Location,
     Modules,
+    callee_key,
     code_of,
+    is_local_file,
     shallow_key,
     static_key,
 )
@@ -160,7 +162,7 @@ class ShallowKeyTest(unittest.TestCase):
 
 
 class ModulesTest(unittest.TestCase):
-    """Test module ownership by prefix."""
+    """Test module ownership by prefix, and by where a module was loaded from."""
 
     def test_owns_module_matches_prefix_and_submodules(self) -> None:
         """A prefix owns itself and its submodules, not a merely similar name."""
@@ -170,6 +172,67 @@ class ModulesTest(unittest.TestCase):
         self.assertFalse(modules.owns_module("krumble"))
         self.assertFalse(modules.owns_module("torch"))
         self.assertFalse(modules.owns_module(None))
+
+    def test_local_test_owns_what_is_not_installed(self) -> None:
+        """A local test owns this test module, loaded from the repository, and no installed one."""
+        self.assertFalse(Modules(()).owns_module(__name__))
+        local = Modules((), local=True)
+        self.assertTrue(local.owns_module(__name__))
+        self.assertFalse(local.owns_module("krum.orchestration.hashing"), "exclusions still win")
+        self.assertFalse(local.owns_module("unittest"))
+        self.assertFalse(local.owns_module("pytest"))
+        self.assertFalse(local.owns_module("a_module_nobody_imported"))
+
+    def test_local_file_is_judged_on_its_directory(self) -> None:
+        """The standard library and site-packages are installed; the rest is local."""
+        self.assertTrue(is_local_file(__file__))
+        self.assertFalse(is_local_file(unittest.__file__))
+        self.assertFalse(is_local_file(None))
+
+    def test_tests_compare_by_what_they_own(self) -> None:
+        """Equal tests are equal, and the local flag tells two apart."""
+        self.assertEqual(Modules(("a",)), Modules(("a",)))
+        self.assertNotEqual(Modules(("a",)), Modules(("a",), local=True))
+
+
+class CalleeKeyTest(unittest.TestCase):
+    """Test the hash a traced job records for each function it entered."""
+
+    SOURCE = """
+        SCALE = {scale}
+
+        def helper(x):
+            return x * {factor}
+
+        def target(n):
+            return helper(n) * SCALE
+        """
+
+    def test_a_changed_global_changes_the_callee_key(self) -> None:
+        """A constant the function reads is part of its record, where its code alone is not."""
+        before = build(self.SOURCE.format(scale=2, factor=1))
+        after = build(self.SOURCE.format(scale=3, factor=1))
+        self.assertEqual(shallow_key(before), shallow_key(after))
+        self.assertNotEqual(callee_key(before), callee_key(after))
+
+    def test_a_changed_helper_does_not_change_the_callee_key(self) -> None:
+        """A function the code calls folds in as its name: it is recorded on its own."""
+        before = build(self.SOURCE.format(scale=2, factor=1))
+        after = build(self.SOURCE.format(scale=2, factor=5))
+        self.assertEqual(callee_key(before), callee_key(after))
+
+    def test_a_changed_default_changes_the_callee_key(self) -> None:
+        """A default value lives on the function, not in its code, and is covered too."""
+        before = build("def target(n, factor=2):\n    return n * factor\n")
+        after = build("def target(n, factor=3):\n    return n * factor\n")
+        self.assertNotEqual(callee_key(before), callee_key(after))
+
+    def test_an_extension_module_is_hashed_by_its_file(self) -> None:
+        """Native code has no bytecode: the file it was loaded from stands for it."""
+        import _ctypes  # noqa: PLC0415
+
+        self.assertEqual(callee_key(_ctypes), callee_key(_ctypes))
+        self.assertEqual(len(callee_key(_ctypes)), DIGEST_SIZE)
 
 
 class CosmeticChangeTest(unittest.TestCase):

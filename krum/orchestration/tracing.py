@@ -9,8 +9,10 @@ bytecode, so a change to one of them would otherwise go unnoticed, which is
 the one failure the orchestrator design rules out.
 
 So a job records which owned functions it actually entered, and the hash of
-each one's own code. A later pass fetches them again and re-hashes: anything
-renamed, removed or edited makes the stored result stale.
+each one's code and of the module values it reads. A later pass fetches them
+again and re-hashes: anything renamed, removed or edited makes the stored
+result stale. Native code never starts a Python frame, so the owned extension
+modules loaded by the end of the job are recorded by their file instead.
 
 `sys.monitoring` reports the first call to each function and then, told to
 `DISABLE`, stops firing for it. The cost is therefore one callback per
@@ -28,7 +30,7 @@ from sys import monitoring
 from types import CodeType, TracebackType
 from typing import Any, Self
 
-from .hashing import Location, Modules, shallow_key
+from .hashing import HashError, Location, Modules, callee_key, is_extension
 
 TOOL_NAME = "krum.orchestration"
 # 0, 1, 2 and 5 are spoken for by debuggers, coverage, profilers and
@@ -39,6 +41,13 @@ EVENT = monitoring.events.PY_START
 # there would be nothing to re-hash later: nested functions, lambdas,
 # comprehensions and module-level code.
 UNFETCHABLE = "<"
+# Recorded in place of a hash for a callee that could not be hashed, which a
+# later pass reads as "cannot be verified": the conservative outcome is a
+# needless re-run, never a stale result
+UNHASHABLE = "unhashable"
+# A spawned child re-imports the sweep script under this name, and aliases it
+# as `__main__` too; the parent, where a record is verified, knows only the latter
+MP_MAIN = "__mp_main__"
 
 
 class TracingUnavailable(RuntimeError):
@@ -125,7 +134,7 @@ class DependencyTracker:
         return found
 
     def called(self) -> dict[str, str]:
-        """The owned functions that were entered, by location and code hash.
+        """The owned functions that were entered, by location and hash.
 
         A location is hashed through the object fetched back by name, not
         through the code object that was seen running. The two can differ, a
@@ -134,12 +143,16 @@ class DependencyTracker:
         is what keeps the comparison meaningful.
 
         Returns:
-            Each callee's encoded location mapped to the hex hash of its code.
+            Each callee's encoded location mapped to the hex hash of its code
+            and the module values it reads, and each loaded owned extension
+            module, located by name alone, mapped to the hash of its file.
         """
         modules = self._modules()
         found: dict[str, str] = {}
         for code in self._codes:
             module = modules.get(code.co_filename)
+            if module == MP_MAIN:
+                module = "__main__"
             if module is None or not self._owned.owns_module(module):
                 continue
             qualname = code.co_qualname
@@ -150,8 +163,19 @@ class DependencyTracker:
                 fetched = location.fetch()
             except Exception:
                 continue
-            found[location.encode()] = shallow_key(fetched).hex()
+            found[location.encode()] = hash_callee(fetched)
+        for name, loaded in list(sys.modules.items()):
+            if loaded in self._owned and is_extension(loaded):
+                found[Location(name, ()).encode()] = hash_callee(loaded)
         return dict(sorted(found.items()))
+
+
+def hash_callee(fetched: Any) -> str:
+    """Hash a callee for the record, or mark it as beyond hashing."""
+    try:
+        return callee_key(fetched).hex()
+    except HashError:
+        return UNHASHABLE
 
 
 def verify_called(recorded: Mapping[str, str]) -> list[str]:
@@ -172,6 +196,9 @@ def verify_called(recorded: Mapping[str, str]) -> list[str]:
         except Exception:
             reasons.append(f"{encoded} is no longer there")
             continue
-        if shallow_key(fetched).hex() != digest:
+        now = hash_callee(fetched)
+        if UNHASHABLE in (digest, now):
+            reasons.append(f"{encoded} cannot be verified")
+        elif now != digest:
             reasons.append(f"{encoded} changed")
     return reasons

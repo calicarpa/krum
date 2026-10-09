@@ -56,11 +56,12 @@ orch.run(my_experiment, n=10, f=2, aggregator=Krum)
    signature and applies defaults.
 2. `metrics.reserved(...)` checks the resulting names against
    `RESERVED_COLUMNS`; a clash raises `ValueError` here, at the call site.
-3. `Orchestrator._owned_for(callable)` returns the ownership setting, falling
-   back to `owned_for(callable)`, which is `{"__main__", "krum", <the
-   callable's top-level package>, *hashing.local_modules()}`, the last being
-   every loaded top-level module whose file is outside the standard library
-   and site-packages, such as a `utils.py` next to the sweep script.
+3. `Orchestrator._owned_for(callable)` returns the ownership setting as a
+   `Modules`, falling back to `owned_for(callable)`, which is
+   `Modules({"__main__", "krum", <the callable's top-level package>},
+   local=True)`: a local test also owns, at lookup time, every module loaded
+   from outside the standard library and site-packages, such as a `utils.py`
+   next to the sweep script.
 4. `hashing.static_key(callable, params, owned)` builds a `Hasher`, pushes the
    callable, then pushes `bind_params(...)` again, and digests. This is where
    the key's whole dependency walk happens — see
@@ -68,7 +69,11 @@ orch.run(my_experiment, n=10, f=2, aggregator=Krum)
 5. A `PendingRun(callable, params, key)` goes on `_queue`, and the key's hex
    name is appended to `_enqueued` if not already there.
 
-Nothing is executed, and nothing touches the store. `run` returns the key.
+Nothing is executed, and nothing touches the store. `run` returns the key,
+which is provisional: `plan` and `drain` both start with
+`Orchestrator._refresh()`, which recomputes every pending key through
+`PendingRun.refresh` and, through `_enlist`, replaces the provisional name in
+`_enqueued` when it moved. A module value set after `run` thus counts.
 
 ## 3. Deciding what to execute
 
@@ -84,10 +89,12 @@ lives:
 4. `storage.drift(folder.witnesses(), Orchestrator.witnesses())`. The
    orchestrator's side is computed once and cached:
    `witnesses_of(environment_fingerprint(lock, source))`, which calls
-   `find_lock` and `hash_file`. The folder's side is read from `deps.json`.
+   `find_lock`, `hash_file` and `installed_packages`. The folder's side is
+   read from `deps.json`.
 5. `tracing.verify_called(folder.called() or {})`. For each recorded entry it
    does `Location.decode(...)`, `Location.fetch()` (an import plus `getattr`),
-   and `hashing.shallow_key(...)`, comparing against the stored hash.
+   and `hashing.callee_key(...)`, comparing against the stored hash. An entry
+   recorded as unhashable, or unhashable now, is a reason on its own.
 6. A `JobDecision` carries `run`/`skip` and the accumulated reasons.
 
 `plan()` stops here, which is why it runs nothing.
@@ -97,11 +104,11 @@ lives:
 Only for a decision that runs. `drain` first selects the runner, once for the
 whole sweep:
 
-- `Orchestrator._owned_prefixes()` → `_prefixes_for(queue[0].callable)`, which
-  unwraps a `Modules` to plain names, since `build_manifest` and
-  `DependencyTracker` both want names.
-- `Orchestrator.runner(prefixes)` → `SubprocessRunner(prefixes, trace)` when
-  `isolate`, else `InlineRunner(prefixes, trace)`. It is entered as a context
+- `Orchestrator._owned_modules()` → `_owned_for(queue[0].callable)`, the
+  `Modules` the tracer records against; it is picklable, so a child receives
+  it as is.
+- `Orchestrator.runner(owned)` → `SubprocessRunner(owned, trace)` when
+  `isolate`, else `InlineRunner(owned, trace)`. It is entered as a context
   manager, so a pool is released at the end of the drain.
 
 Then, per job:
@@ -110,7 +117,7 @@ Then, per job:
    start)` assembles the manifest, calling `encode_params` (which walks values
    through `encode_value`), `git_provenance` (which shells out to `git`), and
    `environment_fingerprint`, which calls `find_lock` and then `hash_file`
-   only if a lock file was found.
+   only if a lock file was found, and `installed_packages`.
 2. `Orchestrator._warn_if_dirty(manifest)` warns once per sweep if
    `git.dirty`.
 3. `JobStore.writer(key, manifest)` → `JobWriter.__init__`, which calls
@@ -227,17 +234,18 @@ Orchestrator.run ──► bind_params ─► reserved ─► static_key ─► 
                                                   │
                                               (Hasher, Modules)
 
-Orchestrator.get ──► drain ──► runner(prefixes) ──┐
+Orchestrator.get ──► drain ──► _refresh ─► runner(owned) ─┐
                                                   ▼
                         decide ──► JobFolder.status
                                    drift(witnesses)
-                                   verify_called ─► Location.fetch, shallow_key
+                                   verify_called ─► Location.fetch, callee_key
                                                   │
                                       skip ◄──────┴──────► run
                                                              │
                         build_manifest ◄─────────────────────┘
                           (encode_params, git_provenance,
-                           environment_fingerprint ─► find_lock, hash_file)
+                           environment_fingerprint ─► find_lock, hash_file,
+                                                      installed_packages)
                                                              │
                         JobStore.writer ─► JobWriter ─► MetricRecorder(create)
                                                              │
@@ -282,8 +290,8 @@ off and no lock file present, and keeping the first entry into each function:
 18 PendingRun.__init__           53 Executed.__init__
 19 Orchestrator.get              54 JobWriter.record_called
 20 Orchestrator.drain            55 JobWriter.finish
-21 Orchestrator._owned_prefixes  56 MetricRecorder.close
-22 Orchestrator._prefixes_for    57 Sink.close
+21 Orchestrator._owned_modules  56 MetricRecorder.close
+22 Orchestrator._owned_for       57 Sink.close
 23 Orchestrator._owned_for       58 witnesses_of
 24 owned_for                     59 JobStore.promote
 25 Orchestrator.runner           60 JobFolder.__init__
@@ -294,7 +302,7 @@ off and no lock file present, and keeping the first entry into each function:
 30 JobFolder.status              65 JobFolder.__init__
 31 JobDecision.__init__          66 JobFolder.status
 32 bind_params                   67 read_metric
-33 Orchestrator._prefixes_for    68 JobFolder.metric_path
+33 Orchestrator._owned_for       68 JobFolder.metric_path
 34 Orchestrator._owned_for       69 read_manifest_params
 35 owned_for                     70 reserved
 ```
@@ -302,8 +310,9 @@ off and no lock file present, and keeping the first entry into each function:
 Two things this shows that reading the code does not. `bind_params` runs three
 times for one job — once for the reserved-name check, once inside
 `static_key`, once for `PendingRun.bound_params` — as does `_owned_for`, which
-`run`, `_owned_prefixes` and `build_manifest` each reach separately. Both are
-cheap, and neither is memoised. And `decide` returned after
+`run`, `_refresh`, `_owned_modules` and `build_manifest` each reach separately.
+Both are cheap, and neither is memoised. `static_key` itself runs twice, once
+at `run` and once at `_refresh`. And `decide` returned after
 `JobFolder.status` here, the folder being absent, which is why
 `Orchestrator.witnesses`, `drift` and `verify_called` do not appear: they are
 reached only for a job that *is* recorded.

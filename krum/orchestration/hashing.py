@@ -11,7 +11,9 @@ Two properties are deliberate:
 - Recursion stops at the boundary of the *owned* modules (see :class:`Modules`).
   Owned code is folded in by content; everything else stops at its
   :class:`Location`. Dependency *versions* are not hashed here: they belong to
-  the environment fingerprint, keyed on ``uv.lock``.
+  the environment fingerprint, keyed on the installed packages.
+- Native code has no bytecode to read, so an owned extension module and a
+  library loaded through `ctypes` are folded in by the content of their file.
 
 Bytecode is not stable across interpreter versions, so keys change on a Python
 upgrade. The interpreter version is part of the environment fingerprint, so
@@ -30,6 +32,8 @@ import sysconfig
 from collections.abc import Buffer, Iterable, Iterator, Mapping
 from contextvars import ContextVar
 from hashlib import blake2b as Blake2b
+from importlib.machinery import EXTENSION_SUFFIXES
+from pathlib import Path
 from struct import Struct
 from types import (
     BuiltinFunctionType,
@@ -146,10 +150,20 @@ class Modules:
     what the job computes, so folding it in would both change every key
     whenever the harness is edited and drag in runtime state, such as the
     context variable naming the current job, that has no reproducible hash.
+
+    A *local* test owns, on top of its prefixes, every module loaded from a
+    file outside the standard library and outside every site-packages
+    directory: a `utils.py` next to the sweep script, a package of the
+    project, helpers shipped in a zip. Those are the user's own code whatever
+    they happen to be called, and the test is made at lookup time, so a module
+    first imported while a job runs is owned by the time its calls are
+    recorded. Missing one would silently keep a stale result, while owning one
+    too many only costs a re-run.
     """
 
     _prefixes: tuple[str, ...]
     _exclude: tuple[str, ...]
+    _local: bool
 
     __slots__ = tuple(__annotations__)
 
@@ -157,14 +171,33 @@ class Modules:
     def _matches(name: str, prefixes: Iterable[str]) -> bool:
         return any(name == prefix or name.startswith(f"{prefix}.") for prefix in prefixes)
 
-    def __init__(self, prefixes: Iterable[str], exclude: Iterable[str] = ()) -> None:
-        """Build an ownership test from dotted module prefixes and exclusions."""
+    def __init__(self, prefixes: Iterable[str], exclude: Iterable[str] = (), local: bool = False) -> None:
+        """Build an ownership test from dotted module prefixes and exclusions.
+
+        Args:
+            prefixes: The dotted module prefixes to own.
+            exclude: Prefixes to disown, overriding the owned ones.
+            local: Also own every module loaded from outside the installed
+                code, as described above.
+        """
         self._prefixes = tuple(sorted(set(prefixes)))
         self._exclude = tuple(sorted({*exclude, __name__.rpartition(".")[0]}))
+        self._local = local
 
     def __repr__(self) -> str:
         """Render the ownership test as a constructor call."""
-        return f"{type(self).__qualname__}({self._prefixes!r}, {self._exclude!r})"
+        local = ", local=True" if self._local else ""
+        return f"{type(self).__qualname__}({self._prefixes!r}, {self._exclude!r}{local})"
+
+    def __eq__(self, other: object) -> bool:
+        """Two tests are equal when they own the same thing."""
+        if not isinstance(other, Modules):
+            return NotImplemented
+        return (self._prefixes, self._exclude, self._local) == (other._prefixes, other._exclude, other._local)
+
+    def __hash__(self) -> int:
+        """Hash consistently with equality."""
+        return hash((self._prefixes, self._exclude, self._local))
 
     @property
     def prefixes(self) -> tuple[str, ...]:
@@ -176,52 +209,114 @@ class Modules:
         """The excluded module prefixes, sorted, which override the owned ones."""
         return self._exclude
 
+    @property
+    def local(self) -> bool:
+        """Whether modules loaded from outside the installed code are owned too."""
+        return self._local
+
     def owns_module(self, name: str | None) -> bool:
-        """Whether a dotted module name is owned, exclusions taking precedence."""
-        if not name:
+        """Whether a dotted module name is owned, exclusions taking precedence.
+
+        A local test looks the module up among those loaded, so that a module
+        not imported yet is not owned, and an alias such as `__mp_main__` is
+        judged on the file it was loaded from.
+        """
+        if not name or self._matches(name, self._exclude):
             return False
-        return self._matches(name, self._prefixes) and not self._matches(name, self._exclude)
+        if self._matches(name, self._prefixes):
+            return True
+        return self._local and is_local_file(getattr(sys.modules.get(name), "__file__", None))
 
     def __contains__(self, obj: Any) -> bool:
         """Whether an object, or a module itself, belongs to an owned module."""
         if isinstance(obj, ModuleType):
-            return self.owns_module(obj.__name__)
+            name = obj.__name__
+            if self._matches(name, self._exclude):
+                return False
+            if self._matches(name, self._prefixes):
+                return True
+            return self._local and is_local_file(getattr(obj, "__file__", None))
         return self.owns_module(getattr(obj, "__module__", None))
+
+
+_ROOTS: tuple[str, ...] | None = None
+_LOCAL: dict[str, bool] = {}
 
 
 def _installed_roots() -> tuple[str, ...]:
     """The directories third-party and standard library code is installed under."""
-    paths = sysconfig.get_paths()
-    roots = {paths[name] for name in ("stdlib", "platstdlib", "purelib", "platlib") if name in paths}
-    roots.update(site.getsitepackages())
-    if site.ENABLE_USER_SITE:
-        roots.add(site.getusersitepackages())
-    return tuple(sorted({os.path.join(os.path.realpath(root), "") for root in roots}))
+    global _ROOTS
+    if _ROOTS is None:
+        paths = sysconfig.get_paths()
+        roots = {paths[name] for name in ("stdlib", "platstdlib", "purelib", "platlib") if name in paths}
+        roots.update(site.getsitepackages())
+        if site.ENABLE_USER_SITE:
+            roots.add(site.getusersitepackages())
+        _ROOTS = tuple(sorted({os.path.join(os.path.realpath(root), "") for root in roots}))
+    return _ROOTS
 
 
-def local_modules() -> set[str]:
-    """The top-level names of the loaded modules that are not installed code.
+def is_local_file(origin: str | None) -> bool:
+    """Whether a module file lies outside the standard library and site-packages.
 
-    A module loaded from a file outside the standard library and outside every
-    site-packages directory is the user's own: a `utils.py` next to the sweep
-    script, or a package of the project. Its content is what a change should
-    invalidate a result on, so it is owned by default, the same as `__main__`.
-    Missing one would silently keep a stale result, while owning one too many
-    only costs a re-run.
+    Such a file is the user's own code: a script, a helper next to it, a
+    package of the project, an editable install, or a zip put on the path.
+    Built-in and frozen modules have no file and are never local.
+
+    Args:
+        origin: The module's `__file__`, or None if it has none.
 
     Returns:
-        The top-level module names, to be used as owned prefixes.
+        Whether the file is the user's own.
     """
-    roots = _installed_roots()
-    found = set()
-    for name, module in list(sys.modules.items()):
-        origin = getattr(module, "__file__", None)
-        if not origin:
-            continue
-        origin = os.path.realpath(origin)
-        if not origin.startswith(roots):
-            found.add(name.partition(".")[0])
-    return found
+    if not origin:
+        return False
+    local = _LOCAL.get(origin)
+    if local is None:
+        local = _LOCAL[origin] = not os.path.realpath(origin).startswith(_installed_roots())
+    return local
+
+
+def is_extension(module: ModuleType) -> bool:
+    """Whether a module is native code, with no bytecode to read."""
+    origin = getattr(module, "__file__", None)
+    return bool(origin) and origin.endswith(tuple(EXTENSION_SUFFIXES))
+
+
+# A plain alias rather than a `type` statement, which needs Python 3.12
+PathLike = str | os.PathLike[str]
+_HASHES: dict[tuple[str, int, int], str] = {}
+
+
+def hash_file(path: PathLike, cache: bool = True) -> str:
+    """Hash a file's contents, as a hex digest.
+
+    Args:
+        path: The file to hash.
+        cache: Reuse a digest computed earlier for the same path, size and
+            modification time. A sweep fingerprints the same lock file once per
+            job, which is worth not re-reading every time.
+
+    Returns:
+        The hex digest of the file's contents.
+    """
+    path = Path(path)
+    status = path.stat()
+    token = (str(path), status.st_mtime_ns, status.st_size)
+    if cache and token in _HASHES:
+        return _HASHES[token]
+    state = Blake2b()
+    with path.open("rb") as handle:
+        buffer = memoryview(bytearray(65536))
+        while True:
+            read = handle.readinto(buffer)
+            if read == 0:
+                break
+            state.update(buffer[:read])
+    digest = state.hexdigest()
+    if cache:
+        _HASHES[token] = digest
+    return digest
 
 
 type Hash = bytes
@@ -391,9 +486,21 @@ class Hasher:
             for accessor in (obj.fget, obj.fset, obj.fdel):
                 self.push(accessor)
             return
-        # Objects implemented in C cannot be introspected; their name is all we have
+        # Objects implemented in C cannot be introspected: their name, and for
+        # an owned extension module the file they were loaded from, is all we have
         if isinstance(obj, self._OPAQUE):
-            self.push(Location.of_callable(obj))
+            location = Location.of_callable(obj)
+            self.push(location)
+            module = sys.modules.get(location.module)
+            if module is not None and module in self._owned:
+                self.push(module)
+            return
+        # A library loaded through ctypes is its file; a system library found
+        # by name alone has no file to read, and its version belongs to the
+        # environment rather than to the key
+        ctypes = sys.modules.get("ctypes")
+        if ctypes is not None and isinstance(obj, ctypes.CDLL):
+            self._push_library(obj._name)
             return
         # A context variable names a slot for runtime state; the name is its
         # static identity, and what it happens to hold is not static at all
@@ -497,17 +604,27 @@ class Hasher:
             self.push(name)
             self.push(value)
 
+    def _push_library(self, name: str | None) -> None:
+        """Fold in a native library by name, and by content when it is a file."""
+        self.push(name or "?")
+        if name and os.path.isfile(name):
+            self.push(hash_file(name))
+
     def _push_module(self, obj: ModuleType) -> None:
         """Fold in a module by name, and for an owned module its public members.
 
         Recursing into an owned module covers the `import mymod; mymod.helper()`
         shape, where the dependency is reached by attribute rather than by a
-        name in the caller's globals.
+        name in the caller's globals. An owned extension module has no members
+        worth reading, its functions being opaque, so its file stands for it.
         """
         if not self._enter(obj):
             return
         self.push(obj.__name__)
         if obj not in self._owned:
+            return
+        if is_extension(obj):
+            self._push_library(obj.__file__)
             return
         members = sorted((name, value) for name, value in vars(obj).items() if not name.startswith("__"))
         self._push_length(len(members))
@@ -560,6 +677,58 @@ def shallow_key(obj: Any) -> Hash:
     hasher = Hasher(())
     code = code_of(obj)
     hasher.push(obj if code is None else code)
+    return hasher.digest()
+
+
+def callee_key(obj: Any) -> Hash:
+    """Hash a callable's code and the values it reads from its module, one level deep.
+
+    This is what a traced job records for each function it entered, and what
+    is re-hashed on a later pass. Where :func:`shallow_key` covers the code
+    alone, this also covers the function's defaults and the globals its code
+    names, so that a changed constant is caught along with a changed body.
+
+    It is deliberately not recursive, and owns nothing: a function or a class
+    the code names folds in as its location, since that callee is recorded on
+    its own when it runs. The hash is therefore independent of which modules a
+    sweep owns, so a record can be verified without knowing how it was made.
+
+    An extension module is hashed by its file, having no code to read.
+
+    Args:
+        obj: The callable, or the extension module, to hash.
+
+    Returns:
+        The hash.
+
+    Raises:
+        HashError: If a global the code names cannot be hashed reproducibly.
+    """
+    hasher = Hasher(())
+    if isinstance(obj, ModuleType):
+        hasher.push(obj.__name__)
+        if is_extension(obj):
+            hasher.push(hash_file(obj.__file__))
+        return hasher.digest()
+    code = code_of(obj)
+    if code is None:
+        hasher.push(obj)
+        return hasher.digest()
+    hasher.push(code)
+    function = obj
+    for _ in range(16):
+        if hasattr(function, "__globals__"):
+            break
+        function = getattr(function, "__func__", None) or getattr(function, "__wrapped__", None)
+        if function is None:
+            break
+    hasher.push(getattr(function, "__defaults__", None) or ())
+    hasher.push(getattr(function, "__kwdefaults__", None) or {})
+    globals = getattr(function, "__globals__", None) or {}
+    names = sorted(set(Hasher._code_names(code)) & globals.keys())
+    for name in names:
+        hasher.push(name)
+        hasher.push(globals[name])
     return hasher.digest()
 
 
