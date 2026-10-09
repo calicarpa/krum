@@ -94,7 +94,9 @@ lives:
 5. `tracing.verify_called(folder.called() or {})`. For each recorded entry it
    does `Location.decode(...)`, `Location.fetch()` (an import plus `getattr`),
    and `hashing.callee_key(...)`, comparing against the stored hash. An entry
-   recorded as unhashable, or unhashable now, is a reason on its own.
+   recorded as unhashable, or unhashable now, is a reason on its own. Entries
+   are functions entered, members of owned modules that the entered code
+   names (`DependencyTracker._members_named`), and extension modules.
 6. A `JobDecision` carries `run`/`skip` and the accumulated reasons.
 
 `plan()` stops here, which is why it runs nothing.

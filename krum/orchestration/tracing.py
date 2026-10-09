@@ -11,8 +11,19 @@ the one failure the orchestrator design rules out.
 So a job records which owned functions it actually entered, and the hash of
 each one's code and of the module values it reads. A later pass fetches them
 again and re-hashes: anything renamed, removed or edited makes the stored
-result stale. Native code never starts a Python frame, so the owned extension
-modules loaded by the end of the job are recorded by their file instead.
+result stale.
+
+Two things leave no function to record. A constant read straight off a module
+imported in the body, `utils.SCALE`, and a lambda picked out of a table there,
+`utils.HANDLERS["double"]`, are reached without entering anything of `utils`.
+For those, the members of an owned module are recorded one by one, limited to
+the names the entered code mentions: the bytecode of each function entered
+lists every attribute and import name it uses, so `SCALE` and `HANDLERS` are
+there to be matched, and `utils` itself is. Recording the module as a whole
+would re-run the job on any edit to it; recording the names mentioned over-
+approximates only on a name shared with another module, which costs a re-run.
+Native code never starts a Python frame, so the owned extension modules loaded
+by the end of the job are recorded by their file instead.
 
 `sys.monitoring` reports the first call to each function and then, told to
 `DISABLE`, stops firing for it. The cost is therefore one callback per
@@ -27,24 +38,28 @@ from __future__ import annotations
 import sys
 from collections.abc import Iterable, Mapping
 from sys import monitoring
-from types import CodeType, TracebackType
+from types import CodeType, ModuleType, TracebackType
 from typing import Any, Self
 
-from .hashing import HashError, Location, Modules, callee_key, is_extension
+from .hashing import ANONYMOUS, Hasher, HashError, Location, Modules, callee_key, is_extension
 
 TOOL_NAME = "krum.orchestration"
 # 0, 1, 2 and 5 are spoken for by debuggers, coverage, profilers and
 # optimizers; 3 and 4 are what is left for everyone else.
 TOOL_IDS = (3, 4)
 EVENT = monitoring.events.PY_START
-# Qualified names holding one of these cannot be fetched back by name, so
-# there would be nothing to re-hash later: nested functions, lambdas,
-# comprehensions and module-level code.
-UNFETCHABLE = "<"
+# Qualified names holding this cannot be fetched back by name, so there would
+# be nothing to re-hash later: nested functions, lambdas, comprehensions and
+# module-level code. What they hold is reached through what names them instead.
+UNFETCHABLE = ANONYMOUS
 # Recorded in place of a hash for a callee that could not be hashed, which a
 # later pass reads as "cannot be verified": the conservative outcome is a
 # needless re-run, never a stale result
 UNHASHABLE = "unhashable"
+# A module body entered during the job, as an import inside the experiment
+# runs one, names everything the module defines: counting those names would
+# turn "the members the code mentions" back into the whole module
+MODULE_BODY = "<module>"
 # A spawned child re-imports the sweep script under this name, and aliases it
 # as `__main__` too; the parent, where a record is verified, knows only the latter
 MP_MAIN = "__mp_main__"
@@ -144,11 +159,14 @@ class DependencyTracker:
 
         Returns:
             Each callee's encoded location mapped to the hex hash of its code
-            and the module values it reads, and each loaded owned extension
-            module, located by name alone, mapped to the hash of its file.
+            and the module values it reads; each member of an owned module
+            whose name the entered code mentions, mapped to its hash; and each
+            loaded owned extension module, located by name alone, mapped to the
+            hash of its file.
         """
         modules = self._modules()
         found: dict[str, str] = {}
+        names: set[str] = set()
         for code in self._codes:
             module = modules.get(code.co_filename)
             if module == MP_MAIN:
@@ -156,6 +174,8 @@ class DependencyTracker:
             if module is None or not self._owned.owns_module(module):
                 continue
             qualname = code.co_qualname
+            if qualname != MODULE_BODY:
+                names.update(Hasher._code_names(code))
             if UNFETCHABLE in qualname:
                 continue
             location = Location(module, qualname)
@@ -165,9 +185,31 @@ class DependencyTracker:
                 continue
             found[location.encode()] = hash_callee(fetched)
         for name, loaded in list(sys.modules.items()):
-            if loaded in self._owned and is_extension(loaded):
+            if loaded not in self._owned or name == MP_MAIN:
+                continue
+            if is_extension(loaded):
                 found[Location(name, ()).encode()] = hash_callee(loaded)
+            elif name in names or set(name.split(".")) <= names:
+                for member, value in self._members_named(loaded, names):
+                    found[Location(name, member).encode()] = hash_callee(value)
         return dict(sorted(found.items()))
+
+    @staticmethod
+    def _members_named(module: ModuleType, names: set[str]) -> list[tuple[str, Any]]:
+        """The members of a module whose names the entered code mentions.
+
+        Submodules are left out, being reached by their own name, and so is
+        anything the module itself did not define, such as a function it
+        imported, which is recorded where it lives.
+        """
+        found = []
+        for member, value in vars(module).items():
+            if member.startswith("__") or member not in names or isinstance(value, ModuleType):
+                continue
+            if getattr(value, "__module__", module.__name__) != module.__name__:
+                continue
+            found.append((member, value))
+        return found
 
 
 def hash_callee(fetched: Any) -> str:

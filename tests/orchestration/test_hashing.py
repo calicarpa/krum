@@ -607,6 +607,30 @@ class OwnershipBoundaryTest(unittest.TestCase):
         self.assertNotEqual(key(before, owned=(OTHER,)), key(after, owned=(OTHER,)))
 
 
+class AnonymousFunctionTest(unittest.TestCase):
+    """An unowned lambda or nested function is hashed by its code, not its location."""
+
+    def test_an_unowned_lambda_folds_in_by_code(self) -> None:
+        """Every lambda of a module shares one location, so the code is its only identity."""
+        before = build("HANDLERS = {'double': lambda x: x * 2}", name="HANDLERS", module=OTHER)
+        after = build("HANDLERS = {'double': lambda x: x * 3}", name="HANDLERS", module=OTHER)
+        self.assertNotEqual(key(before), key(after))
+
+    def test_an_unowned_lambda_does_not_pull_in_its_globals(self) -> None:
+        """What a lambda reads from an unowned module stays outside the key."""
+        before = build("SCALE = 2\nHANDLERS = {'scale': lambda x: x * SCALE}", name="HANDLERS", module=OTHER)
+        after = build("SCALE = 3\nHANDLERS = {'scale': lambda x: x * SCALE}", name="HANDLERS", module=OTHER)
+        self.assertEqual(key(before), key(after))
+
+    def test_an_unowned_nested_function_folds_in_what_it_closed_over(self) -> None:
+        """A nested function is its code and its captured values."""
+        source = "def make(factor):\n    def inner(x):\n        return x * factor\n    return inner\ndouble = make({f})"
+        two = build(source.format(f=2), name="double", module=OTHER)
+        three = build(source.format(f=3), name="double", module=OTHER)
+        self.assertNotEqual(key(two), key(three))
+        self.assertEqual(key(two), key(build(source.format(f=2), name="double", module=OTHER)))
+
+
 class CycleTest(unittest.TestCase):
     """Cyclic object graphs must terminate."""
 

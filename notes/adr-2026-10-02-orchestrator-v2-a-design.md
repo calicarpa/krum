@@ -55,8 +55,9 @@ called), `execution` (where a job's body runs), and `__init__`
 - `fingerprint` — written beside the output once a job completes, in
   `deps.json`. Two parts: `witnesses`, comparable facts about the environment,
   and `called`, the `location -> hash` map of the owned functions the job
-  entered (and of the owned extension modules it loaded). This is the warrant
-  that the stored *answer* is still valid.
+  entered, of the members of owned modules its code names (`utils:SCALE`, read
+  off a module imported in the body), and of the owned extension modules it
+  loaded. This is the warrant that the stored *answer* is still valid.
 
 `Orchestrator.decide` returns both the decision and the reasons behind it, and
 `Orchestrator.plan` reports them for a whole sweep without running any of it:
@@ -155,6 +156,11 @@ Anything that cannot be hashed reproducibly raises `HashError` rather than
 folding in a placeholder. Bytecode is not stable across interpreter versions,
 so keys change on a Python upgrade; the interpreter is a witness too, so that
 is visible rather than silent.
+
+A lambda or a nested function is the exception to stopping at a location: every
+lambda of a module shares one, so an *unowned* anonymous function folds in by
+its code and what it closed over, its globals left alone. This is what lets a
+table of handlers be covered through the member that holds it.
 
 `hashing.callee_key` hashes one callable's code, its defaults and the globals
 its code names, one level deep: a function or class it names folds in as its

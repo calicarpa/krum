@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from sys import monitoring
 from tempfile import TemporaryDirectory
+from typing import Any
 
 from krum.orchestration import Metric, Orchestrator
 from krum.orchestration.tracing import TOOL_IDS, DependencyTracker, TracingUnavailable, verify_called
@@ -174,14 +175,16 @@ class RuntimeDependencyTest(unittest.TestCase):
         importlib.invalidate_caches()
         self._directory.cleanup()
 
-    def write(self, body: str) -> None:
+    def write(self, body: str, scale: int = 2) -> None:
         """Rewrite the helper, making sure the new bytecode is what loads.
 
         Python validates a cached `.pyc` on size and modification time, so two
         same-length edits within one second can leave the old bytecode in
         place. The cache is cleared rather than relied upon.
         """
-        (self.home / f"{self.MODULE}.py").write_text(f'"""A helper."""\n\n\ndef compute(value):\n    {body}\n')
+        (self.home / f"{self.MODULE}.py").write_text(
+            f'"""A helper."""\n\nSCALE = {scale}\n\n\ndef compute(value):\n    {body}\n'
+        )
         shutil.rmtree(self.home / "__pycache__", ignore_errors=True)
         sys.modules.pop(self.MODULE, None)
         importlib.invalidate_caches()
@@ -192,10 +195,10 @@ class RuntimeDependencyTest(unittest.TestCase):
             self.root, source=self.home, owned=("__main__", "krum", self.MODULE, "orchestration"), trace=trace
         )
 
-    def sweep(self, trace: bool):
+    def sweep(self, trace: bool, experiment: Any = None):
         """Enqueue the experiment and return the decision taken."""
         orch = self.orchestrator(trace)
-        orch.run(experiment_importing_at_runtime, amount=21)
+        orch.run(experiment or experiment_importing_at_runtime, amount=21)
         decision = orch.plan()[0]
         orch.drain()
         return decision, orch.get("value")["value"]
@@ -220,6 +223,29 @@ class RuntimeDependencyTest(unittest.TestCase):
         decision, values = self.sweep(trace=True)
         self.assertTrue(decision.runs)
         self.assertEqual(decision.reasons, (f"{self.MODULE}:compute changed",))
+        self.assertEqual(values, [63])
+
+    def test_traced_a_member_read_at_runtime_is_recorded(self) -> None:
+        """A constant read off the helper, with nothing of it called, is recorded by name.
+
+        No function of the helper runs, so there is no callee to record; the
+        member is found because the experiment's own code names it.
+        """
+        orch = self.orchestrator(trace=True)
+        key = orch.run(experiment_reading_at_runtime, amount=21)
+        orch.drain()
+        called = orch.store.folder_for(key).called()
+        assert called is not None, "the job is traced"
+        self.assertIn(f"{self.MODULE}:SCALE", called)
+        self.assertNotIn(f"{self.MODULE}:compute", called, "a member the code does not name is left out")
+
+    def test_traced_a_member_change_is_caught(self) -> None:
+        """Editing the constant re-runs the job and names the member."""
+        decision, values = self.sweep(trace=True, experiment=experiment_reading_at_runtime)
+        self.assertEqual(values, [42])
+        self.write("return value * 2", scale=3)
+        decision, values = self.sweep(trace=True, experiment=experiment_reading_at_runtime)
+        self.assertEqual(decision.reasons, (f"{self.MODULE}:SCALE changed",))
         self.assertEqual(values, [63])
 
     def test_traced_an_unchanged_dependency_is_still_skipped(self) -> None:
@@ -263,6 +289,13 @@ def experiment_importing_at_runtime(amount) -> None:
     import krum_tracing_fixture  # ty: ignore[unresolved-import]
 
     Metric("value", dtype=int).push(0, krum_tracing_fixture.compute(amount))
+
+
+def experiment_reading_at_runtime(amount) -> None:
+    """Read a constant off a helper imported inside the body, calling nothing of it."""
+    import krum_tracing_fixture  # ty: ignore[unresolved-import]
+
+    Metric("value", dtype=int).push(0, amount * krum_tracing_fixture.SCALE)
 
 
 if __name__ == "__main__":

@@ -320,6 +320,9 @@ def hash_file(path: PathLike, cache: bool = True) -> str:
 
 
 type Hash = bytes
+# Qualified names holding this cannot be fetched back by name: nested
+# functions, lambdas, comprehensions and module-level code
+ANONYMOUS = "<"
 
 
 class Hasher:
@@ -560,14 +563,32 @@ class Hasher:
             return
         location = Location.of_callable(obj)
         self.push(location)
-        # A function outside the owned set stops at its location
-        if not self._owned.owns_module(location.module):
-            return
         code = obj.__code__
+        # A function outside the owned set stops at its location, unless it is
+        # anonymous: every lambda of a module shares one location, so the code
+        # and what it closed over are the only identity a lambda or a nested
+        # function has. Its globals are left alone, that being the recursion
+        # ownership is meant to bound.
+        if not self._owned.owns_module(location.module):
+            if ANONYMOUS in location.qualname:
+                self._push_code(code)
+                self._push_cells(obj)
+            return
         self._push_code(code)
         self.push(obj.__defaults__ or ())
         self.push(obj.__kwdefaults__ or {})
-        # Closure cells, which hold the values the function captured
+        self._push_cells(obj)
+        # The globals the function names. This is what makes a transitive change
+        # to a helper, a class or a constant reachable without running anything.
+        globals = getattr(obj, "__globals__", None) or {}
+        names = sorted(set(self._code_names(code)) & globals.keys())
+        self._push_length(len(names))
+        for name in names:
+            self.push(name)
+            self.push(globals[name])
+
+    def _push_cells(self, obj: Any) -> None:
+        """Fold in a function's closure cells, which hold the values it captured."""
         cells = obj.__closure__ or ()
         self._push_length(len(cells))
         for cell in cells:
@@ -578,14 +599,6 @@ class Hasher:
                 self._state.update(self._MARK_EMPTY)
                 continue
             self.push(contents)
-        # The globals the function names. This is what makes a transitive change
-        # to a helper, a class or a constant reachable without running anything.
-        globals = getattr(obj, "__globals__", None) or {}
-        names = sorted(set(self._code_names(code)) & globals.keys())
-        self._push_length(len(names))
-        for name in names:
-            self.push(name)
-            self.push(globals[name])
 
     def _push_class(self, obj: type) -> None:
         """Fold in a class: its location, and for an owned class its bases and body."""

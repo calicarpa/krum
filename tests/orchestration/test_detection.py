@@ -8,10 +8,8 @@ change a compiled extension, which a process cannot unload.
 Every case first checks that an untouched rerun is skipped, so that a re-run
 after the change is attributable to the change, not to an unstable key.
 
-Cases the orchestrator does not cover yet are marked as expected failures, and
-say why. Closing one turns it into an unexpected success, which is the cue to
-drop the marker. Impure experiments (network, `/dev/urandom`) are out of scope
-by design, and have no case here.
+Impure experiments (network, `/dev/urandom`) are out of scope by design, and
+have no case here.
 """
 
 from __future__ import annotations
@@ -304,14 +302,8 @@ class GlobalTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: self.project.edit("utils.py", "SCALE = 2", "SCALE = 30"), 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_constant_of_a_module_imported_inside_the_body(self) -> None:
-        """A constant read straight off a module imported while the job runs, no call made.
-
-        Not covered: the module is not loaded when the key is computed, and
-        the tracer records functions entered, of which there is none here. A
-        module read this way would have to be recorded as a whole.
-        """
+        """A constant read straight off a module imported while the job runs, no call made."""
         self.project.write("utils.py", "SCALE = 2\n")
         self.project.write(
             "main.py",
@@ -370,14 +362,8 @@ class AnonymousCalleeTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: self.project.edit("utils.py", "x * factor", "x * factor * 15"), 2.0, 30.0)
 
-    @unittest.expectedFailure
     def test_lambda_in_a_table_as_a_runtime_callee(self) -> None:
-        """A lambda picked out of a module-level dict of handlers, the module imported in the body.
-
-        Not covered: a lambda cannot be fetched back by name, and no function
-        of the module is entered that would hold its code. As above, the module
-        would have to be recorded as a whole.
-        """
+        """A lambda picked out of a module-level dict of handlers, the module imported in the body."""
         self.project.write("utils.py", "HANDLERS = {'double': lambda x: x * 2}\n")
         self.project.write(
             "main.py",
