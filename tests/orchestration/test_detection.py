@@ -8,8 +8,10 @@ change a compiled extension, which a process cannot unload.
 Every case first checks that an untouched rerun is skipped, so that a re-run
 after the change is attributable to the change, not to an unstable key.
 
-Impure experiments (network, `/dev/urandom`) are out of scope by design, and
-have no case here.
+Cases the orchestrator does not cover yet are marked as expected failures, and
+say why. Closing one turns it into an unexpected success, which is the cue to
+drop the marker. Impure experiments (network, `/dev/urandom`) are out of scope
+by design, and have no case here.
 """
 
 from __future__ import annotations
@@ -302,6 +304,22 @@ class GlobalTest(DetectionTestCase):
         )
         self.assertRerunsAfter(lambda: self.project.edit("utils.py", "SCALE = 2", "SCALE = 30"), 2.0, 30.0)
 
+    @unittest.expectedFailure
+    def test_constant_of_a_module_imported_inside_the_body(self) -> None:
+        """A constant read straight off a module imported while the job runs, no call made.
+
+        Not covered: the module is not loaded when the key is computed, and
+        the tracer records functions entered, of which there is none here. A
+        module read this way would have to be recorded as a whole.
+        """
+        self.project.write("utils.py", "SCALE = 2\n")
+        self.project.write(
+            "main.py",
+            HEADER + "def my_exp(x):\n    import utils\n"
+            "    Metric('m', dtype=float).push(0, x * utils.SCALE)\n" + SWEEP,
+        )
+        self.assertRerunsAfter(lambda: self.project.edit("utils.py", "SCALE = 2", "SCALE = 30"), 2.0, 30.0)
+
     def test_constant_changed_after_enqueueing(self) -> None:
         """A global set between `orch.run` and the drain."""
         self.project.write(
@@ -314,6 +332,69 @@ class GlobalTest(DetectionTestCase):
             ),
         )
         self.assertRerunsAfter(lambda: self.project.env.update(SCALE="30"), 2.0, 30.0)
+
+
+class AnonymousCalleeTest(DetectionTestCase):
+    """Functions reached at runtime that cannot be fetched back by name.
+
+    A nested function or a lambda has no module-level name, so the tracer
+    cannot look it up again to re-hash it. What covers it, when anything does,
+    is the code of whatever holds it: the enclosing function, or the module.
+    """
+
+    FACTORY = "def make(factor):\n    def inner(x):\n        return x * factor\n    return inner\n"
+
+    def test_nested_function_returned_by_a_runtime_callee(self) -> None:
+        """The enclosing function is called in the job, and its code holds the nested body."""
+        self.project.write("utils.py", self.FACTORY)
+        self.project.write(
+            "main.py",
+            HEADER + "def my_exp(x):\n    import utils\n"
+            "    Metric('m', dtype=float).push(0, utils.make(2)(x))\n" + SWEEP,
+        )
+        self.assertRerunsAfter(lambda: self.project.edit("utils.py", "x * factor", "x * factor * 15"), 2.0, 30.0)
+
+    def test_nested_function_made_at_import_as_a_runtime_callee(self) -> None:
+        """The job only ever enters the nested function, the factory having run at import.
+
+        Covered all the same: the import happens inside the job, so the factory
+        runs inside the traced window and is recorded with the nested body in
+        its code. Imported at the top instead, the key walks into the module
+        and reaches the nested function as a member.
+        """
+        self.project.write("utils.py", self.FACTORY + "double = make(2)\n")
+        self.project.write(
+            "main.py",
+            HEADER + "def my_exp(x):\n    import utils\n"
+            "    Metric('m', dtype=float).push(0, utils.double(x))\n" + SWEEP,
+        )
+        self.assertRerunsAfter(lambda: self.project.edit("utils.py", "x * factor", "x * factor * 15"), 2.0, 30.0)
+
+    @unittest.expectedFailure
+    def test_lambda_in_a_table_as_a_runtime_callee(self) -> None:
+        """A lambda picked out of a module-level dict of handlers, the module imported in the body.
+
+        Not covered: a lambda cannot be fetched back by name, and no function
+        of the module is entered that would hold its code. As above, the module
+        would have to be recorded as a whole.
+        """
+        self.project.write("utils.py", "HANDLERS = {'double': lambda x: x * 2}\n")
+        self.project.write(
+            "main.py",
+            HEADER + "def my_exp(x):\n    import utils\n"
+            "    Metric('m', dtype=float).push(0, utils.HANDLERS['double'](x))\n" + SWEEP,
+        )
+        self.assertRerunsAfter(lambda: self.project.edit("utils.py", "x * 2", "x * 30"), 2.0, 30.0)
+
+    def test_lambda_in_a_table_imported_at_the_top(self) -> None:
+        """The same table, reached by name: the key walks into it and covers the lambda."""
+        self.project.write("utils.py", "HANDLERS = {'double': lambda x: x * 2}\n")
+        self.project.write(
+            "main.py",
+            HEADER + "import utils\ndef my_exp(x):\n"
+            "    Metric('m', dtype=float).push(0, utils.HANDLERS['double'](x))\n" + SWEEP,
+        )
+        self.assertRerunsAfter(lambda: self.project.edit("utils.py", "x * 2", "x * 30"), 2.0, 30.0)
 
 
 class EnvironmentTest(DetectionTestCase):
