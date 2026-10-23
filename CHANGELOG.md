@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] — 2026-10-23
+
+Fixes to the orchestrator's change detection: edits it missed in 0.9.0, which
+silently kept a stale result, now re-run the jobs they affect.
+
+### Fixed
+
+- A helper module of your own that is neither the experiment's package nor
+  `krum`, such as a `utils.py` next to the sweep script, is now part of a
+  job's identity. Before, it was treated as a third-party dependency, and
+  editing it did not re-run anything.
+- Modules imported inside the experiment body, while the job runs, are
+  covered too. So are the defaults and the module constants their functions
+  use, and the constants or lambdas the job reads straight off them without
+  calling anything.
+- Native code is folded in by file content: your own extension modules, and
+  libraries loaded through `ctypes`, which used to raise `HashError`.
+- A module value set after `Orchestrator.run`, such as a config filled in
+  before the drain, counts: keys are recomputed when a plan or drain starts.
+  The key `run` returns is provisional until then.
+- The installed packages are a new environment witness, so upgrading a
+  dependency re-runs jobs even in a project without a `uv.lock`.
+
+### Changed
+
+- `owned_for` returns a `Modules` ownership test instead of a set of module
+  prefixes, and `Orchestrator.runner` accepts one.
+- Results recorded by 0.9.0 re-run once, since their manifests lack the new
+  installed-packages witness.
+
 ## [0.9.0] — 2026-10-04
 
 First public release. Pre-1.0: the API is usable and documented, but may still
