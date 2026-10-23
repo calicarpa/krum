@@ -29,6 +29,7 @@ from traceback import format_exc
 from types import TracebackType
 from typing import Any, Self
 
+from .hashing import Modules
 from .storage import JobWriter, MetricRecorder, PathLike, bind_job
 from .tracing import DependencyTracker
 
@@ -93,7 +94,7 @@ def execute_job(
     path: PathLike,
     callable: Callable[..., Any],
     params: Mapping[str, Any],
-    owned: tuple[str, ...] = (),
+    owned: Modules | Iterable[str] = (),
     trace: bool = False,
 ) -> dict[str, Any]:
     """Run one job's body, recording its metrics into an already staged directory.
@@ -107,7 +108,8 @@ def execute_job(
         path: The staged directory to record into.
         callable: The user-defined function to execute.
         params: The parameters to execute it on.
-        owned: Module prefixes whose functions are worth recording.
+        owned: Whose functions are worth recording, as module prefixes or
+            as a :class:`~krum.orchestration.hashing.Modules`.
         trace: Record which owned functions the job entered.
 
     Returns:
@@ -136,18 +138,19 @@ class InlineRunner:
     """Runs each job in the orchestrator's own process.
 
     Args:
-        owned: Module prefixes whose functions are worth recording.
+        owned: Whose functions are worth recording, as module prefixes or as
+            a :class:`~krum.orchestration.hashing.Modules`.
         trace: Record which owned functions each job entered.
     """
 
-    _owned: tuple[str, ...]
+    _owned: Modules
     _trace: bool
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, owned: Iterable[str] = (), trace: bool = False) -> None:
+    def __init__(self, owned: Modules | Iterable[str] = (), trace: bool = False) -> None:
         """Prepare to run jobs in this process."""
-        self._owned = tuple(owned)
+        self._owned = owned if isinstance(owned, Modules) else Modules(owned)
         self._trace = trace
 
     def __repr__(self) -> str:
@@ -193,18 +196,18 @@ class SubprocessRunner:
     one for now, the orchestrator still being fail-fast and sequential.
     """
 
-    _owned: tuple[str, ...]
+    _owned: Modules
     _trace: bool
     _workers: int
     _executor: ProcessPoolExecutor | None
 
     __slots__ = tuple(__annotations__)
 
-    def __init__(self, owned: Iterable[str] = (), trace: bool = False, workers: int = 1) -> None:
+    def __init__(self, owned: Modules | Iterable[str] = (), trace: bool = False, workers: int = 1) -> None:
         """Prepare to run jobs out of process, without starting anything yet."""
         if workers < 1:
             raise ValueError(f"workers must be at least 1, got {workers}")
-        self._owned = tuple(owned)
+        self._owned = owned if isinstance(owned, Modules) else Modules(owned)
         self._trace = trace
         self._workers = workers
         self._executor = None

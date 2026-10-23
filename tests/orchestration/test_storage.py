@@ -188,8 +188,27 @@ class WitnessTest(unittest.TestCase):
         """The witnesses are the comparable facts, not the whole environment."""
         self.assertEqual(
             witnesses_of(self.ENVIRONMENT),
-            {"python": "3.12", "implementation": "CPython", "debug": True, "uv_lock": "abc123"},
+            {"python": "3.12", "implementation": "CPython", "debug": True, "uv_lock": "abc123", "packages": None},
         )
+
+    def test_installed_packages_are_a_witness(self) -> None:
+        """A package upgraded in place is a difference, lock file or not.
+
+        This is what covers a project without a lock file, and a `pip install`
+        that never touched one.
+        """
+        installed = {**self.ENVIRONMENT, "packages": {"torch": "2.5.0"}}
+        upgraded = {**self.ENVIRONMENT, "packages": {"torch": "2.6.0"}}
+        self.assertEqual(drift(witnesses_of(installed), witnesses_of(installed)), [])
+        reasons = drift(witnesses_of(installed), witnesses_of(upgraded))
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("packages changed", reasons[0])
+
+    def test_fingerprint_lists_the_installed_packages(self) -> None:
+        """The fingerprint records what is importable, by normalized name."""
+        packages = environment_fingerprint(start=REPO)["packages"]
+        self.assertIn("pytest", packages)
+        self.assertEqual(packages, dict(sorted(packages.items())))
 
     def test_patch_release_is_not_a_difference(self) -> None:
         """Bytecode is stable across patch releases, so a patch bump is ignored."""

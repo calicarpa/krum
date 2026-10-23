@@ -1,6 +1,8 @@
 """Tests for the orchestrator: identity, skipping, persistence and failure."""
 
+import importlib
 import os
+import sys
 import unittest
 import warnings
 from pathlib import Path
@@ -396,6 +398,42 @@ class DependencyTest(OrchestratorTestCase):
             SCALE = 1
         values = sorted(self.orchestrator().get("value")["value"])
         self.assertEqual(values, [2, 20])
+
+    def test_changing_a_sibling_module_is_a_different_job(self) -> None:
+        """A helper module next to the sweep script is owned without being named.
+
+        This is the shape of a researcher's script: `main.py` defining the
+        experiment and `from utils import *`, with `utils` neither the
+        experiment's package nor `krum`. Left out of the owned modules, an
+        edit to `utils.py` would silently reuse the earlier result.
+        """
+        helper, sweep = "sibling_helper_under_test", "sibling_sweep_under_test"
+        (self.home / f"{helper}.py").write_text("def common_stuff(n):\n    return n * 2\n")
+        (self.home / f"{sweep}.py").write_text(
+            "from krum.orchestration import Metric\n"
+            f"from {helper} import *\n"
+            "def experiment(n):\n"
+            "    Metric('value', dtype=int).push(0, common_stuff(n))\n"
+        )
+        sys.path.insert(0, str(self.home))
+        try:
+            module = importlib.import_module(sweep)
+            orch = self.orchestrator()
+            first = orch.run(module.experiment, n=2)
+            orch.drain()
+            # A different size on purpose: a cached bytecode file is trusted
+            # when the source keeps its size and its mtime, to the second
+            (self.home / f"{helper}.py").write_text("def common_stuff(n):\n    return n * 30\n")
+            importlib.reload(sys.modules[helper])
+            module = importlib.reload(module)
+            again = self.orchestrator()
+            second = again.run(module.experiment, n=2)
+            self.assertNotEqual(first, second)
+            self.assertEqual(again.get("value")["value"], [60])
+        finally:
+            sys.path.remove(str(self.home))
+            sys.modules.pop(helper, None)
+            sys.modules.pop(sweep, None)
 
     def test_unchanged_dependency_is_the_same_job(self) -> None:
         """Left alone, the same experiment is the same job."""

@@ -54,22 +54,31 @@ called), `execution` (where a job's body runs), and `__init__`
   This is the job's *question*.
 - `fingerprint` — written beside the output once a job completes, in
   `deps.json`. Two parts: `witnesses`, comparable facts about the environment,
-  and `called`, the `location -> code hash` map of the owned functions the job
-  entered. This is the warrant that the stored *answer* is still valid.
+  and `called`, the `location -> hash` map of the owned functions the job
+  entered, of the members of owned modules its code names (`utils:SCALE`, read
+  off a module imported in the body), and of the owned extension modules it
+  loaded. This is the warrant that the stored *answer* is still valid.
 
 `Orchestrator.decide` returns both the decision and the reasons behind it, and
 `Orchestrator.plan` reports them for a whole sweep without running any of it:
 
 ```
-key = static_key(callable, params)
+key = static_key(callable, params)      # recomputed when a plan or drain starts
 folder = root / key
 no marker                  -> run ("no recorded result")
 FAILED marker              -> run ("previous attempt failed")
 forced                     -> run ("forced")
-a witness differs          -> run ("uv_lock changed (651669ac047d… -> …)")
+a witness differs          -> run ("packages changed (651669ac047d… -> …)")
 a recorded callee differs  -> run ("pkg.mod:Class.method changed")
+a callee cannot be hashed  -> run ("pkg.mod:helper cannot be verified")
 otherwise                  -> skip
 ```
+
+The key is computed when a run is enqueued, so that a bad parameter or an
+unhashable dependency is reported at the call site, and computed again when
+the queue is planned or drained: a module value set between the two — a
+config dict filled in, a seed — is then part of the identity, and `run`'s
+return value is provisional until then.
 
 No static whole-program analysis is needed, and the key is computable without
 executing the run, as required by [adr-2026-07-31.md].
@@ -111,10 +120,24 @@ attribute rather than by a name in the caller's globals.
 
 ### Where recursion stops
 
-`Modules` decides ownership by dotted prefix. Owned code is folded in by
-content; everything else stops at its `Location`. Dependency *versions* are not
-hashed here at all — they belong to the fingerprint, keyed on `uv.lock` — which
-is what keeps a hash of a user experiment from walking into pytorch.
+`Modules` decides ownership by dotted prefix, and optionally by where a module
+was loaded from. Owned code is folded in by content; everything else stops at
+its `Location`. By default (`owned_for`), the prefixes are `__main__`, `krum`
+and the experiment's own package, and the test is *local*: it also owns every
+module loaded from a file outside the standard library and every site-packages
+directory. That is what covers a researcher's `from utils import *`, `utils.py`
+sitting next to the sweep script: it is neither `__main__` nor `krum`, and an
+edit to it must not keep a stale result. The test is made at lookup time, so a
+module first imported while a job runs is owned by the time its calls are
+recorded. Dependency *versions* are not hashed here at all — they belong to
+the fingerprint — which is what keeps a hash of a user experiment from walking
+into pytorch.
+
+Native code has no bytecode to read. An owned extension module (a `.so` next
+to the script, say) is folded in by the content of its file, and so is a
+library loaded through `ctypes`, whose `CDLL` object would otherwise be
+unhashable. A library found by name alone, such as `libc`, folds in as its
+name: its version is the environment's business.
 
 Exclusions override the prefixes, which is what lets a broad prefix like `krum`
 be owned while a subpackage within it is not. `krum.orchestration` is always
@@ -134,9 +157,18 @@ folding in a placeholder. Bytecode is not stable across interpreter versions,
 so keys change on a Python upgrade; the interpreter is a witness too, so that
 is visible rather than silent.
 
-`hashing.shallow_key` hashes one callable's own code and nothing it refers to.
-A full key moves when a helper does; a shallow key stays put, which is what
-lets a re-run name the function that changed rather than only the job.
+A lambda or a nested function is the exception to stopping at a location: every
+lambda of a module shares one, so an *unowned* anonymous function folds in by
+its code and what it closed over, its globals left alone. This is what lets a
+table of handlers be covered through the member that holds it.
+
+`hashing.callee_key` hashes one callable's code, its defaults and the globals
+its code names, one level deep: a function or class it names folds in as its
+location, that callee being recorded on its own when it runs. A full key moves
+when a helper does; a callee key stays put, which is what lets a re-run name
+the function that changed rather than only the job. It owns nothing, so a
+record can be verified without knowing how it was made. (`shallow_key`, the
+code alone, remains for attributing a change to a body.)
 
 ## Environment
 
@@ -156,7 +188,8 @@ parallel directory tree on every patch bump.
 
 | witness          | compared as                    | why                                       |
 |------------------|--------------------------------|-------------------------------------------|
-| `uv_lock`        | content hash of the lock file  | the one witness a key cannot cover        |
+| `packages`       | hash of installed name==version| what the job actually ran against         |
+| `uv_lock`        | content hash of the lock file  | what the environment should hold          |
 | `python`         | major and minor only           | bytecode is stable across patch releases  |
 | `implementation` | exactly                        |                                           |
 | `debug`          | exactly                        | `-O` strips assertions                    |
@@ -165,12 +198,14 @@ parallel directory tree on every patch bump.
 is no reason to discard a result. The lock file hash is cached per path, size
 and modification time, so a sweep reads the lock once rather than once per job.
 
-Only `uv_lock` does work a key does not. Because a key hashes bytecode, a Python
-minor upgrade or an `-O` change mostly shifts keys on its own; the other three
-are kept because they cost nothing, and stay correct should key derivation ever
-stop depending on bytecode. Third-party code, by contrast, is folded into a key
-as a `Location` only, never by content, so a dependency bump is invisible to
-the key by design — hence the lock file.
+Only `packages` and `uv_lock` do work a key does not. Because a key hashes
+bytecode, a Python minor upgrade or an `-O` change mostly shifts keys on its
+own; the other three are kept because they cost nothing, and stay correct
+should key derivation ever stop depending on bytecode. Third-party code, by
+contrast, is folded into a key as a `Location` only, never by content, so a
+dependency bump is invisible to the key by design — hence the installed
+packages, listed through `importlib.metadata` so that a project without a lock
+file, or a `pip install` that never touched one, is covered too.
 
 A job recorded without a fingerprint cannot be checked, which counts as stale.
 
