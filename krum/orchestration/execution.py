@@ -191,9 +191,11 @@ class SubprocessRunner:
     """Runs each job in a fresh interpreter of its own.
 
     The pool is spawned rather than forked, and retires each worker after one
-    job, so no two jobs share an interpreter. Raising `workers` above one is
-    all that stands between this and running a sweep in parallel; it is left at
-    one for now, the orchestrator still being fail-fast and sequential.
+    job, so no two jobs share an interpreter. Jobs still run one at a time:
+    `run` waits for its job to finish before returning, so raising `workers`
+    above one only leaves the extra workers idle. Running a sweep in parallel
+    would take a `run` that hands back a future and an orchestrator that keeps
+    several in flight, which its fail-fast drain does not yet do.
     """
 
     _owned: Modules
