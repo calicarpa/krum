@@ -15,7 +15,9 @@ license-files = ["LICENSE"]
 authors = [
     {name = "Sébastien Rouault", email = "sebastien.rouault@alumni.epfl.ch"},
     {name = "Arthur Danjou", email = "arthur.danjou@dauphine.eu"},
-    {name = "Mohamad Ammar Said", email = "mohamad-ammar.said@polytechnique.edu"}
+    {name = "Mohamad Ammar Said", email = "mohamad-ammar.said@polytechnique.edu"},
+    {name = "Peva Blanchard", email = "pblanchard@kleis.ch"},
+    {name = "El Mahdi El Mhamdi", email = "el-mahdi.el-mhamdi@polytechnique.edu"}
 ]
 keywords = [
     "byzantine-fault-tolerance",
