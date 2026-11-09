@@ -24,7 +24,7 @@ for _mod, _pkg in (
 
 project = "Krum, the Library"
 copyright = "2026"
-author = "Arthur DANJOU, Mohammed Ammar SAID, El-Mahdi EL-MHAMDI, Sébastien ROUAULT, Peva BLANCHARD"
+author = "Arthur DANJOU, Mohammed Ammar SAID, El-Mahdi El-Mhamdi, Sébastien ROUAULT, Peva BLANCHARD"
 
 
 # -- General configuration ---------------------------------------------------
