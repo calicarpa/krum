@@ -12,6 +12,7 @@ Modules
 
    orchestrator
    metrics
+   progress
    hashing
    storage
    tracing

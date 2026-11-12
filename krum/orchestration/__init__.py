@@ -55,12 +55,13 @@ from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from time import perf_counter
 from types import TracebackType
-from typing import Any, Self
+from typing import Any, Self, TextIO
 from warnings import warn
 
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, InMemoryTable, Metric, MetricTable, NoActiveJob, collect, reserved
+from .progress import Failure, Progress, describe_params, make_progress, progress_stream
 from .storage import (
     JobFolder,
     JobStore,
@@ -408,6 +409,15 @@ class Orchestrator:
             On by default: the cost is one callback per distinct function, and
             the alternative is keeping a stale result. Turn it off for a sweep
             that must share monitoring with a debugger or a profiler.
+        progress: Show a live progress line while the queue drains: the number
+            of jobs done, the elapsed time and an estimated time remaining.
+            ``True`` draws on standard error when it is a terminal, ``False``
+            draws nothing, and a stream draws there whatever it is, so a sweep
+            can be watched in a file. Pass a
+            :class:`~krum.orchestration.progress.Progress` to bring your own
+            display; it then owns its own totals. Best-effort throughout: no
+            hard dependency, and no escape codes unless asked for (see
+            :mod:`krum.orchestration.progress`).
     """
 
     _store: JobStore
@@ -419,6 +429,7 @@ class Orchestrator:
     _force: bool
     _isolate: bool
     _trace: bool
+    _progress: bool | TextIO | Progress
     _witnesses: dict[str, Any] | None
     _warned: bool
 
@@ -434,6 +445,7 @@ class Orchestrator:
         force: bool = False,
         isolate: bool = False,
         trace: bool = True,
+        progress: bool | TextIO | Progress = True,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
@@ -445,6 +457,7 @@ class Orchestrator:
         self._force = force
         self._isolate = isolate
         self._trace = trace
+        self._progress = progress
         self._witnesses = None
         self._warned = False
 
@@ -620,48 +633,81 @@ class Orchestrator:
         with self.runner(self._owned_modules()) as runner:
             return self._drain(runner, force)
 
+    def _display(self, total: int, force: bool | None) -> Progress:
+        """Build the progress display for a drain of `total` jobs.
+
+        The number of jobs that will actually run is only counted when a
+        display is going to draw it, since it costs one extra decision per job.
+        """
+        setting = self._progress
+        if isinstance(setting, Progress):
+            return setting
+        stream = progress_stream(setting)
+        runs_total = 0 if stream is None else sum(1 for pending in self._queue if self.decide(pending, force).runs)
+        return make_progress(total, runs_total, stream=stream)
+
     def _drain(self, runner: Runner, force: bool | None) -> RunSummary:
         """Execute the queue with a prepared runner."""
         outcomes: list[JobOutcome] = []
-        while self._queue:
-            pending = self._queue[0]
-            decision = self.decide(pending, force)
-            key = decision.key
-            if not decision.runs:
-                self._queue.popleft()
-                outcomes.append(JobOutcome(key, "skipped", path=self._store.folder_for(key).path))
-                continue
-            manifest = build_manifest(
-                key,
-                pending.callable,
-                pending.bound_params,
-                owned=self._owned_for(pending.callable),
-                lock=self._lock,
-                start=self._source,
-            )
-            self._warn_if_dirty(manifest)
-            writer = self._store.writer(key, manifest)
-            started = perf_counter()
-            try:
-                executed = runner.run(writer, pending.callable, pending.params)
-            except BaseException:
-                # Interrupted rather than failed: leave no marker, so that the
-                # next drain reads this job as "not done" and runs it again.
-                writer.discard()
-                raise
-            writer.record_called(executed.called)
-            if not executed.ok:
-                report = executed.error or "the job failed without a traceback"
-                failed = writer.finish("failed", report)
-                outcomes.append(
-                    JobOutcome(key, "failed", perf_counter() - started, failed.path, report, decision.reasons)
+        progress = self._display(len(self._queue), force)
+        try:
+            while self._queue:
+                pending = self._queue[0]
+                decision = self.decide(pending, force)
+                key = decision.key
+                if not decision.runs:
+                    self._queue.popleft()
+                    outcomes.append(JobOutcome(key, "skipped", path=self._store.folder_for(key).path))
+                    progress.advance(ran=False, description=describe_params(pending.params))
+                    continue
+                manifest = build_manifest(
+                    key,
+                    pending.callable,
+                    pending.bound_params,
+                    owned=self._owned_for(pending.callable),
+                    lock=self._lock,
+                    start=self._source,
                 )
-                summary = RunSummary(outcomes, pending=len(self._queue) - 1)
-                self._queue.clear()
-                raise RunFailed(summary, f"job {key[:16]} failed\n{report}\n{summary.report()}") from executed.exception
-            done = writer.finish("done")
-            self._queue.popleft()
-            outcomes.append(JobOutcome(key, "done", perf_counter() - started, done.path, reasons=decision.reasons))
+                self._warn_if_dirty(manifest)
+                writer = self._store.writer(key, manifest)
+                progress.describe(describe_params(pending.params))
+                started = perf_counter()
+                try:
+                    executed = runner.run(writer, pending.callable, pending.params)
+                except BaseException:
+                    # Interrupted rather than failed: leave no marker, so that the
+                    # next drain reads this job as "not done" and runs it again.
+                    writer.discard()
+                    raise
+                writer.record_called(executed.called)
+                if not executed.ok:
+                    report = executed.error or "the job failed without a traceback"
+                    failed = writer.finish("failed", report)
+                    outcomes.append(
+                        JobOutcome(key, "failed", perf_counter() - started, failed.path, report, decision.reasons)
+                    )
+                    summary = RunSummary(outcomes, pending=len(self._queue) - 1)
+                    self._queue.clear()
+                    progress.fail(Failure(key, pending.params, report, failed.path))
+                    raise RunFailed(
+                        summary,
+                        f"job {key} failed\n"
+                        f"  folder {failed.path}\n"
+                        f"  params {describe_params(pending.params, limit=None)}\n\n"
+                        f"{report}\n{summary.report()}",
+                    ) from executed.exception
+                done = writer.finish("done")
+                self._queue.popleft()
+                duration = perf_counter() - started
+                outcomes.append(JobOutcome(key, "done", duration, done.path, reasons=decision.reasons))
+                progress.advance(
+                    ran=True,
+                    rerun="previous attempt failed" in decision.reasons,
+                    duration=duration,
+                    description=describe_params(pending.params),
+                )
+        finally:
+            progress.close()
         return RunSummary(outcomes)
 
     def _warn_if_dirty(self, manifest: Mapping[str, Any]) -> None:

@@ -373,6 +373,88 @@ leaves the others alone — so a change to ``MultiKrum`` recomputes the
 MultiKrum configurations and skips the Average ones. Pass ``force=True``
 to the orchestrator to recompute regardless.
 
+Watching a drain
+----------------
+
+On an interactive terminal, ``drain()`` draws a live line with the job in
+flight, how many jobs ran, how many were reused, the elapsed time, and an
+estimated time remaining computed from the jobs that actually executed:
+
+.. code-block:: text
+
+   ⠋ aggregator=MultiKrum · f=1 · seed=9  10 run · 10 cached  0:00:14  ETA 00:02  3.1 job/s
+
+When the drain ends it prints a summary table:
+
+.. code-block:: text
+
+   Sweep complete
+   ┌────────────┬─────────────┐
+   │ Run        │          10 │
+   │ Cached     │          10 │
+   │ Failed     │           0 │
+   │ Elapsed    │       00:14 │
+   │ Throughput │  1.4 job/s  │
+   └────────────┴─────────────┘
+
+``Rerun`` is listed when a job is retried after a failed attempt. A drain is
+fail-fast, so the job that raises stops it, and the console then names that job
+before printing the summary — its full key, the parameters it ran with, the
+folder holding its traceback, and the traceback itself, with the final
+exception line highlighted:
+
+.. code-block:: text
+
+   ╭─ Job failed ──────────────────────────────────────────────────────╮
+   │ key     9c438775f143a707fe478cfadabc540b                          │
+   │ folder  /runs/9c438775f143a707fe478cfadabc540b                    │
+   │ params  seed=62 · work=0.12 · marker=/tmp/fail-once               │
+   │                                                                   │
+   │ Traceback (most recent call last):                                │
+   │   File "sweep.py", line 38, in flaky_job                          │
+   │     raise RuntimeError("transient failure, retry this job")       │
+   │ RuntimeError: transient failure, retry this job                   │
+   ╰───────────────────────────────────────────────────────────────────╯
+
+The same details are in the message of the :class:`~krum.orchestration.RunFailed`
+that ``drain()`` raises, so a headless run leaves them in its logs.
+
+The table's layout comes from ``rich``, which the ``experiments`` extra
+installs; without it the display falls back to a plain single line with the
+same counts. Both are silent when standard error is not a terminal, so a
+redirected sweep gets no escape codes in its logs, and ``progress=False`` turns
+them off entirely:
+
+.. code-block:: python
+
+   orchestrator = Orchestrator(..., progress=False)
+
+Passing a stream instead of ``True`` draws there whatever it is, which is how a
+sweep is watched from a file, a socket, or a notebook cell:
+
+.. code-block:: python
+
+   with open("sweep.log", "a") as log:
+       Orchestrator(..., progress=log).drain()
+
+Passing a :class:`~krum.orchestration.progress.Progress` brings your own
+display. It is driven exactly as the built-in ones are, and it owns its own
+totals, so a custom renderer does not need to be told how many jobs are
+queued:
+
+.. code-block:: python
+
+   from krum.orchestration.progress import NullProgress
+
+   orchestrator = Orchestrator(..., progress=NullProgress())
+
+The renderer is chosen once per drain: no stream means
+:class:`~krum.orchestration.progress.NullProgress`, a stream with ``rich``
+importable means
+:class:`~krum.orchestration.progress.RichProgress`, and a stream without it
+means :class:`~krum.orchestration.progress.PlainProgress`. The number of jobs
+that will actually run is only counted when something is going to draw it.
+
 Systematic benchmark
 --------------------
 

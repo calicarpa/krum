@@ -49,6 +49,9 @@ experiments = [
     # Only `MetricTable.to_pandas` and the experiments' own analysis need it;
     # recording and reading metrics does not.
     "pandas>=2.2.0",
+    # Only the live drain display uses it, and it falls back to a plain line
+    # without it, so it stays optional.
+    "rich>=13.0.0",
     "seaborn>=0.13.0",
 ]
 dev = [
@@ -133,5 +136,6 @@ line-ending = "auto"
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "rich>=13.0.0",
     "sphinx-autobuild>=2024.10.3",
 ]
