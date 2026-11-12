@@ -61,7 +61,7 @@ from warnings import warn
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, InMemoryTable, Metric, MetricTable, NoActiveJob, collect, reserved
-from .progress import describe_params, make_progress
+from .progress import Failure, describe_params, make_progress
 from .storage import (
     JobFolder,
     JobStore,
@@ -672,9 +672,13 @@ class Orchestrator:
                     )
                     summary = RunSummary(outcomes, pending=len(self._queue) - 1)
                     self._queue.clear()
-                    progress.fail(description=describe_params(pending.params))
+                    progress.fail(Failure(key, pending.params, report, failed.path))
                     raise RunFailed(
-                        summary, f"job {key[:16]} failed\n{report}\n{summary.report()}"
+                        summary,
+                        f"job {key} failed\n"
+                        f"  folder {failed.path}\n"
+                        f"  params {describe_params(pending.params, limit=None)}\n\n"
+                        f"{report}\n{summary.report()}",
                     ) from executed.exception
                 done = writer.finish("done")
                 self._queue.popleft()

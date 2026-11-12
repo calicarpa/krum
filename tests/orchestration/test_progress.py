@@ -2,8 +2,9 @@
 
 import io
 import unittest
+from pathlib import Path
 
-from krum.orchestration.progress import NullProgress, PlainProgress, make_progress
+from krum.orchestration.progress import Failure, NullProgress, PlainProgress, make_progress
 
 
 class FakeTTY(io.StringIO):
@@ -66,6 +67,25 @@ class ProgressTest(unittest.TestCase):
         self.assertEqual(progress.runs_done, 2)
         self.assertEqual(progress.reruns, 1)
         self.assertEqual(progress.cached, 1)
+
+    def test_failure_reports_the_job_that_stopped_the_drain(self) -> None:
+        """The closing report names the job, its parameters and its traceback."""
+        stream = FakeTTY()
+        progress = PlainProgress(3, 1, stream=stream)
+        failure = Failure(
+            key="abc123",
+            params={"seed": 2, "lr": 0.1},
+            error="Traceback (most recent call last):\nRuntimeError: boom",
+            path=Path("/tmp/store/abc123"),
+        )
+        progress.fail(failure)
+        progress.close()
+        text = stream.getvalue()
+        self.assertIn("job abc123 failed", text)
+        self.assertIn("seed=2 · lr=0.1", text)
+        self.assertIn("/tmp/store/abc123", text)
+        self.assertIn("RuntimeError: boom", text)
+        self.assertEqual(progress.failed, 1)
 
 
 if __name__ == "__main__":

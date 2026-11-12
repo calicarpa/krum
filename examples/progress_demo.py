@@ -81,8 +81,7 @@ def main() -> None:
         orchestrator.drain()
     except RunFailed as failed:
         outcome = failed.summary.failed[0]
-        reason = (outcome.error or "").strip().splitlines()[-1]
-        print(f"drain stopped on {outcome.key[:12]} and left {failed.summary.pending} jobs unstarted: {reason}")
+        print(f"drain stopped on {outcome.key[:12]} and left {failed.summary.pending} jobs unstarted")
 
     print("fourth pass: retrying the failed job")
     orchestrator = Orchestrator(store)

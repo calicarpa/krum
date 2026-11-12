@@ -14,17 +14,20 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
 from time import perf_counter
 from typing import Any, Protocol, TextIO
 
-__all__ = ["NullProgress", "Progress", "describe_params", "make_progress"]
+__all__ = ["Failure", "NullProgress", "Progress", "describe_params", "make_progress"]
 
 
-def describe_params(params: Mapping[str, Any], limit: int = 80) -> str:
-    """Render a job's parameters as a short ``k=v · k=v`` string.
+def describe_params(params: Mapping[str, Any], limit: int | None = 80) -> str:
+    """Render a job's parameters as a ``k=v · k=v`` string.
 
     Class values are shortened to their qualified name, and the whole string
-    is capped so a wide sweep does not fill the terminal.
+    is capped so a wide sweep does not fill the terminal. Pass ``limit=None``
+    to keep every parameter, which is what a failure report does.
     """
     parts: list[str] = []
     for name, value in params.items():
@@ -32,9 +35,23 @@ def describe_params(params: Mapping[str, Any], limit: int = 80) -> str:
             value = value.__qualname__
         parts.append(f"{name}={value}")
     text = " · ".join(parts)
-    if len(text) > limit:
+    if limit is not None and len(text) > limit:
         text = text[: limit - 1] + "…"
     return text or "(no params)"
+
+
+@dataclass(frozen=True, slots=True)
+class Failure:
+    """What a failed job needs to be diagnosed from the console.
+
+    Carries the job's identity, the parameters it ran with, the folder its
+    traceback was written to, and the traceback itself.
+    """
+
+    key: str
+    params: Mapping[str, Any]
+    error: str
+    path: Path | None = None
 
 
 class Progress(Protocol):
@@ -56,8 +73,8 @@ class Progress(Protocol):
             description: A short label for the job just finished.
         """
 
-    def fail(self, description: str = "") -> None:
-        """Record a job that failed, without advancing the completion counter."""
+    def fail(self, failure: Failure) -> None:
+        """Record the job that stopped the drain."""
 
     def close(self) -> None:
         """Finish the display, leaving the terminal in a clean state."""
@@ -72,7 +89,7 @@ class NullProgress:
     def advance(self, *, ran: bool, rerun: bool = False, duration: float = 0.0, description: str = "") -> None:
         """No-op."""
 
-    def fail(self, description: str = "") -> None:
+    def fail(self, failure: Failure) -> None:
         """No-op."""
 
     def close(self) -> None:
@@ -105,6 +122,7 @@ class _Tracker:
         self.runs_done = 0
         self.reruns = 0
         self.failed = 0
+        self.failure: Failure | None = None
         self.run_time = 0.0
         self._start = perf_counter()
 
@@ -122,10 +140,11 @@ class _Tracker:
             self.reruns += 1
         self.render(description)
 
-    def fail(self, description: str = "") -> None:
-        """Record one failed job and refresh the display."""
+    def fail(self, failure: Failure) -> None:
+        """Record the job that stopped the drain and refresh the display."""
         self.failed += 1
-        self.render(description)
+        self.failure = failure
+        self.render("")
 
     def elapsed(self) -> float:
         """Seconds since the display was created."""
@@ -159,6 +178,18 @@ class _Tracker:
             statuses.append(("failed", self.failed))
         return statuses
 
+    def failure_lines(self) -> list[str]:
+        """The failing job's identity, parameters and traceback, as plain lines."""
+        failure = self.failure
+        if failure is None:
+            return []
+        lines = [f"job {failure.key} failed"]
+        if failure.path is not None:
+            lines.append(f"  folder {failure.path}")
+        lines.append(f"  params {describe_params(failure.params, limit=None)}")
+        lines.extend(f"  {line}" for line in failure.error.rstrip().splitlines())
+        return lines
+
     def render(self, description: str) -> None:
         """Draw the current state; implemented by each renderer."""
         raise NotImplementedError
@@ -188,11 +219,16 @@ class PlainProgress(_Tracker):
         self._stream.flush()
 
     def close(self) -> None:
-        """Replace the bar with a multi-line summary and move to a fresh line."""
-        lines = [
+        """Replace the bar with the failure report and the summary."""
+        lines: list[str] = []
+        if self.failure is not None:
+            lines = self.failure_lines()
+            lines[0] = f"\x1b[{self._CODES['failed']}m{lines[0]}\x1b[0m"
+            lines.append("")
+        lines.extend([
             "Sweep complete",
             f"  {self._colored('run', self.runs_done)}",
-        ]
+        ])
         if self.reruns:
             lines.append(f"  {self._colored('rerun', self.reruns)}")
         lines.append(f"  {self._colored('cached', self.cached)}")
@@ -257,8 +293,42 @@ class RichProgress(_Tracker):
         )
 
     def close(self) -> None:
-        """Stop the bar and print a full summary table."""
+        """Stop the bar, report the failure if there was one, then summarize."""
         self._rich.stop()
+        if self.failure is not None:
+            self._print_failure()
+        self._print_summary()
+
+    def _print_failure(self) -> None:
+        """Render the failing job as a red panel, with its traceback folded in."""
+        from rich.console import Group
+        from rich.panel import Panel
+        from rich.table import Table
+        from rich.text import Text
+
+        failure = self.failure
+        if failure is None:
+            return
+        details = Table.grid(padding=(0, 2))
+        details.add_column(style="dim", no_wrap=True)
+        details.add_column(overflow="fold")
+        details.add_row("key", Text(failure.key))
+        if failure.path is not None:
+            details.add_row("folder", Text(str(failure.path)))
+        details.add_row("params", Text(describe_params(failure.params, limit=None)))
+        error = failure.error.rstrip().splitlines() or [""]
+        body = Group(
+            details,
+            Text(""),
+            Text("\n".join(error[:-1]), style="red"),
+            Text(error[-1], style="bold red"),
+        )
+        self._rich.console.print(
+            Panel(body, title="[bold red]Job failed[/]", title_align="left", border_style="red", padding=(0, 1))
+        )
+
+    def _print_summary(self) -> None:
+        """Print the counts, elapsed time and throughput of the whole drain."""
         from rich.table import Table
 
         table = Table(
