@@ -421,12 +421,39 @@ that ``drain()`` raises, so a headless run leaves them in its logs.
 
 The table's layout comes from ``rich``, which the ``experiments`` extra
 installs; without it the display falls back to a plain single line with the
-same counts. Both are silent when standard error is not a terminal, and
-``progress=False`` turns them off entirely:
+same counts. Both are silent when standard error is not a terminal, so a
+redirected sweep gets no escape codes in its logs, and ``progress=False`` turns
+them off entirely:
 
 .. code-block:: python
 
    orchestrator = Orchestrator(..., progress=False)
+
+Passing a stream instead of ``True`` draws there whatever it is, which is how a
+sweep is watched from a file, a socket, or a notebook cell:
+
+.. code-block:: python
+
+   with open("sweep.log", "a") as log:
+       Orchestrator(..., progress=log).drain()
+
+Passing a :class:`~krum.orchestration.progress.Progress` brings your own
+display. It is driven exactly as the built-in ones are, and it owns its own
+totals, so a custom renderer does not need to be told how many jobs are
+queued:
+
+.. code-block:: python
+
+   from krum.orchestration.progress import NullProgress
+
+   orchestrator = Orchestrator(..., progress=NullProgress())
+
+The renderer is chosen once per drain: no stream means
+:class:`~krum.orchestration.progress.NullProgress`, a stream with ``rich``
+importable means
+:class:`~krum.orchestration.progress.RichProgress`, and a stream without it
+means :class:`~krum.orchestration.progress.PlainProgress`. The number of jobs
+that will actually run is only counted when something is going to draw it.
 
 Systematic benchmark
 --------------------

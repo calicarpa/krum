@@ -1,10 +1,12 @@
 """Tests for the live progress display."""
 
 import io
+import tempfile
 import unittest
 from pathlib import Path
 
-from krum.orchestration.progress import Failure, NullProgress, PlainProgress, make_progress
+from krum.orchestration import Metric, Orchestrator
+from krum.orchestration.progress import Failure, NullProgress, PlainProgress, make_progress, progress_stream
 
 
 class FakeTTY(io.StringIO):
@@ -15,16 +17,27 @@ class FakeTTY(io.StringIO):
         return True
 
 
+def record(seed: int) -> None:
+    """Write one metric, so the job has something to store."""
+    Metric("loss", dtype=float).push(seed, float(seed))
+
+
 class ProgressTest(unittest.TestCase):
     """Exercise the progress display builders and the plain renderer."""
 
-    def test_disabled_returns_null(self) -> None:
-        """A disabled display is a no-op."""
-        self.assertIsInstance(make_progress(10, 10, enabled=False), NullProgress)
+    def test_no_stream_returns_null(self) -> None:
+        """Without a stream there is nowhere to draw, so nothing is drawn."""
+        self.assertIsInstance(make_progress(10, 10), NullProgress)
 
-    def test_non_terminal_returns_null(self) -> None:
-        """A non-terminal stream gets a no-op, not escape codes."""
-        self.assertIsInstance(make_progress(10, 10, stream=io.StringIO()), NullProgress)
+    def test_disabled_stream_returns_none(self) -> None:
+        """Turning progress off yields no stream at all."""
+        self.assertIsNone(progress_stream(False))
+
+    def test_explicit_stream_is_kept_even_when_not_a_terminal(self) -> None:
+        """A stream the caller passed is drawn on, terminal or not."""
+        stream = io.StringIO()
+        self.assertIs(progress_stream(stream), stream)
+        self.assertNotIsInstance(make_progress(10, 10, stream=stream), NullProgress)
 
     def test_plain_progress_renders_a_line(self) -> None:
         """The plain renderer draws the count, ETA and description."""
@@ -86,6 +99,15 @@ class ProgressTest(unittest.TestCase):
         self.assertIn("/tmp/store/abc123", text)
         self.assertIn("RuntimeError: boom", text)
         self.assertEqual(progress.failed, 1)
+
+    def test_an_injected_renderer_receives_the_drain(self) -> None:
+        """A renderer passed to the orchestrator is the one that is driven."""
+        renderer = PlainProgress(1, 1, stream=FakeTTY())
+        orchestrator = Orchestrator(Path(tempfile.mkdtemp(prefix="krum-progress-inject-")), progress=renderer)
+        orchestrator.run(record, seed=1)
+        orchestrator.drain()
+        self.assertEqual(renderer.runs_done, 1)
+        self.assertEqual(renderer.completed, 1)
 
 
 if __name__ == "__main__":

@@ -55,13 +55,13 @@ from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from time import perf_counter
 from types import TracebackType
-from typing import Any, Self
+from typing import Any, Self, TextIO
 from warnings import warn
 
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, InMemoryTable, Metric, MetricTable, NoActiveJob, collect, reserved
-from .progress import Failure, describe_params, make_progress
+from .progress import Failure, Progress, describe_params, make_progress, progress_stream
 from .storage import (
     JobFolder,
     JobStore,
@@ -411,8 +411,13 @@ class Orchestrator:
             that must share monitoring with a debugger or a profiler.
         progress: Show a live progress line while the queue drains: the number
             of jobs done, the elapsed time and an estimated time remaining.
-            Best-effort: it renders on an interactive terminal only, and never
-            adds a hard dependency (see :mod:`krum.orchestration.progress`).
+            ``True`` draws on standard error when it is a terminal, ``False``
+            draws nothing, and a stream draws there whatever it is, so a sweep
+            can be watched in a file. Pass a
+            :class:`~krum.orchestration.progress.Progress` to bring your own
+            display; it then owns its own totals. Best-effort throughout: no
+            hard dependency, and no escape codes unless asked for (see
+            :mod:`krum.orchestration.progress`).
     """
 
     _store: JobStore
@@ -424,7 +429,7 @@ class Orchestrator:
     _force: bool
     _isolate: bool
     _trace: bool
-    _progress: bool
+    _progress: bool | TextIO | Progress
     _witnesses: dict[str, Any] | None
     _warned: bool
 
@@ -440,7 +445,7 @@ class Orchestrator:
         force: bool = False,
         isolate: bool = False,
         trace: bool = True,
-        progress: bool = True,
+        progress: bool | TextIO | Progress = True,
     ) -> None:
         """Open a store at `root`, creating it if needed."""
         self._store = JobStore(root)
@@ -628,12 +633,23 @@ class Orchestrator:
         with self.runner(self._owned_modules()) as runner:
             return self._drain(runner, force)
 
+    def _display(self, total: int, force: bool | None) -> Progress:
+        """Build the progress display for a drain of `total` jobs.
+
+        The number of jobs that will actually run is only counted when a
+        display is going to draw it, since it costs one extra decision per job.
+        """
+        setting = self._progress
+        if isinstance(setting, Progress):
+            return setting
+        stream = progress_stream(setting)
+        runs_total = 0 if stream is None else sum(1 for pending in self._queue if self.decide(pending, force).runs)
+        return make_progress(total, runs_total, stream=stream)
+
     def _drain(self, runner: Runner, force: bool | None) -> RunSummary:
         """Execute the queue with a prepared runner."""
         outcomes: list[JobOutcome] = []
-        total = len(self._queue)
-        runs_total = sum(1 for pending in self._queue if self.decide(pending, force).runs)
-        progress = make_progress(total, runs_total, enabled=self._progress)
+        progress = self._display(len(self._queue), force)
         try:
             while self._queue:
                 pending = self._queue[0]

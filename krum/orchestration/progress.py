@@ -17,9 +17,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Protocol, TextIO
+from typing import Any, Protocol, TextIO, runtime_checkable
 
-__all__ = ["Failure", "NullProgress", "Progress", "describe_params", "make_progress"]
+__all__ = ["Failure", "NullProgress", "Progress", "describe_params", "make_progress", "progress_stream"]
 
 
 def describe_params(params: Mapping[str, Any], limit: int | None = 80) -> str:
@@ -54,6 +54,7 @@ class Failure:
     path: Path | None = None
 
 
+@runtime_checkable
 class Progress(Protocol):
     """A live progress display for a single drain."""
 
@@ -351,30 +352,35 @@ class RichProgress(_Tracker):
         self._rich.console.print(table)
 
 
-def make_progress(
-    total: int,
-    runs_total: int,
-    *,
-    enabled: bool = True,
-    stream: TextIO | None = None,
-) -> Progress:
-    """Build the best available progress display for a drain of ``total`` jobs.
+def progress_stream(enabled: bool | TextIO) -> TextIO | None:
+    """The stream a display would draw on, or None when it would draw nothing.
+
+    ``True`` means the default stream, standard error, and only when it is a
+    terminal: a sweep whose output is redirected gets no escape codes. A stream
+    passed explicitly is always drawn on, since asking for one is the point.
+    """
+    if enabled is False:
+        return None
+    if enabled is True:
+        return sys.stderr if sys.stderr.isatty() else None
+    return enabled
+
+
+def make_progress(total: int, runs_total: int, *, stream: TextIO | None = None) -> Progress:
+    """Build the best display writing to ``stream``, or a no-op without one.
 
     Args:
         total: The number of jobs in the drain.
         runs_total: How many of them will actually execute, the rest being
             reused from the cache.
-        enabled: When false, return a no-op display.
-        stream: The stream to draw on; standard error by default.
+        stream: The stream to draw on, as returned by :func:`progress_stream`.
+            ``None`` disables the display.
 
     Returns:
-        A no-op on a non-terminal stream or when disabled, a rich bar when
-        ``rich`` is importable, and a plain ANSI line otherwise.
+        A no-op without a stream, a rich bar when ``rich`` is importable, and a
+        plain ANSI line otherwise.
     """
-    if not enabled:
-        return NullProgress()
-    stream = stream if stream is not None else sys.stderr
-    if not stream.isatty():
+    if stream is None:
         return NullProgress()
     try:
         return RichProgress(total, runs_total, stream=stream)
