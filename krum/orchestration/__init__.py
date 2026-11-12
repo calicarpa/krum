@@ -672,6 +672,7 @@ class Orchestrator:
                     )
                     summary = RunSummary(outcomes, pending=len(self._queue) - 1)
                     self._queue.clear()
+                    progress.fail(description=describe_params(pending.params))
                     raise RunFailed(
                         summary, f"job {key[:16]} failed\n{report}\n{summary.report()}"
                     ) from executed.exception

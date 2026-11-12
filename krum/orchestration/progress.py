@@ -56,6 +56,9 @@ class Progress(Protocol):
             description: A short label for the job just finished.
         """
 
+    def fail(self, description: str = "") -> None:
+        """Record a job that failed, without advancing the completion counter."""
+
     def close(self) -> None:
         """Finish the display, leaving the terminal in a clean state."""
 
@@ -67,6 +70,9 @@ class NullProgress:
         """No-op."""
 
     def advance(self, *, ran: bool, rerun: bool = False, duration: float = 0.0, description: str = "") -> None:
+        """No-op."""
+
+    def fail(self, description: str = "") -> None:
         """No-op."""
 
     def close(self) -> None:
@@ -98,6 +104,7 @@ class _Tracker:
         self.completed = 0
         self.runs_done = 0
         self.reruns = 0
+        self.failed = 0
         self.run_time = 0.0
         self._start = perf_counter()
 
@@ -113,6 +120,11 @@ class _Tracker:
             self.run_time += duration
         if rerun:
             self.reruns += 1
+        self.render(description)
+
+    def fail(self, description: str = "") -> None:
+        """Record one failed job and refresh the display."""
+        self.failed += 1
         self.render(description)
 
     def elapsed(self) -> float:
@@ -136,16 +148,16 @@ class _Tracker:
         """Jobs reused from the cache."""
         return self.completed - self.runs_done
 
-    def summary(self) -> str:
-        """A one-line summary of the whole drain."""
-        parts = [f"{self.completed} jobs", f"{self.runs_done} run"]
+    def statuses(self) -> list[tuple[str, int]]:
+        """Non-zero status counts as ``(label, count)`` pairs."""
+        statuses = [("run", self.runs_done)]
         if self.reruns:
-            parts.append(f"{self.reruns} rerun")
+            statuses.append(("rerun", self.reruns))
         if self.cached:
-            parts.append(f"{self.cached} cached")
-        parts.append(f"{_fmt_seconds(self.elapsed())}")
-        parts.append(f"{self.rate():.1f} job/s")
-        return " · ".join(parts)
+            statuses.append(("cached", self.cached))
+        if self.failed:
+            statuses.append(("failed", self.failed))
+        return statuses
 
     def render(self, description: str) -> None:
         """Draw the current state; implemented by each renderer."""
@@ -155,17 +167,20 @@ class _Tracker:
 class PlainProgress(_Tracker):
     """A single ANSI line, cleared and rewritten on every advance."""
 
+    _CODES = {"run": "36", "rerun": "33", "cached": "2", "failed": "31"}
+
     def __init__(self, total: int, runs_total: int, *, stream: TextIO) -> None:
         super().__init__(total, runs_total)
         self._stream = stream
 
+    def _colored(self, label: str, count: int) -> str:
+        """Color a status count for an ANSI terminal."""
+        return f"\x1b[{self._CODES[label]}m{count} {label}\x1b[0m"
+
     def render(self, description: str) -> None:
         """Draw one progress line."""
-        line = f"\r\x1b[K{_bar(self.completed, self.total)} {self.completed}/{self.total} · {self.runs_done} run"
-        if self.reruns:
-            line += f" · {self.reruns} rerun"
-        if self.cached:
-            line += f" · {self.cached} cached"
+        counts = " · ".join(self._colored(label, count) for label, count in self.statuses())
+        line = f"\r\x1b[K{_bar(self.completed, self.total)} {self.completed}/{self.total} · {counts}"
         line += f" · elapsed {_fmt_seconds(self.elapsed())} · ETA {_fmt_seconds(self.eta())} · {self.rate():.1f} job/s"
         if description:
             line += f" · {description}"
@@ -173,13 +188,24 @@ class PlainProgress(_Tracker):
         self._stream.flush()
 
     def close(self) -> None:
-        """Replace the bar with the summary and move to a fresh line."""
-        self._stream.write(f"\r\x1b[K{self.summary()}\n")
+        """Replace the bar with a multi-line summary and move to a fresh line."""
+        lines = [
+            "Sweep complete",
+            f"  {self._colored('run', self.runs_done)}",
+        ]
+        if self.reruns:
+            lines.append(f"  {self._colored('rerun', self.reruns)}")
+        lines.append(f"  {self._colored('cached', self.cached)}")
+        lines.append(f"  {self._colored('failed', self.failed)}")
+        lines.append(f"  elapsed {_fmt_seconds(self.elapsed())} · {self.rate():.1f} job/s")
+        self._stream.write("\r\x1b[K" + "\n".join(lines) + "\n")
         self._stream.flush()
 
 
 class RichProgress(_Tracker):
     """A rich-based bar with counts, ETA, throughput and the current job."""
+
+    _COLORS = {"run": "cyan", "rerun": "yellow", "cached": "dim", "failed": "red"}
 
     def __init__(self, total: int, runs_total: int, *, stream: TextIO) -> None:
         super().__init__(total, runs_total)
@@ -216,13 +242,8 @@ class RichProgress(_Tracker):
         self._rich.start()
 
     def _counts(self) -> str:
-        """The ``N run · M rerun · K cached`` breakdown, omitting zero parts."""
-        parts = [f"{self.runs_done} run"]
-        if self.reruns:
-            parts.append(f"{self.reruns} rerun")
-        if self.cached:
-            parts.append(f"{self.cached} cached")
-        return " · ".join(parts)
+        """The status breakdown as colored rich markup."""
+        return " · ".join(f"[{self._COLORS[label]}]{count} {label}[/]" for label, count in self.statuses())
 
     def render(self, description: str) -> None:
         """Refresh the rich display with the current state."""
@@ -236,9 +257,23 @@ class RichProgress(_Tracker):
         )
 
     def close(self) -> None:
-        """Stop the bar and print the summary."""
+        """Stop the bar and print a full summary table."""
         self._rich.stop()
-        self._rich.console.print(f"[bold green]✓[/] {self.summary()}")
+        from rich.table import Table
+
+        table = Table(
+            title="Sweep complete", title_justify="left", show_header=False, border_style="dim", padding=(0, 1)
+        )
+        table.add_column(style="dim", no_wrap=True)
+        table.add_column(justify="right")
+        table.add_row("[cyan]Run[/]", f"[cyan]{self.runs_done}[/]")
+        if self.reruns:
+            table.add_row("[yellow]Rerun[/]", f"[yellow]{self.reruns}[/]")
+        table.add_row("[dim]Cached[/]", f"[dim]{self.cached}[/]")
+        table.add_row("[red]Failed[/]", f"[red]{self.failed}[/]")
+        table.add_row("Elapsed", _fmt_seconds(self.elapsed()))
+        table.add_row("Throughput", f"{self.rate():.1f} job/s")
+        self._rich.console.print(table)
 
 
 def make_progress(
