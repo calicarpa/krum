@@ -13,14 +13,35 @@ terminal. There is no hard dependency on any third-party package.
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 from time import perf_counter
-from typing import Protocol, TextIO
+from typing import Any, Protocol, TextIO
 
-__all__ = ["NullProgress", "Progress", "make_progress"]
+__all__ = ["NullProgress", "Progress", "describe_params", "make_progress"]
+
+
+def describe_params(params: Mapping[str, Any], limit: int = 80) -> str:
+    """Render a job's parameters as a short ``k=v · k=v`` string.
+
+    Class values are shortened to their qualified name, and the whole string
+    is capped so a wide sweep does not fill the terminal.
+    """
+    parts: list[str] = []
+    for name, value in params.items():
+        if isinstance(value, type):
+            value = value.__qualname__
+        parts.append(f"{name}={value}")
+    text = " · ".join(parts)
+    if len(text) > limit:
+        text = text[: limit - 1] + "…"
+    return text or "(no params)"
 
 
 class Progress(Protocol):
     """A live progress display for a single drain."""
+
+    def describe(self, description: str = "") -> None:
+        """Show a job about to start, without advancing the counter."""
 
     def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
         """Record one completed job.
@@ -40,8 +61,11 @@ class Progress(Protocol):
 class NullProgress:
     """A progress display that renders nothing."""
 
+    def describe(self, description: str = "") -> None:
+        """No-op."""
+
     def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
-        """Record one completed job without rendering anything."""
+        """No-op."""
 
     def close(self) -> None:
         """No-op."""
@@ -74,6 +98,10 @@ class _Tracker:
         self.run_time = 0.0
         self._start = perf_counter()
 
+    def describe(self, description: str = "") -> None:
+        """Refresh the display with a job about to run."""
+        self.render(description)
+
     def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
         """Record one completed job and refresh the display."""
         self.completed += 1
@@ -93,6 +121,23 @@ class _Tracker:
         average = self.run_time / self.runs_done
         return average * (self.runs_total - self.runs_done)
 
+    def rate(self) -> float:
+        """Jobs completed per second, or zero before the first."""
+        elapsed = self.elapsed()
+        return self.completed / elapsed if elapsed > 0 else 0.0
+
+    @property
+    def cached(self) -> int:
+        """Jobs reused from the cache."""
+        return self.completed - self.runs_done
+
+    def summary(self) -> str:
+        """A one-line summary of the whole drain."""
+        return (
+            f"{self.completed} jobs · {self.runs_done} run · {self.cached} cached · "
+            f"{_fmt_seconds(self.elapsed())} · {self.rate():.1f} job/s"
+        )
+
     def render(self, description: str) -> None:
         """Draw the current state; implemented by each renderer."""
         raise NotImplementedError
@@ -107,30 +152,30 @@ class PlainProgress(_Tracker):
 
     def render(self, description: str) -> None:
         """Draw one progress line."""
-        line = (
-            f"\r\x1b[K{_bar(self.completed, self.total)} "
-            f"{self.completed}/{self.total} · elapsed {_fmt_seconds(self.elapsed())}"
-            f" · ETA {_fmt_seconds(self.eta())}"
-        )
+        line = f"\r\x1b[K{_bar(self.completed, self.total)} {self.completed}/{self.total} · {self.runs_done} run"
+        if self.cached:
+            line += f" · {self.cached} cached"
+        line += f" · elapsed {_fmt_seconds(self.elapsed())} · ETA {_fmt_seconds(self.eta())} · {self.rate():.1f} job/s"
         if description:
             line += f" · {description}"
         self._stream.write(line)
         self._stream.flush()
 
     def close(self) -> None:
-        """Move to a fresh line so later output does not overwrite the bar."""
-        self._stream.write("\n")
+        """Replace the bar with the summary and move to a fresh line."""
+        self._stream.write(f"\r\x1b[K{self.summary()}\n")
         self._stream.flush()
 
 
 class RichProgress(_Tracker):
-    """A rich-based bar with a spinner, percentage and elapsed column."""
+    """A rich-based bar with counts, ETA, throughput and the current job."""
 
     def __init__(self, total: int, runs_total: int, *, stream: TextIO) -> None:
         super().__init__(total, runs_total)
         from rich.console import Console
         from rich.progress import (
             BarColumn,
+            MofNCompleteColumn,
             SpinnerColumn,
             TextColumn,
             TimeElapsedColumn,
@@ -143,23 +188,44 @@ class RichProgress(_Tracker):
             SpinnerColumn(),
             TextColumn("{task.description}"),
             BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
+            MofNCompleteColumn(),
+            TextColumn("{task.fields[counts]}"),
             TimeElapsedColumn(),
+            TextColumn("ETA {task.fields[eta]}"),
+            TextColumn("{task.fields[rate]}"),
             console=Console(file=stream),
         )
-        self._task = self._rich.add_task("sweep", total=self.total)
+        self._task = self._rich.add_task(
+            "sweep",
+            total=self.total,
+            counts="0 run",
+            eta="--:--",
+            rate="0.0 job/s",
+        )
         self._rich.start()
 
+    def _counts(self) -> str:
+        """The ``N run · M cached`` breakdown, without the cached part at zero."""
+        parts = [f"{self.runs_done} run"]
+        if self.cached:
+            parts.append(f"{self.cached} cached")
+        return " · ".join(parts)
+
     def render(self, description: str) -> None:
-        """Refresh the rich display with the current ETA."""
-        label = f"ETA {_fmt_seconds(self.eta())}"
-        if description:
-            label += f" · {description}"
-        self._rich.update(self._task, completed=self.completed, description=label)
+        """Refresh the rich display with the current state."""
+        self._rich.update(
+            self._task,
+            completed=self.completed,
+            description=description,
+            counts=self._counts(),
+            eta=_fmt_seconds(self.eta()),
+            rate=f"{self.rate():.1f} job/s",
+        )
 
     def close(self) -> None:
-        """Stop the rich display and restore the terminal."""
+        """Stop the bar and print the summary."""
         self._rich.stop()
+        self._rich.console.print(f"[bold green]✓[/] {self.summary()}")
 
 
 def make_progress(

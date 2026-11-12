@@ -53,7 +53,9 @@ class ProgressTest(unittest.TestCase):
         progress.advance(ran=False, duration=0.0)
         progress.advance(ran=True, duration=10.0)
         self.assertEqual(progress.runs_done, 1)
-        self.assertAlmostEqual(progress.eta(), 10.0)
+        eta = progress.eta()
+        assert eta is not None
+        self.assertAlmostEqual(eta, 10.0)
 
 
 if __name__ == "__main__":

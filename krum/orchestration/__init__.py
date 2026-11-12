@@ -61,7 +61,7 @@ from warnings import warn
 from .execution import Executed, InlineRunner, Runner, SubprocessRunner, execute_job
 from .hashing import Hash, Hasher, HashError, Location, Modules, bind_params, static_key
 from .metrics import RESERVED_COLUMNS, InMemoryTable, Metric, MetricTable, NoActiveJob, collect, reserved
-from .progress import make_progress
+from .progress import describe_params, make_progress
 from .storage import (
     JobFolder,
     JobStore,
@@ -642,7 +642,7 @@ class Orchestrator:
                 if not decision.runs:
                     self._queue.popleft()
                     outcomes.append(JobOutcome(key, "skipped", path=self._store.folder_for(key).path))
-                    progress.advance(ran=False, description=f"cached {key[:12]}")
+                    progress.advance(ran=False, description=describe_params(pending.params))
                     continue
                 manifest = build_manifest(
                     key,
@@ -654,6 +654,7 @@ class Orchestrator:
                 )
                 self._warn_if_dirty(manifest)
                 writer = self._store.writer(key, manifest)
+                progress.describe(describe_params(pending.params))
                 started = perf_counter()
                 try:
                     executed = runner.run(writer, pending.callable, pending.params)
@@ -678,7 +679,7 @@ class Orchestrator:
                 self._queue.popleft()
                 duration = perf_counter() - started
                 outcomes.append(JobOutcome(key, "done", duration, done.path, reasons=decision.reasons))
-                progress.advance(ran=True, duration=duration, description=key[:12])
+                progress.advance(ran=True, duration=duration, description=describe_params(pending.params))
         finally:
             progress.close()
         return RunSummary(outcomes)
