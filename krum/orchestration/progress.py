@@ -267,6 +267,11 @@ class RichProgress(_Tracker):
             TextColumn("ETA {task.fields[eta]}"),
             TextColumn("{task.fields[rate]}"),
             console=Console(file=stream),
+            # The bar owns the status stream only: a job that prints must keep
+            # writing to the stdout or stderr it would have written to anyway,
+            # rather than having `sys.stdout` swapped for the duration of a drain.
+            redirect_stdout=False,
+            redirect_stderr=False,
         )
         self._task = self._rich.add_task(
             "sweep",
