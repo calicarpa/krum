@@ -3,6 +3,27 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] — 2026-11-12
+
+Live progress display for sweeps: a drain can now draw on a stream or renderer
+you pass, with colored status counts, throughput, job parameters, retry
+tracking, and a full summary table. Failed jobs are reported with their key,
+parameters, and traceback. A job's own prints stay out of the live display.
+Rich ships in the experiments extra.
+
+### Added
+
+- Live progress while a sweep drains, with counts, throughput, and job parameters.
+- Enriched progress display: colored status counts and a full summary table.
+- Tracking of retried jobs in the progress display.
+- Reporting of a failed job with its key, parameters, and traceback.
+- `rich` in the experiments extra, plus documentation of the live drain display.
+
+### Changed
+
+- A drain can draw on a stream or a renderer you pass.
+- A job's own prints no longer leak into the live display.
+
 ## [0.9.1] — 2026-10-23
 
 Fixes to the orchestrator's change detection: edits it missed in 0.9.0, which
