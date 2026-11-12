@@ -679,7 +679,12 @@ class Orchestrator:
                 self._queue.popleft()
                 duration = perf_counter() - started
                 outcomes.append(JobOutcome(key, "done", duration, done.path, reasons=decision.reasons))
-                progress.advance(ran=True, duration=duration, description=describe_params(pending.params))
+                progress.advance(
+                    ran=True,
+                    rerun="previous attempt failed" in decision.reasons,
+                    duration=duration,
+                    description=describe_params(pending.params),
+                )
         finally:
             progress.close()
         return RunSummary(outcomes)

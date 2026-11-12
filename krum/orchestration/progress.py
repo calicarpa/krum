@@ -43,12 +43,14 @@ class Progress(Protocol):
     def describe(self, description: str = "") -> None:
         """Show a job about to start, without advancing the counter."""
 
-    def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
+    def advance(self, *, ran: bool, rerun: bool = False, duration: float = 0.0, description: str = "") -> None:
         """Record one completed job.
 
         Args:
             ran: Whether the job actually executed, as opposed to being reused
                 from the cache.
+            rerun: Whether the job is being retried after a previous failed
+                attempt.
             duration: How long the job took to execute, in seconds. Ignored
                 when ``ran`` is false.
             description: A short label for the job just finished.
@@ -64,7 +66,7 @@ class NullProgress:
     def describe(self, description: str = "") -> None:
         """No-op."""
 
-    def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
+    def advance(self, *, ran: bool, rerun: bool = False, duration: float = 0.0, description: str = "") -> None:
         """No-op."""
 
     def close(self) -> None:
@@ -95,6 +97,7 @@ class _Tracker:
         self.runs_total = runs_total
         self.completed = 0
         self.runs_done = 0
+        self.reruns = 0
         self.run_time = 0.0
         self._start = perf_counter()
 
@@ -102,12 +105,14 @@ class _Tracker:
         """Refresh the display with a job about to run."""
         self.render(description)
 
-    def advance(self, *, ran: bool, duration: float = 0.0, description: str = "") -> None:
+    def advance(self, *, ran: bool, rerun: bool = False, duration: float = 0.0, description: str = "") -> None:
         """Record one completed job and refresh the display."""
         self.completed += 1
         if ran:
             self.runs_done += 1
             self.run_time += duration
+        if rerun:
+            self.reruns += 1
         self.render(description)
 
     def elapsed(self) -> float:
@@ -133,10 +138,14 @@ class _Tracker:
 
     def summary(self) -> str:
         """A one-line summary of the whole drain."""
-        return (
-            f"{self.completed} jobs · {self.runs_done} run · {self.cached} cached · "
-            f"{_fmt_seconds(self.elapsed())} · {self.rate():.1f} job/s"
-        )
+        parts = [f"{self.completed} jobs", f"{self.runs_done} run"]
+        if self.reruns:
+            parts.append(f"{self.reruns} rerun")
+        if self.cached:
+            parts.append(f"{self.cached} cached")
+        parts.append(f"{_fmt_seconds(self.elapsed())}")
+        parts.append(f"{self.rate():.1f} job/s")
+        return " · ".join(parts)
 
     def render(self, description: str) -> None:
         """Draw the current state; implemented by each renderer."""
@@ -153,6 +162,8 @@ class PlainProgress(_Tracker):
     def render(self, description: str) -> None:
         """Draw one progress line."""
         line = f"\r\x1b[K{_bar(self.completed, self.total)} {self.completed}/{self.total} · {self.runs_done} run"
+        if self.reruns:
+            line += f" · {self.reruns} rerun"
         if self.cached:
             line += f" · {self.cached} cached"
         line += f" · elapsed {_fmt_seconds(self.elapsed())} · ETA {_fmt_seconds(self.eta())} · {self.rate():.1f} job/s"
@@ -205,8 +216,10 @@ class RichProgress(_Tracker):
         self._rich.start()
 
     def _counts(self) -> str:
-        """The ``N run · M cached`` breakdown, without the cached part at zero."""
+        """The ``N run · M rerun · K cached`` breakdown, omitting zero parts."""
         parts = [f"{self.runs_done} run"]
+        if self.reruns:
+            parts.append(f"{self.reruns} rerun")
         if self.cached:
             parts.append(f"{self.cached} cached")
         return " · ".join(parts)

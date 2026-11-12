@@ -57,6 +57,16 @@ class ProgressTest(unittest.TestCase):
         assert eta is not None
         self.assertAlmostEqual(eta, 10.0)
 
+    def test_rerun_is_tracked_separately(self) -> None:
+        """A retried job counts as both run and rerun."""
+        progress = PlainProgress(3, 2, stream=FakeTTY())
+        progress.advance(ran=True, rerun=True, duration=1.0)
+        progress.advance(ran=True, duration=1.0)
+        progress.advance(ran=False)
+        self.assertEqual(progress.runs_done, 2)
+        self.assertEqual(progress.reruns, 1)
+        self.assertEqual(progress.cached, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
