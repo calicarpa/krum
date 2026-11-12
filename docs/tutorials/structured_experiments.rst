@@ -373,6 +373,41 @@ leaves the others alone — so a change to ``MultiKrum`` recomputes the
 MultiKrum configurations and skips the Average ones. Pass ``force=True``
 to the orchestrator to recompute regardless.
 
+Watching a drain
+----------------
+
+On an interactive terminal, ``drain()`` draws a live line with the job in
+flight, how many jobs ran, how many were reused, the elapsed time, and an
+estimated time remaining computed from the jobs that actually executed:
+
+.. code-block:: text
+
+   ⠋ aggregator=MultiKrum · f=1 · seed=9  10 run · 10 cached  0:00:14  ETA 00:02  3.1 job/s
+
+When the drain ends it prints a summary table:
+
+.. code-block:: text
+
+   Sweep complete
+   ┌────────────┬─────────────┐
+   │ Run        │          10 │
+   │ Cached     │          10 │
+   │ Failed     │           0 │
+   │ Elapsed    │       00:14 │
+   │ Throughput │  1.4 job/s  │
+   └────────────┴─────────────┘
+
+``Rerun`` is listed when a job is retried after a failed attempt, and
+``Failed`` counts a job that stopped the drain. The table's layout comes from
+``rich``, which the ``experiments`` extra installs; without it the display
+falls back to a single ANSI line with the same counts. Both are silent when
+standard error is not a terminal, and ``progress=False`` turns them off
+entirely:
+
+.. code-block:: python
+
+   orchestrator = Orchestrator(..., progress=False)
+
 Systematic benchmark
 --------------------
 

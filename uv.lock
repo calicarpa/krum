@@ -550,6 +550,7 @@ experiments = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "rich" },
     { name = "seaborn" },
 ]
 
@@ -568,6 +569,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'experiments'", specifier = ">=2.2.0" },
     { name = "pandas-stubs", marker = "extra == 'dev'", specifier = "~=3.0.2" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "rich", marker = "extra == 'experiments'", specifier = ">=13.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.22" },
     { name = "seaborn", marker = "extra == 'experiments'", specifier = ">=0.13.0" },
     { name = "shibuya", marker = "extra == 'dev'", specifier = ">=2026.7.12" },
