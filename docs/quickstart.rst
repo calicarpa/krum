@@ -9,7 +9,7 @@ Installation
 Supported Python versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This project supports Python **3.10 through 3.14**.
+This project supports Python **3.12 through 3.14**.
 
 From PyPI
 ~~~~~~~~~
