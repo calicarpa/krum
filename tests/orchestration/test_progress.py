@@ -109,6 +109,18 @@ class ProgressTest(unittest.TestCase):
         self.assertEqual(renderer.runs_done, 1)
         self.assertEqual(renderer.completed, 1)
 
+    def test_an_empty_drain_draws_nothing(self) -> None:
+        """Draining an empty queue prints no progress bar and no summary.
+
+        Reading several metrics back with `get` drains once per metric, so a
+        drain of nothing must not print a bare "Sweep complete" each time.
+        """
+        stream = FakeTTY()
+        orchestrator = Orchestrator(Path(tempfile.mkdtemp(prefix="krum-progress-empty-")), progress=stream)
+        summary = orchestrator.drain()
+        self.assertEqual(len(summary.outcomes), 0)
+        self.assertEqual(stream.getvalue(), "")
+
 
 if __name__ == "__main__":
     unittest.main()

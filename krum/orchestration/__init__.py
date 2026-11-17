@@ -630,6 +630,10 @@ class Orchestrator:
             RunFailed: If a run raised, after recording its traceback.
         """
         self._refresh()
+        if not self._queue:
+            # An empty drain has nothing to draw or summarize: repeated `get`
+            # calls would otherwise each print a bare "Sweep complete" table.
+            return RunSummary([])
         with self.runner(self._owned_modules()) as runner:
             return self._drain(runner, force)
 
